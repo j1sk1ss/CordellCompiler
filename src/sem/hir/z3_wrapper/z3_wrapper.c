@@ -12,27 +12,27 @@ typedef struct {
 
 static int _z3c_bv_bits(hir_subject_type_t t) {
     switch (t) {
-        case HIR_TMPVARI0: case HIR_STKVARI0: case HIR_GLBVARI0: return 1;
-        case HIR_TMPVARI8: case HIR_TMPVARU8:
-        case HIR_STKVARI8: case HIR_STKVARU8:
-        case HIR_GLBVARI8: case HIR_GLBVARU8:
-        case HIR_I8NUMBER: case HIR_U8NUMBER:
-        case HIR_I8CONSTVAL: case HIR_U8CONSTVAL: return 8;
-        case HIR_TMPVARI16: case HIR_TMPVARU16:
-        case HIR_STKVARI16: case HIR_STKVARU16:
-        case HIR_GLBVARI16: case HIR_GLBVARU16:
-        case HIR_I16NUMBER: case HIR_U16NUMBER:
+        case HIR_TMPVARI0:    case HIR_STKVARI0: case HIR_GLBVARI0: return 1;
+        case HIR_TMPVARI8:    case HIR_TMPVARU8:
+        case HIR_STKVARI8:    case HIR_STKVARU8:
+        case HIR_GLBVARI8:    case HIR_GLBVARU8:
+        case HIR_I8NUMBER:    case HIR_U8NUMBER:
+        case HIR_I8CONSTVAL:  case HIR_U8CONSTVAL:  return 8;
+        case HIR_TMPVARI16:   case HIR_TMPVARU16:
+        case HIR_STKVARI16:   case HIR_STKVARU16:
+        case HIR_GLBVARI16:   case HIR_GLBVARU16:
+        case HIR_I16NUMBER:   case HIR_U16NUMBER:
         case HIR_I16CONSTVAL: case HIR_U16CONSTVAL: return 16;
-        case HIR_TMPVARI32: case HIR_TMPVARU32:
-        case HIR_STKVARI32: case HIR_STKVARU32:
-        case HIR_GLBVARI32: case HIR_GLBVARU32:
-        case HIR_I32NUMBER: case HIR_U32NUMBER:
+        case HIR_TMPVARI32:   case HIR_TMPVARU32:
+        case HIR_STKVARI32:   case HIR_STKVARU32:
+        case HIR_GLBVARI32:   case HIR_GLBVARU32:
+        case HIR_I32NUMBER:   case HIR_U32NUMBER:
         case HIR_I32CONSTVAL: case HIR_U32CONSTVAL: return 32;
         default: return 64;
     }
 }
 
-static int _z3c_is_bool_subject(hir_subject_t* s) {
+static inline int _z3c_is_bool_subject(hir_subject_t* s) {
     return s && !s->ptr && (
         s->t == HIR_TMPVARI0 ||
         s->t == HIR_STKVARI0 ||
@@ -40,28 +40,27 @@ static int _z3c_is_bool_subject(hir_subject_t* s) {
     );
 }
 
-static int _z3c_is_float_subject(hir_subject_t* s) {
+static inline int _z3c_is_float_subject(hir_subject_t* s) {
     return s && !s->ptr && HIR_is_float(s->t);
 }
 
 static Z3_sort _z3c_sort_for_subject(z3_func_ctx_t* fctx, hir_subject_t* s) {
     Z3_context ctx = fctx->ctx;
-    if (!s) return Z3_mk_bv_sort(ctx, 64);
-    if (s->ptr) return Z3_mk_bv_sort(ctx, 64);
-    if (_z3c_is_bool_subject(s)) return Z3_mk_bool_sort(ctx);
+    if (!s || s->ptr) return Z3_mk_bv_sort(ctx, 64);
+    if (_z3c_is_bool_subject(s))  return Z3_mk_bool_sort(ctx);
     if (_z3c_is_float_subject(s)) return Z3_mk_real_sort(ctx);
-    if (HIR_is_vartype(s->t) || HIR_is_defined_type(s->t)) {
-        return Z3_mk_bv_sort(ctx, _z3c_bv_bits(s->t));
-    }
-
+    if (
+        HIR_is_vartype(s->t) || 
+        HIR_is_defined_type(s->t)
+    ) return Z3_mk_bv_sort(ctx, _z3c_bv_bits(s->t));
     return Z3_mk_uninterpreted_sort(ctx, Z3_mk_string_symbol(ctx, "HIR_opaque"));
 }
 
 static const char* _z3c_ty_prefix(hir_subject_type_t t) {
     switch (t) {
-        case HIR_TMPVARI0: case HIR_STKVARI0: case HIR_GLBVARI0: return "i0";
-        case HIR_TMPVARI8: case HIR_STKVARI8: case HIR_GLBVARI8: return "i8";
-        case HIR_TMPVARU8: case HIR_STKVARU8: case HIR_GLBVARU8: return "u8";
+        case HIR_TMPVARI0:  case HIR_STKVARI0:  case HIR_GLBVARI0:  return "i0";
+        case HIR_TMPVARI8:  case HIR_STKVARI8:  case HIR_GLBVARI8:  return "i8";
+        case HIR_TMPVARU8:  case HIR_STKVARU8:  case HIR_GLBVARU8:  return "u8";
         case HIR_TMPVARI16: case HIR_STKVARI16: case HIR_GLBVARI16: return "i16";
         case HIR_TMPVARU16: case HIR_STKVARU16: case HIR_GLBVARU16: return "u16";
         case HIR_TMPVARI32: case HIR_STKVARI32: case HIR_GLBVARI32: return "i32";
@@ -80,11 +79,11 @@ static const char* _z3c_storage_prefix(hir_subject_type_t t) {
         case HIR_TMPVARARR: case HIR_TMPVARF64: case HIR_TMPVARU64:
         case HIR_TMPVARI64: case HIR_TMPVARF32: case HIR_TMPVARU32:
         case HIR_TMPVARI32: case HIR_TMPVARU16: case HIR_TMPVARI16:
-        case HIR_TMPVARU8: case HIR_TMPVARI8: case HIR_TMPVARI0: return "tmp";
+        case HIR_TMPVARU8:  case HIR_TMPVARI8:  case HIR_TMPVARI0: return "tmp";
         case HIR_GLBVARARR: case HIR_GLBVARF64: case HIR_GLBVARU64:
         case HIR_GLBVARI64: case HIR_GLBVARF32: case HIR_GLBVARU32:
         case HIR_GLBVARI32: case HIR_GLBVARU16: case HIR_GLBVARI16:
-        case HIR_GLBVARU8: case HIR_GLBVARI8: case HIR_GLBVARI0: return "global";
+        case HIR_GLBVARU8:  case HIR_GLBVARI8:  case HIR_GLBVARI0: return "global";
         default: return "stack";
     }
 }
@@ -97,7 +96,7 @@ static Z3_ast _z3c_var(z3_func_ctx_t* fctx, hir_subject_t* s) {
         return cached;
     }
 
-    char name[128];
+    char name[128] = { 0 };
     if (s->ptr) {
         snprintf(
             name,
@@ -130,7 +129,7 @@ static long long _z3c_subject_int_value(hir_subject_t* s) {
     if (!s) return 0;
     if (HIR_is_defined_type(s->t) == 2) return s->storage.cnst.value;
     if (HIR_is_defined_type(s->t) == 1 && s->storage.num.value) {
-        return strtoll(s->storage.num.value->body, NULL, 0);
+        return s->storage.num.value->to_llong(s->storage.num.value);
     }
 
     return 0;
@@ -153,7 +152,7 @@ static Z3_ast _z3c_literal(z3_func_ctx_t* fctx, hir_subject_t* s) {
 
 static Z3_ast _z3c_expr(z3_func_ctx_t* fctx, hir_subject_t* s) {
     if (!s) return NULL;
-    if (HIR_is_vartype(s->t)) return _z3c_var(fctx, s);
+    if (HIR_is_vartype(s->t))      return _z3c_var(fctx, s);
     if (HIR_is_defined_type(s->t)) return _z3c_literal(fctx, s);
     return NULL;
 }
@@ -222,20 +221,23 @@ static Z3_ast _z3c_binary(z3_func_ctx_t* fctx, hir_block_t* h) {
     Z3_ast rhs = _z3c_expr(fctx, h->targ);
     if (!lhs || !rhs) return NULL;
 
-    Z3_context ctx = fctx->ctx;
+    Z3_context ctx   = fctx->ctx;
     Z3_sort lhs_sort = Z3_get_sort(ctx, lhs);
     Z3_sort rhs_sort = Z3_get_sort(ctx, rhs);
     if (!Z3_is_eq_sort(ctx, lhs_sort, rhs_sort)) {
         Z3_sort_kind lhs_kind = Z3_get_sort_kind(ctx, lhs_sort);
         Z3_sort_kind rhs_kind = Z3_get_sort_kind(ctx, rhs_sort);
-        if (lhs_kind == Z3_BV_SORT && rhs_kind == Z3_BV_SORT) {
+        if (
+            lhs_kind != Z3_BV_SORT || 
+            rhs_kind != Z3_BV_SORT
+        ) rhs = _z3c_coerce(fctx, rhs, lhs_sort, HIR_is_sign(h->targ ? h->targ->t : HIR_NOTYPE));
+        else {
             unsigned lhs_bits = Z3_get_bv_sort_size(ctx, lhs_sort);
             unsigned rhs_bits = Z3_get_bv_sort_size(ctx, rhs_sort);
             Z3_sort target_sort = lhs_bits >= rhs_bits ? lhs_sort : rhs_sort;
             lhs = _z3c_coerce(fctx, lhs, target_sort, HIR_is_sign(h->sarg ? h->sarg->t : HIR_NOTYPE));
             rhs = _z3c_coerce(fctx, rhs, target_sort, HIR_is_sign(h->targ ? h->targ->t : HIR_NOTYPE));
-        } 
-        else rhs = _z3c_coerce(fctx, rhs, lhs_sort, HIR_is_sign(h->targ ? h->targ->t : HIR_NOTYPE));
+        }
         
         if (!lhs || !rhs) return NULL;
     }
@@ -334,12 +336,8 @@ static int _z3c_lower_instruction(z3_func_ctx_t* fctx, hir_block_t* h) {
         case HIR_VARDECL:
         case HIR_ARRDECL:
         case HIR_STRDECL:
-        case HIR_REF:
-        case HIR_GDREF:
-        case HIR_STORE_UFCLL:
-        case HIR_STORE_FCLL:
-        case HIR_STORE_ECLL:
-        case HIR_STORE_SYSC: {
+        case HIR_REF: case HIR_GDREF:
+        case HIR_STORE_UFCLL: case HIR_STORE_FCLL: case HIR_STORE_ECLL: case HIR_STORE_SYSC: {
             if (h->farg && HIR_is_vartype(h->farg->t)) _z3c_var(fctx, h->farg);
             return 1;
         }
