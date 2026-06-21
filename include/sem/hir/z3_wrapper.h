@@ -4,8 +4,22 @@
 #include <hir/cfg.h>
 #include <symtab/symtab_id.h>
 #include <symtab/symtab.h>
+#include <std/math.h>
+#ifdef CPL_ENABLE_Z3
+    #include <stdio.h>
+    #include <stdlib.h>
+    #include <z3.h>
+#endif
 
-typedef struct z3_analyzer z3_analyzer_t;
+typedef struct {
+#ifdef CPL_ENABLE_Z3
+    Z3_config    cfg;
+    Z3_context   ctx;
+#endif
+    cfg_ctx_t*   cfg_ctx;
+    sym_table_t* smt;
+    map_t        funcs;
+} z3_analyzer_t;
 
 z3_analyzer_t* Z3A_create(cfg_ctx_t* cfg, sym_table_t* smt);
 int Z3A_unload(z3_analyzer_t* analyzer);

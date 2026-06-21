@@ -1,14 +1,6 @@
 #include <sem/hir/z3_wrapper.h>
 
 #ifdef CPL_ENABLE_Z3
-#include <stdio.h>
-#include <stdlib.h>
-#include <z3.h>
-
-#ifndef MAX
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
-#endif
-
 typedef struct {
     Z3_context  ctx;
     Z3_solver   solver;
@@ -17,14 +9,6 @@ typedef struct {
     map_t       labels;
     int         complete;
 } z3_func_ctx_t;
-
-struct z3_analyzer {
-    Z3_config    cfg;
-    Z3_context   ctx;
-    cfg_ctx_t*   cfg_ctx;
-    sym_table_t* smt;
-    map_t        funcs;
-};
 
 static int _z3c_bv_bits(hir_subject_type_t t) {
     switch (t) {
@@ -576,8 +560,7 @@ int Z3_can_reach_label_ctx(z3_analyzer_t* analyzer, cfg_func_t* function, long l
 }
 #else
 z3_analyzer_t* Z3A_create(cfg_ctx_t* cfg, sym_table_t* smt) {
-    (void)cfg;
-    (void)smt;
+    (void)cfg; (void)smt;
     return NULL;
 }
 
@@ -587,17 +570,12 @@ int Z3A_unload(z3_analyzer_t* analyzer) {
 }
 
 int Z3_can_vid_be_equal_ctx(z3_analyzer_t* analyzer, cfg_func_t* function, symbol_id_t v_id, long long value) {
-    (void)analyzer;
-    (void)function;
-    (void)v_id;
-    (void)value;
+    (void)analyzer; (void)function; (void)v_id; (void)value;
     return 2;
 }
 
 int Z3_can_reach_label_ctx(z3_analyzer_t* analyzer, cfg_func_t* function, long l_id) {
-    (void)analyzer;
-    (void)function;
-    (void)l_id;
+    (void)analyzer; (void)function; (void)l_id;
     return 1;
 }
 #endif
