@@ -18,6 +18,7 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{pgfplots}
+\usepackage{placeins}
 \pgfplotsset{compat=1.18}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,fit,backgrounds}
@@ -62,8 +63,7 @@
 
 \title{CPL: A Compact C-like Systems Language with Explicit Low-Level Control}
 \author{
-  \normalsize Nikolai Fot \and
-  \normalsize Alexander Vinarskiy \\
+  \normalsize Nikolai Fot \and \normalsize Alexander Vinarskiy \\
   \normalsize Compiler Technology Department, \\
   \normalsize Ivannikov Institute for System Programming of the Russian Academy of Sciences (ISP RAS)
 }
@@ -73,61 +73,62 @@
 \maketitle
 
 \begin{abstract}
-\par This paper presents Cordell Programming Language (CPL), a compact C-like systems language that keeps C's direct access to memory, layout, and machine interfaces while experimenting with a smaller grammar and selected conveniences from newer languages. CPL provides primitive values, pointers, arrays, containers with methods, unions, generic functions, overloads, entry-point and section control, system calls, and inline assembly without attempting source compatibility with full C. The article describes the language design, compiler pipeline, target backends, static-analysis architecture, and OS-facing use cases, then evaluates the prototype backend with reproducible x86\_64 and i386 microbenchmarks against C compiler baselines.
+\par This paper presents Cordell Programming Language (CPL), a compact C-like systems language that keeps C's direct access to memory, layout, and machine interfaces while experimenting with a smaller grammar and selected conveniences from newer languages. Also this page studies whether it is more comvenient to use C-like modified languages as testbeds for compiler experiments or use modern approaches and paradigms. While the langauge and compiler provides primitive values, pointers, arrays, containers with methods, unions, generic functions, overloads, entry-point and section control, system calls, and inline assembly, it doesn't provide any high-level instructions such as classes, in-built methods, standart library, memory protection, etc. The article describes the language design, compiler pipeline, target backends, static-analysis architecture, and OS-facing use cases, then evaluates the prototype backend with reproducible x86\_64 and i386 microbenchmarks against C compiler baselines. The gathered results show that the compiler can produce code which can be compared with code that is produced by production compilers such as GCC, CLang and small compilers such as TinyC, SmallerC, etc.
 \end{abstract}
 
 \section{Introduction}
 \par Systems programming languages expose machine-level details while attempting to keep programs tractable. Mature languages such as C~\cite{ritchie1978c,kernighan1988c}, C++~\cite{stroustrup2007cpp,stroustrup2013cpp}, Rust~\cite{klabnik2023rust,jung2018rustbelt}, and Zig~\cite{ziglangref} provide large ecosystems, but their full syntactic and semantic complexity makes them expensive targets for compiler experiments. Conversely, many teaching compilers are intentionally small but do not expose enough low-level mechanisms to study system-oriented code generation, platform-specific interfaces, and optimization under realistic constraints.
-\par CPL is not a C subset. A faithful C-like subset would either require a substantially more complex parser and semantic model, or would create misleading expectations that the rest of C should also be supported. The design instead favors a compact parser-friendly grammar, explicit syntax for functions and pointer-like operations, and compiler-supported low-level constructs.
+\par To address this issue it's a great idea to build a new small compiler (and a language) to create a convenient testbed for learning and experiments. The compiler has more opportunities for available experiments given the nature of optimizations and a new language can reflect modern syntax that is common among the languages such as Rust, C, C++ and Zig. The reason of a new grammar lays in a fact, that a faithful C-like, Rust-like, Zig-like, etc. subset would either require a substantially more complex parser and semantic model, or would create misleading expectations that the rest of the language should also be supported. The design instead favors a compact parser-friendly grammar, explicit syntax for functions and pointer-like operations, and compiler-supported low-level constructs.
 \par The central research problem is the tension between implementation compactness and systems-level adequacy. Reducing a language and compiler makes experimentation and inspection easier, but can remove the layout controls, ABI mechanisms, analyses, and backend structure needed for realistic low-level programs. This article studies CPL as a C-like language design that keeps the directness of C while experimenting with a smaller grammar and selected modern conveniences.
 
-\par The contributions of this article are:
-\begin{itemize}[leftmargin=*]
-  \item a compact systems-language design combining typed data layout with explicit entry-point, section, register, syscall, and inline-assembly controls;
-  \item a multi-stage implementation with HIR, SSA, LIR, instruction selection, register allocation, and generated peephole rewrites;
-  \item a qualitative Multiboot case study showing which bootstrap responsibilities can be represented in typed CPL and which remain assembly-specific;
-  \item preliminary performance evidence across x86-64 and i386 Linux backends;
-  \item an SSA/SMT diagnostic architecture whose demonstrated capabilities and unmeasured properties are separated from implementation claims.
-\end{itemize}
-
-\subsection{Design Scope}
-\par The language stays close to assembly and C by exposing pointers, explicit dereferencing, C-like containers, direct system calls, inline assembly, manual entry points, and annotations for placement and control. It deliberately avoids reproducing the full C grammar and semantics. The compiler includes enough phase separation to study SSA construction~\cite{cytron1991ssa}, diagnostics, scalar optimization, low-level selection, register allocation, and peephole rewriting.
-\par CPL minimizes dependencies on a host standard library. The compiler supports x86-64 Mach-O, x86-64 Linux, and i386 Linux assembly paths. The Mach-O path is the oldest backend, while the Linux paths are important for freestanding and OS-oriented examples.
-
-\subsection{Non-Goals}
-\par CPL does not claim any of the following properties:
-\begin{itemize}[leftmargin=*]
-  \item formal verification of the compiler;
-  \item memory safety or ownership checking;
-  \item production readiness of CPL as a general-purpose language;
-  \item source-level compatibility with C;
-  \item a mechanized semantics or compiler-correctness proof;
-  \item a general-purpose standard library or package ecosystem.
-\end{itemize}
-
-\par CPL supports lightweight containers as C-like aggregates, but deliberately avoids classes, constructors, destructors, inheritance, traits, and ownership-based object models. This keeps the language focused on primitive values, pointers, arrays, containers, functions, and explicit low-level constructs.
-
 \section{Language Overview}
-\subsection{Program Entry}
-\par A CPL program can use a \texttt{start} block as its static entry point. The entry block does not return a value with \texttt{return}; it must terminate through \texttt{exit}. An ordinary function can also become an entry point through the \texttt{@[entry]} annotation.
+\par The language stays close to assembly and C by exposing pointers, explicit dereferencing, C-like structures, direct system calls, inline assembly, manual entry points, and annotations for placement and control. It deliberately avoids reproducing the full C grammar and semantics. The compiler includes enough phase separation to study SSA-form construction~\cite{cytron1991ssa}, diagnostics, scalar optimization, low-level selection, register allocation, and peephole rewriting.
 
+\subsection{Program Entry}
+\par A program can use a \texttt{start} block as its static entry point. The entry block does not return a value with \texttt{return}; it must terminate through \texttt{exit}. An ordinary function can also become an entry point through the \texttt{@[entry]} annotation. The \texttt{start} structure was choosen given the basic name of a function which is an entry point during the standart linker process with the \texttt{ld} tool on Linux. In most cases it is more convenient to use the \texttt{@[entry]} annotation rather then explicit \texttt{start} function.
+
+\FloatBarrier
 \begin{lstlisting}[language=CPL,caption={Minimal CPL entry point.}]
+:/ The final name depends on the architecture /:
 start() {
     exit 0;
 }
+
+:/ 'main' is the name in the final assembly file /:
+@[entry("main")] function main() {
+}
 \end{lstlisting}
+\FloatBarrier
 
 \par The entry point may accept arguments, such as \texttt{argc} and \texttt{argv}, and can be annotated for platform-specific entry behavior. The \texttt{naked} annotation disables default entry and exit routines, which is useful for system-level code that must manage its own prologue and epilogue. On i386 this also affects how stack arguments are addressed, as discussed in Section~\ref{sec:i386-abi}.
 
 \subsection{Types}
-\par CPL uses permissive static typing. Variables do not dynamically change type, widening conversions may be inserted implicitly, and narrowing conversions require an explicit \texttt{as} cast. The primitive integer and floating-point types include \texttt{i8}, \texttt{u8}, \texttt{i16}, \texttt{u16}, \texttt{i32}, \texttt{u32}, \texttt{i64}, \texttt{u64}, \texttt{f32}, \texttt{f64}, and the void-like function return type \texttt{i0}. Boolean-like logic follows the C convention: zero is false and non-zero is true.
+\par CPL uses permissive static typing. Variables do not dynamically change type, widening conversions may be inserted implicitly, and narrowing conversions require an explicit \texttt{as} cast. The primitive integer and floating-point types include \texttt{i8}, \texttt{u8}, \texttt{i16}, \texttt{u16}, \texttt{i32}, \texttt{u32}, \texttt{i64}, \texttt{u64}, \texttt{f32}, \texttt{f64}, and the void-like function return type \texttt{i0}. Boolean-like logic follows the C convention: zero is false and non-zero is true. The sizes can be seen in the Table~\ref{tab:type_sizes}. The largest type size depends on the target system.
+
+\begin{table}[t]
+    \centering
+    \footnotesize
+    \caption{Type size on x86\_64 GNU.}
+    \label{tab:type_sizes}
+    \begin{tabular}{p{0.24\linewidth}p{0.20\linewidth}p{0.32\linewidth}}
+    \toprule
+    Type          & Size (bytes) \\
+    \midrule
+    u8, i8        & 1             \\
+    u16, i16      & 2             \\
+    u32, i32, f32 & 4             \\
+    u64, i64, f64 & 8             \\
+    \bottomrule
+    \end{tabular}
+\end{table}
 
 \subsection{Pointers, Strings, and Arrays}
-\par The language exposes pointer types through the \texttt{ptr} modifier. The \texttt{ref} keyword obtains a pointer to an object or string literal, and \texttt{dref} reads or writes through a pointer.
+\par The language exposes pointer types through the \texttt{ptr} modifier. In difference with an asterisk, the explicit \texttt{ptr} keyword helps to identify pointers and sets the one rule of formatting. The \texttt{ref} keyword obtains a pointer to an object or string literal, and \texttt{dref} reads or writes through a pointer.
 
 \begin{lstlisting}[language=CPL,caption={Pointer operations in CPL.}]
 i32 x = 123;
 ptr i32 p = ref x;
+:/ While C supports int* p; int *p; int * p; /:
 i32 y = dref p;
 dref p = y + 1;
 \end{lstlisting}
@@ -135,8 +136,8 @@ dref p = y + 1;
 \par Strings and arrays are distinct built-in containers. A \texttt{arr[0, i8]} allocates a terminated byte sequence, while \texttt{arr} declares a fixed-size array. String literals placed independently in code reside in a read-only section-like area and must be referenced explicitly.
 
 \begin{lstlisting}[language=CPL,caption={Strings and arrays.}]
-arr msg[0, i8] = "Hello world!";
-arr xs[4, i32] = { 1, 2, 3, 4 };
+arr msg[0, i8] = "Hello world!"; :/ Compiler sets the size by itself, which means we can provide '0' /:
+arr xs[4, i32] = { 1, 2, 3, 4 }; :/ We can set the exact size for an array /:
 ptr i8 p = ref "Hello, World!\n";
 \end{lstlisting}
 

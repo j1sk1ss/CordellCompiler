@@ -1,4 +1,3 @@
-/* funcs.c - Split input HIR instructions by function blocks. */
 #include <hir/cfg.h>
 
 cfg_block_t* HIR_CFG_function_findlb(cfg_func_t* f, unsigned long lbid) {

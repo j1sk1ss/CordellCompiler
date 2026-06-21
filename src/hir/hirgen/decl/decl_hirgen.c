@@ -19,7 +19,7 @@ static int _str_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) 
     if (VRTB_get_info_id(name->sinfo.v_id, &vi, &smt->v) && vi.vfs.glob) {
         char* head = value->t->body->body;
         while (head && *head) ARTB_add_elems(vi.v_id, *(head++), &smt->a);
-        ARTB_add_elems(vi.v_id, 0, &smt->a);
+        ARTB_add_elems(vi.v_id, 0, &smt->a); /* C-string */
     }
 
     return 1;
@@ -143,7 +143,7 @@ int HIR_generate_declaration_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t
         return _starr_declaration(node, ctx, smt);
     }
 
-    /* Don't declare a variable if it is global.
+    /* Do not declare a variable if it is global.
        All essential info already in the symtable. */
     if (!TKN_in_stack(name->t)) {
         variable_info_t vi;

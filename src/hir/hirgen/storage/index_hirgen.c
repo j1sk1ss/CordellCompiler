@@ -2,13 +2,13 @@
 
 /* Extract the final element size from the pointed data.
 Params:
-    - `indexed_t` - Type id of the whole indexation expression.
+    - `index_type` - Type id of the whole indexation expression.
     - `base` - The subject which represents an array or a pointer.
     - `smt` - Symtable.
 
 Returns the element size of the pointed data in bytes. */
-static int _get_pointed_element_size(symbol_id_t indexed_t, hir_subject_t* base, sym_table_t* smt) {
-    long type_size = TPTB_get_memory_size_id(indexed_t, &smt->t);
+static int _get_pointed_element_size(symbol_id_t index_type, hir_subject_t* base, sym_table_t* smt) {
+    long type_size = TPTB_get_memory_size_id(index_type, &smt->t);
     if (type_size != FIELD_NO_CHANGE) return type_size;
 
     array_info_t ai;

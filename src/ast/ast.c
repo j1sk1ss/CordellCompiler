@@ -97,7 +97,7 @@ int AST_remove_node(ast_node_t* parent, ast_node_t* child) {
     while (current) {
         if (current == child) {
             if (prev) prev->siblings.n = current->siblings.n;
-            else parent->c = current->siblings.n;
+            else      parent->c = current->siblings.n;
             found = 1;
             break;
         }
@@ -106,11 +106,7 @@ int AST_remove_node(ast_node_t* parent, ast_node_t* child) {
         current = current->siblings.n;
     }
 
-    if (found) {
-        child->siblings.n = NULL;
-        child->p = NULL;
-    }
-
+    if (found) child->siblings.n = child->p = NULL;
     return found;
 }
 

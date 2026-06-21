@@ -1,4 +1,3 @@
-/* dom.c - Compute dominance, strict dominance and dominance frontier */
 #include <hir/cfg.h>
 
 int HIR_CFG_compute_dom(cfg_func_t* fb) {

@@ -3,15 +3,13 @@
 #define FREE_LIST_COUNT 32
 #define MIN_SPLIT_SIZE  ALIGNMENT
 
-typedef union mm_heap_storage {
-    unsigned long long align;
+typedef union {
+    unsigned long long __align;
     unsigned char      buffer[ALLOC_BUFFER_SIZE];
 } mm_heap_storage_t;
 
 static mm_heap_storage_t _mm_storage;
-#define _buffer (_mm_storage.buffer)
-
-static mm_block_t* _mm_head = (mm_block_t*)_buffer;
+static mm_block_t* _mm_head = (mm_block_t*)_mm_storage.buffer;
 static mm_block_t* _free_lists[FREE_LIST_COUNT];
 static int _allocated = 0;
 
@@ -36,7 +34,8 @@ static void _remove_free_block(mm_block_t* block) {
 
     if (block->prev_free) {
         block->prev_free->next_free = block->next_free;
-    } else {
+    } 
+    else {
         _free_lists[idx] = block->next_free;
     }
 
@@ -100,15 +99,10 @@ static void _split_block(mm_block_t* block, size_t size) {
 
 static mm_block_t* _find_free_block(size_t size) {
     int idx = _free_list_index(size);
-
     for (int i = idx; i < FREE_LIST_COUNT; i++) {
         mm_block_t* current = _free_lists[i];
-
         while (current) {
-            if (current->size >= size) {
-                return current;
-            }
-
+            if (current->size >= size) return current;
             current = current->next_free;
         }
     }
@@ -118,8 +112,8 @@ static mm_block_t* _find_free_block(size_t size) {
 
 static int _ptr_in_heap(void* ptr) {
     return ptr &&
-           ptr >= (void*)(_buffer + sizeof(mm_block_t)) &&
-           ptr <  (void*)(_buffer + ALLOC_BUFFER_SIZE);
+           ptr >= (void*)(_mm_storage.buffer + sizeof(mm_block_t)) &&
+           ptr <  (void*)(_mm_storage.buffer + ALLOC_BUFFER_SIZE);
 }
 
 int mm_init() {
@@ -129,12 +123,12 @@ int mm_init() {
 
     _allocated = 0;
 
-    _mm_head = (mm_block_t*)_buffer;
-    _mm_head->magic = MM_BLOCK_MAGIC;
-    _mm_head->size = ALLOC_BUFFER_SIZE - sizeof(mm_block_t);
-    _mm_head->free = 1;
-    _mm_head->next = NULL;
-    _mm_head->prev = NULL;
+    _mm_head            = (mm_block_t*)_mm_storage.buffer;
+    _mm_head->magic     = MM_BLOCK_MAGIC;
+    _mm_head->size      = ALLOC_BUFFER_SIZE - sizeof(mm_block_t);
+    _mm_head->free      = 1;
+    _mm_head->next      = NULL;
+    _mm_head->prev      = NULL;
     _mm_head->next_free = NULL;
     _mm_head->prev_free = NULL;
 

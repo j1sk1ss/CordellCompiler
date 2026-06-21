@@ -4,8 +4,7 @@ int AST_init_ctx(ast_ctx_t* ctx) {
     str_memset(ctx, 0, sizeof(ast_ctx_t));
     stack_init(&ctx->scopes.stack);
     stack_init(&ctx->annots);
-    ctx->t_id        = NO_SYMBOL_ID;
-    ctx->carry.pfunc = NO_SYMBOL_ID;
+    ctx->t_id = ctx->carry.pfunc = NO_SYMBOL_ID;
     return 1;
 }
 
@@ -17,7 +16,7 @@ static int _append_root_children(ast_node_t* dst, ast_node_t* src) {
         child->siblings.n = child->siblings.t = NULL;
         AST_add_node(dst, child);
     }
-
+    
     AST_unload(src);
     return 1;
 }

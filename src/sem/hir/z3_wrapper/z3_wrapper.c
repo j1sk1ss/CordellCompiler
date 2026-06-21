@@ -510,14 +510,14 @@ static int _z3c_any_terminal_path(z3_func_ctx_t* fctx, cfg_block_t* curr, Z3_ast
     return 0;
 }
 
+#define MAX_DEPTH(f) MAX(16, _z3c_block_count(f) * 4)
 static int _z3c_can_reach_label(z3_analyzer_t* analyzer, cfg_func_t* function, long label_id) {
     z3_func_ctx_t* fctx = _z3c_get_function(analyzer, function);
     if (!fctx || !fctx->complete) return -1;
     cfg_block_t* target = NULL;
     if (!map_get(&fctx->labels, label_id, (void**)&target) || !target) return 0;
     cfg_block_t* entry = (cfg_block_t*)list_get_head(&function->blocks);
-    int max_depth = MAX(16, _z3c_block_count(function) * 4);
-    return _z3c_any_path_to_block(fctx, entry, target, 0, max_depth);
+    return _z3c_any_path_to_block(fctx, entry, target, 0, MAX_DEPTH(function));
 }
 
 static int _z3c_can_vid_be_equal(z3_analyzer_t* analyzer, cfg_func_t* function, symbol_id_t v_id, long long value) {
@@ -528,15 +528,15 @@ static int _z3c_can_vid_be_equal(z3_analyzer_t* analyzer, cfg_func_t* function, 
     if (!map_get(&fctx->vars, (long)v_id, (void**)&var) || !var) return 3;
 
     Z3_sort sort = Z3_get_sort(fctx->ctx, var);
-    Z3_ast val = Z3_get_sort_kind(fctx->ctx, sort) == Z3_BOOL_SORT
+    Z3_ast val   = Z3_get_sort_kind(fctx->ctx, sort) == Z3_BOOL_SORT
         ? (value ? Z3_mk_true(fctx->ctx) : Z3_mk_false(fctx->ctx))
         : Z3_mk_int64(fctx->ctx, value, sort);
-    Z3_ast eq = Z3_mk_eq(fctx->ctx, var, val);
+    Z3_ast eq  = Z3_mk_eq(fctx->ctx, var, val);
     Z3_ast neq = Z3_mk_not(fctx->ctx, eq);
 
     cfg_block_t* entry = (cfg_block_t*)list_get_head(&function->blocks);
-    int max_depth = MAX(16, _z3c_block_count(function) * 4);
-    int can_equal = _z3c_any_terminal_path(fctx, entry, eq, 0, max_depth);
+    int max_depth  = MAX_DEPTH(function);
+    int can_equal  = _z3c_any_terminal_path(fctx, entry, eq, 0, max_depth);
     int can_differ = _z3c_any_terminal_path(fctx, entry, neq, 0, max_depth);
 
     if (can_equal && !can_differ) return 1;
@@ -544,6 +544,7 @@ static int _z3c_can_vid_be_equal(z3_analyzer_t* analyzer, cfg_func_t* function, 
     if (!can_equal && can_differ) return 0;
     return 3;
 }
+#undef MAX_DEPTH
 
 int Z3_can_vid_be_equal_ctx(z3_analyzer_t* analyzer, cfg_func_t* function, symbol_id_t v_id, long long value) {
     int result = _z3c_can_vid_be_equal(analyzer, function, v_id, value);
