@@ -1,10 +1,19 @@
 CC ?= gcc
+PYTHON ?= python3
+RM ?= rm -f
+MKDIR_P ?= mkdir -p
 
 BUILD ?= debug
 AVAILABLE_MEMORY ?= 16777216
 LOGS ?=
 PRINT_PARSE ?= 1
 ENABLE_Z3 ?= auto
+INPUT ?= examples/print.cpl
+RUN_ARGS ?= --arch x86_64 --sys-type linux64 --asm-format elf64 --linker gcc --linker-no-pie
+MODULE ?= asm
+TEST_CODE ?= dummy_data/simple.cpl
+UTEST ?= code_utesting
+STD_UTEST ?= std_utesting
 
 Z3_AVAILABLE := $(shell pkg-config --exists z3 2>/dev/null && echo 1 || echo 0)
 ifeq ($(ENABLE_Z3),auto)
@@ -29,10 +38,10 @@ PLATFORM ?= $(shell uname -s | tr '[:upper:]' '[:lower:]')-$(shell uname -m | tr
 SOURCES := $(sort $(shell find src std -type f -name '*.c'))
 OUTPUT = builds/$(PLATFORM)/cplc
 
-CPPFLAGS = -Iinclude -DALLOC_BUFFER_SIZE=$(AVAILABLE_MEMORY)
-CFLAGS = -Wall -Wno-int-conversion
-LDFLAGS =
-LDLIBS =
+CPPFLAGS += -Iinclude -DALLOC_BUFFER_SIZE=$(AVAILABLE_MEMORY)
+CFLAGS += -Wall -Wno-int-conversion
+LDFLAGS +=
+LDLIBS +=
 
 ifeq ($(BUILD),debug)
 	CFLAGS += -g -O0
@@ -83,14 +92,40 @@ ifneq ($(filter special,$(LOGS)),)
 	CPPFLAGS += -DSPECIAL_LOGS
 endif
 
-all: $(OUTPUT)
+all: $(OUTPUT) ## Build the compiler with the current configuration.
 
 $(OUTPUT): $(SOURCES)
-	@mkdir -p $(dir $@)
+	@$(MKDIR_P) $(dir $@)
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(SOURCES) -o $@ $(LDFLAGS) $(LDLIBS)
 
-clean:
-	rm -rf builds
+debug: ## Build a debug compiler.
+	$(MAKE) BUILD=debug all
+
+release: ## Build an optimized compiler.
+	$(MAKE) BUILD=release PRINT_PARSE=0 all
+
+run: $(OUTPUT) ## Compile INPUT with the built compiler.
+	$(OUTPUT) $(RUN_ARGS) $(INPUT)
+
+test: ## Run integration tests, e.g. make test MODULE=asm.
+	cd tests && $(PYTHON) integrated_testing.py --run --module $(MODULE) --test-code $(TEST_CODE) --compiler $(CC) --output-dir bin --base ../
+
+unit-test: ## Run module tests, e.g. make unit-test UTEST=code_utesting/ast.
+	cd tests && $(PYTHON) module_testing.py --path $(UTEST) --compiler $(CC) --output-dir bin --base ../
+
+rewrite-test: ## Rewrite OUTPUT blocks for module tests.
+	cd tests && $(PYTHON) module_testing.py --path $(UTEST) --compiler $(CC) --output-dir bin --base ../ --force-rewrite
+
+std-test: ## Run std library tests, e.g. make std-test STD_UTEST=std_utesting/list.
+	cd tests && $(PYTHON) std_testing.py --path $(STD_UTEST) --compiler $(CC) --output-dir bin --base ../
+
+clean: ## Remove compiler build outputs.
+	$(RM) -r builds
+
+clean-tests: ## Remove test binaries.
+	$(RM) -r tests/bin
+
+distclean: clean clean-tests ## Remove all generated build/test outputs.
 
 print-sources:
 	@printf "%s\n" $(SOURCES)
@@ -110,5 +145,11 @@ print-config:
 	@echo "Z3_CFLAGS=$(Z3_CFLAGS)"
 	@echo "Z3_LDLIBS=$(Z3_LDLIBS)"
 	@echo "LOGS=$(LOGS)"
+	@echo "INPUT=$(INPUT)"
+	@echo "RUN_ARGS=$(RUN_ARGS)"
 
-.PHONY: all clean print-sources print-config
+help:
+	@awk 'BEGIN {FS = ":.*## "; printf "Usage: make <target> [VAR=value]\n\nTargets:\n"} /^[a-zA-Z0-9_.-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+
+.DELETE_ON_ERROR:
+.PHONY: all debug release run test unit-test rewrite-test std-test clean clean-tests distclean print-sources print-config help

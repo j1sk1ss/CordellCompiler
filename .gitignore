@@ -1,25 +1,43 @@
-/.vscode
-/input.txt
-/test
-builds/
+# Editor and OS files
+/.vscode/
 .DS_Store
+
+# Local inputs and scratch files
+/input.txt
+/test/
+
+# Build outputs
+/bin/
+/builds/
+/tests/bin/
+
+# Generated compiler artifacts
 *.asm
-*.o
-*.log
-vscode/node_modules
-vscode/out
-package-lock.json
 *.bin
-tests/bin
-docs/gifs/
-__pycache__
-*.fls
-*.out
-*.fdb_latexmk
-*.aux
-*.gz
-*.bbl
-*.blg
-*.s
 *.ir
 *.lir
+*.log
+*.o
+*.s
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# VS Code extension
+/vscode/node_modules/
+/vscode/out/
+package-lock.json
+
+# Documentation
+/docs/gifs/
+
+# LaTeX auxiliary files
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.gz
+*.out

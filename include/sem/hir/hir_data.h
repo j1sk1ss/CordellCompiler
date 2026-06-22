@@ -8,6 +8,7 @@
 #include <hir/cfg.h>
 #include <hir/dag.h>
 #include <hir/dump.h>
+#include <sem/hir/z3_wrapper.h>
 
 typedef enum {
     SETPOS_INST   = 1 << 0,
