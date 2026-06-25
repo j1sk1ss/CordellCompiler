@@ -184,6 +184,7 @@ int main(int argc, char* argv[]) {
     };
     LIR_RA_sort_phi_movs(&cfgctx, &colors);
     LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel);
+    LIR_register_copy_propagation(&cfgctx);
 
     LIR_destroy_ssa(&cfgctx);
 

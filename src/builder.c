@@ -800,6 +800,11 @@ int main(int argc, char* argv[]) {
         LIR_regalloc(&cfgctx, &smt, &colors);
         LIR_RA_sort_phi_movs(&cfgctx, &colors);
         LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel);
+        
+        if (options.config.copy_prop) {
+            LIR_register_copy_propagation(&cfgctx);
+        }
+
         LIR_destroy_ssa(&cfgctx);
         LIR_save_registers(&cfgctx, &callctx, &smt, &reg_save);
 
