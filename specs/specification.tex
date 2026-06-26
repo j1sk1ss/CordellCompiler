@@ -187,17 +187,16 @@ container counter {
 
     @[self]
     function init(ptr counter self) -> i0 {
-        self.val = 0;
+        self.val = 100;
     }
 }
 
 counter c;
 c.init();
-c.val; :/ 0 /:
+c.val; :/ 100 /:
 \end{lstlisting}
 
 \par Containers should therefore be treated as modified C structures with optional attached functions. Initialization, cleanup, and ownership-like behavior must be written explicitly by the programmer.
-
 \par Containers may also represent unions. With \texttt{@[union]}, all fields share offset zero and the aggregate size is determined by its largest field together with the selected alignment policy. The annotation composes with \texttt{@[align]} and \texttt{@[like\_c]}.
 
 \begin{lstlisting}[language=CPL,caption={Union container with C-compatible layout.}]

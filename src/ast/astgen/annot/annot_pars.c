@@ -73,7 +73,7 @@ ast_node_t* cpl_parse_annot(PARSER_ARGS) {
     }
 
     if (!consume_token(it, UNKNOWN_STRING_TOKEN)) {
-        PARSE_ERROR("Expected the 'unknown string' token after the annotation's start!");
+        PARSE_ERROR("Expected a string token after the annotation's start!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }

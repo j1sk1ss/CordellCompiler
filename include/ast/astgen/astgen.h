@@ -284,22 +284,6 @@ Returns an ast node.
 ast_node_t* cpl_parse_extern(PARSER_ARGS);
 
 /*
-Parse .cpl exit block. Should be invoked on a 'exit' token.
-Snippet:
-```cpl
-exit : statement :;
-```
-
-Params:
-    - `it` - Current iterator on token list.
-    - `ctx` - AST ctx.
-    - `smt` - Symtable pointer.
-
-Returns an ast node.
-*/
-ast_node_t* cpl_parse_exit(PARSER_ARGS);
-
-/*
 Parse .cpl return block. Should be invoked on a 'return' token.
 Snippet:
 ```cpl
