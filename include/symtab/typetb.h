@@ -17,27 +17,27 @@ typedef enum {
 } type_type_t;
 
 typedef struct {
-    symbol_id_t      id;
-    symbol_id_t      p;       /* parent of the copy  */
+    symbol_id_t     id;
+    symbol_id_t     p;       /* parent of the copy  */
 
-    string_t*        name;    /* Type name           */
-    symbol_id_t      s_id;
-    symbol_id_t      cs_id;   /* Child's scope Id    */
-    type_type_t      t;       /* type's type         */
-    token_type_t     tt;
+    string_t*       name;    /* Type name           */
+    symbol_id_t     s_id;
+    symbol_id_t     cs_id;   /* Child's scope Id    */
+    type_type_t     t;       /* type's type         */
+    token_type_t    tt;
     
     struct {
-        long         size;    /* Type's size (hook)  */
-        int          ptr;
-        char         align;
-        char         multiple;
+        long        size;    /* Type's size (hook)  */
+        int         ptr;
+        char        align;
+        char        multiple;
     } memory;
     
     struct {
-        list_t       c;
-        symbol_id_t  p;
-        string_t*    name;    /* Linked name         */
-        symbol_id_t  v_id;
+        list_t      c;
+        symbol_id_t p;
+        string_t*   name;    /* Linked name         */
+        symbol_id_t v_id;
     } link;
 } type_info_t;
 

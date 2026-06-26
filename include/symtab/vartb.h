@@ -7,25 +7,25 @@
 #include <symtab/symtab_id.h>
 
 typedef struct {
-    symbol_id_t            v_id;     /* Variable ID                      */
-    symbol_id_t            p_id;     /* Parent variable ID (def: -1)     */
-    symbol_id_t            s_id;     /* Scope ID                         */
-    string_t*              name;    
-    token_type_t           type;     /* Variable type                    */
-    symbol_id_t            t_id;     /* Varaible's type ID               */
-    basic_object_info_t    vfs;
+    symbol_id_t         v_id;     /* Variable ID                      */
+    symbol_id_t         p_id;     /* Parent variable ID (def: -1)     */
+    symbol_id_t         s_id;     /* Scope ID                         */
+    string_t*           name;    
+    token_type_t        type;     /* Variable type                    */
+    symbol_id_t         t_id;     /* Varaible's type ID               */
+    basic_object_info_t vfs;
 
     struct {
-        short              align;
-        long               offset;
-        long               size;
-        char               reg;
-        char               allocated : 1;
+        short           align;
+        long            offset;
+        long            size;
+        char            reg;
+        char            allocated : 1;
     } vmi; /* VariableMemoryInfo     */
 
     struct {
-        long               definition;
-        char               defined;
+        long            definition;
+        char            defined;
     } vdi; /* VariableDefinitionInfo */
 } variable_info_t;
 

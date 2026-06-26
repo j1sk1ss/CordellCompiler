@@ -8,12 +8,12 @@
 #include <symtab/symtab_id.h>
 
 typedef struct {
-    char              vla : 1;
-    symbol_id_t       v_id;
-    long              size;
-    list_t            elems;
+    char                    vla : 1;
+    symbol_id_t             v_id;
+    long                    size;
+    list_t                  elems;
     struct {
-        token_type_t  el_type;
+        token_type_t        el_type;
         basic_object_info_t el_flags;
     } elements_info;
 } array_info_t;
