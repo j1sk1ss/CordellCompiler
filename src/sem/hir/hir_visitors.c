@@ -1,13 +1,11 @@
 #include <sem/hir/hir_visitors.h>
 
-/*
-Resolve the original variable name by walking through parent variable ids.
+/* Resolve the original variable name by walking through parent variable ids.
 Params:
     - `id` - Variable symbol id.
     - `smt` - Symtable.
 
-Returns variable name if it was found. Otherwise returns "no-name".
-*/
+Returns variable name if it was found. Otherwise returns "no-name" */
 static const char* _resolve_variable_name(symbol_id_t id, sym_table_t* smt) {
     variable_info_t vi;
     do {
@@ -42,11 +40,9 @@ typedef struct {
     char defined_value;
 } defined_variable_t;
 
-/*
-1 - defined raw number or a constant
+/* 1 - defined raw number or a constant
 2 - defined variable
-3 - overdefined variable (need to be resolved)
-*/
+3 - overdefined variable (need to be resolved) */
 static int _resolve_subject_value(hir_subject_t* s, sym_table_t* smt, defined_variable_t* out) {
     if (HIR_is_vartype(s->t)) {
         variable_info_t vi;
@@ -68,16 +64,14 @@ static int _resolve_subject_value(hir_subject_t* s, sym_table_t* smt, defined_va
     return 1;
 }
 
-/*
-Find a source location where the variable was defined by scanning backwards
+/* Find a source location where the variable was defined by scanning backwards
 from the provided HIR block.
 Params:
     - `b` - HIR block to start scanning from.
     - `v_id` - Variable symbol id.
     - `loc` - Output source location.
 
-Returns 1 if variable definition was found, otherwise 0.
-*/
+Returns 1 if variable definition was found, otherwise 0 */
 static int _sparce_find_variable_define_location(hir_block_t* b, symbol_id_t v_id, file_position_t* loc) {
     int found = 0;
     while (b) {
@@ -103,22 +97,19 @@ static int _sparce_find_variable_define_location(hir_block_t* b, symbol_id_t v_i
     return found;
 }
 
-/*
-Get parent variable symbol id.
+/* Get parent variable symbol id.
 Params:
     - `v_id` - Variable symbol id.
     - `smt` - Symtable.
 
-Returns parent variable symbol id if it was found. Otherwise returns NO_SYMBOL_ID.
-*/
+Returns parent variable symbol id if it was found. Otherwise returns NO_SYMBOL_ID. */
 static inline symbol_id_t _get_parent_id(symbol_id_t v_id, sym_table_t* smt) {
     variable_info_t vi;
     if (VRTB_get_info_id(v_id, &vi, &smt->v)) return vi.p_id;
     return NO_SYMBOL_ID;
 }
 
-/*
-Check whether a dereferenced subject can be equal to NULL and report an error
+/* Check whether a dereferenced subject can be equal to NULL and report an error
 trace when it can.
 Params:
     - `hb` - HIR block where dereference is performed.
@@ -127,8 +118,7 @@ Params:
     - `smt` - Symtable.
     - `ctx` - HIR visitors context.
 
-Returns 1 if the check succeeds, otherwise 0.
-*/
+Returns 1 if the check succeeds, otherwise 0 */
 static int _dereference_error(hir_block_t* hb, cfg_block_t* bb, hir_subject_t* s, sym_table_t* smt, hir_visitors_ctx_t* ctx) {
     defined_variable_t di;
     if (!_resolve_subject_value(s, smt, &di)) return 1;
@@ -197,19 +187,17 @@ static int _dereference_error(hir_block_t* hb, cfg_block_t* bb, hir_subject_t* s
             }
 
             variable_info_t vi;
-            if (!VRTB_get_info_id(v_id, &vi, &smt->v) || !vi.vdi.defined) continue;
+            if (!VRTB_get_info_id(v_id, &vi, &smt->v) || vi.vdi.defined == UNDEFINED_VARIABLE) continue;
             else {
                 if (vi.vdi.defined == OVERDEFINED_VARIABLE && vi.vdi.definition != vi.v_id) {
                     queue_push(&work_vars, (void*)vi.vdi.definition);
                     prev_id = v_id;
                 }
-                else {
-                    if (!vi.vdi.definition) {
-                        res = 0;
-                        file_position_t loc;
-                        _sparce_find_variable_define_location(hb, vi.v_id, &loc);
-                        TRACE_add_location(&trace, &loc, "Variable '%s' becomes NULL-value", vi.name->body);
-                    }
+                else if (vi.vdi.defined == DEFINED_VARIABLE && !vi.vdi.definition) {
+                    res = 0;
+                    file_position_t loc;
+                    _sparce_find_variable_define_location(hb, vi.v_id, &loc);
+                    TRACE_add_location(&trace, &loc, "Variable '%s' becomes NULL-value", vi.name->body);
                 }
             }
         }
@@ -291,16 +279,14 @@ int HIRWLKR_visit_ifop2_instruction(HIR_VISITOR_ARGS) {
     return 1;
 }
 
-/*
-Create a readable type name for a HIR subject type.
+/* Create a readable type name for a HIR subject type.
 Params:
     - `t` - HIR subject type.
     - `ptr` - Pointer indirection level.
     - `buffer` - Output buffer.
     - `buffer_size` - Output buffer size.
 
-Returns 1 on success, otherwise 0.
-*/
+Returns 1 on success, otherwise 0 */
 static int _create_type_name(hir_subject_type_t t, int ptr, char* buffer, int buffer_size) {
     for (int i = 0; i < ptr; i++) {
         buffer += snprintf(buffer, buffer_size, "ptr ");
