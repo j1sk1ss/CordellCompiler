@@ -1,9 +1,9 @@
 #ifndef GAME_H_
 #define GAME_H_ 0
 
-#include "libc/stdlib_h.cpl"
-#include "libc/string_h.cpl"
-#include "libc/stdio_h.cpl"
+#include <stdlib_h.cpl>
+#include <string_h.cpl>
+#include <stdio_h.cpl>
 
 container game {
     ptr i8 map;

@@ -120,6 +120,9 @@ Params:
 
 Returns 1 if the check succeeds, otherwise 0 */
 static int _dereference_error(hir_block_t* hb, cfg_block_t* bb, hir_subject_t* s, sym_table_t* smt, hir_visitors_ctx_t* ctx) {
+    if (!s) return 1;
+    if (HIR_is_arrtype(s->t) || s->t == HIR_STRING) return 1;
+
     defined_variable_t di;
     if (!_resolve_subject_value(s, smt, &di)) return 1;
 
@@ -203,13 +206,13 @@ static int _dereference_error(hir_block_t* hb, cfg_block_t* bb, hir_subject_t* s
         }
     }
 
-    int z3_answer = Z3_can_vid_be_equal_ctx(ctx->z3, bb->pfunc, s->storage.var.v_id, 0);
+    int z3_answer = Z3_check_subject_eq_llong_at_block(ctx->z3, bb->pfunc, bb, s, 0);
     if (res && !z3_answer) TRACE_unload_trace(&trace);
     else {
         TRACE_add_location(
             &trace, &ctx->curr_location, 
             "%sNULL-dereference error (variable '%s' is NULL)!", 
-            z3_answer == 2 ? "Possible " : "", _resolve_variable_name(s->storage.var.v_id, smt)
+            z3_answer == Z3A_MAYBE ? "Possible " : "", _resolve_variable_name(s->storage.var.v_id, smt)
         );
 
         TRACE_print_and_free_trace(&trace);
@@ -251,11 +254,11 @@ int HIRWLKR_visit_ifop2_instruction(HIR_VISITOR_ARGS) {
     
     trace_t trace;
     TRACE_init_trace(&trace);
-    if (!Z3_can_reach_label_ctx(ctx->z3, bb->pfunc, b->sarg->id)) {
+    if (!Z3_is_label_reachable(ctx->z3, bb->pfunc, b->sarg->id)) {
         TRACE_add_location(&trace, &ctx->curr_location, "Can't reach the 'then' branch! Consider to refactor the code.");
     }
     
-    if (!Z3_can_reach_label_ctx(ctx->z3, bb->pfunc, b->targ->id)) {
+    if (!Z3_is_label_reachable(ctx->z3, bb->pfunc, b->targ->id)) {
         TRACE_add_location(&trace, &ctx->curr_location, "Can't reach the 'else' branch! Consider to refactor the code.");
     }
 

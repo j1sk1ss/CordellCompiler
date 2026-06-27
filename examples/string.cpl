@@ -1,5 +1,5 @@
-#include "libc/stdlib_h.cpl"
-#include "libc/string_h.cpl"
+#include <stdlib_h.cpl>
+#include <string_h.cpl>
 
 container string {
     ptr i8 body;
