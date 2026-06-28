@@ -1,0 +1,19 @@
+: ONLY_THIS :
+extern function free(ptr i0 p) -> i0;
+extern function malloc(i64 size) -> ptr i0;
+start() {
+    ptr i0 p = malloc(0);
+    free(p);
+    ptr i0 null = 0 as ptr i0;
+    free(null);
+}
+
+:/ OUTPUT
+[WARNING] [{X}cpl:4:13] Function 'malloc' has some arguments, which have a wrong type! Consider to use the 'as' operator!
+          [{X}cpl:4:13]     Value '0' has the 'i8' type! Consider the 'as i64' command!
+[WARNING] [{X}cpl:4:13] Zero malloc size error
+[WARNING] [{X}cpl:4:13] 'malloc' function must accept non-Zero size!
+[WARNING] [{X}cpl:7:17] NULL free argument error (variable 'null' is '0')!
+          [{X}cpl:7:17]     Variable 'null' is assigned with '0' here
+[WARNING] [{X}cpl:7:17] 'free' function must accept non-NULL pointer to an allocation!
+/:

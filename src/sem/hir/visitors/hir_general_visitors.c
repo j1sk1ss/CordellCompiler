@@ -109,17 +109,10 @@ static inline symbol_id_t _get_parent_id(symbol_id_t v_id, sym_table_t* smt) {
     return NO_SYMBOL_ID;
 }
 
-/* Check whether a dereferenced subject can be equal to NULL and report an error
-trace when it can.
-Params:
-    - `hb` - HIR block where dereference is performed.
-    - `s` - Dereferenced subject.
-    - `f` - Function virtual form for Z3 checks.
-    - `smt` - Symtable.
-    - `ctx` - HIR visitors context.
-
-Returns 1 if the check succeeds, otherwise 0 */
-static int _dereference_error(hir_block_t* hb, cfg_block_t* bb, hir_subject_t* s, sym_table_t* smt, hir_visitors_ctx_t* ctx) {
+int HIR_SEM_check_subject_value_and_provide_trace(
+    hir_block_t* hb, cfg_block_t* bb, hir_subject_t* s, sym_table_t* smt, hir_visitors_ctx_t* ctx,
+    long long value, char* error
+) {
     if (!s) return 1;
     if (HIR_is_arrtype(s->t) || s->t == HIR_STRING) return 1;
 
@@ -135,8 +128,8 @@ static int _dereference_error(hir_block_t* hb, cfg_block_t* bb, hir_subject_t* s
     switch (di.defined_value) {
         /* Number defined   */
         case 1: {
-            if (!di.const_value) {
-                TRACE_add_location(&trace, &ctx->curr_location, "NULL-dereference error!");
+            if (di.const_value == value) {
+                TRACE_add_location(&trace, &ctx->curr_location, error);
                 TRACE_print_and_free_trace(&trace);
                 queue_free(&work_vars);
                 return 0;
@@ -146,16 +139,16 @@ static int _dereference_error(hir_block_t* hb, cfg_block_t* bb, hir_subject_t* s
         }
         /* Variable defined */
         case 2: {
-            if (!di.const_value) {
+            if (di.const_value == value) {
                 file_position_t loc;
                 _sparce_find_variable_define_location(hb, s->storage.var.v_id, &loc);
                 TRACE_add_location(
-                    &trace, &loc, "Variable '%s' is assigned with NULL here", 
-                    _resolve_variable_name(s->storage.var.v_id, smt)
+                    &trace, &loc, "Variable '%s' is assigned with '%lli' here", 
+                    _resolve_variable_name(s->storage.var.v_id, smt), value
                 );
                 TRACE_add_location(&trace, &ctx->curr_location,
-                    "NULL-dereference error (variable '%s' is NULL)!", 
-                    _resolve_variable_name(s->storage.var.v_id, smt)
+                    "%s (variable '%s' is '%lli')!", 
+                    error, _resolve_variable_name(s->storage.var.v_id, smt), value
                 );
                 TRACE_print_and_free_trace(&trace);
                 queue_free(&work_vars);
@@ -180,7 +173,7 @@ static int _dereference_error(hir_block_t* hb, cfg_block_t* bb, hir_subject_t* s
                 if (
                     _get_parent_id(prev_id, smt) != _get_parent_id(v_id, smt)
                 ) TRACE_add_location(
-                    &trace, &loc, "Variable '%s' is assigned with the '%s' here", 
+                    &trace, &loc, "Variable '%s' is assigned with '%s' here", 
                     _resolve_variable_name(prev_id, smt), _resolve_variable_name(v_id, smt)
                 );
 
@@ -200,7 +193,7 @@ static int _dereference_error(hir_block_t* hb, cfg_block_t* bb, hir_subject_t* s
                     res = 0;
                     file_position_t loc;
                     _sparce_find_variable_define_location(hb, vi.v_id, &loc);
-                    TRACE_add_location(&trace, &loc, "Variable '%s' becomes NULL-value", vi.name->body);
+                    TRACE_add_location(&trace, &loc, "Variable '%s' becomes '%lli'", vi.name->body, value);
                 }
             }
         }
@@ -211,8 +204,9 @@ static int _dereference_error(hir_block_t* hb, cfg_block_t* bb, hir_subject_t* s
     else {
         TRACE_add_location(
             &trace, &ctx->curr_location, 
-            "%sNULL-dereference error (variable '%s' is NULL)!", 
-            z3_answer == Z3A_MAYBE ? "Possible " : "", _resolve_variable_name(s->storage.var.v_id, smt)
+            "%s%s (variable '%s' is NULL)!", 
+            error, z3_answer == Z3A_MAYBE ? "Possible " : "", 
+            _resolve_variable_name(s->storage.var.v_id, smt)
         );
 
         TRACE_print_and_free_trace(&trace);
@@ -230,7 +224,7 @@ int HIRWLKR_visit_gdref_instruction(HIR_VISITOR_ARGS) {
         return 1;
     }
 
-    return _dereference_error(b, bb, b->sarg, smt, ctx);
+    return HIR_SEM_check_subject_value_and_provide_trace(b, bb, b->sarg, smt, ctx, 0, "NULL-dereference error");
 }
 
 int HIRWLKR_visit_ldref_instruction(HIR_VISITOR_ARGS) {
@@ -241,7 +235,7 @@ int HIRWLKR_visit_ldref_instruction(HIR_VISITOR_ARGS) {
         return 1;
     }
 
-    return _dereference_error(b, bb, b->farg, smt, ctx);
+    return HIR_SEM_check_subject_value_and_provide_trace(b, bb, b->farg, smt, ctx, 0, "NULL-dereference error");
 }
 
 int HIRWLKR_visit_ifop2_instruction(HIR_VISITOR_ARGS) {
@@ -405,7 +399,7 @@ int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
     if (!TRACE_is_empty(&trace)) {
         TRACE_add_location(
             &trace, &ctx->curr_location, 
-            "Function '%s' has some arguments, which have the wrong type! Consider to use the 'as' operator!", fi.name->body
+            "Function '%s' has some arguments, which have a wrong type! Consider to use the 'as' operator!", fi.name->body
         );
     }
 
@@ -491,7 +485,7 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
         }
         
         if (syscall.types[sarg_index].dereference) {
-            _dereference_error(b, bb, flatten_input[arg_index], smt, ctx);
+            HIR_SEM_check_subject_value_and_provide_trace(b, bb, flatten_input[arg_index], smt, ctx, 0, "NULL-dereference error");
         }
     }
 

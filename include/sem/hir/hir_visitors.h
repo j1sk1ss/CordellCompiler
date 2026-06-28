@@ -17,6 +17,21 @@
 #include <hir/cfg.h>
 #include <hir/dag.h>
 
+/* Check whether a dereferenced subject can be equal to NULL and report an error
+trace when it can.
+Params:
+    - `hb` - HIR block where dereference is performed.
+    - `s` - Dereferenced subject.
+    - `f` - Function virtual form for Z3 checks.
+    - `smt` - Symtable.
+    - `ctx` - HIR visitors context.
+
+Returns 1 if the check succeeds, otherwise 0 */
+int HIR_SEM_check_subject_value_and_provide_trace(
+    hir_block_t* hb, cfg_block_t* bb, hir_subject_t* s, sym_table_t* smt, hir_visitors_ctx_t* ctx,
+    long long value, char* error
+);
+
 int HIRWLKR_visit_setpos_instruction(HIR_VISITOR_ARGS);
 int HIRWLKR_visit_phi_instruction(HIR_VISITOR_ARGS);
 int HIRWLKR_visit_gdref_instruction(HIR_VISITOR_ARGS);
@@ -27,5 +42,7 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS);
 int HIRWLKR_unused_rtype(HIR_VISITOR_ARGS);
 int HIRWLKR_noret_assign(HIR_VISITOR_ARGS);
 int HIRWLKR_ref_to_expression(HIR_VISITOR_ARGS);
+int HIRWLKR_null_free(HIR_VISITOR_ARGS);
+int HIRWLKR_zero_malloc(HIR_VISITOR_ARGS);
 
 #endif

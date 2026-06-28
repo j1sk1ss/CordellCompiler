@@ -1,13 +1,11 @@
 #include <sem/hir/hir_walker.h>
 
-/*
-Create a semantic handler for a walker.
+/* Create a semantic handler for a walker.
 Params:
     - `v` - HIR visitor.
     - `l` - Handler level.
 
-Returns the semantic handler.
-*/
+Returns the semantic handler */
 static hir_sem_handler_t* _create_sem_handler(hir_visitor_t* v, attention_level_t l) {
     hir_sem_handler_t* h = (hir_sem_handler_t*)mm_malloc(sizeof(hir_sem_handler_t));
     if (!h) return NULL;
@@ -16,13 +14,11 @@ static hir_sem_handler_t* _create_sem_handler(hir_visitor_t* v, attention_level_
     return h;
 }
 
-/*
-Unload the semantic handler.
+/* Unload the semantic handler.
 Params:
     - `h` - Semantic handler.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds */
 static int _unload_sem_handler(hir_sem_handler_t* h) {
     HIRVIS_unload_visitor(h->w);
     return mm_free(h);
@@ -43,21 +39,19 @@ int HIRWLK_register_visitor(unsigned int trg, int (*perform)(HIR_VISITOR_ARGS), 
 int HIRWLK_init_ctx(hir_walker_t* ctx, dag_ctx_t* dctx, hir_ctx_t* hctx, sym_table_t* smt) {
     str_memset(ctx, 0, sizeof(hir_walker_t));
     map_init(&ctx->vctx.definitions, MAP_NO_CMP);
-    ctx->smt = smt;
+    ctx->smt       = smt;
     ctx->vctx.dctx = dctx;
-    ctx->vctx.z3 = NULL;
+    ctx->vctx.z3   = NULL;
     ctx->vctx.dump = tmpfile();
     DUMP_format_hirctx(hctx, smt, 0, 0, ctx->vctx.dump);
     return list_init(&ctx->visitors);
 }
 
-/*
-Get an instruction type based on the provided operation type.
+/* Get an instruction type based on the provided operation type.
 Params:
     - `t` - Operation type.
 
-Returns an instruction type.
-*/
+Returns an instruction type */
 static hir_instruction_type_t _get_instruction_type(hir_operation_t t) {
     switch (t) {
         case HIR_REF:         return REF_INST;
@@ -83,15 +77,13 @@ static hir_instruction_type_t _get_instruction_type(hir_operation_t t) {
     return UNKNOWN_INST;
 }
 
-/*
-Perform a walk thru the HIR. This is a linear approach, that allows us
+/* Perform a walk thru the HIR. This is a linear approach, that allows us
 to use a analytic symtables for the complex static analysis.
 Params:
     - `cctx` - CFG context.
     - `ctx` - Walker context.
 
-Returns 1 on success, otherwise 0.
-*/
+Returns 1 on success, otherwise 0 */
 static int _cfg_walk(cfg_ctx_t* cctx, hir_walker_t* ctx) {
     if (!cctx || !ctx) return 0;
     
@@ -117,7 +109,7 @@ static int _cfg_walk(cfg_ctx_t* cctx, hir_walker_t* ctx) {
 int HIRWLK_walk(cfg_ctx_t* cctx, hir_walker_t* ctx) {
     if (!ctx) return 0;
     ctx->vctx.z3 = Z3A_create(cctx, ctx->smt);
-    int result = _cfg_walk(cctx, ctx);
+    int result   = _cfg_walk(cctx, ctx);
     Z3A_unload(ctx->vctx.z3);
     ctx->vctx.z3 = NULL;
     return result;

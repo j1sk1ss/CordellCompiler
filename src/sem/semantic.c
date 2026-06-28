@@ -54,6 +54,8 @@ int SEM_perform_hir_check(cfg_ctx_t* ctx, dag_ctx_t* dctx, hir_ctx_t* hctx, sym_
         case 2:
             HIRWLK_register_visitor(GDREF_INST | RET_CALL_INST | CALL_INST, HIRWLKR_visit_gdref_instruction, &walker, ATTENTION_HIGH_LEVEL);
             HIRWLK_register_visitor(LDREF_INST, HIRWLKR_visit_ldref_instruction, &walker, ATTENTION_HIGH_LEVEL);
+            HIRWLK_register_visitor(CALL_INST | RET_CALL_INST, HIRWLKR_null_free, &walker, ATTENTION_LOW_LEVEL);
+            HIRWLK_register_visitor(CALL_INST | RET_CALL_INST, HIRWLKR_zero_malloc, &walker, ATTENTION_LOW_LEVEL);
         case 3:
         default: break;
     }
