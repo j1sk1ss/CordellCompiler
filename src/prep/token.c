@@ -160,18 +160,18 @@ static inline int _allowed_character_in_token(char c) {
     }
 }
 
-/*
-Give the next token from the provided buffer.
+static char _token_buf[BUFFER_SIZE] = { 0 };
+
+/* Give the next token from the provided buffer.
 Params:
     - `buffer` - Source pre-processed buffer of the code.
     - `bytes_read` - Buffer's size.
     - `off` - Current offset in the buffer.
     - `finfo` - Current information about a position in a file.
 
-Returns a new token or the 'NULL' value.
-*/
+Returns a new token or the 'NULL' value */
 static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off, file_position_t* finfo, tkn_ctx_t* ctx) {
-    char token_buf[BUFFER_SIZE] = { 0 };
+    if (!buffer && bytes_read == -1 && !off && !finfo) goto _force_token_creation;
     for (ssize_t i = *off; i < bytes_read; ++i) {
         char ch = buffer[i];
         char_type_t ct = _get_char_type(ch);
@@ -282,7 +282,7 @@ _force_token_creation: {}
                 We need to be sure:
                 - This is a correct column is used
                 - This is a correct buffer is used */
-            token_buf[ctx->token_len] = 0; /* Set the end of the token */
+            _token_buf[ctx->token_len] = 0; /* Set the end of the token */
 
             /* Special case. If this is a directive (any directive),
                we force type to the 'PP_TOKEN' type */
@@ -291,15 +291,15 @@ _force_token_creation: {}
                 ctx->is_pp = 0;
             }
 
-            token_t* nt = TKN_create_token(ctx->ttype, token_buf, finfo);
+            token_t* nt = TKN_create_token(ctx->ttype, _token_buf, finfo);
             if (!nt) {
-                print_error("Can't create a token! tt=%i, tb=[%s], tl=%i", ctx->ttype, token_buf, ctx->token_len);
+                print_error("Can't create a token! tt=%i, tb=[%s], tl=%i", ctx->ttype, _token_buf, ctx->token_len);
                 TKN_unload_token(nt);
                 return NULL;
             }
 
             _reset_tkn_ctx(ctx);
-            *off = i;
+            if (off) *off = i;
             return nt;
         }
 
@@ -310,7 +310,7 @@ _force_token_creation: {}
         }
 
         if (ctx->token_len + 1 > BUFFER_SIZE) {
-            print_error("Token [t=%.32s...] is too big!", token_buf);
+            print_error("Token [t=%.32s...] is too big!", _token_buf);
             return NULL;
         }
         
@@ -319,10 +319,9 @@ _force_token_creation: {}
             (was_spec && !_allowed_character_in_token(ch)) ||
             (ctx->squt && ct == CHAR_QUOTE)                ||
             (ctx->mqut && ct == CHAR_SING_QUOTE)
-        ) token_buf[ctx->token_len++] = ch;
+        ) _token_buf[ctx->token_len++] = ch;
     }
 
-    if (ctx->in_token) goto _force_token_creation; // TODO: Don't force to close a token, check if this the last 
     return NULL;
 }
 
@@ -377,6 +376,7 @@ int TKN_tokenize(int fd, list_t* tkn) {
         file_offset += bytes_read;
     }
 
+    list_add(tkn, _give_next_token(NULL, -1, NULL, NULL, &tkn_ctx));
     list_add(tkn, TKN_create_token(EOF_TOKEN, NULL, NULL));
     return 1;
 }

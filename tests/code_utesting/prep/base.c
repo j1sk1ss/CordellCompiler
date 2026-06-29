@@ -41,6 +41,7 @@ int main(int argc, char* argv[]) {
     MRKP_mnemonics(&tokens);
     MRKP_variables(&tokens);
     foreach (token_t* h, &tokens) {
+        if (h->t_type == EOF_TOKEN) break;
         printf(
             "%sline=%li, type=%i, data=[%s], %s%s\n",
             h->flags.glob ? "glob " : "", 

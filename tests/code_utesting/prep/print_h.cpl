@@ -14,26 +14,29 @@
 }
 
 :/ OUTPUT
-line=1, type={X}, data=[{],
-line=3, type={X}, data=[{X}],
-line=3, type={X}, data=[function],
-line=3, type={X}, data=[strlen],
-line=3, type={X}, data=[(],
-line=3, type={X}, data=[i8], ptr
-line=3, type={X}, data=[s], ptr
-line=3, type={X}, data=[)],
-line=3, type={X}, data=[->],
-line=3, type={X}, data=[i64],
-line=3, type={X}, data=[;],
-line=8, type={X}, data=[{X}],
-line=7, type={X}, data=[function],
-line=7, type={X}, data=[print],
-line=7, type={X}, data=[(],
-line=7, type={X}, data=[str], ptr
-line=7, type={X}, data=[msg], ptr
-line=7, type={X}, data=[)],
-line=7, type={X}, data=[->],
-line=7, type={X}, data=[i0],
-line=7, type={X}, data=[;],
-line=8, type={X}, data=[}],
+line=2, type=1, data=[{X}.cpl],
+line=1, type=20, data=[{],
+line=3, type=1, data=[{X}.cpl],
+line=1, type=20, data=[{],
+line=3, type=75, data=[function],
+line=3, type=5, data=[strlen],
+line=3, type=18, data=[(],
+line=3, type=51, data=[i8], ptr
+line=3, type=5, data=[s],
+line=3, type=19, data=[)],
+line=3, type=64, data=[->],
+line=3, type=48, data=[i64],
+line=3, type=10, data=[;],
+line=4, type=21, data=[}],
+line=7, type=1, data=[{X}.cpl],
+line=7, type=75, data=[function],
+line=7, type=5, data=[print],
+line=7, type=18, data=[(],
+line=7, type=51, data=[i8], ptr
+line=7, type=5, data=[msg],
+line=7, type=19, data=[)],
+line=7, type=64, data=[->],
+line=7, type=45, data=[i0],
+line=7, type=10, data=[;],
+line=0, type=21, data=[}],
 /:

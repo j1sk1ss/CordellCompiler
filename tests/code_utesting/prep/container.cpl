@@ -32,5 +32,5 @@ line=8, type=5, data=[new],
 line=8, type=18, data=[(],
 line=8, type=19, data=[)],
 line=8, type=10, data=[;],
-line=9, type=21, data=[}],
+line=0, type=21, data=[}],
 /:
