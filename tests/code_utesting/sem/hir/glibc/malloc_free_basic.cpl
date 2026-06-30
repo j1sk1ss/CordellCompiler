@@ -1,4 +1,3 @@
-: ONLY_THIS :
 extern function free(ptr i0 p) -> i0;
 extern function malloc(i64 size) -> ptr i0;
 start() {

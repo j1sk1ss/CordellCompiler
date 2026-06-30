@@ -77,8 +77,37 @@ static hir_instruction_type_t _get_instruction_type(hir_operation_t t) {
     return UNKNOWN_INST;
 }
 
-/* Perform a walk thru the HIR. This is a linear approach, that allows us
-to use a analytic symtables for the complex static analysis.
+/* Perform a recursive walk from a CFG block thru its successors.
+Params:
+    - `bb` - CFG block.
+    - `ctx` - Walker context.
+
+Returns -1 if a blocking visitor fails, otherwise non-negative. */
+static int _cfg_block_walk(cfg_block_t* bb, hir_walker_t* ctx) {
+    if (!bb || !ctx) return 0;
+    if (bb->visited) return 1;
+    bb->visited = 1;
+
+    iterate_hir_instructions (bb) {
+        foreach (hir_sem_handler_t* v, &ctx->visitors) {
+            if (_get_instruction_type(hh->op) & v->w->trg) {
+                int res = v->w->perform(hh, bb, ctx->smt, &ctx->vctx);
+                if (
+                    !res && 
+                    v->l == ATTENTION_BLOCK_LEVEL
+                ) return -1;
+            }
+        }
+    }
+
+    if (_cfg_block_walk(bb->l, ctx) < 0)   return -1;
+    if (_cfg_block_walk(bb->jmp, ctx) < 0) return -1;
+    return 1;
+}
+
+/* Perform a recursive walk thru the HIR. This approach follows CFG edges
+from each function entry block, so unreachable blocks are skipped and loops
+are guarded by the block's visited flag.
 Params:
     - `cctx` - CFG context.
     - `ctx` - Walker context.
@@ -86,21 +115,15 @@ Params:
 Returns 1 on success, otherwise 0 */
 static int _cfg_walk(cfg_ctx_t* cctx, hir_walker_t* ctx) {
     if (!cctx || !ctx) return 0;
-    
+
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* bb, &fb->blocks) {
-            iterate_hir_instructions (bb) {
-                foreach (hir_sem_handler_t* v, &ctx->visitors) {
-                    if (_get_instruction_type(hh->op) & v->w->trg) {
-                        int res = v->w->perform(hh, bb, ctx->smt, &ctx->vctx);
-                        if (
-                            !res && 
-                            v->l == ATTENTION_BLOCK_LEVEL
-                        ) return -1;
-                    }
-                }
-            }
+            bb->visited = 0;
         }
+    }
+
+    foreach (cfg_func_t* fb, &cctx->funcs) {
+        if (_cfg_block_walk(list_get_head(&fb->blocks), ctx) < 0) return -1;
     }
 
     return 1;
@@ -122,7 +145,7 @@ static int _free_definitions_entry(list_t* l) {
 
 int HIRWLK_unload_ctx(hir_walker_t* ctx) {
     map_free_force_op(&ctx->vctx.definitions, (int (*)(void*))_free_definitions_entry);
-    list_free_force_op(&ctx->visitors, (int (*)(void *))_unload_sem_handler);
+    list_free_force_op(&ctx->visitors, (int (*)(void*))_unload_sem_handler);
     fclose(ctx->vctx.dump);
     return mm_free(ctx);
 }
