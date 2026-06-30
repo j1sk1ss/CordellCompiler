@@ -74,7 +74,7 @@
 #include <asm/i386_gnu_nasm_asmgen.h>
 #include <asm/x86_64_macho_nasm_asmgen.h>
 
-#define CCPL_VERSION                 "3.6.5.3:2706.26" // major.minor<.sub> (old version style):ddmm.yy (new version style)
+#define CCPL_VERSION                 "3.6.5.4:3006.26" // major.minor<.sub> (old version style):ddmm.yy (new version style)
 
 #define OPTION_HELP_SHORT            "-h"
 #define OPTION_HELP                  "--help"

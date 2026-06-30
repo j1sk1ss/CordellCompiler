@@ -42,7 +42,6 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS);
 int HIRWLKR_unused_rtype(HIR_VISITOR_ARGS);
 int HIRWLKR_noret_assign(HIR_VISITOR_ARGS);
 int HIRWLKR_ref_to_expression(HIR_VISITOR_ARGS);
-int HIRWLKR_null_free(HIR_VISITOR_ARGS);
-int HIRWLKR_zero_malloc(HIR_VISITOR_ARGS);
+int HIRWLKR_glibc_checkers(HIR_VISITOR_ARGS);
 
 #endif
