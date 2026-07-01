@@ -1,5 +1,6 @@
 #include <std/mm.h>
 
+#ifndef PROD_MALLOC
 #define FREE_LIST_COUNT 32
 #define MIN_SPLIT_SIZE  ALIGNMENT
 
@@ -115,8 +116,10 @@ static int _ptr_in_heap(void* ptr) {
            ptr >= (void*)(_mm_storage.buffer + sizeof(mm_block_t)) &&
            ptr <  (void*)(_mm_storage.buffer + ALLOC_BUFFER_SIZE);
 }
+#endif
 
 int mm_init() {
+#ifndef PROD_MALLOC
     for (int i = 0; i < FREE_LIST_COUNT; i++) {
         _free_lists[i] = NULL;
     }
@@ -133,10 +136,12 @@ int mm_init() {
     _mm_head->prev_free = NULL;
 
     _insert_free_block(_mm_head);
+#endif
     return 1;
 }
 
 void* mm_base_malloc(__attribute__ ((unused)) const char* f, __attribute__ ((unused)) int l, size_t size) {
+#ifndef PROD_MALLOC
     if (!size) {
         return NULL;
     }
@@ -157,9 +162,13 @@ void* mm_base_malloc(__attribute__ ((unused)) const char* f, __attribute__ ((unu
 
     print_mm("Allocation in %s on line=%i, size=%i, ptr=%p", f, l, (int)size, (unsigned char*)block + sizeof(mm_block_t));
     return (unsigned char*)block + sizeof(mm_block_t);
+#else
+    return malloc(size);
+#endif
 }
 
 void* mm_realloc(void* ptr, size_t elem) {
+#ifndef PROD_MALLOC
     if (!ptr) {
         return elem ? mm_malloc(elem) : NULL;
     }
@@ -207,9 +216,13 @@ void* mm_realloc(void* ptr, size_t elem) {
     str_memcpy(new_data, ptr, old_size < elem ? old_size : elem);
     mm_free(ptr);
     return new_data;
+#else
+    return realloc(ptr, elem);
+#endif
 }
 
 int mm_base_free(__attribute__ ((unused)) const char* f, __attribute__ ((unused)) int l, void* ptr) {
+#ifndef PROD_MALLOC
     print_mm("Trying to free ptr=%p from file=%s, line=%i", ptr, f, l);
 
     if (!_ptr_in_heap(ptr)) {
@@ -241,8 +254,16 @@ int mm_base_free(__attribute__ ((unused)) const char* f, __attribute__ ((unused)
 
     print_mm("Free [%p] / allocated [%i]", ptr, _allocated);
     return 1;
+#else
+    free(ptr);
+    return 1;
+#endif
 }
 
 int mm_get_allocated() {
+#ifndef PROD_MALLOC
     return _allocated;
+#else
+    return -1;
+#endif
 }
