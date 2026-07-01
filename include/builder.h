@@ -74,12 +74,15 @@
 #include <asm/i386_gnu_nasm_asmgen.h>
 #include <asm/x86_64_macho_nasm_asmgen.h>
 
+#include <gem_data.h>
 #define CCPL_VERSION                 "3.6.5.5:0107.26" // major.minor<.sub> (old version style):ddmm.yy (new version style)
 
 #define OPTION_HELP_SHORT            "-h"
 #define OPTION_HELP                  "--help"
 #define OPTION_VERSION_SHORT         "-v"
 #define OPTION_VERSION               "--version"
+#define OPTION_SOMETHING             "--smth"
+#define OPTION_SOMETHING_SHORT       "-s"
 #define OPTION_PREPROCESS_ONLY       "-E"
 #define OPTION_INLUCDE               "-I"
 #define OPTION_OUTPUT                "--output"
@@ -185,6 +188,7 @@ typedef struct {
         int          hir_analysis         : 1;
         int          show_help            : 1;
         int          show_version         : 1;
+        int          show_something       : 1;
         int          preprocess_only      : 1;
         int          without_compilation  : 1;
         int          no_compile           : 1;

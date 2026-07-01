@@ -1,7 +1,11 @@
 #include <builder.h>
 
+static inline void _print_gem(FILE* stream) {
+    fwrite(gem_data, 1, gem_data_len, stream);
+}
+
 static inline void _print_version(FILE* stream) {
-    fprintf(stream, "ccpl %s\n", CCPL_VERSION);
+    fprintf(stream, "cplc %s\n", CCPL_VERSION);
 }
 
 static inline void _print_help_row(FILE* stream, const cli_help_option_t* row) {
@@ -22,6 +26,7 @@ static int _print_help_message() {
     static const cli_help_option_t general_options[] = {
         { OPTION_HELP_SHORT ", " OPTION_HELP, NULL, "Show this help message" },
         { OPTION_VERSION_SHORT ", " OPTION_VERSION, NULL, "Show compiler version" },
+        { OPTION_SOMETHING_SHORT ", " OPTION_SOMETHING, NULL, "Show something" },
         { OPTION_PREPROCESS_ONLY, NULL, "Run preprocessor only" },
         { OPTION_WITHOUT_COMPILATION, NULL, "Build AST and HIR, then stop without compilation" },
         { OPTION_INLUCDE, "<dir>", "Add include directory" },
@@ -344,10 +349,11 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
     if (!out->locations.files) return 0;
 
     for (int i = 1; i < argc; i++) {
-        if (!strcmp(argv[i], OPTION_HELP_SHORT) || !strcmp(argv[i], OPTION_HELP))            out->flags.show_help           = 1;
-        else if (!strcmp(argv[i], OPTION_VERSION_SHORT) || !strcmp(argv[i], OPTION_VERSION)) out->flags.show_version        = 1;
-        else if (!strcmp(argv[i], OPTION_PREPROCESS_ONLY))                                   out->flags.preprocess_only     = 1;
-        else if (!strcmp(argv[i], OPTION_WITHOUT_COMPILATION))                               out->flags.without_compilation = 1;
+        if (!strcmp(argv[i], OPTION_HELP_SHORT) || !strcmp(argv[i], OPTION_HELP))                out->flags.show_help           = 1;
+        else if (!strcmp(argv[i], OPTION_VERSION_SHORT) || !strcmp(argv[i], OPTION_VERSION))     out->flags.show_version        = 1;
+        else if (!strcmp(argv[i], OPTION_SOMETHING_SHORT) || !strcmp(argv[i], OPTION_SOMETHING)) out->flags.show_something      = 1;
+        else if (!strcmp(argv[i], OPTION_PREPROCESS_ONLY))                                       out->flags.preprocess_only     = 1;
+        else if (!strcmp(argv[i], OPTION_WITHOUT_COMPILATION))                                   out->flags.without_compilation = 1;
         else if (!strcmp(argv[i], OPTION_OUTPUT)) {
             if (i + 1 >= argc) goto _fail;
             out->locations.output = argv[++i];
@@ -505,6 +511,12 @@ int main(int argc, char* argv[]) {
 
     if (options.flags.show_help) {
         _print_help_message();
+        mm_free((void*)options.locations.files);
+        return EXIT_SUCCESS;
+    }
+
+    if (options.flags.show_something) {
+        _print_gem(stdout);
         mm_free((void*)options.locations.files);
         return EXIT_SUCCESS;
     }
