@@ -13,14 +13,17 @@ int SEM_perform_ast_check(ast_ctx_t* actx, sym_table_t* smt) {
             ASTWLK_register_visitor(WHILE_NODE, ASTWLKR_inefficient_while, &walker, ATTENTION_LOW_LEVEL);
             ASTWLK_register_visitor(DECLARATION_NODE, ASTWLKR_incorrect_align, &walker, ATTENTION_LOW_LEVEL);
             ASTWLK_register_visitor(SWITCH_NODE, ASTWLKR_inefficient_switch, &walker, ATTENTION_LOW_LEVEL);
+            __attribute__((fallthrough));
         case 1:
             ASTWLK_register_visitor(DECLARATION_NODE, ASTWLKR_illegal_declaration, &walker, ATTENTION_MEDIUM_LEVEL);
             ASTWLK_register_visitor(FUNCTION_NODE, ASTWLKR_wrong_rtype, &walker, ATTENTION_MEDIUM_LEVEL);
             ASTWLK_register_visitor(TERM_NODE, ASTWLKR_deadcode, &walker, ATTENTION_MEDIUM_LEVEL);
             ASTWLK_register_visitor(EXPRESSION_NODE, ASTWLKR_implict_convertion, &walker, ATTENTION_MEDIUM_LEVEL);
             ASTWLK_register_visitor(BREAK_NODE, ASTWLKR_break_without_statement, &walker, ATTENTION_MEDIUM_LEVEL);
+            __attribute__((fallthrough));
         case 2:
             ASTWLK_register_visitor(CALL_NODE, ASTWLKR_wrong_arg_type, &walker, ATTENTION_HIGH_LEVEL);
+            __attribute__((fallthrough));
         case 3:
             ASTWLK_register_visitor(ASSIGN_NODE, ASTWLKR_ro_assign, &walker, ATTENTION_BLOCK_LEVEL);
             ASTWLK_register_visitor(FUNCTION_NODE, ASTWLKR_no_return, &walker, ATTENTION_BLOCK_LEVEL);
@@ -48,14 +51,18 @@ int SEM_perform_hir_check(cfg_ctx_t* ctx, dag_ctx_t* dctx, hir_ctx_t* hctx, sym_
             HIRWLK_register_visitor(CALL_INST | RET_CALL_INST, HIRWLKR_wrong_arg_type, &walker, ATTENTION_LOW_LEVEL);
             HIRWLK_register_visitor(CALL_INST, HIRWLKR_unused_rtype, &walker, ATTENTION_LOW_LEVEL);
             HIRWLK_register_visitor(REF_INST, HIRWLKR_ref_to_expression, &walker, ATTENTION_LOW_LEVEL);
+            __attribute__((fallthrough));
         case 1:
             HIRWLK_register_visitor(CALL_INST | RET_CALL_INST, HIRWLKR_visit_syscall_instruction, &walker, ATTENTION_MEDIUM_LEVEL);
-            HIRWLK_register_visitor(RET_CALL_INST, HIRWLKR_noret_assign, &walker, ATTENTION_HIGH_LEVEL);
+            HIRWLK_register_visitor(RET_CALL_INST, HIRWLKR_noret_assign, &walker, ATTENTION_MEDIUM_LEVEL);
+            __attribute__((fallthrough));
         case 2:
             HIRWLK_register_visitor(GDREF_INST | RET_CALL_INST | CALL_INST, HIRWLKR_visit_gdref_instruction, &walker, ATTENTION_HIGH_LEVEL);
             HIRWLK_register_visitor(LDREF_INST, HIRWLKR_visit_ldref_instruction, &walker, ATTENTION_HIGH_LEVEL);
-            HIRWLK_register_visitor(CALL_INST | RET_CALL_INST, HIRWLKR_glibc_checkers, &walker, ATTENTION_LOW_LEVEL);
+            HIRWLK_register_visitor(CALL_INST | RET_CALL_INST, HIRWLKR_glibc_arg_checkers, &walker, ATTENTION_HIGH_LEVEL);
+            __attribute__((fallthrough));
         case 3:
+            HIRWLK_register_visitor(STMT_INST, HIRWLKR_division_by_zero, &walker, ATTENTION_BLOCK_LEVEL);
         default: break;
     }
 

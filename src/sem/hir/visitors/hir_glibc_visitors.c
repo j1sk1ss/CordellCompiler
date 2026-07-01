@@ -212,7 +212,7 @@ static inline int _glibc_get_checked_arg(
     return 1;
 }
 
-int HIRWLKR_glibc_checkers(HIR_VISITOR_ARGS) {
+int HIRWLKR_glibc_arg_checkers(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
     func_info_t fi = _get_finfo_from_call(b, smt);
     if (fi.id == NO_SYMBOL_ID) return 1;
@@ -237,5 +237,10 @@ int HIRWLKR_glibc_checkers(HIR_VISITOR_ARGS) {
         ) return 0;
     }
 
+    return 1;
+}
+
+int HIRWLRK_glibc_double_free_checker(HIR_VISITOR_ARGS) {
+    HIR_VISITOR_ARGS_USE;
     return 1;
 }

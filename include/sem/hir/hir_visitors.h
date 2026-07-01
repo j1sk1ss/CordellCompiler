@@ -32,6 +32,7 @@ int HIR_SEM_check_subject_value_and_provide_trace(
     long long value, char* error
 );
 
+/* general */
 int HIRWLKR_visit_setpos_instruction(HIR_VISITOR_ARGS);
 int HIRWLKR_visit_phi_instruction(HIR_VISITOR_ARGS);
 int HIRWLKR_visit_gdref_instruction(HIR_VISITOR_ARGS);
@@ -42,6 +43,10 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS);
 int HIRWLKR_unused_rtype(HIR_VISITOR_ARGS);
 int HIRWLKR_noret_assign(HIR_VISITOR_ARGS);
 int HIRWLKR_ref_to_expression(HIR_VISITOR_ARGS);
-int HIRWLKR_glibc_checkers(HIR_VISITOR_ARGS);
+int HIRWLKR_division_by_zero(HIR_VISITOR_ARGS);
+
+/* glibc */
+int HIRWLKR_glibc_arg_checkers(HIR_VISITOR_ARGS);
+int HIRWLRK_glibc_double_free_checker(HIR_VISITOR_ARGS);
 
 #endif

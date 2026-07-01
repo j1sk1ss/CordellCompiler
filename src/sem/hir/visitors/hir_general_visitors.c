@@ -205,7 +205,7 @@ int HIR_SEM_check_subject_value_and_provide_trace(
         TRACE_add_location(
             &trace, &ctx->curr_location, 
             "%s%s (variable '%s' is NULL)!", 
-            error, z3_answer == Z3A_MAYBE ? "Possible " : "", 
+            z3_answer == Z3A_MAYBE ? "Possible " : "", error,
             _resolve_variable_name(s->storage.var.v_id, smt)
         );
 
@@ -582,5 +582,19 @@ int HIRWLKR_illegal_indexing(HIR_VISITOR_ARGS) {
     trace_t trace;
     TRACE_init_trace(&trace);
     TRACE_print_and_free_trace(&trace);
+    return 1;
+}
+
+int HIRWLKR_division_by_zero(HIR_VISITOR_ARGS) {
+    HIR_VISITOR_ARGS_USE;
+    if (b->op != HIR_iDIV && b->op != HIR_iMOD) return 1;
+    if (!HIR_SEM_check_subject_value_and_provide_trace(b, bb, b->targ, smt, ctx, 0, "Division by zero error!")) {
+        return 0;
+    }
+
+    if (!HIR_SEM_check_subject_value_and_provide_trace(b, bb, b->sarg, smt, ctx, 0, "Division of zero! This expression will return 0.")) {
+        return 1;
+    }
+
     return 1;
 }
