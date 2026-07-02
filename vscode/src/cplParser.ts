@@ -45,37 +45,43 @@ function parseMacroValue(raw: string): MacroValue {
   return { kind: "raw", text: t };
 }
 
-function collectDefines(text: string, sem: SemanticContext) {
-  const lineStarts = buildLineStarts(text);
+function collectDefines(text: string, sem: SemanticContext, filePath?: string) {
+  const prevFilePath = sem.setCurrentFilePath(filePath);
 
-  const re = /^[ \t]*#define[ \t]+([A-Za-z_]\w*)[ \t]+(.+?)[ \t]*$/gm;
+  try {
+    const lineStarts = buildLineStarts(text);
 
-  let m: RegExpExecArray | null;
-  while ((m = re.exec(text))) {
-    const fullStart = m.index;
-    const full = m[0];
-    const name = m[1];
-    const valueRaw = m[2];
+    const re = /^[ \t]*#define[ \t]+([A-Za-z_]\w*)(?:[ \t]+(.+?))?[ \t]*$/gm;
 
-    const nameRel = full.indexOf(name);
-    const valueRel = full.lastIndexOf(valueRaw);
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(text))) {
+      const fullStart = m.index;
+      const full = m[0];
+      const name = m[1];
+      const valueRaw = m[2] ?? "";
 
-    const nameStart = fullStart + nameRel;
-    const nameEnd = nameStart + name.length;
+      const nameRel = full.indexOf(name);
+      const valueRel = valueRaw ? full.lastIndexOf(valueRaw) : full.length;
 
-    const valueStart = fullStart + valueRel;
-    const valueEnd = valueStart + valueRaw.length;
+      const nameStart = fullStart + nameRel;
+      const nameEnd = nameStart + name.length;
 
-    const nameRange = Range.create(
-      positionAt(lineStarts, nameStart),
-      positionAt(lineStarts, nameEnd)
-    );
-    const valueRange = Range.create(
-      positionAt(lineStarts, valueStart),
-      positionAt(lineStarts, valueEnd)
-    );
+      const valueStart = fullStart + valueRel;
+      const valueEnd = valueStart + valueRaw.length;
 
-    sem.defineMacro(name, parseMacroValue(valueRaw), nameRange, valueRange);
+      const nameRange = Range.create(
+        positionAt(lineStarts, nameStart),
+        positionAt(lineStarts, nameEnd)
+      );
+      const valueRange = Range.create(
+        positionAt(lineStarts, valueStart),
+        positionAt(lineStarts, valueEnd)
+      );
+
+      sem.defineMacro(name, parseMacroValue(valueRaw), nameRange, valueRange);
+    }
+  } finally {
+    sem.setCurrentFilePath(prevFilePath);
   }
 }
 
@@ -397,8 +403,13 @@ class Parser {
   }
 
   run(): ParseIssue[] {
-    this.parseProgram();
-    return this.issues;
+    const prevFilePath = this.sem?.setCurrentFilePath(this.filePath);
+    try {
+      this.parseProgram();
+      return this.issues;
+    } finally {
+      this.sem?.setCurrentFilePath(prevFilePath);
+    }
   }
 
   private skipEOL() {
@@ -755,6 +766,59 @@ class Parser {
     this.clearPendingMetadata();
   }
 
+  private parseIncludePath(): { path: string; isSystem: boolean; range: Range } | undefined {
+    const startTok = this.cur();
+
+    if (this.match("str")) {
+      const tok = this.prev();
+      return {
+        path: unquote(tok.text),
+        isSystem: false,
+        range: rangeOf(this.lines, tok.start, tok.end)
+      };
+    }
+
+    if (this.match("op", "<")) {
+      const open = this.prev();
+      const parts: string[] = [];
+      let last = open;
+
+      while (!this.atRaw("eof") && !this.atRaw("eol")) {
+        if (this.at("op", ">")) {
+          const close = this.cur();
+          this.i++;
+          return {
+            path: parts.join("").trim(),
+            isSystem: true,
+            range: rangeOf(this.lines, open.start, close.end)
+          };
+        }
+
+        const tok = this.curRaw();
+        if (tok.kind === "punc" && tok.text === ";") break;
+        parts.push(tok.text);
+        last = tok;
+        this.i++;
+      }
+
+      this.issues.push({
+        message: "#include: expected '>'",
+        range: rangeOf(this.lines, open.start, last.end)
+      });
+      return {
+        path: parts.join("").trim(),
+        isSystem: true,
+        range: rangeOf(this.lines, open.start, last.end)
+      };
+    }
+
+    this.issues.push({
+      message: "#include: expected string literal or <...>",
+      range: rangeOf(this.lines, startTok.start, startTok.end)
+    });
+    return undefined;
+  }
+
   private parsePPDirective() {
     const hashTok = this.curRaw();
     if (!this.matchRaw("punc", "#")) {
@@ -788,30 +852,37 @@ class Parser {
         return;
 
       case "include": {
-        this.expect("str", undefined, "#include: expected string literal");
-        const lit = this.prev().text;
-        const incPath = unquote(lit);
-      
+        const inc = this.parseIncludePath();
         this.consumePPLineEnd();
-      
+
+        if (!inc) return;
+
+        const incPath = inc.path;
+        if (!incPath) {
+          this.issues.push({
+            message: "#include: empty include path",
+            range: inc.range
+          });
+          return;
+        }
+
         if (this.include) {
-          const res = this.include(incPath, this.filePath);
+          const res = this.include(incPath, this.filePath, inc.isSystem);
           if (!res) {
             this.issues.push({
-              message: `#include not found: ${incPath}`,
-              range: rangeOf(this.lines, name.start, name.end)
+              message: `#include not found: ${inc.isSystem ? `<${incPath}>` : incPath}`,
+              range: inc.range
             });
-          
             return;
-          }    
+          }
 
           if (this.includeSeen.has(res.filePath)) return;
           this.includeSeen.add(res.filePath);
-          
+
           if (this.sem) {
-            collectDefines(res.text, this.sem);
+            collectDefines(res.text, this.sem, res.filePath);
           }
-          
+
           const p2 = new Parser(res.text, this.sem, this.include, this.includeSeen, res.filePath);
           p2.run();
         }
@@ -1059,6 +1130,7 @@ class Parser {
 
     if (this.match("op", "::")) {
       containerName = fnName;
+      this.sem?.useContainer(containerName, rangeOf(this.lines, nameTok.start, nameTok.end));
       this.expect("ident", undefined, "function: expected method name after '::'");
       fnName = this.prev().text;
     }
@@ -1218,6 +1290,7 @@ class Parser {
 
       if (this.match("op", "::")) {
         containerName = fnName;
+        this.sem?.useContainer(containerName, rangeOf(this.lines, nameTok.start, nameTok.end));
         this.expect("ident", undefined, "extern function: expected method name after '::'");
         fnName = this.prev().text;
       }
@@ -1242,9 +1315,15 @@ class Parser {
       return;
     }
 
-    this.parseType();
+    const vType = this.parseType();
+    const nameTok = this.cur();
     this.expect("ident", undefined, "extern var: expected identifier");
+    const vName = this.prev().text;
+    const vRange = rangeOf(this.lines, nameTok.start, nameTok.end);
     this.match("punc", ";");
+    if (nameTok.kind === "ident") {
+      this.sem?.declareExternGlobalVar(vName, vType, vRange);
+    }
     this.pendingDoc = undefined;
   }
 
@@ -1750,13 +1829,18 @@ class Parser {
     }
 
     if (this.at("kw") && TYPE_KW.has(this.cur().text) && this.cur().text !== "arr" && this.cur().text !== "ptr") {
-      const name = this.cur().text;
+      const tok = this.cur();
+      const name = tok.text;
       this.i++;
+      if (this.sem?.hasContainer(name)) {
+        this.sem.useContainer(name, rangeOf(this.lines, tok.start, tok.end));
+      }
       return this.sem?.containerTypeForName(name) ?? { kind: "prim", name };
     }
 
     if (this.at("ident")) {
-      let name = this.cur().text;
+      const nameTok = this.cur();
+      let name = nameTok.text;
       this.i++;
 
       if (this.match("op", "<")) {
@@ -1769,6 +1853,12 @@ class Parser {
         }
         this.expect("op", ">", "type argument list: expected '>'");
         name += `<${args.join(", ")}>`;
+      }
+
+      if (this.sem?.hasContainer(name)) {
+        this.sem.useContainer(name, rangeOf(this.lines, nameTok.start, nameTok.end));
+      } else if (this.sem?.hasContainer(nameTok.text)) {
+        this.sem.useContainer(nameTok.text, rangeOf(this.lines, nameTok.start, nameTok.end));
       }
 
       return this.sem?.containerTypeForName(name) ?? { kind: "prim", name };
@@ -2103,6 +2193,7 @@ class Parser {
       }
 
       if (this.sem?.hasContainer(name)) {
+        this.sem.useContainer(name, rangeOf(this.lines, tok.start, tok.end));
         return {
           type: { kind: "container", name },
           identName: name,
@@ -2160,7 +2251,7 @@ class Parser {
 }
 
 export type IncludeResolverResult = { text: string; filePath: string };
-export type IncludeResolver = (includePath: string, fromFilePath?: string) => IncludeResolverResult | undefined;
+export type IncludeResolver = (includePath: string, fromFilePath?: string, isSystemInclude?: boolean) => IncludeResolverResult | undefined;
 
 export function parseAndDiagnose(text: string): ParseIssue[] {
   const sem = new SemanticContext();
@@ -2173,7 +2264,7 @@ export function parseAndDiagnose(text: string): ParseIssue[] {
 
 export function analyze(text: string, include?: IncludeResolver, filePath?: string) {
   const sem = new SemanticContext();
-  collectDefines(text, sem);
+  collectDefines(text, sem, filePath);
   const p = new Parser(text, sem, include, new Set<string>(), filePath);
   const syntax = p.run();
   sem.finish();

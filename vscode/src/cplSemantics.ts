@@ -11,6 +11,7 @@ export type MacroSym = {
   value: MacroValue;
   range: Range;
   valueRange: Range;
+  filePath?: string;
   doc?: string;
 };
 
@@ -54,6 +55,7 @@ export type VarSym = {
   name: string;
   type: TypeNode;
   range: Range;
+  filePath?: string;
   readonly?: boolean;
 };
 
@@ -66,8 +68,11 @@ export type FuncOverloadSym = {
   params: ParamSig[];
   ret: TypeNode;
   decls: Range[];
+  declFiles?: (string | undefined)[];
   def?: Range;
+  defFilePath?: string;
   primaryRange: Range;
+  primaryFilePath?: string;
   doc?: string;
 };
 
@@ -77,13 +82,23 @@ export type ContainerSym = {
   fields: Map<string, VarSym>;
   methods: Map<string, FuncOverloadSym[]>;
   range: Range;
+  filePath?: string;
   doc?: string;
+};
+
+export type ContainerUse = {
+  name: string;
+  range: Range;
+  filePath?: string;
+  targetRange?: Range;
+  targetFilePath?: string;
 };
 
 export type CallSite = {
   name: string;
   argc: number;
   range: Range;
+  filePath?: string;
   resolution?: {
     status: "resolved" | "unknown" | "no_match" | "ambiguous";
     candidates: FuncOverloadSym[];
@@ -94,16 +109,19 @@ export type CallSite = {
 export type FuncValueUse = {
   name: string;
   range: Range;
+  filePath?: string;
 };
 
 export type IndirectCallSite = {
   argc: number;
   range: Range;
+  filePath?: string;
   calleeType: TypeNode;
 };
 
 export type SizeofSite = {
   range: Range;
+  filePath?: string;
   targetType: TypeNode;
   size: number | null;
 };
@@ -274,24 +292,53 @@ export class SemanticContext {
   globals = new Map<string, VarSym>();
   containers = new Map<string, ContainerSym>();
   containerDecls: ContainerSym[] = [];
+  containerUses: ContainerUse[] = [];
 
   macros = new Map<string, MacroSym>();
   macroDecls: MacroSym[] = [];
-  macroUses: { name: string; range: Range }[] = [];
+  macroUses: { name: string; range: Range; filePath?: string }[] = [];
 
   varDecls: VarSym[] = [];
-  varUses: { name: string; type: TypeNode; range: Range }[] = [];
+  varUses: { name: string; type: TypeNode; range: Range; filePath?: string; targetRange?: Range; targetFilePath?: string }[] = [];
   funcValueUses: FuncValueUse[] = [];
   callSites: CallSite[] = [];
   indirectCallSites: IndirectCallSite[] = [];
   sizeofSites: SizeofSite[] = [];
 
+  private currentFilePath: string | undefined;
   private scope: Scope = new Scope();
-  private pendingCalls: { name: string; argc: number; range: Range; scope: Scope }[] = [];
-  private pendingAssociatedCalls: { containerName: string; name: string; argc: number; range: Range }[] = [];
+  private pendingCalls: { name: string; argc: number; range: Range; filePath?: string; scope: Scope }[] = [];
+  private pendingAssociatedCalls: { containerName: string; name: string; argc: number; range: Range; filePath?: string }[] = [];
+
+  setCurrentFilePath(filePath?: string): string | undefined {
+    const prev = this.currentFilePath;
+    this.currentFilePath = filePath;
+    return prev;
+  }
+
+  getCurrentFilePath(): string | undefined {
+    return this.currentFilePath;
+  }
 
   hasContainer(name: string): boolean {
     return this.containers.has(name);
+  }
+
+  getContainer(name: string): ContainerSym | undefined {
+    return this.containers.get(name);
+  }
+
+  useContainer(name: string, range: Range) {
+    const c = this.containers.get(name);
+    if (!c) return;
+
+    this.containerUses.push({
+      name,
+      range,
+      filePath: this.currentFilePath,
+      targetRange: c.range,
+      targetFilePath: c.filePath
+    });
   }
 
   containerTypeForName(name: string): TypeNode {
@@ -344,6 +391,7 @@ export class SemanticContext {
       fields: new Map<string, VarSym>(),
       methods: new Map<string, FuncOverloadSym[]>(),
       range,
+      filePath: this.currentFilePath,
       doc
     };
 
@@ -363,7 +411,7 @@ export class SemanticContext {
       return;
     }
 
-    const sym: VarSym = { kind: "var", name, type, range, readonly: opts?.readonly };
+    const sym: VarSym = { kind: "var", name, type, range, filePath: this.currentFilePath, readonly: opts?.readonly };
     container.fields.set(name, sym);
     this.varDecls.push(sym);
   }
@@ -408,8 +456,11 @@ export class SemanticContext {
         params,
         ret,
         decls: isDefinition ? [] : [range],
+        declFiles: isDefinition ? [] : [this.currentFilePath],
         def: isDefinition ? range : undefined,
+        defFilePath: isDefinition ? this.currentFilePath : undefined,
         primaryRange: range,
+        primaryFilePath: this.currentFilePath,
         doc
       };
 
@@ -440,12 +491,18 @@ export class SemanticContext {
         return;
       }
       exact.def = range;
+      exact.defFilePath = this.currentFilePath;
       exact.primaryRange = range;
+      exact.primaryFilePath = this.currentFilePath;
       return;
     }
 
     exact.decls.push(range);
-    if (!exact.def && exact.decls.length === 1) exact.primaryRange = exact.decls[0];
+    (exact.declFiles ??= []).push(this.currentFilePath);
+    if (!exact.def && exact.decls.length === 1) {
+      exact.primaryRange = exact.decls[0];
+      exact.primaryFilePath = this.currentFilePath;
+    }
   }
 
   getContainerMemberType(baseType: TypeNode, memberName: string, range: Range): TypeNode {
@@ -462,7 +519,14 @@ export class SemanticContext {
 
     const field = container.fields.get(memberName);
     if (field) {
-      this.varUses.push({ name: `${containerName}.${memberName}`, type: field.type, range });
+      this.varUses.push({
+        name: `${containerName}.${memberName}`,
+        type: field.type,
+        range,
+        filePath: this.currentFilePath,
+        targetRange: field.range,
+        targetFilePath: field.filePath
+      });
       return field.type;
     }
 
@@ -506,13 +570,13 @@ export class SemanticContext {
       this.issues.push({ message: `Macro '${name}' already defined`, range: nameRange });
       return;
     }
-    const sym: MacroSym = { kind: "macro", name, value, range: nameRange, valueRange, doc };
+    const sym: MacroSym = { kind: "macro", name, value, range: nameRange, valueRange, filePath: this.currentFilePath, doc };
     this.macros.set(name, sym);
     this.macroDecls.push(sym);
   }
 
   useMacro(name: string, range: Range) {
-    this.macroUses.push({ name, range });
+    this.macroUses.push({ name, range, filePath: this.currentFilePath });
   }
 
   getVarType(name: string): TypeNode | undefined {
@@ -547,7 +611,14 @@ export class SemanticContext {
   useVar(name: string, range: Range) {
     const v = this.scope.resolveVar(name) ?? this.globals.get(name);
     if (v) {
-      this.varUses.push({ name, type: v.type, range });
+      this.varUses.push({
+        name,
+        type: v.type,
+        range,
+        filePath: this.currentFilePath,
+        targetRange: v.range,
+        targetFilePath: v.filePath
+      });
       return;
     }
 
@@ -559,7 +630,7 @@ export class SemanticContext {
 
     const overloads = this.scope.resolveFuncs(name);
     if (overloads.length > 0) {
-      this.funcValueUses.push({ name, range });
+      this.funcValueUses.push({ name, range, filePath: this.currentFilePath });
       return;
     }
 
@@ -574,6 +645,23 @@ export class SemanticContext {
     if (this.scope.parent) this.scope = this.scope.parent;
   }
 
+  declareExternGlobalVar(
+    name: string,
+    type: TypeNode,
+    range: Range,
+    opts?: { readonly?: boolean }
+  ) {
+    const existing = this.globals.get(name);
+    if (existing) {
+      if (!existing.filePath && this.currentFilePath) existing.filePath = this.currentFilePath;
+      return;
+    }
+
+    const sym: VarSym = { kind: "var", name, type, range, filePath: this.currentFilePath, readonly: opts?.readonly };
+    this.globals.set(name, sym);
+    this.varDecls.push(sym);
+  }
+
   declareGlobalVar(
     name: string,
     type: TypeNode,
@@ -583,7 +671,7 @@ export class SemanticContext {
     if (this.globals.has(name)) {
       this.issues.push({ message: `Global '${name}' already declared`, range });
     }
-    const sym: VarSym = { kind: "var", name, type, range, readonly: opts?.readonly };
+    const sym: VarSym = { kind: "var", name, type, range, filePath: this.currentFilePath, readonly: opts?.readonly };
     this.globals.set(name, sym);
     this.varDecls.push(sym);
   }
@@ -597,7 +685,7 @@ export class SemanticContext {
     if (this.scope.vars.has(name)) {
       this.issues.push({ message: `Variable '${name}' already declared in this scope`, range });
     }
-    const sym: VarSym = { kind: "var", name, type, range, readonly: opts?.readonly };
+    const sym: VarSym = { kind: "var", name, type, range, filePath: this.currentFilePath, readonly: opts?.readonly };
     this.scope.vars.set(name, sym);
     this.varDecls.push(sym);
   }
@@ -632,8 +720,11 @@ export class SemanticContext {
         params,
         ret,
         decls: isDefinition ? [] : [range],
+        declFiles: isDefinition ? [] : [this.currentFilePath],
         def: isDefinition ? range : undefined,
+        defFilePath: isDefinition ? this.currentFilePath : undefined,
         primaryRange: range,
+        primaryFilePath: this.currentFilePath,
         doc
       };
 
@@ -661,12 +752,18 @@ export class SemanticContext {
         return;
       }
       exact.def = range;
+      exact.defFilePath = this.currentFilePath;
       exact.primaryRange = range;
+      exact.primaryFilePath = this.currentFilePath;
       return;
     }
 
     exact.decls.push(range);
-    if (!exact.def && exact.decls.length === 1) exact.primaryRange = exact.decls[0];
+    (exact.declFiles ??= []).push(this.currentFilePath);
+    if (!exact.def && exact.decls.length === 1) {
+      exact.primaryRange = exact.decls[0];
+      exact.primaryFilePath = this.currentFilePath;
+    }
   }
 
   noteCallSite(name: string, range: Range) {
@@ -676,31 +773,40 @@ export class SemanticContext {
         c.range.start.line === range.start.line &&
         c.range.start.character === range.start.character &&
         c.range.end.line === range.end.line &&
-        c.range.end.character === range.end.character
+        c.range.end.character === range.end.character &&
+        c.filePath === this.currentFilePath
     );
 
     if (!existing) {
-      this.callSites.push({ name, argc: -1, range });
+      this.callSites.push({ name, argc: -1, range, filePath: this.currentFilePath });
     }
   }
 
-  private upsertCallSite(name: string, argc: number, range: Range, resolution?: CallSite["resolution"]) {
+  private upsertCallSite(
+    name: string,
+    argc: number,
+    range: Range,
+    resolution?: CallSite["resolution"],
+    filePath: string | undefined = this.currentFilePath
+  ) {
     const site = this.callSites.find(
       (c) =>
         c.name === name &&
         c.range.start.line === range.start.line &&
         c.range.start.character === range.start.character &&
         c.range.end.line === range.end.line &&
-        c.range.end.character === range.end.character
+        c.range.end.character === range.end.character &&
+        c.filePath === filePath
     );
 
     if (site) {
       site.argc = argc;
+      site.filePath = filePath;
       if (resolution) site.resolution = resolution;
       return;
     }
 
-    this.callSites.push({ name, argc, range, resolution });
+    this.callSites.push({ name, argc, range, filePath, resolution });
   }
 
   private resolveCall(name: string, argc: number, scope: Scope = this.scope): CallSite["resolution"] {
@@ -749,7 +855,7 @@ export class SemanticContext {
 
   callFunc(name: string, argc: number, range: Range) {
     if (name === "syscall") return;
-    this.pendingCalls.push({ name, argc, range, scope: this.scope });
+    this.pendingCalls.push({ name, argc, range, filePath: this.currentFilePath, scope: this.scope });
     this.upsertCallSite(name, argc, range, this.resolveCall(name, argc, this.scope));
   }
 
@@ -771,7 +877,7 @@ export class SemanticContext {
           });
           return;
         }
-        this.indirectCallSites.push({ argc, range, calleeType: vt });
+        this.indirectCallSites.push({ argc, range, filePath: this.currentFilePath, calleeType: vt });
         return;
       }
       this.issues.push({
@@ -787,13 +893,14 @@ export class SemanticContext {
   callAssociatedMethod(containerName: string, name: string, argc: number, range: Range) {
     const qualifiedName = this.qualifiedMethodName(containerName, name);
     const resolution = this.resolveAssociatedCall(containerName, name, argc);
-    this.pendingAssociatedCalls.push({ containerName, name, argc, range });
+    this.pendingAssociatedCalls.push({ containerName, name, argc, range, filePath: this.currentFilePath });
     this.upsertCallSite(qualifiedName, argc, range, resolution);
   }
 
   noteSizeof(range: Range, targetType: TypeNode) {
     this.sizeofSites.push({
       range,
+      filePath: this.currentFilePath,
       targetType,
       size: sizeofType(targetType) ?? null
     });
@@ -810,7 +917,7 @@ export class SemanticContext {
         });
         return;
       }
-      this.indirectCallSites.push({ argc, range, calleeType });
+      this.indirectCallSites.push({ argc, range, filePath: this.currentFilePath, calleeType });
       return;
     }
 
@@ -825,7 +932,7 @@ export class SemanticContext {
       const qualifiedName = this.qualifiedMethodName(c.containerName, c.name);
       const resolution = this.resolveAssociatedCall(c.containerName, c.name, c.argc);
       if (resolution == undefined) continue;
-      this.upsertCallSite(qualifiedName, c.argc, c.range, resolution);
+      this.upsertCallSite(qualifiedName, c.argc, c.range, resolution, c.filePath);
 
       if (resolution.status === "unknown") {
         const container = this.containers.get(c.containerName);
@@ -866,7 +973,7 @@ export class SemanticContext {
     for (const c of this.pendingCalls) {
       const resolution = this.resolveCall(c.name, c.argc, c.scope);
       if (resolution == undefined) continue;
-      this.upsertCallSite(c.name, c.argc, c.range, resolution);
+      this.upsertCallSite(c.name, c.argc, c.range, resolution, c.filePath);
 
       if (resolution.status === "unknown") {
         this.issues.push({ message: `Unknown function '${c.name}'`, range: c.range });
