@@ -96,7 +96,7 @@ P.S.: *The code above is used in several later sections, so it is worth expandin
 ## PP part
 Before the main compiler pipeline starts, source code may need preprocessing. Preprocessing is optional in many compilers, but it is necessary here because CPL uses a header-style organization. This stage handles directives similar to `gcc -E`, including `include`, `define`, `undef`, `ifdef`, and `ifndef`. These directives behave similarly to their C/C++ counterparts, except that `define` does not currently support function-like macros with different arguments. </br>
 
-Let us return to the snippet above and include all header files into the final code. This is similar to what `gcc -E` does when it creates a single preprocessed translation unit:
+Let us return to the snippet above and include all header files into the final code. This is similar to what `gcc -E` does when it creates a single preprocessed translation unit (You can get the same result with `cplc -E`):
 ```cpl
 : string_h.cpl :
 #ifndef STRING_H_
@@ -169,7 +169,6 @@ In short, this stage is a DFA that does more than split input by spaces or comma
 
 ## Markup part
 The markup stage is the second part of token processing. Most compilers do not separate the tokenizer and markup stage in this way, but this compiler does. The markup stage operates on the token list produced by the tokenizer and adds scope-aware semantic information. </br>
-The main idea is to perform basic semantic markup for variables. For instance, if we declare some `i32` variable with the name `a` in a scope with `id=10`, all occurrences of `a` within the corresponding scope can be marked as having the `i32` type.
 
 <p align="center">
   <img src="docs/media/markup.png">
@@ -292,26 +291,6 @@ The AST generated from the [Markup part](#markup-part)'s list of marked tokens:
 </details>
 
 At this point, a compiler could either go straight to code generation or first lower the program into an intermediate representation. Cordell Compiler does not allow skipping the IR phase, so it uses the second approach.
-
-### AST optimization
-Once we have a correct `AST` representation of the input code, we can optionally apply several available optimizations. We will not spend much time here and will cover only a few examples. Note that `AST-level` optimizations are mostly redundant in the current compiler; they were much more useful before the project had an `IR` level.
-- `Condition unrolling`. If we have an `if` statement with a constant condition, such as `if 1; { ... }`, or similar situation with a `while` keyword or a `switch` statement, we can unroll them by removing the condition and keeping only the body.
-- `Dead scope elimination`. If a scope does not affect the environment, it can be safely removed.
-
-To understand what they actually do, we can consider the next example of `DSE` (Dead Scope Elimination):
-```cpl
-start() {
-    {
-        i32 a = 10;
-        a += 10 * 10 - 11;
-    }
-    exit 1;
-}
-```
-
-According to the compiler's markup logic, the `exit` statement cannot see the variable `a`. The scope also has no effect on the surrounding environment: it does not call anything, change anything outside the scope, return, or exit. Therefore, this scope can be safely removed at the AST level. </br>
-
-P.S.: *I kept these optimizations because they do not duplicate the existing HIR or LIR optimizations. Older compiler versions had more AST-level optimizations; see the v2.0 and v1.0 tags on GitHub if you are interested.*
 
 ## HIR part
 The `AST` representation of the input code must be flattened for later optimization phases. A common approach is to convert the `AST` structure into a list of `Three-Address Code` (3AC) [[?]](https://web.stanford.edu/class/archive/cs/cs143/cs143.1128/lectures/13/Slides13.pdf). </br>
