@@ -47,41 +47,41 @@ typedef enum {
 
 typedef struct cfg_block {
     /* Basic info and content */
-    cfg_block_type_t  type;
-    long              id;
-    cfg_func_t*       pfunc;    /* parent function            */
+    cfg_block_type_t   type;
+    long               id;
+    cfg_func_t*        pfunc;    /* parent function            */
 
-    hir_map_t         hmap;     /* Mapping to existed HIR ctx */
-    lir_map_t         lmap;     /* Mapping to existed LIR ctx */
+    hir_map_t          hmap;     /* Mapping to existed HIR ctx */
+    lir_map_t          lmap;     /* Mapping to existed LIR ctx */
 
     /* Block navigation */
-    struct cfg_block* l;
-    struct cfg_block* jmp;
-    set_t             pred;     /* cfg_block_t* set            */
-    set_t             visitors; /* long id set                 */
-    unsigned int      visited;
+    struct cfg_block*  l;
+    struct cfg_block*  jmp;
+    set_t              pred;     /* cfg_block_t* set            */
+    set_t              visitors; /* long id set                 */
+    unsigned long long visited;
     
     /* Dominance frontier analysis */
-    set_t             dom;      /* Dominators                  */
-    struct cfg_block* sdom;     /* Strict dominators           */
-    struct cfg_block* dom_c;    /* Dominator children          */
-    struct cfg_block* dom_s;    /* Dominator sibling           */
-    set_t             domf;     /* Dominance frontier          */
+    set_t              dom;      /* Dominators                  */
+    struct cfg_block*  sdom;     /* Strict dominators           */
+    struct cfg_block*  dom_c;    /* Dominator children          */
+    struct cfg_block*  dom_s;    /* Dominator sibling           */
+    set_t              domf;     /* Dominance frontier          */
 
     /* SSA */
-    set_t             phi;
+    set_t              phi;
 
     /* Liveness analysis */
-    set_t             def;      /* Set of defined variables    */
-    set_t             use;      /* Set of used variables       */
-    set_t             curr_in;  /* Current IN{} set            */
-    set_t             curr_out; /* Current OUT{} set           */
-    set_t             prev_in;  /* Prev IN{} set               */
-    set_t             prev_out; /* Prev IN{} set               */
+    set_t              def;      /* Set of defined variables    */
+    set_t              use;      /* Set of used variables       */
+    set_t              curr_in;  /* Current IN{} set            */
+    set_t              curr_out; /* Current OUT{} set           */
+    set_t              prev_in;  /* Prev IN{} set               */
+    set_t              prev_out; /* Prev IN{} set               */
 
     /* Copy propagation */
-    set_t             copy_gen;  /* Generated copy targets      */
-    set_t             copy_kill; /* Killed copy targets         */
+    set_t              copy_gen;  /* Generated copy targets      */
+    set_t              copy_kill; /* Killed copy targets         */
 } cfg_block_t;
 
 #define iterate_hir_instructions(bb) \
@@ -98,6 +98,12 @@ typedef struct {
         list_t lout;
     } outs;
 } cfg_ctx_t;
+
+/*
+Return a process-wide unique counter for CFG traversals.
+The zero value is reserved for blocks which haven't been visited.
+*/
+unsigned long long CFG_get_unique_counter();
 
 /*
 Perform cleanup operation for CFG blocks. Will clean all information related to navigation.

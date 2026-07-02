@@ -133,8 +133,6 @@ static int _deep_jump_pass(cfg_func_t* fb) {
     return changed;
 }
 
-static unsigned long long _visit_counter = 100;
-
 static int _is_stack_pointer_subject(lir_subject_t* s) {
     return s && s->t == LIR_REGISTER && LIR_format_register(s->storage.reg.reg, 8) == RSP;
 }
@@ -159,16 +157,17 @@ Returns 1 if the considered LIR block can be marked as unused.
 Returns 0 if the considered LIR block can't be marked as unused.
 */
 static int _recursive_cleanup(
-    lir_operation_t op, long pred, cfg_block_t* bbh, lir_subject_t* trg, lir_block_t* ign, lir_block_t* off
+    lir_operation_t op, long pred, cfg_block_t* bbh, lir_subject_t* trg, lir_block_t* ign, lir_block_t* off,
+    unsigned long long counter
 ) {
     if (!bbh) return 1;
-    if (bbh->visited != _visit_counter) {
+    if (bbh->visited != counter) {
         set_free(&bbh->visitors);
         set_init(&bbh->visitors, SET_NO_CMP);
     }
     
     if (set_has(&bbh->visitors, (void*)pred)) return 1;
-    bbh->visited = _visit_counter;
+    bbh->visited = counter;
     set_add(&bbh->visitors, (void*)pred);
 
     lir_block_t* lh = off ? off : bbh->lmap.entry;
@@ -199,8 +198,8 @@ static int _recursive_cleanup(
     }
 
     if (
-        !_recursive_cleanup(op, bbh->id, bbh->l, trg, ign, NULL) || 
-        !_recursive_cleanup(op, bbh->id, bbh->jmp, trg, ign, NULL)
+        !_recursive_cleanup(op, bbh->id, bbh->l, trg, ign, NULL, counter) ||
+        !_recursive_cleanup(op, bbh->id, bbh->jmp, trg, ign, NULL, counter)
     ) return 0; /* If the command is used somewhere in the children, return 0                     */
     return 1;   /* By default, if the considering command is unused elsewhere, we mark it to drop */
 }
@@ -214,8 +213,8 @@ static int _cleanup_pass(cfg_block_t* bb) {
             !_is_stack_pointer_subject(lh->farg) &&
             LIR_is_writeop(lh->op) && !LIR_has_sideeffect(lh->op)
         ) {
-            _visit_counter++;
-            if (_recursive_cleanup(lh->op, -1, bb, lh->farg, lh, lh->next)) {
+            unsigned long long counter = CFG_get_unique_counter();
+            if (_recursive_cleanup(lh->op, -1, bb, lh->farg, lh, lh->next, counter)) {
                 lh->unused = 1;
                 changed = 1;
             }

@@ -1,6 +1,14 @@
 /* cfg.c - Create CFG */
 #include <hir/cfg.h>
 
+static unsigned long long _unique_counter = 0;
+
+unsigned long long CFG_get_unique_counter() {
+    _unique_counter++;
+    if (!_unique_counter) _unique_counter++;
+    return _unique_counter;
+}
+
 int HIR_CFG_remove_hir_block(cfg_block_t* bb, hir_block_t* hh) {
     if (!bb || !hh) return 0;
     if (bb->hmap.entry == bb->hmap.exit) {

@@ -181,13 +181,13 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         lir_subject_t* src;
                         switch (lh->sarg->storage.cnst.value) {
                             case 0: {
-                                src = LIR_SUBJ_OFF(RBP, -8, 8);
+                                src    = fi.flags.abi ? x86_64_gnu_nasm_create_tmp(RDI, lh->farg, smt, -1) : LIR_SUBJ_OFF(RBP, -8, 8);
                                 lh->op = LIR_iMOV; 
                                 break;
                             }
                             default: {
-                                src = LIR_SUBJ_OFF(RBP, -16, 8);
-                                lh->op = LIR_REF;  
+                                src    = fi.flags.abi ? x86_64_gnu_nasm_create_tmp(RSI, lh->farg, smt, -1) : LIR_SUBJ_OFF(RBP, -16, 8);
+                                lh->op = fi.flags.abi ? LIR_REF_GDREF                                      : LIR_REF;  
                                 break;
                             }
                         }

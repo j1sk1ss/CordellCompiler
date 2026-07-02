@@ -57,7 +57,7 @@ ast_node_t* cpl_parse_start(PARSER_ARGS) {
     base->sinfo.v_id = FNTB_add_info(
         main_name, virt_name, 
         (func_info_flags_t){ 
-            .entry = 1, .global = 1, .naked = annots.is_naked ? 1 : 0, .onlybody = annots.is_onlybody, .weak = annots.is_weak 
+            .entry = 1, .global = 1, .naked = annots.is_naked ? 1 : 0, .onlybody = annots.is_onlybody, .weak = annots.is_weak, .abi = annots.is_abi
         }, 
         base->sinfo.s_id, base, NULL, &smt->f
     );
