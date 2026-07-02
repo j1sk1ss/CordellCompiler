@@ -10,7 +10,7 @@ BINDIR ?= $(PREFIX)/bin
 DATADIR ?= $(PREFIX)/share
 CPLLIBDIR ?= $(DATADIR)/cpl/include
 DOCDIR ?= $(DATADIR)/doc/cpl
-VERSION ?= 3.6.5.5
+VERSION ?= 3.6_X
 
 BUILD ?= debug
 AVAILABLE_MEMORY ?= 16777216
@@ -116,16 +116,16 @@ release: ## Build an optimized compiler.
 install: $(OUTPUT) ## Install the compiler and CPL standard library under PREFIX.
 	$(INSTALL) -d $(DESTDIR)$(BINDIR) $(DESTDIR)$(CPLLIBDIR) $(DESTDIR)$(DOCDIR)
 	$(INSTALL) -m 0755 $(OUTPUT) $(DESTDIR)$(BINDIR)/cplc
-	$(INSTALL) -m 0644 cpllib/*.cpl cpllib/*.h $(DESTDIR)$(CPLLIBDIR)/
-	$(INSTALL) -m 0644 LICENSE cpllib/README.md $(DESTDIR)$(DOCDIR)/
+	$(INSTALL) -m 0644 cpllib/*.cpl $(DESTDIR)$(CPLLIBDIR)/
+	$(INSTALL) -m 0644 LICENSE $(DESTDIR)$(DOCDIR)/
 
 package: ## Build a relocatable binary tarball with the standard library.
 	$(MAKE) BUILD=release PRINT_PARSE=0 -B all
 	$(RM) -r builds/package/cpl-$(VERSION)
 	$(INSTALL) -d builds/package/cpl-$(VERSION)/bin builds/package/cpl-$(VERSION)/share/cpl/include builds/package/cpl-$(VERSION)/share/doc/cpl
 	$(INSTALL) -m 0755 $(OUTPUT) builds/package/cpl-$(VERSION)/bin/cplc
-	$(INSTALL) -m 0644 cpllib/*.cpl cpllib/*.h builds/package/cpl-$(VERSION)/share/cpl/include/
-	$(INSTALL) -m 0644 LICENSE cpllib/README.md builds/package/cpl-$(VERSION)/share/doc/cpl/
+	$(INSTALL) -m 0644 cpllib/*.cpl builds/package/cpl-$(VERSION)/share/cpl/include/
+	$(INSTALL) -m 0644 LICENSE builds/package/cpl-$(VERSION)/share/doc/cpl/
 	tar -C builds/package -czf builds/cpl-$(VERSION)-$(PLATFORM).tar.gz cpl-$(VERSION)
 
 run: $(OUTPUT) ## Compile INPUT with the built compiler.
