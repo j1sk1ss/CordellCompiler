@@ -139,12 +139,11 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
     hir_subject_t* call_subj = NULL;
     hir_operation_t st_op    = HIR_STORE_UFCLL, op = HIR_UFCLL;
     if (!node || !node->c || !node->c->siblings.n) {
-        HIRGEN_ERROR(ctx, "Function call: malformed AST node!");
+        HIRGEN_ERROR(ctx, "Malformed AST node (AST -> HIR)!");
         return NULL;
     }
 
-    ast_node_t* args_node    = node->c->siblings.n->c;
-    
+    ast_node_t* args_node = node->c->siblings.n->c;
     func_info_t fi = { 0 };
     if (
         node->c->t->t_type != FUNC_NAME_TOKEN || 
@@ -158,7 +157,7 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
     }
     
     if (!call_subj) {
-        HIRGEN_ERROR(ctx, "Function call: callee generation error!");
+        HIRGEN_ERROR(ctx, "Callee generation error (AST -> HIR)!");
         return NULL;
     }
 
@@ -166,7 +165,7 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
     for (ast_node_t* arg = args_node; arg; arg = arg->siblings.n) {
         hir_subject_t* el = HIR_generate_elem(arg, ctx, smt);
         if (!el) {
-            HIRGEN_ERROR(ctx, "Function call: argument generation error!");
+            HIRGEN_ERROR(ctx, "Argument generation error (AST -> HIR)!");
             HIR_unload_subject(args);
             HIR_unload_subject(call_subj);
             return NULL;
