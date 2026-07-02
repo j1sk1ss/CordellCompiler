@@ -45,6 +45,12 @@ container c_tm {
 }
 
 @[like_c]
+container c_timespec {
+    i64 tv_sec;
+    i64 tv_nsec;
+}
+
+@[like_c]
 container c_lconv {
     ptr i8 decimal_point;
     ptr i8 thousands_sep;

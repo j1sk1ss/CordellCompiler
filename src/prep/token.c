@@ -330,11 +330,15 @@ int TKN_tokenize(int fd, list_t* tkn) {
     _reset_tkn_ctx(&tkn_ctx);
 
     file_position_t finfo = { .column = 1, .line = 1, .file = NULL };
-    char buffer[BUFFER_SIZE] = { 0 };
+    off_t input_size = lseek(fd, 0, SEEK_END);
+    size_t buffer_size = input_size > BUFFER_SIZE ? (size_t)input_size : BUFFER_SIZE;
+    char* buffer = mm_malloc(buffer_size);
+    if (!buffer) return 0;
+    str_memset(buffer, 0, buffer_size);
 
     int file_offset = 0;
     ssize_t bytes_read = 0;
-    while ((bytes_read = pread(fd, buffer, BUFFER_SIZE, file_offset)) > 0) {
+    while ((bytes_read = pread(fd, buffer, buffer_size, file_offset)) > 0) {
         ssize_t buffer_off = 0;
         token_t* token;
         while ((token = _give_next_token(buffer, bytes_read, &buffer_off, &finfo, &tkn_ctx))) {
@@ -355,6 +359,7 @@ int TKN_tokenize(int fd, list_t* tkn) {
                         TKN_unload_token(fline);
                         TKN_unload_token(fname);
                         list_free_force_op(tkn, (int (*)(void*))TKN_unload_token);
+                        mm_free(buffer);
                         return 0;
                     }
 
@@ -378,6 +383,7 @@ int TKN_tokenize(int fd, list_t* tkn) {
 
     list_add(tkn, _give_next_token(NULL, -1, NULL, NULL, &tkn_ctx));
     list_add(tkn, TKN_create_token(EOF_TOKEN, NULL, NULL));
+    mm_free(buffer);
     return 1;
 }
 

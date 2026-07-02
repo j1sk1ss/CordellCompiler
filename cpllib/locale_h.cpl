@@ -11,6 +11,6 @@
 #define LC_TIME     2
 
 extern function setlocale(i32 category, ptr i8 locale) -> ptr i8;
-extern function localeconv() -> ptr i8;
+extern function localeconv() -> ptr c_lconv;
 
 #endif

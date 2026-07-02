@@ -1,34 +1,23 @@
 #include <preproc/pp.h>
 
-int PP_create_tmp_file(int src_fd) {
-    char src_path[PP_PATH_MAX] = { 0 };
-    char path[PP_PATH_MAX]     = { 0 };
-    char dir_buf[PP_PATH_MAX]  = { 0 };
+int PP_create_tmp_file() {
+    char path[PP_PATH_MAX] = { 0 };
+    const char* tmp_dir = getenv("TMPDIR");
+    if (!tmp_dir || !tmp_dir[0]) tmp_dir = "/tmp";
 
-#if defined(__linux__)
-    char link_path[64];
-    snprintf(link_path, sizeof(link_path), "/proc/self/fd/%d", src_fd);
-    ssize_t n = readlink(link_path, src_path, sizeof(src_path) - 1);
-    if (n < 0) return -1;
-    src_path[n] = 0;
-#elif defined(__APPLE__)
-    if (fcntl(src_fd, F_GETPATH, src_path) == -1) return -1;
-#else
-    return -1;
-#endif
-
-    if (src_path[0] != '/') return -1;
-    strncpy(dir_buf, src_path, sizeof(dir_buf));
-    dir_buf[sizeof(dir_buf) - 1] = 0;
-
-    const char* dir = dirname(dir_buf);
-    int w = snprintf(path, sizeof(path), "%s/.pp_tmp_XXXXXX", dir);
-    if (w < 0 || (size_t)w >= sizeof(path)) return -1;
+    int w = snprintf(path, sizeof(path), "%s/cplc-pp-XXXXXX", tmp_dir);
+    if (w < 0 || (size_t)w >= sizeof(path)) {
+        fprintf(stderr, "Preprocessor temporary path is too long: %s\n", tmp_dir);
+        return -1;
+    }
 
     int tmp_fd = mkstemp(path);
-    if (tmp_fd < 0) return -1;
-    unlink(path);
+    if (tmp_fd < 0) {
+        fprintf(stderr, "Can't create a preprocessor temporary file in %s: %s\n", tmp_dir, strerror(errno));
+        return -1;
+    }
 
+    unlink(path);
     fchmod(tmp_fd, 0644);
 
     int flags = fcntl(tmp_fd, F_GETFL);

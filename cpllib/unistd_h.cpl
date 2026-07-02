@@ -7,6 +7,15 @@
 #define STDOUT_FILENO 1
 #define STDERR_FILENO 2
 
+#define F_OK 0
+#define X_OK 1
+#define W_OK 2
+#define R_OK 4
+
+#define SEEK_SET 0
+#define SEEK_CUR 1
+#define SEEK_END 2
+
 extern function read(i32 fd, ptr i0 buf, u64 count) -> i64;
 extern function write(i32 fd, ptr i0 buf, u64 count) -> i64;
 extern function close(i32 fd) -> i32;
@@ -19,10 +28,21 @@ extern function access(ptr i8 path, i32 mode) -> i32;
 extern function dup(i32 old_fd) -> i32;
 extern function dup2(i32 old_fd, i32 new_fd) -> i32;
 extern function pipe(ptr i32 pipefd) -> i32;
+extern function pipe2(ptr i32 pipefd, i32 flags) -> i32;
 extern function fork() -> i32;
+extern function _exit(i32 status) -> i0;
 extern function execve(ptr i8 path, ptr ptr i8 argv, ptr ptr i8 envp) -> i32;
+extern function execv(ptr i8 path, ptr ptr i8 argv) -> i32;
+@[abi] extern function execl(ptr i8 path, ptr i8 arg0, ...) -> i32;
 extern function getpid() -> i32;
 extern function getppid() -> i32;
+extern function getuid() -> u32;
+extern function geteuid() -> u32;
+extern function getgid() -> u32;
+extern function getegid() -> u32;
+extern function isatty(i32 fd) -> i32;
+extern function fsync(i32 fd) -> i32;
+extern function ftruncate(i32 fd, i64 length) -> i32;
 extern function sleep(u32 seconds) -> u32;
 extern function usleep(u32 usec) -> i32;
 

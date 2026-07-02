@@ -18,17 +18,21 @@ Quoted includes first search relative to the current file:
 #include "print_h.cpl"
 ```
 
-System-style includes search the directory passed with `-I`:
+System-style includes search the directory passed with `-I`, then the standard
+library shipped with the compiler:
 
 ```cpl
-#include <print_h.cpl>
+#include <stdio_h.cpl>
 ```
 
 Example command:
 
 ```bash
-./builds/ccompiler -I examples --output app main.cpl
+./builds/linux-x86_64/cplc -I examples --output app main.cpl
 ```
+
+The standard library location can be overridden with `CPL_INCLUDE_PATH` and
+inspected with `cplc --print-stdlib-path`.
 
 ## Header pattern
 

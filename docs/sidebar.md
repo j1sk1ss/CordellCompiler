@@ -23,6 +23,7 @@
   - [Keywords](pages/keywords.md)
 
 - **Compiler & toolchain**
+  - [Build, install, and package](pages/build-install-package.md)
   - [Compiler usage](pages/compiler-usage.md)
   - [Compiler architecture](pages/compiler-architecture.md)
   - [Semantic static checker](pages/semantic-static-checker.md)

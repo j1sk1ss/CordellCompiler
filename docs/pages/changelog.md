@@ -3,6 +3,19 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## CPL standart library!
+<div class="change-date">Date: 2026-07-02</div>
+Now the compiler has a library which provides a major part of the C-glibc library. To use it, provide the glibc-name and add at its end `_h` part:
+
+```cpl
+#include <stdio_h.cpl>
+start() {
+    printf(ref "Hello world!\n");
+}
+```
+
+Also the pre-proccessor now accepts `<>` headers, and the Makefile now installs the library at the `share` location.
+
 ## No more AST-level optimization
 <div class="change-date">Date: 2026-06-15</div>
 The oldest optimizations now deleted from the compiler. They weren't used in the pipeline, which means this change doesn't affect anything.

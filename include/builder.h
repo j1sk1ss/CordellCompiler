@@ -75,7 +75,15 @@
 #include <asm/x86_64_macho_nasm_asmgen.h>
 
 #include <gem_data.h>
-#define CCPL_VERSION                 "3.6.5.5:0107.26" // major.minor<.sub> (old version style):ddmm.yy (new version style)
+#define CCPL_VERSION                 "3.6.6:0207.26" // major.minor<.sub> (old version style):ddmm.yy (new version style)
+
+#ifndef CPL_DEFAULT_INCLUDE_DIR
+    #define CPL_DEFAULT_INCLUDE_DIR "/usr/local/share/cpl/include"
+#endif
+
+#ifndef PATH_MAX
+    #define PATH_MAX 4096
+#endif
 
 #define OPTION_HELP_SHORT            "-h"
 #define OPTION_HELP                  "--help"
@@ -85,6 +93,7 @@
 #define OPTION_SOMETHING_SHORT       "-s"
 #define OPTION_PREPROCESS_ONLY       "-E"
 #define OPTION_INLUCDE               "-I"
+#define OPTION_PRINT_STDLIB          "--print-stdlib-path"
 #define OPTION_OUTPUT                "--output"
 #define OPTION_WITHOUT_COMPILATION   "--without-compilation"
 #define OPTION_ENABLE_AST_ANALYSIS   "--ast-analysis"
@@ -145,6 +154,7 @@ typedef struct {
 typedef struct {
     struct {
         const char*  include;
+        const char*  stdlib;
         const char** files;
         int          files_count;
         char*        output;
@@ -188,6 +198,7 @@ typedef struct {
         int          hir_analysis         : 1;
         int          show_help            : 1;
         int          show_version         : 1;
+        int          print_stdlib         : 1;
         int          show_something       : 1;
         int          preprocess_only      : 1;
         int          without_compilation  : 1;

@@ -1,0 +1,13 @@
+#ifndef CPL_INTTYPES_H_
+#define CPL_INTTYPES_H_ 0
+
+#include "stdint_h.cpl"
+
+#define intmax_t  i64
+#define uintmax_t u64
+
+extern function imaxabs(i64 value) -> i64;
+extern function strtoimax(ptr i8 s, ptr ptr i8 endptr, i32 base) -> i64;
+extern function strtoumax(ptr i8 s, ptr ptr i8 endptr, i32 base) -> u64;
+
+#endif

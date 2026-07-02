@@ -140,6 +140,13 @@ static int _push_include(const char* curr_name, sstack_t* st, finder_ctx_t* fctx
         }
     }
 
+    if (fctx && fctx->spath && fctx->spath[0]) {
+        int w = snprintf(full, sizeof(full), "%s/%s", fctx->spath, inc_name);
+        if (w > 0 && (size_t)w < sizeof(full)) {
+            if (_try_push_path(st, full)) return 1;
+        }
+    }
+
     return 0;
 }
 
@@ -201,7 +208,7 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
     }
 
     ppctx.fd = fd;
-    int ffd = PP_create_tmp_file(ppctx.fd);
+    int ffd = PP_create_tmp_file();
     if (ffd < 0) return -1;
 
     ppctx.out = fdopen(dup(ffd), "w");
@@ -300,6 +307,7 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
                 }
 
                 if (!_push_include(inf->n, &ppctx.sources, fctx, inc_name, is_system)) {
+                    fprintf(stderr, "%s:%i: include file '%s' isn't found\n", inf->n, inf->l, inc_name);
                     _unload_pp_ctx(&ppctx);
                     return -1;
                 }

@@ -1,6 +1,7 @@
 #ifndef PP_H_
 #define PP_H_
 
+#include <errno.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -64,12 +65,9 @@ typedef struct {
 
 /*
 Create and open temp file near to the source fd file.
-Params:
-    - `src_fd` - Source FD.
-
 Returns FD of a tmp file or -1.
 */
-int PP_create_tmp_file(int src_fd);
+int PP_create_tmp_file();
 
 /*
 Grub a path from the fp.
@@ -151,7 +149,8 @@ Returns 0 on failure or if nothing changed, otherwise 1.
 int PP_resolve_defines(char** in, size_t* in_cap, char** out, size_t* out_cap, deftb_t* dctx);
 
 typedef struct {
-    const char* bpath; /* Basic include path */
+    const char* bpath; /* User include directory (-I)                  */
+    const char* spath; /* Compiler-provided standard library directory */
 } finder_ctx_t;
 
 int PP_perform(int fd, finder_ctx_t* fctx);

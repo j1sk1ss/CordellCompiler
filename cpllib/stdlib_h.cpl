@@ -11,9 +11,12 @@
 extern function malloc(u64 size) -> ptr i0;
 extern function calloc(u64 count, u64 size) -> ptr i0;
 extern function realloc(ptr i0 pointer, u64 size) -> ptr i0;
+extern function aligned_alloc(u64 alignment, u64 size) -> ptr i0;
+extern function posix_memalign(ptr ptr i0 result, u64 alignment, u64 size) -> i32;
 extern function free(ptr i0 pointer) -> i0;
 
 extern function abort() -> i0;
+extern function _Exit(i32 status) -> i0;
 extern function atexit(ptr i0 func) -> i32;
 extern function system(ptr i8 command) -> i32;
 extern function getenv(ptr i8 name) -> ptr i8;
@@ -27,6 +30,7 @@ extern function strtoul(ptr i8 s, ptr ptr i8 endptr, i32 base) -> u64;
 extern function strtoull(ptr i8 s, ptr ptr i8 endptr, i32 base) -> u64;
 extern function strtod(ptr i8 s, ptr ptr i8 endptr) -> f64;
 extern function strtof(ptr i8 s, ptr ptr i8 endptr) -> f32;
+extern function strtold(ptr i8 s, ptr ptr i8 endptr) -> f64;
 
 extern function rand() -> i32;
 extern function srand(u32 seed) -> i0;

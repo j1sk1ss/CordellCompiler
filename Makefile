@@ -2,6 +2,15 @@ CC ?= gcc
 PYTHON ?= python3
 RM ?= rm -f
 MKDIR_P ?= mkdir -p
+INSTALL ?= install
+
+PREFIX ?= /usr/local
+DESTDIR ?=
+BINDIR ?= $(PREFIX)/bin
+DATADIR ?= $(PREFIX)/share
+CPLLIBDIR ?= $(DATADIR)/cpl/include
+DOCDIR ?= $(DATADIR)/doc/cpl
+VERSION ?= 3.6.5.5
 
 BUILD ?= debug
 AVAILABLE_MEMORY ?= 16777216
@@ -38,7 +47,7 @@ PLATFORM ?= $(shell uname -s | tr '[:upper:]' '[:lower:]')-$(shell uname -m | tr
 SOURCES := $(sort $(shell find src std -type f -name '*.c'))
 OUTPUT = builds/$(PLATFORM)/cplc
 
-CPPFLAGS += -Iinclude -DALLOC_BUFFER_SIZE=$(AVAILABLE_MEMORY)
+CPPFLAGS += -Iinclude -DALLOC_BUFFER_SIZE=$(AVAILABLE_MEMORY) -DCPL_DEFAULT_INCLUDE_DIR=\"$(CPLLIBDIR)\"
 CFLAGS += -Wall -Wno-int-conversion
 LDFLAGS +=
 LDLIBS +=
@@ -104,6 +113,21 @@ debug: ## Build a debug compiler.
 release: ## Build an optimized compiler.
 	$(MAKE) BUILD=release PRINT_PARSE=0 all
 
+install: $(OUTPUT) ## Install the compiler and CPL standard library under PREFIX.
+	$(INSTALL) -d $(DESTDIR)$(BINDIR) $(DESTDIR)$(CPLLIBDIR) $(DESTDIR)$(DOCDIR)
+	$(INSTALL) -m 0755 $(OUTPUT) $(DESTDIR)$(BINDIR)/cplc
+	$(INSTALL) -m 0644 cpllib/*.cpl cpllib/*.h $(DESTDIR)$(CPLLIBDIR)/
+	$(INSTALL) -m 0644 LICENSE cpllib/README.md $(DESTDIR)$(DOCDIR)/
+
+package: ## Build a relocatable binary tarball with the standard library.
+	$(MAKE) BUILD=release PRINT_PARSE=0 -B all
+	$(RM) -r builds/package/cpl-$(VERSION)
+	$(INSTALL) -d builds/package/cpl-$(VERSION)/bin builds/package/cpl-$(VERSION)/share/cpl/include builds/package/cpl-$(VERSION)/share/doc/cpl
+	$(INSTALL) -m 0755 $(OUTPUT) builds/package/cpl-$(VERSION)/bin/cplc
+	$(INSTALL) -m 0644 cpllib/*.cpl cpllib/*.h builds/package/cpl-$(VERSION)/share/cpl/include/
+	$(INSTALL) -m 0644 LICENSE cpllib/README.md builds/package/cpl-$(VERSION)/share/doc/cpl/
+	tar -C builds/package -czf builds/cpl-$(VERSION)-$(PLATFORM).tar.gz cpl-$(VERSION)
+
 run: $(OUTPUT) ## Compile INPUT with the built compiler.
 	$(OUTPUT) $(RUN_ARGS) $(INPUT)
 
@@ -118,6 +142,9 @@ rewrite-test: ## Rewrite OUTPUT blocks for module tests.
 
 std-test: ## Run std library tests, e.g. make std-test STD_UTEST=std_utesting/list.
 	cd tests && $(PYTHON) std_testing.py --path $(STD_UTEST) --compiler $(CC) --output-dir bin --base ../
+
+cpllib-test: $(OUTPUT) ## Parse all shipped CPL standard library headers.
+	$(OUTPUT) --without-compilation tests/cpllib_smoke.cpl
 
 clean: ## Remove compiler build outputs.
 	$(RM) -r builds
@@ -135,6 +162,8 @@ print-config:
 	@echo "BUILD=$(BUILD)"
 	@echo "PLATFORM=$(PLATFORM)"
 	@echo "OUTPUT=$(OUTPUT)"
+	@echo "PREFIX=$(PREFIX)"
+	@echo "CPLLIBDIR=$(CPLLIBDIR)"
 	@echo "CPPFLAGS=$(CPPFLAGS)"
 	@echo "CFLAGS=$(CFLAGS)"
 	@echo "LDFLAGS=$(LDFLAGS)"
@@ -152,4 +181,4 @@ help:
 	@awk 'BEGIN {FS = ":.*## "; printf "Usage: make <target> [VAR=value]\n\nTargets:\n"} /^[a-zA-Z0-9_.-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 .DELETE_ON_ERROR:
-.PHONY: all debug release run test unit-test rewrite-test std-test clean clean-tests distclean print-sources print-config help
+.PHONY: all debug release install package run test unit-test rewrite-test std-test cpllib-test clean clean-tests distclean print-sources print-config help

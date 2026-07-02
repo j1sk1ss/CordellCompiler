@@ -1,0 +1,37 @@
+#ifndef CPL_SYS_STAT_H_
+#define CPL_SYS_STAT_H_ 0
+
+#include "sys_types_h.cpl"
+
+#define S_IFMT   61440
+#define S_IFSOCK 49152
+#define S_IFLNK  40960
+#define S_IFREG  32768
+#define S_IFBLK  24576
+#define S_IFDIR  16384
+#define S_IFCHR  8192
+#define S_IFIFO  4096
+
+#define S_IRWXU 448
+#define S_IRUSR 256
+#define S_IWUSR 128
+#define S_IXUSR 64
+#define S_IRWXG 56
+#define S_IRGRP 32
+#define S_IWGRP 16
+#define S_IXGRP 8
+#define S_IRWXO 7
+#define S_IROTH 4
+#define S_IWOTH 2
+#define S_IXOTH 1
+
+extern function stat(ptr i8 path, ptr i0 stat_buf) -> i32;
+extern function fstat(i32 fd, ptr i0 stat_buf) -> i32;
+extern function lstat(ptr i8 path, ptr i0 stat_buf) -> i32;
+extern function chmod(ptr i8 path, u32 mode) -> i32;
+extern function fchmod(i32 fd, u32 mode) -> i32;
+extern function mkdir(ptr i8 path, u32 mode) -> i32;
+extern function mkfifo(ptr i8 path, u32 mode) -> i32;
+extern function umask(u32 mask) -> u32;
+
+#endif

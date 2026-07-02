@@ -30,6 +30,7 @@ static int _print_help_message() {
         { OPTION_PREPROCESS_ONLY, NULL, "Run preprocessor only" },
         { OPTION_WITHOUT_COMPILATION, NULL, "Build AST and HIR, then stop without compilation" },
         { OPTION_INLUCDE, "<dir>", "Add include directory" },
+        { OPTION_PRINT_STDLIB, NULL, "Print the standard library directory" },
         { OPTION_OUTPUT, "<file>", "Set output file" },
         { OPTION_ENABLE_AST_ANALYSIS, NULL, "Enable AST analysis" },
         { OPTION_ENABLE_IR_ANALYSIS, NULL, "Enable IR analysis" },
@@ -94,7 +95,7 @@ static int _print_help_message() {
     };
 
     _print_version(stdout);
-    fprintf(stdout, "Usage: ccpl [options] <input files>\n");
+    fprintf(stdout, "Usage: cplc [options] <input files>\n");
     _print_help_section(stdout, "General options",      general_options, sizeof(general_options) / sizeof(general_options[0]));
     _print_help_section(stdout, "Optimization options", optimization_options, sizeof(optimization_options) / sizeof(optimization_options[0]));
     _print_help_section(stdout, "Target options",       target_options, sizeof(target_options) / sizeof(target_options[0]));
@@ -112,6 +113,48 @@ static char* _dup_string(const char* s) {
     if (!out) return NULL;
     memcpy(out, s, n);
     return out;
+}
+
+static inline int _readable_directory(const char* path) {
+    return path && path[0] && !access(path, R_OK | X_OK);
+}
+
+static int _path_from_executable(const char* argv0, const char* suffix, char* out, size_t out_size) {
+    if (!argv0 || !suffix || !out || !out_size) return 0;
+
+    char executable[PATH_MAX] = { 0 };
+#ifdef __linux__
+    ssize_t nread = readlink("/proc/self/exe", executable, sizeof(executable) - 1);
+    if (nread > 0) executable[nread] = 0;
+    else
+#endif
+    {
+        if (!realpath(argv0, executable)) return 0;
+    }
+
+    char* slash = strrchr(executable, '/');
+    if (!slash) return 0;
+    *slash = 0;
+
+    char candidate[PATH_MAX] = { 0 };
+    int written = snprintf(candidate, sizeof(candidate), "%s/%s", executable, suffix);
+    if (written <= 0 || (size_t)written >= sizeof(candidate)) return 0;
+
+    char resolved[PATH_MAX] = { 0 };
+    if (!realpath(candidate, resolved) || !_readable_directory(resolved)) return 0;
+    if (strlen(resolved) + 1 > out_size) return 0;
+    strcpy(out, resolved);
+    return 1;
+}
+
+static inline const char* _find_stdlib(const char* argv0, char* out, size_t out_size) {
+    const char* env = getenv("CPL_INCLUDE_PATH");
+    if (_readable_directory(env)) return env;
+    if (_path_from_executable(argv0, "../share/cpl/include", out, out_size)) return out;
+    if (_path_from_executable(argv0, "../../cpllib", out, out_size)) return out;
+    if (_readable_directory(CPL_DEFAULT_INCLUDE_DIR)) return CPL_DEFAULT_INCLUDE_DIR;
+    if (realpath("cpllib", out) && _readable_directory(out)) return out;
+    return NULL;
 }
 
 static char* _make_temp_path(void) {
@@ -324,20 +367,31 @@ static config_t _make_config(const options_t* options) {
 static void _set_default_options(options_t* out) {
     memset(out, 0, sizeof(*out));
     out->tools.asm_compiler        = "nasm";
+#if defined(__linux__)
+    out->tools.asm_format          = "elf64";
+    out->tools.linker              = "gcc";
+    out->tools.linker_no_pie       = 1;
+    out->config.entry_name         = "main";
+    out->config.ro_section         = ".rodata";
+    out->config.glob_section       = ".data";
+    out->config.code_section       = ".text";
+    out->config.sys_type           = LINUX64;
+#else
     out->tools.asm_format          = "macho64";
     out->tools.linker              = "clang";
-    out->tools.linker_use_c_driver = 1;
     out->tools.linker_no_pie       = 0;
-    out->tools.linker_m32          = 0;
     out->config.entry_name         = "_main";
     out->config.ro_section         = "__TEXT,__const";
     out->config.glob_section       = "__DATA,__data";
     out->config.code_section       = "__TEXT,__text";
+    out->config.sys_type           = MACHO64;
+#endif
+    out->tools.linker_use_c_driver = 1;
+    out->tools.linker_m32          = 0;
     out->config.full_bytness       = 8;
     out->config.half_bytness       = 4;
     out->config.quart_bytness      = 2;
     out->config.eight_bytness      = 1;
-    out->config.sys_type           = MACHO64;
     out->config.debug              = 0;
     _set_optimization_profile(out, 0);
 }
@@ -362,6 +416,7 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
             if (i + 1 >= argc) goto _fail;
             out->locations.include = argv[++i];
         }
+        else if (!strcmp(argv[i], OPTION_PRINT_STDLIB)) out->flags.print_stdlib = 1;
         else if (!strcmp(argv[i], OPTION_ARCH)) {
             if (i + 1 >= argc) goto _fail;
             _set_arch_profile(out, argv[++i]);
@@ -527,6 +582,19 @@ int main(int argc, char* argv[]) {
         return EXIT_SUCCESS;
     }
 
+    char stdlib_path[PATH_MAX] = { 0 };
+    options.locations.stdlib = _find_stdlib(argv[0], stdlib_path, sizeof(stdlib_path));
+    if (options.flags.print_stdlib) {
+        if (options.locations.stdlib) {
+            puts(options.locations.stdlib);
+            mm_free((void*)options.locations.files);
+            return EXIT_SUCCESS;
+        }
+        fprintf(stderr, "CPL standard library isn't found\n");
+        mm_free((void*)options.locations.files);
+        return EXIT_FAILURE;
+    }
+
     if (options.locations.files_count == 0) {
         fprintf(stderr, "No input files\n");
         mm_free((void*)options.locations.files);
@@ -567,10 +635,14 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        finder_ctx_t finctx = { .bpath = options.locations.include };
+        finder_ctx_t finctx = {
+            .bpath = options.locations.include,
+            .spath = options.locations.stdlib
+        };
+
         fd = PP_perform(fd, &finctx);
         if (fd < 0) {
-            fprintf(stderr, "Processed file %s isn't found!\n", options.locations.files[i]);
+            fprintf(stderr, "Failed to preprocess %s\n", options.locations.files[i]);
             return 1;
         }
 

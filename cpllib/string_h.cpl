@@ -23,9 +23,13 @@ extern function strstr(ptr i8 haystack, ptr i8 needle) -> ptr i8;
 extern function strpbrk(ptr i8 s, ptr i8 accept) -> ptr i8;
 extern function strspn(ptr i8 s, ptr i8 accept) -> u64;
 extern function strcspn(ptr i8 s, ptr i8 reject) -> u64;
+extern function strcoll(ptr i8 a, ptr i8 b) -> i32;
+extern function strxfrm(ptr i8 dst, ptr i8 src, u64 n) -> u64;
 extern function strtok(ptr i8 s, ptr i8 delim) -> ptr i8;
+extern function strtok_r(ptr i8 s, ptr i8 delim, ptr ptr i8 state) -> ptr i8;
 extern function strerror(i32 errnum) -> ptr i8;
 
 extern function strdup(ptr i8 p) -> ptr i8;
+extern function strndup(ptr i8 p, u64 n) -> ptr i8;
 
 #endif

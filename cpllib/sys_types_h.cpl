@@ -1,0 +1,17 @@
+#ifndef CPL_SYS_TYPES_H_
+#define CPL_SYS_TYPES_H_ 0
+
+#include "stddef_h.cpl"
+
+#define clock_t   i64
+#define dev_t     u64
+#define gid_t     u32
+#define ino_t     u64
+#define mode_t    u32
+#define nlink_t   u64
+#define off_t     i64
+#define pid_t     i32
+#define time_t    i64
+#define uid_t     u32
+
+#endif

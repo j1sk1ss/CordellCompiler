@@ -27,6 +27,13 @@ extern function ceil(f64 x) -> f64;
 extern function fabs(f64 x) -> f64;
 extern function floor(f64 x) -> f64;
 extern function fmod(f64 x, f64 y) -> f64;
+extern function cbrt(f64 x) -> f64;
+extern function copysign(f64 magnitude, f64 sign) -> f64;
+extern function exp2(f64 x) -> f64;
+extern function hypot(f64 x, f64 y) -> f64;
+extern function log2(f64 x) -> f64;
+extern function round(f64 x) -> f64;
+extern function trunc(f64 x) -> f64;
 
 extern function acosf(f32 x) -> f32;
 extern function asinf(f32 x) -> f32;
@@ -44,5 +51,15 @@ extern function ceilf(f32 x) -> f32;
 extern function fabsf(f32 x) -> f32;
 extern function floorf(f32 x) -> f32;
 extern function fmodf(f32 x, f32 y) -> f32;
+extern function cbrtf(f32 x) -> f32;
+extern function copysignf(f32 magnitude, f32 sign) -> f32;
+extern function coshf(f32 x) -> f32;
+extern function exp2f(f32 x) -> f32;
+extern function hypotf(f32 x, f32 y) -> f32;
+extern function log2f(f32 x) -> f32;
+extern function roundf(f32 x) -> f32;
+extern function sinhf(f32 x) -> f32;
+extern function tanhf(f32 x) -> f32;
+extern function truncf(f32 x) -> f32;
 
 #endif
