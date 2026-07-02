@@ -14,54 +14,58 @@
 #define TMP_MAX      238328
 #define L_tmpnam     20
 
+extern ptr FILE stdin;
+extern ptr FILE stdout;
+extern ptr FILE stderr;
+
 extern function remove(ptr i8 path) -> i32;
 extern function rename(ptr i8 old_path, ptr i8 new_path) -> i32;
-extern function tmpfile() -> ptr cpl_file;
+extern function tmpfile() -> ptr FILE;
 extern function tmpnam(ptr i8 s) -> ptr i8;
 
-extern function fclose(ptr cpl_file stream) -> i32;
-extern function fflush(ptr cpl_file stream) -> i32;
-extern function fopen(ptr i8 path, ptr i8 mode) -> ptr cpl_file;
-extern function freopen(ptr i8 path, ptr i8 mode, ptr cpl_file stream) -> ptr cpl_file;
-extern function setbuf(ptr cpl_file stream, ptr i8 buf) -> i0;
-extern function setvbuf(ptr cpl_file stream, ptr i8 buf, i32 mode, u64 size) -> i32;
+extern function fclose(ptr FILE stream) -> i32;
+extern function fflush(ptr FILE stream) -> i32;
+extern function fopen(ptr i8 path, ptr i8 mode) -> ptr FILE;
+extern function freopen(ptr i8 path, ptr i8 mode, ptr FILE stream) -> ptr FILE;
+extern function setbuf(ptr FILE stream, ptr i8 buf) -> i0;
+extern function setvbuf(ptr FILE stream, ptr i8 buf, i32 mode, u64 size) -> i32;
 
-@[abi] extern function fprintf(ptr cpl_file stream, ptr i8 fmt, ...) -> i32;
-@[abi] extern function fscanf(ptr cpl_file stream, ptr i8 fmt, ...) -> i32;
+@[abi] extern function fprintf(ptr FILE stream, ptr i8 fmt, ...) -> i32;
+@[abi] extern function fscanf(ptr FILE stream, ptr i8 fmt, ...) -> i32;
 @[abi] extern function printf(ptr i8 fmt, ...) -> i32;
 @[abi] extern function scanf(ptr i8 fmt, ...) -> i32;
 @[abi] extern function snprintf(ptr i8 s, u64 n, ptr i8 fmt, ...) -> i32;
 @[abi] extern function sprintf(ptr i8 s, ptr i8 fmt, ...) -> i32;
 @[abi] extern function sscanf(ptr i8 s, ptr i8 fmt, ...) -> i32;
 
-extern function fgetc(ptr cpl_file stream) -> i32;
-extern function fgets(ptr i8 s, i32 n, ptr cpl_file stream) -> ptr i8;
-extern function fputc(i32 c, ptr cpl_file stream) -> i32;
-extern function fputs(ptr i8 s, ptr cpl_file stream) -> i32;
-extern function getc(ptr cpl_file stream) -> i32;
+extern function fgetc(ptr FILE stream) -> i32;
+extern function fgets(ptr i8 s, i32 n, ptr FILE stream) -> ptr i8;
+extern function fputc(i32 c, ptr FILE stream) -> i32;
+extern function fputs(ptr i8 s, ptr FILE stream) -> i32;
+extern function getc(ptr FILE stream) -> i32;
 extern function getchar() -> i32;
 extern function gets(ptr i8 s) -> ptr i8;
-extern function putc(i32 c, ptr cpl_file stream) -> i32;
+extern function putc(i32 c, ptr FILE stream) -> i32;
 extern function putchar(i32 c) -> i32;
 extern function puts(ptr i8 s) -> i32;
-extern function ungetc(i32 c, ptr cpl_file stream) -> i32;
+extern function ungetc(i32 c, ptr FILE stream) -> i32;
 
-extern function fread(ptr i0 pointer, u64 size, u64 count, ptr cpl_file stream) -> u64;
-extern function fwrite(ptr i0 pointer, u64 size, u64 count, ptr cpl_file stream) -> u64;
-extern function fgetpos(ptr cpl_file stream, ptr i0 pos) -> i32;
-extern function fseek(ptr cpl_file stream, i64 offset, i32 whence) -> i32;
-extern function fsetpos(ptr cpl_file stream, ptr i0 pos) -> i32;
-extern function ftell(ptr cpl_file stream) -> i64;
-extern function rewind(ptr cpl_file stream) -> i0;
+extern function fread(ptr i0 pointer, u64 size, u64 count, ptr FILE stream) -> u64;
+extern function fwrite(ptr i0 pointer, u64 size, u64 count, ptr FILE stream) -> u64;
+extern function fgetpos(ptr FILE stream, ptr i0 pos) -> i32;
+extern function fseek(ptr FILE stream, i64 offset, i32 whence) -> i32;
+extern function fsetpos(ptr FILE stream, ptr i0 pos) -> i32;
+extern function ftell(ptr FILE stream) -> i64;
+extern function rewind(ptr FILE stream) -> i0;
 
-extern function clearerr(ptr cpl_file stream) -> i0;
-extern function feof(ptr cpl_file stream) -> i32;
-extern function ferror(ptr cpl_file stream) -> i32;
+extern function clearerr(ptr FILE stream) -> i0;
+extern function feof(ptr FILE stream) -> i32;
+extern function ferror(ptr FILE stream) -> i32;
 extern function perror(ptr i8 s) -> i0;
 
-extern function fdopen(i32 fd, ptr i8 mode) -> ptr cpl_file;
-extern function fileno(ptr cpl_file stream) -> i32;
-extern function popen(ptr i8 command, ptr i8 mode) -> ptr cpl_file;
-extern function pclose(ptr cpl_file stream) -> i32;
+extern function fdopen(i32 fd, ptr i8 mode) -> ptr FILE;
+extern function fileno(ptr FILE stream) -> i32;
+extern function popen(ptr i8 command, ptr i8 mode) -> ptr FILE;
+extern function pclose(ptr FILE stream) -> i32;
 
 #endif

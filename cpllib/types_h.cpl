@@ -4,7 +4,7 @@
 #define NULL 0
 
 @[like_c]
-container cpl_file {
+container FILE {
     i64 _opaque;
 }
 
