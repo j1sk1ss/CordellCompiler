@@ -1,15 +1,13 @@
 #include <lir/selector/x86_64_macho_nasm.h>
 
-/*
-Collect used registers in the provided function.
+/* Collect used registers in the provided function.
 Params:
     - `dirty` - Output set of used registers.
     - `f` - Function CFG.
             Note: If this value is NULL, will set all registers as
                   dirty.
 
-Returns 1 on success, otherwise 0.
-*/
+Returns 1 on success, otherwise 0. */
 static int _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f) {
     if (!f) {
         lir_registers_t dirty_regs[] = { RBX, RCX, RDX, RSI, RDI, RBP, R8, R9, R10, R11, R12, R13, R14, R15 };
@@ -35,16 +33,14 @@ static int _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f) {
 
 static unsigned int _visit_counter = 10; /* Magic index offset */
 
-/*
-Collect register usage in the further CFG.
+/* Collect register usage in the further CFG.
 Params:
     - `dirty` - Previously rewritten registers.
     - `save` - Output set.
     - `bbh` - Current BasicBlock.
     - `off` - Lir block off.
 
-Returns 1 on success, otherwise 0.
-*/
+Returns 1 on success, otherwise 0. */
 static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_t* bbh, lir_block_t* off) {
     if (!bbh || !set_size(dirty)) return 0;
     if (bbh->visited != _visit_counter) bbh->visited = _visit_counter;

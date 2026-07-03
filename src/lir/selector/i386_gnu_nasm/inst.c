@@ -1,42 +1,36 @@
 #include <lir/selector/i386_gnu_nasm.h>
 // TODO: Complete AVX support
 
-/*
-Insert block before 'pos' block with the block entry update.
+/* Insert block before 'pos' block with the block entry update.
 Params:
     - `bb` - Source block.
     - `b` - New block for an insertion process.
-    - `pos` - Position for an insert.
-*/
+    - `pos` - Position for an insert. */
 static inline void _insert_instruction_before(cfg_block_t* bb, lir_block_t* b, lir_block_t* pos) {
     if (!b) return;
     if (bb->lmap.entry == pos) bb->lmap.entry = b;
     LIR_insert_block_before(b, pos);
 }
 
-/*
-Insert block after 'pos' block with the block exit update.
+/* Insert block after 'pos' block with the block exit update.
 Params:
     - `bb` - Source block.
     - `b` - New block for an insertion process.
-    - `pos` - Position for an insert.
-*/
+    - `pos` - Position for an insert. */
 static inline void _insert_instruction_after(cfg_block_t* bb, lir_block_t* b, lir_block_t* pos) {
     if (!b) return;
     if (bb->lmap.exit == pos) bb->lmap.exit = b;
     LIR_insert_block_after(b, pos);
 }
 
-/*
-Count fixed function arguments.
+/* Count fixed function arguments.
 Variadic marker arguments are not counted because they do not occupy a
 regular named-argument slot.
 Params:
     - `f_id` - Function id.
     - `smt` - Symtable.
 
-Returns count of presented non-variadic arguments.
-*/
+Returns count of presented non-variadic arguments. */
 static int _count_presented_args(symbol_id_t f_id, sym_table_t* smt) {
     func_info_t fi;
     if (!FNTB_get_info_id(f_id, &fi, &smt->f)) return 0;
