@@ -5,6 +5,11 @@ export type MacroValue =
   | { kind: "number"; value: number }
   | { kind: "raw"; text: string };
 
+export type MacroCondition = {
+  name: string;
+  isDefined: boolean;
+};
+
 export type MacroSym = {
   kind: "macro";
   name: string;
@@ -13,6 +18,7 @@ export type MacroSym = {
   valueRange: Range;
   filePath?: string;
   doc?: string;
+  conditions?: MacroCondition[];
 };
 
 export type TypeNode =
@@ -283,6 +289,43 @@ function expectedArityString(fn: FuncOverloadSym): string {
   if (maxArgs === Infinity) return `${minArgs}+`;
   if (minArgs === maxArgs) return `${minArgs}`;
   return `${minArgs}..${maxArgs}`;
+}
+
+const EXCLUSIVE_MACRO_GROUPS: string[][] = [
+  ["CCPL_MACHO64", "CCPL_GNU64", "CCPL_GNUI386", "CCPL_WINDOWS64"]
+];
+
+type DefineMacroOptions = {
+  doc?: string;
+  conditions?: MacroCondition[];
+};
+
+function normalizeMacroConditions(conditions: MacroCondition[] = []): Map<string, boolean> | undefined {
+  const result = new Map<string, boolean>();
+
+  for (const cond of conditions) {
+    const prev = result.get(cond.name);
+    if (prev !== undefined && prev !== cond.isDefined) return undefined;
+    result.set(cond.name, cond.isDefined);
+  }
+
+  for (const group of EXCLUSIVE_MACRO_GROUPS) {
+    let requiredDefined = 0;
+    for (const name of group) {
+      if (result.get(name) === true) requiredDefined++;
+    }
+    if (requiredDefined > 1) return undefined;
+  }
+
+  return result;
+}
+
+function macroConditionsCompatible(a: MacroCondition[] = [], b: MacroCondition[] = []): boolean {
+  return normalizeMacroConditions([...a, ...b]) !== undefined;
+}
+
+function macroConditionsSatisfiable(conditions: MacroCondition[] = []): boolean {
+  return normalizeMacroConditions(conditions) !== undefined;
 }
 
 export class SemanticContext {
@@ -565,13 +608,44 @@ export class SemanticContext {
     return { kind: "unknown" };
   }
 
-  defineMacro(name: string, value: MacroValue, nameRange: Range, valueRange: Range, doc?: string) {
-    if (this.macros.has(name)) {
+  defineMacro(
+    name: string,
+    value: MacroValue,
+    nameRange: Range,
+    valueRange: Range,
+    optsOrDoc?: string | DefineMacroOptions
+  ) {
+    const opts: DefineMacroOptions =
+      typeof optsOrDoc === "string" ? { doc: optsOrDoc } : (optsOrDoc ?? {});
+    const conditions = opts.conditions ?? [];
+
+    if (!macroConditionsSatisfiable(conditions)) return;
+
+    const compatiblePrevious = this.macroDecls.find((m) =>
+      m.name === name && macroConditionsCompatible(m.conditions, conditions)
+    );
+
+    if (compatiblePrevious) {
       this.issues.push({ message: `Macro '${name}' already defined`, range: nameRange });
       return;
     }
-    const sym: MacroSym = { kind: "macro", name, value, range: nameRange, valueRange, filePath: this.currentFilePath, doc };
-    this.macros.set(name, sym);
+
+    const sym: MacroSym = {
+      kind: "macro",
+      name,
+      value,
+      range: nameRange,
+      valueRange,
+      filePath: this.currentFilePath,
+      doc: opts.doc,
+      conditions: conditions.length ? [...conditions] : undefined
+    };
+
+    const current = this.macros.get(name);
+    if (!current || ((current.conditions?.length ?? 0) > 0 && conditions.length === 0)) {
+      this.macros.set(name, sym);
+    }
+
     this.macroDecls.push(sym);
   }
 
