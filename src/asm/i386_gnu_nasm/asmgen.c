@@ -348,8 +348,8 @@ static int _generate_function(symbol_id_t f_id, cfg_ctx_t* cctx, sym_table_t* sm
         else { 
             const char* modifier = fi.flags.weak ? ":function weak" : "";
             if (fi.flags.entry)       EMIT_COMMAND("global %s%s", fi.virt->body, modifier);
-            else if (fi.flags.global) EMIT_COMMAND("global %s%s", fi.name->body, modifier);
-            if (fi.flags.external)    EMIT_COMMAND("extern %s", fi.name->body);
+            else if (fi.flags.global) EMIT_COMMAND("global %s%s", fi.flags.vname ? fi.virt->body : fi.name->body, modifier);
+            if (fi.flags.external)    EMIT_COMMAND("extern %s", fi.flags.vname ? fi.virt->body : fi.name->body);
         }
     }
 

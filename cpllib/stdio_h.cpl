@@ -1,6 +1,7 @@
 #ifndef CPL_STDIO_H_
 #define CPL_STDIO_H_ 0
 
+#include "platform_h.cpl"
 #include "stddef_h.cpl"
 #include "types_h.cpl"
 
@@ -14,58 +15,284 @@
 #define TMP_MAX      238328
 #define L_tmpnam     20
 
+#ifdef CCPL_MACHO64
+extern ptr FILE ___stdinp;
+extern ptr FILE ___stdoutp;
+extern ptr FILE ___stderrp;
+#define stdin  ___stdinp
+#define stdout ___stdoutp
+#define stderr ___stderrp
+#endif
+
+#ifndef CCPL_MACHO64
 extern ptr FILE stdin;
 extern ptr FILE stdout;
 extern ptr FILE stderr;
+#endif
 
+#ifdef CCPL_MACHO64
+@[vname("_remove")] extern function remove(ptr i8 path) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 extern function remove(ptr i8 path) -> i32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_rename")] extern function rename(ptr i8 old_path, ptr i8 new_path) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 extern function rename(ptr i8 old_path, ptr i8 new_path) -> i32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_tmpfile")] extern function tmpfile() -> ptr FILE;
+#endif
+#ifndef CCPL_MACHO64
 extern function tmpfile() -> ptr FILE;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_tmpnam")] extern function tmpnam(ptr i8 s) -> ptr i8;
+#endif
+#ifndef CCPL_MACHO64
 extern function tmpnam(ptr i8 s) -> ptr i8;
+#endif
 
+#ifdef CCPL_MACHO64
+@[vname("_fclose")] extern function fclose(ptr FILE stream) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 extern function fclose(ptr FILE stream) -> i32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_fflush")] extern function fflush(ptr FILE stream) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 extern function fflush(ptr FILE stream) -> i32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_fopen")] extern function fopen(ptr i8 path, ptr i8 mode) -> ptr FILE;
+#endif
+#ifndef CCPL_MACHO64
 extern function fopen(ptr i8 path, ptr i8 mode) -> ptr FILE;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_freopen")] extern function freopen(ptr i8 path, ptr i8 mode, ptr FILE stream) -> ptr FILE;
+#endif
+#ifndef CCPL_MACHO64
 extern function freopen(ptr i8 path, ptr i8 mode, ptr FILE stream) -> ptr FILE;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_setbuf")] extern function setbuf(ptr FILE stream, ptr i8 buf) -> i0;
+#endif
+#ifndef CCPL_MACHO64
 extern function setbuf(ptr FILE stream, ptr i8 buf) -> i0;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_setvbuf")] extern function setvbuf(ptr FILE stream, ptr i8 buf, i32 mode, u64 size) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 extern function setvbuf(ptr FILE stream, ptr i8 buf, i32 mode, u64 size) -> i32;
+#endif
 
+#ifdef CCPL_MACHO64
+@[vname("_fprintf")] @[abi] extern function fprintf(ptr FILE stream, ptr i8 fmt, ...) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 @[abi] extern function fprintf(ptr FILE stream, ptr i8 fmt, ...) -> i32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_fscanf")] @[abi] extern function fscanf(ptr FILE stream, ptr i8 fmt, ...) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 @[abi] extern function fscanf(ptr FILE stream, ptr i8 fmt, ...) -> i32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_printf")] @[abi] extern function printf(ptr i8 fmt, ...) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 @[abi] extern function printf(ptr i8 fmt, ...) -> i32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_scanf")] @[abi] extern function scanf(ptr i8 fmt, ...) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 @[abi] extern function scanf(ptr i8 fmt, ...) -> i32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_snprintf")] @[abi] extern function snprintf(ptr i8 s, u64 n, ptr i8 fmt, ...) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 @[abi] extern function snprintf(ptr i8 s, u64 n, ptr i8 fmt, ...) -> i32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_sprintf")] @[abi] extern function sprintf(ptr i8 s, ptr i8 fmt, ...) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 @[abi] extern function sprintf(ptr i8 s, ptr i8 fmt, ...) -> i32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_sscanf")] @[abi] extern function sscanf(ptr i8 s, ptr i8 fmt, ...) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 @[abi] extern function sscanf(ptr i8 s, ptr i8 fmt, ...) -> i32;
+#endif
 
+#ifdef CCPL_MACHO64
+@[vname("_fgetc")] extern function fgetc(ptr FILE stream) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 extern function fgetc(ptr FILE stream) -> i32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_fgets")] extern function fgets(ptr i8 s, i32 n, ptr FILE stream) -> ptr i8;
+#endif
+#ifndef CCPL_MACHO64
 extern function fgets(ptr i8 s, i32 n, ptr FILE stream) -> ptr i8;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_fputc")] extern function fputc(i32 c, ptr FILE stream) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 extern function fputc(i32 c, ptr FILE stream) -> i32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_fputs")] extern function fputs(ptr i8 s, ptr FILE stream) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 extern function fputs(ptr i8 s, ptr FILE stream) -> i32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_getc")] extern function getc(ptr FILE stream) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 extern function getc(ptr FILE stream) -> i32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_getchar")] extern function getchar() -> i32;
+#endif
+#ifndef CCPL_MACHO64
 extern function getchar() -> i32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_gets")] extern function gets(ptr i8 s) -> ptr i8;
+#endif
+#ifndef CCPL_MACHO64
 extern function gets(ptr i8 s) -> ptr i8;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_putc")] extern function putc(i32 c, ptr FILE stream) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 extern function putc(i32 c, ptr FILE stream) -> i32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_putchar")] extern function putchar(i32 c) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 extern function putchar(i32 c) -> i32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_puts")] extern function puts(ptr i8 s) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 extern function puts(ptr i8 s) -> i32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_ungetc")] extern function ungetc(i32 c, ptr FILE stream) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 extern function ungetc(i32 c, ptr FILE stream) -> i32;
+#endif
 
+#ifdef CCPL_MACHO64
+@[vname("_fread")] extern function fread(ptr i0 pointer, u64 size, u64 count, ptr FILE stream) -> u64;
+#endif
+#ifndef CCPL_MACHO64
 extern function fread(ptr i0 pointer, u64 size, u64 count, ptr FILE stream) -> u64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_fwrite")] extern function fwrite(ptr i0 pointer, u64 size, u64 count, ptr FILE stream) -> u64;
+#endif
+#ifndef CCPL_MACHO64
 extern function fwrite(ptr i0 pointer, u64 size, u64 count, ptr FILE stream) -> u64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_fgetpos")] extern function fgetpos(ptr FILE stream, ptr i0 pos) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 extern function fgetpos(ptr FILE stream, ptr i0 pos) -> i32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_fseek")] extern function fseek(ptr FILE stream, i64 offset, i32 whence) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 extern function fseek(ptr FILE stream, i64 offset, i32 whence) -> i32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_fsetpos")] extern function fsetpos(ptr FILE stream, ptr i0 pos) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 extern function fsetpos(ptr FILE stream, ptr i0 pos) -> i32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_ftell")] extern function ftell(ptr FILE stream) -> i64;
+#endif
+#ifndef CCPL_MACHO64
 extern function ftell(ptr FILE stream) -> i64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_rewind")] extern function rewind(ptr FILE stream) -> i0;
+#endif
+#ifndef CCPL_MACHO64
 extern function rewind(ptr FILE stream) -> i0;
+#endif
 
+#ifdef CCPL_MACHO64
+@[vname("_clearerr")] extern function clearerr(ptr FILE stream) -> i0;
+#endif
+#ifndef CCPL_MACHO64
 extern function clearerr(ptr FILE stream) -> i0;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_feof")] extern function feof(ptr FILE stream) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 extern function feof(ptr FILE stream) -> i32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_ferror")] extern function ferror(ptr FILE stream) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 extern function ferror(ptr FILE stream) -> i32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_perror")] extern function perror(ptr i8 s) -> i0;
+#endif
+#ifndef CCPL_MACHO64
 extern function perror(ptr i8 s) -> i0;
+#endif
 
+#ifdef CCPL_MACHO64
+@[vname("_fdopen")] extern function fdopen(i32 fd, ptr i8 mode) -> ptr FILE;
+#endif
+#ifndef CCPL_MACHO64
 extern function fdopen(i32 fd, ptr i8 mode) -> ptr FILE;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_fileno")] extern function fileno(ptr FILE stream) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 extern function fileno(ptr FILE stream) -> i32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_popen")] extern function popen(ptr i8 command, ptr i8 mode) -> ptr FILE;
+#endif
+#ifndef CCPL_MACHO64
 extern function popen(ptr i8 command, ptr i8 mode) -> ptr FILE;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_pclose")] extern function pclose(ptr FILE stream) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 extern function pclose(ptr FILE stream) -> i32;
+#endif
 
 #endif

@@ -157,8 +157,11 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     }
 
     string_t* virt_name = NULL;
-    if (annots.is_entry) {
-        if (!annots.fname) annots.fname = create_string(CONF_get_entry_name());  
+    if (annots.is_entry || annots.is_vname) {
+        if (
+            !annots.fname && 
+            annots.is_entry
+        ) annots.fname = create_string(CONF_get_entry_name());  
         virt_name = annots.fname;
     }
 
@@ -187,7 +190,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         name->t->body, virt_name, 
         (func_info_flags_t) {
             .global = base->t->flags.glob, .local = local, .entry = annots.is_entry, .naked = annots.is_naked ? 1 : 0, .vargs = vargs, .onlybody = annots.is_onlybody,
-            .generic = list_size(&generic_types) != 0, .inln = annots.do_inline, .self = annots.is_self, .abi = annots.is_abi, .weak = annots.is_weak
+            .generic = list_size(&generic_types) != 0, .inln = annots.do_inline, .self = annots.is_self, .abi = annots.is_abi, .weak = annots.is_weak, .vname = annots.is_vname
         },
         name->sinfo.s_id, args, name->c, &smt->f
     );

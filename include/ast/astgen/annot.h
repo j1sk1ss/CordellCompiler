@@ -25,6 +25,7 @@
 #define REGST_ANNOTATION_COMMAND "register"
 #define POPRG_ANNOTATION_COMMAND "poparg"
 #define SSELF_ANNOTATION_COMMAND "self"
+#define VNAME_ANNOTATION_COMMAND "vname"
 
 #define INLNE_ANNOTATION_COMMAND "inline" /* inline / inline(always) / inline(never) */
 #define INLNE_YES_OPTION         "always"
@@ -49,6 +50,7 @@ typedef struct {
     long      address;
     long      counter;
     short     reg;
+    char      is_vname    : 1;
     char      is_nosec    : 1;
     char      is_naked    : 1;
     char      is_entry    : 1;
@@ -89,6 +91,7 @@ typedef enum {
     WEAK_ANNOTATION,      /* Will mark a function as weak                   */
     ABI_ANNOTATION,       /* Will mark a function as ABI-compatible         */
     ONLYBODY_ANNOTATION,  /* Will say that the function is just a container */
+    VNAME_ANNOTATION,     /* Will set a vartial name for a function         */
 } annotation_type_t;
 
 typedef struct {

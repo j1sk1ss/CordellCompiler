@@ -1,6 +1,8 @@
 #ifndef CPL_STDBOOL_H_
 #define CPL_STDBOOL_H_ 0
 
+#include "platform_h.cpl"
+
 #define bool  i8
 #define true  1
 #define false 0

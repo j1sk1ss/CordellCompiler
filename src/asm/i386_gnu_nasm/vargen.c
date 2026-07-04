@@ -83,10 +83,12 @@ const char* i386_gnu_nasm_format_lir_subject(lir_subject_t* v, sym_table_t* smt,
                 }
 
                 if (
-                    fi.flags.entry
+                    fi.flags.entry ||
+                    fi.flags.vname
                 ) snprintf(buffer, sizeof(_buffers[0]), global, fi.virt->body);
                 else if (
-                    fi.flags.global || fi.flags.external
+                    fi.flags.global || 
+                    fi.flags.external
                 ) snprintf(buffer, sizeof(_buffers[0]), global, fi.name->body);
                 else snprintf(buffer, sizeof(_buffers[0]), local, fi.virt->body);
                 return buffer;

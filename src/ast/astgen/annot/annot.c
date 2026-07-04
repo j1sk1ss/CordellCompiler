@@ -10,6 +10,7 @@ annotation_t* ANNOT_create_annotation(annotation_type_t t, annotation_param_t* f
         case COUNTER_ANNOTATION:   annot->data.counter = fp->value;                                       break;
         case ALIGN_ANNOTATION:     annot->data.align = (int)fp->value;                                    break;
         case REGISTER_ANNOTATION:  annot->data.regval = (short)fp->value;                                 break;
+        case VNAME_ANNOTATION:
         case ENTRY_ANNOTATION:     if (fp->string) annot->data.fname = fp->string->copy(fp->string);      break;
         case INLINE_ANNOTATION:    if (fp->string) annot->data.inline_opt = fp->string->copy(fp->string); break;
         case SECTION_ANNOTATION: {
@@ -43,8 +44,10 @@ int ANNOT_read_annotations(sstack_t* annots, annotations_summary_t* summary) {
                 summary->salign  = annot->data.section.align;
                 break;
             }
+            case VNAME_ANNOTATION: summary->is_vname = 1; goto _set_vname;
             case ENTRY_ANNOTATION: {
                 summary->is_entry = 1;
+_set_vname: {}
                 if (summary->fname) destroy_string(summary->fname);
                 summary->fname = annot->data.fname ? annot->data.fname->copy(annot->data.fname) : NULL;
                 break;
@@ -85,6 +88,7 @@ int ANNOT_destroy_summary(annotations_summary_t* summray) {
 int ANNOT_destroy_annotation(annotation_t* annot) {
     switch (annot->t) {
         case SECTION_ANNOTATION: destroy_string(annot->data.section.section);                        break;
+        case VNAME_ANNOTATION:
         case ENTRY_ANNOTATION:   if (annot->data.fname) destroy_string(annot->data.fname);           break;
         case INLINE_ANNOTATION:  if (annot->data.inline_opt) destroy_string(annot->data.inline_opt); break;
         default: break;

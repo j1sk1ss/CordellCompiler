@@ -1,65 +1,342 @@
 #ifndef CPL_MATH_H_
 #define CPL_MATH_H_ 0
 
+#include "platform_h.cpl"
+
 #define HUGE_VAL 1.0e999
 #define INFINITY 1.0e999
 #define NAN 0.0
 
+#ifdef CCPL_MACHO64
+@[vname("_acos")] extern function acos(f64 x) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function acos(f64 x) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_asin")] extern function asin(f64 x) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function asin(f64 x) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_atan")] extern function atan(f64 x) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function atan(f64 x) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_atan2")] extern function atan2(f64 y, f64 x) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function atan2(f64 y, f64 x) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_cos")] extern function cos(f64 x) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function cos(f64 x) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_sin")] extern function sin(f64 x) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function sin(f64 x) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_tan")] extern function tan(f64 x) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function tan(f64 x) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_cosh")] extern function cosh(f64 x) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function cosh(f64 x) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_sinh")] extern function sinh(f64 x) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function sinh(f64 x) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_tanh")] extern function tanh(f64 x) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function tanh(f64 x) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_exp")] extern function exp(f64 x) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function exp(f64 x) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_frexp")] extern function frexp(f64 x, ptr i32 exp) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function frexp(f64 x, ptr i32 exp) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_ldexp")] extern function ldexp(f64 x, i32 exp) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function ldexp(f64 x, i32 exp) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_log")] extern function log(f64 x) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function log(f64 x) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_log10")] extern function log10(f64 x) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function log10(f64 x) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_modf")] extern function modf(f64 x, ptr f64 iptr) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function modf(f64 x, ptr f64 iptr) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_pow")] extern function pow(f64 x, f64 y) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function pow(f64 x, f64 y) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_sqrt")] extern function sqrt(f64 x) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function sqrt(f64 x) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_ceil")] extern function ceil(f64 x) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function ceil(f64 x) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_fabs")] extern function fabs(f64 x) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function fabs(f64 x) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_floor")] extern function floor(f64 x) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function floor(f64 x) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_fmod")] extern function fmod(f64 x, f64 y) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function fmod(f64 x, f64 y) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_cbrt")] extern function cbrt(f64 x) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function cbrt(f64 x) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_copysign")] extern function copysign(f64 magnitude, f64 sign) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function copysign(f64 magnitude, f64 sign) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_exp2")] extern function exp2(f64 x) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function exp2(f64 x) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_hypot")] extern function hypot(f64 x, f64 y) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function hypot(f64 x, f64 y) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_log2")] extern function log2(f64 x) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function log2(f64 x) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_round")] extern function round(f64 x) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function round(f64 x) -> f64;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_trunc")] extern function trunc(f64 x) -> f64;
+#endif
+#ifndef CCPL_MACHO64
 extern function trunc(f64 x) -> f64;
+#endif
 
+#ifdef CCPL_MACHO64
+@[vname("_acosf")] extern function acosf(f32 x) -> f32;
+#endif
+#ifndef CCPL_MACHO64
 extern function acosf(f32 x) -> f32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_asinf")] extern function asinf(f32 x) -> f32;
+#endif
+#ifndef CCPL_MACHO64
 extern function asinf(f32 x) -> f32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_atanf")] extern function atanf(f32 x) -> f32;
+#endif
+#ifndef CCPL_MACHO64
 extern function atanf(f32 x) -> f32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_atan2f")] extern function atan2f(f32 y, f32 x) -> f32;
+#endif
+#ifndef CCPL_MACHO64
 extern function atan2f(f32 y, f32 x) -> f32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_cosf")] extern function cosf(f32 x) -> f32;
+#endif
+#ifndef CCPL_MACHO64
 extern function cosf(f32 x) -> f32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_sinf")] extern function sinf(f32 x) -> f32;
+#endif
+#ifndef CCPL_MACHO64
 extern function sinf(f32 x) -> f32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_tanf")] extern function tanf(f32 x) -> f32;
+#endif
+#ifndef CCPL_MACHO64
 extern function tanf(f32 x) -> f32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_expf")] extern function expf(f32 x) -> f32;
+#endif
+#ifndef CCPL_MACHO64
 extern function expf(f32 x) -> f32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_logf")] extern function logf(f32 x) -> f32;
+#endif
+#ifndef CCPL_MACHO64
 extern function logf(f32 x) -> f32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_log10f")] extern function log10f(f32 x) -> f32;
+#endif
+#ifndef CCPL_MACHO64
 extern function log10f(f32 x) -> f32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_powf")] extern function powf(f32 x, f32 y) -> f32;
+#endif
+#ifndef CCPL_MACHO64
 extern function powf(f32 x, f32 y) -> f32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_sqrtf")] extern function sqrtf(f32 x) -> f32;
+#endif
+#ifndef CCPL_MACHO64
 extern function sqrtf(f32 x) -> f32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_ceilf")] extern function ceilf(f32 x) -> f32;
+#endif
+#ifndef CCPL_MACHO64
 extern function ceilf(f32 x) -> f32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_fabsf")] extern function fabsf(f32 x) -> f32;
+#endif
+#ifndef CCPL_MACHO64
 extern function fabsf(f32 x) -> f32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_floorf")] extern function floorf(f32 x) -> f32;
+#endif
+#ifndef CCPL_MACHO64
 extern function floorf(f32 x) -> f32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_fmodf")] extern function fmodf(f32 x, f32 y) -> f32;
+#endif
+#ifndef CCPL_MACHO64
 extern function fmodf(f32 x, f32 y) -> f32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_cbrtf")] extern function cbrtf(f32 x) -> f32;
+#endif
+#ifndef CCPL_MACHO64
 extern function cbrtf(f32 x) -> f32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_copysignf")] extern function copysignf(f32 magnitude, f32 sign) -> f32;
+#endif
+#ifndef CCPL_MACHO64
 extern function copysignf(f32 magnitude, f32 sign) -> f32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_coshf")] extern function coshf(f32 x) -> f32;
+#endif
+#ifndef CCPL_MACHO64
 extern function coshf(f32 x) -> f32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_exp2f")] extern function exp2f(f32 x) -> f32;
+#endif
+#ifndef CCPL_MACHO64
 extern function exp2f(f32 x) -> f32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_hypotf")] extern function hypotf(f32 x, f32 y) -> f32;
+#endif
+#ifndef CCPL_MACHO64
 extern function hypotf(f32 x, f32 y) -> f32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_log2f")] extern function log2f(f32 x) -> f32;
+#endif
+#ifndef CCPL_MACHO64
 extern function log2f(f32 x) -> f32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_roundf")] extern function roundf(f32 x) -> f32;
+#endif
+#ifndef CCPL_MACHO64
 extern function roundf(f32 x) -> f32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_sinhf")] extern function sinhf(f32 x) -> f32;
+#endif
+#ifndef CCPL_MACHO64
 extern function sinhf(f32 x) -> f32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_tanhf")] extern function tanhf(f32 x) -> f32;
+#endif
+#ifndef CCPL_MACHO64
 extern function tanhf(f32 x) -> f32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_truncf")] extern function truncf(f32 x) -> f32;
+#endif
+#ifndef CCPL_MACHO64
 extern function truncf(f32 x) -> f32;
+#endif
 
 #endif

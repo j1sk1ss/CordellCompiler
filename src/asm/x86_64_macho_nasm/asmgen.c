@@ -351,8 +351,8 @@ static int _generate_function(symbol_id_t f_id, cfg_ctx_t* cctx, sym_table_t* sm
         else { 
             const char* name = NULL;
             if (fi.flags.entry)       name = fi.virt->body;
-            else if (fi.flags.global) name = fi.name->body;
-            if (fi.flags.external) EMIT_COMMAND("extern %s", fi.name->body);
+            else if (fi.flags.global) name = fi.flags.vname ? fi.virt->body : fi.name->body;
+            if (fi.flags.external) EMIT_COMMAND("extern %s", fi.flags.vname ? fi.virt->body : fi.name->body);
             if (name) {
                 EMIT_COMMAND("global %s", name);
                 if (fi.flags.weak) EMIT_COMMAND(".weak_definition %s", name);

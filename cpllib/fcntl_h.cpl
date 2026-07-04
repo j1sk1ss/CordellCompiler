@@ -1,15 +1,37 @@
 #ifndef CPL_FCNTL_H_
 #define CPL_FCNTL_H_ 0
 
+#include "platform_h.cpl"
+
+#ifdef CCPL_MACHO64
 #define O_RDONLY    0
 #define O_WRONLY    1
 #define O_RDWR      2
+#define O_ACCMODE   3
+#define O_NONBLOCK  4
+#define O_APPEND    8
+#define O_CREAT     512
+#define O_TRUNC     1024
+#define O_EXCL      2048
+#define O_NOCTTY    131072
+#define O_DIRECTORY 1048576
+#define O_CLOEXEC   16777216
+#endif
+#ifndef CCPL_MACHO64
+#define O_RDONLY    0
+#define O_WRONLY    1
+#define O_RDWR      2
+#define O_ACCMODE   3
 #define O_CREAT     64
 #define O_EXCL      128
 #define O_NOCTTY    256
 #define O_TRUNC     512
 #define O_APPEND    1024
 #define O_NONBLOCK  2048
+#define O_DIRECTORY 65536
+#define O_NOFOLLOW  131072
+#define O_CLOEXEC   524288
+#endif
 
 #define F_DUPFD  0
 #define F_GETFD  1
@@ -28,8 +50,23 @@
 #define S_IWOTH 2
 #define S_IXOTH 1
 
+#ifdef CCPL_MACHO64
+@[vname("_open")] @[abi] extern function open(ptr i8 path, i32 flags, ...) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 @[abi] extern function open(ptr i8 path, i32 flags, ...) -> i32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_creat")] @[abi] extern function creat(ptr i8 path, i32 mode) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 @[abi] extern function creat(ptr i8 path, i32 mode) -> i32;
+#endif
+#ifdef CCPL_MACHO64
+@[vname("_fcntl")] @[abi] extern function fcntl(i32 fd, i32 cmd, ...) -> i32;
+#endif
+#ifndef CCPL_MACHO64
 @[abi] extern function fcntl(i32 fd, i32 cmd, ...) -> i32;
+#endif
 
 #endif

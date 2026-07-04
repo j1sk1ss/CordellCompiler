@@ -1,6 +1,8 @@
 #ifndef CPL_LIBC_TYPES_H_
 #define CPL_LIBC_TYPES_H_ 0
 
+#include "platform_h.cpl"
+
 #define NULL 0
 
 @[like_c]
