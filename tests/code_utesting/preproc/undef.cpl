@@ -8,7 +8,10 @@ function baz(u32 a = ASD);
 function main(u32 a = ASD);
 
 :/ OUTPUT
+#line 0 "{X}.cpl"
+#line 1 "{X}.cpl"
 function foo(i32 a = 1);
+#line 3 "{X}.cpl"
 function bar(i32 a = ASD);
 function baz(u32 a = ASD);
 function main(u32 a = ASD);

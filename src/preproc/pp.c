@@ -288,8 +288,7 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
         if (!d) {
             long stat;
             if (!stack_top(&inf->cst.skips, (void**)&stat) || !stat) {
-                /* Replace all defined values by their defenitions.
-                */
+                /* Replace all defined values by their defenitions */
                 if (!PP_resolve_defines(&ppctx.clean, &ppctx.clean_size, &ppctx.defined, &ppctx.defined_size, &ppctx.defines)) {
                     _unload_pp_ctx(&ppctx);
                     return -1;
@@ -302,8 +301,8 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
             long skip = 0;
             stack_top(&inf->cst.skips, (void**)&skip);
             if (IS_PP_DERICTIVE(d, PP_INCLUDE_DIRECTIVE) && !skip) {
-                int is_system = 0;                      /* WIP: if this flag is 1 -> This is a system lib */
-                char inc_name[PP_PATH_MAX] = { 0 };     /* Include path                                   */
+                int is_system = 0;
+                char inc_name[PP_PATH_MAX] = { 0 };
                 if (!PP_parse_include_arg(PP_MV_LINE_DIR(d, PP_INCLUDE_DIRECTIVE), inc_name, sizeof(inc_name), &is_system)) {
                     _unload_pp_ctx(&ppctx);
                     return -1;
@@ -333,6 +332,8 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
                     _unload_pp_ctx(&ppctx);
                     return -1;
                 }
+
+                _put_line_macro(inf, ppctx.out);
             }
             else if (IS_PP_DERICTIVE(d, PP_UNDEF_DIRECTIVE) && !skip) {
                 char defname[PP_PATH_MAX] = { 0 };
@@ -345,6 +346,8 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
                     _unload_pp_ctx(&ppctx);
                     return -1;
                 }
+
+                _put_line_macro(inf, ppctx.out);
             }
             else if (IS_PP_DERICTIVE(d, PP_IFDEF_DIRECTIVE)) {
                 char defname[PP_PATH_MAX] = { 0 };
@@ -354,6 +357,7 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
                 }
 
                 stack_push(&inf->cst.skips, (void*)((long)!MCTB_get_define(defname, NULL, &ppctx.defines)));
+                _put_line_macro(inf, ppctx.out);
             }
             else if (IS_PP_DERICTIVE(d, PP_IFNDEF_DIRECTIVE)) {
                 char defname[PP_PATH_MAX] = { 0 };
@@ -363,9 +367,11 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
                 }
 
                 stack_push(&inf->cst.skips, (void*)((long)MCTB_get_define(defname, NULL, &ppctx.defines)));
+                _put_line_macro(inf, ppctx.out);
             }
             else if (IS_PP_DERICTIVE(d, PP_ENDIF_DIRECTIVE)) {
                 stack_pop(&inf->cst.skips, NULL);
+                _put_line_macro(inf, ppctx.out);
             }
         }
     }

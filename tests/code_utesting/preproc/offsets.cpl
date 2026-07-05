@@ -2,6 +2,7 @@ start() {
 }
 
 :/ OUTPUT
+#line 0 "{X}.cpl"
 start() {
 }
 /:

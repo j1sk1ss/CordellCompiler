@@ -9,5 +9,9 @@ function strlen(ptr i8 s) -> i64;
 #endif
 
 :/ OUTPUT
+#line 0 "{X}.cpl"
+#line 1 "{X}.cpl"
+#line 2 "{X}.cpl"
 function strlen(ptr i8 s) -> i64;
+#line 9 "{X}.cpl"
 /:
