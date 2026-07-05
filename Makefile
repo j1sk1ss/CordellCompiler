@@ -140,8 +140,18 @@ unit-test: ## Run module tests, e.g. make unit-test UTEST=code_utesting/ast.
 rewrite-test: ## Rewrite OUTPUT blocks for module tests.
 	cd tests && $(PYTHON) module_testing.py --path $(UTEST) --compiler $(CC) --output-dir bin --base ../ --force-rewrite
 
-std-test: ## Run std library tests, e.g. make std-test STD_UTEST=std_utesting/list.
-	cd tests && $(PYTHON) std_testing.py --path $(STD_UTEST) --compiler $(CC) --output-dir bin --base ../
+std-test: ## Run std library tests, e.g. make std-test or make std-test STD_UTEST=std_utesting/list.
+	@if [ "$(STD_UTEST)" = "std_utesting" ]; then \
+		for dir in tests/std_utesting/*; do \
+			if [ -d "$$dir" ]; then \
+				name=$$(basename "$$dir"); \
+				cd tests && $(PYTHON) std_testing.py --path "std_utesting/$$name" --compiler $(CC) --output-dir bin --base ../ || exit 1; \
+				cd ..; \
+			fi; \
+		done; \
+	else \
+		cd tests && $(PYTHON) std_testing.py --path $(STD_UTEST) --compiler $(CC) --output-dir bin --base ../; \
+	fi
 
 cpllib-test: $(OUTPUT) ## Parse all shipped CPL standard library headers.
 	$(OUTPUT) --without-compilation tests/cpllib_smoke.cpl
