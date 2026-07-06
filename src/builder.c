@@ -11,7 +11,7 @@ static inline void _print_version(FILE* stream) {
 static inline void _print_help_row(FILE* stream, const cli_help_option_t* row) {
     char label[64] = { 0 };
     if (row->argument && row->argument[0]) snprintf(label, sizeof(label), "%s %s", row->option, row->argument);
-    else snprintf(label, sizeof(label), "%s", row->option);
+    else                                   snprintf(label, sizeof(label), "%s", row->option);
     fprintf(stream, "  %-28s %s\n", label, row->description);
 }
 
@@ -106,22 +106,12 @@ static int _print_help_message() {
     return 0;
 }
 
-static char* _dup_string(const char* s) {
-    if (!s) return NULL;
-    size_t n = strlen(s) + 1;
-    char* out = mm_malloc(n);
-    if (!out) return NULL;
-    memcpy(out, s, n);
-    return out;
-}
-
 static inline int _readable_directory(const char* path) {
     return path && path[0] && !access(path, R_OK | X_OK);
 }
 
 static int _path_from_executable(const char* argv0, const char* suffix, char* out, size_t out_size) {
     if (!argv0 || !suffix || !out || !out_size) return 0;
-
     char executable[PATH_MAX] = { 0 };
 #ifdef __linux__
     ssize_t nread = readlink("/proc/self/exe", executable, sizeof(executable) - 1);
@@ -162,7 +152,7 @@ static char* _make_temp_path(void) {
     int fd = mkstemp(template);
     if (fd < 0) return NULL;
     close(fd);
-    return _dup_string(template);
+    return strdup(template);
 }
 
 static int _run_tool(const char* tool, char* const argv[]) {

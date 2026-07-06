@@ -288,12 +288,21 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
         if (!d) {
             long stat;
             if (!stack_top(&inf->cst.skips, (void**)&stat) || !stat) {
-                /* Replace all defined values by their defenitions */
+                char line_file[PP_PATH_MAX] = { 0 };
+                snprintf(line_file, sizeof(line_file), "\"%s\"", inf->n);
+                MCTB_put_define("__FILE__", line_file, &ppctx.defines);
+
+                char line_num[32] = { 0 };
+                snprintf(line_num, sizeof(line_num), "%i", inf->l);
+                MCTB_put_define("__LINE__", line_num, &ppctx.defines);
+
                 if (!PP_resolve_defines(&ppctx.clean, &ppctx.clean_size, &ppctx.defined, &ppctx.defined_size, &ppctx.defines)) {
                     _unload_pp_ctx(&ppctx);
                     return -1;
                 }
 
+                MCTB_remove_define("__FILE__", &ppctx.defines);
+                MCTB_remove_define("__LINE__", &ppctx.defines);
                 _lazy_fputs(ppctx.defined, ppctx.out);
             }
         }
