@@ -59,5 +59,10 @@ int main() {
     destroy_string(t);
     destroy_string(u);
     assert(!destroy_string(NULL), "Destroy NULL succeeded!");
+
+    string_t *file_1 = create_string("FILE"), *file_2 = create_string("__FILE__");
+    assert(file_1->hash != file_2->hash, "FILE == __FILE__ by hash compare");
+    destroy_string(file_1);
+    destroy_string(file_2); 
     return 0;
 }

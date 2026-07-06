@@ -84,10 +84,6 @@ static inline int _is_ident_char(char c) {
     return _is_ident_start(c) || (c >= '0' && c <= '9');
 }
 
-static inline int _is_ident_cont(unsigned char c) {
-    return (c == '_') || isalnum(c); 
-}
-
 static inline int _ensure_cap(char** out, size_t* cap, size_t need) {
     if (need <= *cap) return 1;
     size_t nc = (*cap ? *cap : 64);
@@ -131,7 +127,7 @@ static int _resolve_defines(const char* in, char** out, size_t* out_cap, deftb_t
         unsigned char c = (unsigned char)in[i];
         if (_is_ident_start(c)) {
             size_t start = i++;
-            while (in[i] && _is_ident_cont((unsigned char)in[i])) i++;
+            while (in[i] && ((in[i] == '_') || isalnum(in[i]))) i++;
             size_t len = i - start;
 
             char stack_tok[256] = { 0 };
@@ -182,9 +178,12 @@ int PP_resolve_defines(char** in, size_t* in_cap, char** out, size_t* out_cap, d
         int changed = _resolve_defines(*in, out, out_cap, dctx);
         if (changed < 0) return 0;
         if (!changed) return 1;
-
-        char *ts = *in; *in = *out; *out = ts;
-        size_t tcap = *in_cap; *in_cap = *out_cap; *out_cap = tcap;
+        char *ts    = *in; 
+        *in         = *out; 
+        *out        = ts;
+        size_t tcap = *in_cap; 
+        *in_cap     = *out_cap; 
+        *out_cap    = tcap;
     }
     
     return 1;

@@ -15,21 +15,21 @@ typedef struct {
     unsigned long hash;
 } string_info_t;
 
-/*
-Calculate the basic string information.
+/* Calculate the basic string information.
 Params:
     - `s` - The input string.
     - `len` - The string's size.
     - `info` - Output information.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds. */
 static int _get_string_info(const char* s, int len, string_info_t* info) {
     char* h = (char*)s;
     info->size = 0;
     info->hash = 0xFFFF;
     while (h && *h && (len == -1 || len-- > 0)) {
         info->hash ^= *h * 0xFDDDF123;
+        info->hash *= 0xFFFF;
+        info->hash /= 0b01010101010101010;
         info->size++;
         h++;
     }
