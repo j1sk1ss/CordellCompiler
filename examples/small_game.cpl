@@ -379,7 +379,6 @@ function read_command() -> i32 {
     return ch;
 }
 
-@[entry("main")]
 start() {
     lis_game game;
     game.new();
