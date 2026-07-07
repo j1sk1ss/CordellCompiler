@@ -385,6 +385,7 @@ static int _inline_heuristic_desider(int* data, int size) {
     else if (parsed->src_info.bb_size <= 5)  score += 3;
     else if (parsed->src_info.bb_size <= 10) score += 2;
     else if (parsed->src_info.bb_size > 15)  score -= 3;
+    if (parsed->src_info.hir_size > 100)     score -= 6;
     score -= parsed->src_info.loop_count * (parsed->src_info.loop_nested + 1) * 2; /* If we have a loop in the source function  */
     score += parsed->dst_info.loop_nested * parsed->dst_info.loop_nested;          /* If we're in a loop at the destination pos */
     return score >= 3;
@@ -422,6 +423,7 @@ int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt
                     if (!FNTB_get_info_id(hh->sarg->storage.str.s_id, &trg_fi, &smt->f)) continue;
                     cfg_func_t* trg;
                     if (!map_get(&cctx->fmap, hh->sarg->storage.str.s_id, (void**)&trg)) continue;
+                    if (fb == trg) continue;
 
                     if (
                         trg_fi.flags.inln == ALWAYS_INLINE ||
@@ -430,7 +432,7 @@ int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt
                             _inline_candidate(
                                 trg, bb, hh, lctx, smt, 
                                 trg_fi.flags.inln == MODEL_INLINE ? _inline_model_desider : _inline_heuristic_desider
-                            ) && fb != trg
+                            )
                         )
                     ) {
                         hir_subject_t* res = NULL;
