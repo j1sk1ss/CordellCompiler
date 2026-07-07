@@ -1,0 +1,401 @@
+:/ TODO: BUG, -O3 tooks too long to compiler (maybe forever) /:
+:/ TODO: BUG, -O2 produces incorrect code / buggy code - segfault (after the 'p' option segfault) /:
+#include "small_game_h.cpl"
+
+glob ro i8 PROMPT = '>'; :/ TODO: BUG, when add an array to a header - it duplicates itself /:
+glob arr storm_seed[LIS_SCENE_COUNT, i32] = { 1, 2, 2, 3 };
+
+function act_photo(ptr lis_game self) -> i0;
+function act_talk(ptr lis_game self) -> i0;
+function act_search(ptr lis_game self) -> i0;
+function act_wait(ptr lis_game self) -> i0;
+function act_rewind(ptr lis_game self) -> i0;
+
+@[inline] function draw_line(ptr i8 text) -> i0 { puts(text); }
+@[inline] function draw_line(ptr i8 who, ptr i8 text) -> i0 { printf(ref "%s: %s\n", who, text); }
+
+@[inline(model)]
+function clamp(i32 value, i32 low = 0 as i32, i32 high = 99 as i32) -> i32 {
+    if value < low;  return low;
+    if value > high; return high;
+    return value;
+}
+
+function route_name(i8 rewound) -> ptr i8 {
+    if rewound; return ref "rewound route";
+    return ref "straight route";
+}
+
+function route_name(i32 scene_id) -> ptr i8 {
+    @[straight]
+    switch scene_id; {
+        case 0; { return ref "Blackwell bathroom"; }
+        case 1; { return ref "Parking lot"; }
+        case 2; { return ref "Dorm corridor"; }
+        case 3; { return ref "Lighthouse"; }
+        default { return ref "after the storm"; }
+    }
+}
+
+@[inline(model)]
+function omen_sum() -> i32 {
+    omen_code omen;
+    omen.code     = 0 as u16;
+    omen.bytes[0] = 4 as u8;
+    omen.bytes[1] = 2 as u8;
+    return ((omen.code & 0xFF) + ((omen.code >> 8) & 0xFF)) as i32;
+}
+
+function intro_flash() -> i0 {
+    printf(ref "Camera flash");
+    @[counter(3)]
+    loop putchar('.');
+    putchar('\n');
+}
+
+@[inline(model)] :/ TODO: BUG can't find the function if args have different names from the prototype /:
+function scene::init(ptr scene self, ptr i8 title, ptr i8 clue, i32 focus, i32 empathy, i32 danger) -> i0 {
+    self.title   = title;
+    self.clue    = clue;
+    self.focus   = focus;
+    self.empathy = empathy;
+    self.danger  = danger;
+}
+
+@[inline(never)]
+function copy_timeline(ptr timeline dst, ptr timeline src) -> i0 {
+    dst.focus   = src.focus;
+    dst.empathy = src.empathy;
+    dst.danger  = src.danger;
+    dst.photos  = src.photos;
+    dst.rewinds = src.rewinds;
+    dst.scene   = src.scene;
+}
+
+function current_scene_title(ptr lis_game self) -> ptr i8 {
+    @[straight]
+    switch self.now.scene; {
+        case 0; { return self.scenes[0].title; }
+        case 1; { return self.scenes[1].title; }
+        case 2; { return self.scenes[2].title; }
+        case 3; { return self.scenes[3].title; }
+        default { return ref "after the storm"; }
+    }
+}
+
+function current_scene_clue(ptr lis_game self) -> ptr i8 {
+    @[straight]
+    switch self.now.scene; {
+        case 0; { return self.scenes[0].clue; }
+        case 1; { return self.scenes[1].clue; }
+        case 2; { return self.scenes[2].clue; }
+        case 3; { return self.scenes[3].clue; }
+        default { return ref "No more clues."; }
+    }
+}
+
+function current_scene_focus(ptr lis_game self) -> i32 {
+    @[straight]
+    switch self.now.scene; {
+        case 0; { return self.scenes[0].focus; }
+        case 1; { return self.scenes[1].focus; }
+        case 2; { return self.scenes[2].focus; }
+        case 3; { return self.scenes[3].focus; }
+        default { return 0 as i32; }
+    }
+}
+
+function current_scene_empathy(ptr lis_game self) -> i32 {
+    @[straight]
+    switch self.now.scene; {
+        case 0; { return self.scenes[0].empathy; }
+        case 1; { return self.scenes[1].empathy; }
+        case 2; { return self.scenes[2].empathy; }
+        case 3; { return self.scenes[3].empathy; }
+        default { return 0 as i32; }
+    }
+}
+
+function current_scene_danger(ptr lis_game self) -> i32 {
+    @[straight]
+    switch self.now.scene; {
+        case 0; { return self.scenes[0].danger; }
+        case 1; { return self.scenes[1].danger; }
+        case 2; { return self.scenes[2].danger; }
+        case 3; { return self.scenes[3].danger; }
+        default { return 0 as i32; }
+    }
+}
+
+function current_scene_solved(ptr lis_game self) -> i8 {
+    @[straight]
+    switch self.now.scene; {
+        case 0; { return self.scene_done[0]; }
+        case 1; { return self.scene_done[1]; }
+        case 2; { return self.scene_done[2]; }
+        case 3; { return self.scene_done[3]; }
+        default { return 1 as i8; }
+    }
+}
+
+function mark_current_scene_solved(ptr lis_game self) -> i0 {
+    @[no_fall]
+    @[straight]
+    switch self.now.scene; {
+        case 0; { self.scene_done[0] = 1; }
+        case 1; { self.scene_done[1] = 1; }
+        case 2; { self.scene_done[2] = 1; }
+        case 3; { self.scene_done[3] = 1; }
+    }
+}
+
+function resolve_scene(ptr lis_game self, i32 focus_gain, i32 empathy_gain, i32 danger_gain) -> i0 {
+    i8 solved = current_scene_solved(self);
+    if solved; {
+        draw_line(ref "This moment is already fixed in the journal.");
+        return;
+    }
+
+    i32 base_focus   = current_scene_focus(self);
+    i32 base_empathy = current_scene_empathy(self);
+    i32 base_danger  = current_scene_danger(self);
+    ptr i8 clue      = current_scene_clue(self);
+
+    self.now.focus   += focus_gain + base_focus;
+    self.now.empathy += empathy_gain + base_empathy;
+    self.now.danger  += danger_gain + base_danger;
+    self.now.danger  = clamp(self.now.danger);
+    mark_current_scene_solved(self);
+
+    printf(ref "\nClue: %s\n", clue);
+    self.advance(1 as i32);
+    self.check_end();
+}
+
+@[inline(model)]
+function lis_game::new(ptr lis_game self) -> i0 {
+    self.scenes[0].init(ref "A butterfly photo in the bathroom", ref "A torn photo points to the locked cabinet.", 2 as i32, 0 as i32, storm_seed[0]);
+    self.scenes[1].init(ref "A friend is cornered in the parking lot", ref "The blue keychain matters more than the threat.", 0 as i32, 2 as i32, storm_seed[1]);
+    self.scenes[2].init(ref "Missing posters in the dorm corridor", ref "The missing poster is a clue to the missing friend.", 1 as i32, 1 as i32, storm_seed[2]);
+    self.scenes[3].init(ref "The lighthouse before the storm", ref "The final photo only works if trust survives.", 2 as i32, 1 as i32, storm_seed[3]);
+
+    self.scene_done[0] = 0;
+    self.scene_done[1] = 0;
+    self.scene_done[2] = 0;
+    self.scene_done[3] = 0;
+
+    self.actions[0] = act_photo;
+    self.actions[1] = act_talk;
+    self.actions[2] = act_search;
+    self.actions[3] = act_wait;
+    self.actions[4] = act_rewind;
+
+    self.now.focus   = 1;
+    self.now.empathy = 1;
+    self.now.danger  = 0;
+    self.now.photos  = 0;
+    self.now.rewinds = LIS_START_REWINDS;
+    self.now.scene   = 0;
+    self.save();
+
+    self.photo_note.text    = strdup(ref "Photo note: every frame can become evidence.");
+    self.photo_note.weight  = 2;
+    self.photo_note.next    = ref self.friend_note;
+
+    self.friend_note.text   = strdup(ref "Friend note: trust is a resource, not a cutscene.");
+    self.friend_note.weight = 3;
+    self.friend_note.next   = ref self.storm_note;
+
+    self.storm_note.text    = strdup(ref "Storm note: rewinds save people but wake the sky.");
+    self.storm_note.weight  = omen_sum();
+    self.storm_note.next    = 0 as ptr memory_note;
+
+    self.journal            = ref self.photo_note;
+    self.mood               = ref "uncertain";
+    self.running            = 1;
+    self.won                = 0;
+}
+
+function lis_game::save(ptr lis_game self) -> i0 {
+    copy_timeline(ref self.saved, ref self.now);
+}
+
+function lis_game::rewind(ptr lis_game self) -> i0 {
+    if self.now.rewinds <= 0; {
+        draw_line(ref "The rewind pulse is empty.");
+        return;
+    }
+
+    copy_timeline(ref self.now, ref self.saved);
+    self.now.rewinds -= 1;
+    self.now.danger += 1;
+    self.mood = ref "shaken";
+    draw_line(ref "The hallway folds back into yesterday's light.");
+}
+
+@[inline(model)]
+function lis_game::advance(ptr lis_game self, i32 delta) -> i0 {
+    self.now.scene += delta;
+}
+
+@[inline(model)]
+function lis_game::score(ptr lis_game self) -> i32 {
+    return self.now.focus + self.now.empathy + self.now.photos * 2 - self.now.danger;
+}
+
+function lis_game::draw(ptr lis_game self) -> i0 {
+    i32 scene_no = self.now.scene + 1;
+    i32 score_now = self.score();
+    ptr i8 place = route_name(self.now.scene);
+    ptr i8 route = route_name((self.now.rewinds < LIS_START_REWINDS) as i8);
+
+    printf(ref "\n== Life is Strange / CPL Echoes ==\n");
+    printf(ref "Scene %i/%i: %s\n", scene_no, LIS_SCENE_COUNT as i32, place);
+    printf(ref "Focus=%i Empathy=%i Storm=%i\n", self.now.focus, self.now.empathy, self.now.danger);
+    printf(ref "Photos=%i Rewinds=%i Score=%i\n", self.now.photos, self.now.rewinds, score_now);
+    printf(ref "Route: %s, mood: %s, timeline bytes: %i\n",
+        route, self.mood, sizeof(timeline) as i32);
+
+    if self.now.scene < LIS_SCENE_COUNT; {
+        ptr i8 title = current_scene_title(self);
+        printf(ref "\n%s\n", title);
+        draw_line(ref "Commands: p=photo, t=talk, e=search, w=wait, r=rewind, s=snapshot, j=journal, q=quit");
+        printf(ref "%c ", PROMPT);
+    }
+}
+
+function lis_game::journal_dump(ptr lis_game self) -> i0 {
+    ptr memory_note note = self.journal;
+    printf(ref "\nJournal:\n");
+
+    while note; {
+        printf(ref " - %s [%i]\n", note.text, note.weight);
+        note = note.next;
+    }
+}
+
+function lis_game::step(ptr lis_game self, i32 input) -> i0 {
+    if input == EOF; {
+        self.running = 0;
+        return;
+    }
+
+    @[no_fall]
+    @[straight]
+    switch input; {
+        case 'p'; { self.actions[0](self); }
+        case 't'; { self.actions[1](self); }
+        case 'e'; { self.actions[2](self); }
+        case 'w'; { self.actions[3](self); }
+        case 'r'; { self.actions[4](self); self.check_end(); }
+        case 's'; {
+            self.save();
+            self.mood = ref "prepared";
+            draw_line(ref "Snapshot saved.");
+        }
+        case 'j'; { self.journal_dump(); }
+        case 'q'; {
+            self.running = 0;
+            self.won = 0;
+        }
+        default {
+            draw_line(ref "Unknown command.");
+        }
+    }
+}
+
+function lis_game::check_end(ptr lis_game self) -> i0 {
+    if self.now.danger >= LIS_STORM_LIMIT; {
+        self.running = 0;
+        self.won = 0;
+        draw_line(ref "\nThe storm wins this timeline.");
+        return;
+    }
+
+    if self.now.scene >= LIS_SCENE_COUNT; {
+        self.running = 0;
+        self.won = (self.score() >= LIS_WIN_SCORE) as i8;
+    }
+}
+
+function lis_game::destroy(ptr lis_game self) -> i0 {
+    free(self.photo_note.text);
+    free(self.friend_note.text);
+    free(self.storm_note.text);
+}
+
+container person {
+    :/ 
+    TODO: Make this be possible:
+    ptr i8 name; / arr name[32, i8];
+
+    ...
+
+    person p = { ref "name" }; / person p = { "name" };
+     /:
+}
+
+function act_photo(ptr lis_game self) -> i0 {
+    self.now.photos += 1;
+    self.mood = ref "focused";
+    resolve_scene(self, 2 as i32, 0 as i32, 1 as i32);
+    draw_line(ref "Mira", ref "One photo. One tiny proof that time blinked.");
+}
+
+function act_talk(ptr lis_game self) -> i0 {
+    self.mood = ref "kind";
+    resolve_scene(self, 0 as i32, 3 as i32, 0 as i32);
+    draw_line(ref "Lena", ref "Do not make this about destiny. Just stay with me.");
+}
+
+function act_search(ptr lis_game self) -> i0 {
+    self.mood = ref "curious";
+    resolve_scene(self, 1 as i32, 1 as i32, 0 as i32);
+    draw_line(ref "Mira", ref "The clue was not hidden. I was looking from the wrong minute.");
+}
+
+function act_wait(ptr lis_game self) -> i0 {
+    self.mood = ref "late";
+    resolve_scene(self, 0 as i32, 0 as i32, 3 as i32);
+    draw_line(ref "The sky answers first.");
+}
+
+:/ TODO: Implement send a flag to the builder /:
+function act_rewind(ptr lis_game self) -> i0 {
+#ifdef LIS_DEBUG_BREAKPOINTS 
+    lis "rewind snapshot";
+#endif
+    self.rewind();
+}
+
+function read_command() -> i32 {
+    i32 ch = getchar();
+    i32 rest = ch;
+
+    while rest != '\n' && rest != EOF; {
+        rest = getchar();
+    }
+
+    return ch;
+}
+
+@[entry("main")]
+start() {
+    lis_game game;
+    game.new();
+    intro_flash();
+
+    while game.running; {
+        game.draw();
+        game.step(read_command());
+    }
+
+    if game.won;     draw_line(ref "\nEnding: the town gets one more sunrise.");
+    if not game.won; draw_line(ref "\nEnding: rewind, retry, remember.");
+
+    printf(ref "Final score: %i\n", game.score());
+    game.destroy();
+
+    if game.won; exit 0;
+    exit 1;
+}

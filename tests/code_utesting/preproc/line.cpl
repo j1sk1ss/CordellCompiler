@@ -1,4 +1,3 @@
-: ONLY_THIS :
 start() {
     i32 a = __LINE__;
     ptr i32 b = ref __FILE__;

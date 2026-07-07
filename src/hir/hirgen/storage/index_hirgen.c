@@ -77,7 +77,7 @@ static hir_subject_t* _get_final_head(
     /* The final offset for the base address is the result of the
         expression 'real_offset = offset * element_size' */
     hir_subject_t* real_offset = HIR_SUBJ_TMPVAR(
-        HIR_promote_types(offt->t, HIR_I8CONSTVAL), 
+        HIR_TMPVARU64, 
         VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(offt->t, HIR_I8CONSTVAL)), NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v)
     );
 
