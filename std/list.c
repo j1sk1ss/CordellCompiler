@@ -28,22 +28,20 @@ int list_add(list_t* l, void* data) {
     h->data = data;
 
     if (!l->h) {
-        l->h = h;
-        l->t = h;
+        l->h = l->t = h;
         l->s = 1;
         return 1;
     }
 
     h->p = l->t;
-    l->t->n = h;
-    l->t = h;
+    l->t = l->t->n = h;
     l->s++;
     return 1;
 }
 
 int list_push_back(list_t* l, void* data) {
     list_node_t* node = mm_malloc(sizeof(list_node_t));
-    if (!node) return -1;
+    if (!node) return 0;
 
     node->data = data;
     node->n = NULL;
@@ -53,8 +51,7 @@ int list_push_back(list_t* l, void* data) {
     else l->h = node;
     l->t = node;
     l->s++;
-
-    return 0;
+    return 1;
 }
 
 void* list_pop_front(list_t* l) {

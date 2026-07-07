@@ -10,6 +10,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+/* basics */
+#include <std/list.h>
+
 /* Pre-processor part and tokenization part */
 #include <preproc/pp.h>
 #include <prep/token.h>
@@ -94,6 +97,7 @@
 #define OPTION_SOMETHING_SHORT       "-s"
 #define OPTION_PREPROCESS_ONLY       "-E"
 #define OPTION_INLUCDE               "-I"
+#define OPTION_DEFINE                "-D"
 #define OPTION_PRINT_STDLIB          "--print-stdlib-path"
 #define OPTION_OUTPUT                "--output"
 #define OPTION_WITHOUT_COMPILATION   "--without-compilation"
@@ -158,6 +162,7 @@ typedef struct {
         const char*  stdlib;
         const char** files;
         int          files_count;
+        list_t       defines;
         char*        output;
         char*        ast_output;
         char*        ir_output;

@@ -358,8 +358,8 @@ function act_wait(ptr lis_game self) -> i0 {
 
 :/ TODO: Implement send a flag to the builder /:
 function act_rewind(ptr lis_game self) -> i0 {
-#ifdef LIS_DEBUG_BREAKPOINTS 
-    lis "rewind snapshot";
+#ifdef LIS_DEBUG_BREAKPOINTS
+    printf(ref "_LIS_DEBUG_BREAKPOINTS_");
 #endif
     self.rewind();
 }

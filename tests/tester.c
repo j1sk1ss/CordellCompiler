@@ -100,7 +100,10 @@ int main(__attribute__ ((unused)) int argc, char* argv[]) {
 
 #ifdef PREPROC_TESTING
     finder_ctx_t finctx = { .bpath = argv[2] };
-    fd = PP_perform(fd, &finctx); // Transformation
+    pp_ctx_t ppctx;
+    PP_init_pp_ctx(&ppctx);
+
+    fd = PP_perform(fd, &finctx, &ppctx);
     if (fd < 0) {
         fprintf(stderr, "Processed file %s isn't found!\n", argv[1]);
         return 1;
