@@ -50,10 +50,11 @@ int TKN_tokenize(int fd, list_t* tkn);
 Hash a token with the crc64 hash function.
 Params:
     - `t` - Token.
+    - `no_body` - Ignore the body.
 
 Return hash sum.
 */
-unsigned long TKN_hash_token(token_t* t);
+unsigned long TKN_hash_token(token_t* t, int no_body);
 
 /*
 Deallocated space that was claimed by the token.

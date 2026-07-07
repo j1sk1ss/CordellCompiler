@@ -11,6 +11,9 @@
 #define LIS_STORM_LIMIT   9
 #define LIS_WIN_SCORE     14
 
+glob ro i8 PROMPT = '>';
+glob arr storm_seed[LIS_SCENE_COUNT, i32] = { 1, 2, 2, 3 };
+
 container scene {
     ptr i8 title;
     ptr i8 clue;

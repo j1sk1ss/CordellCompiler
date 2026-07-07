@@ -17,7 +17,6 @@ _unknown_call: {}
         }
     }
     else {
-        int has_unknown_call = 0;
         foreach (cfg_block_t* bb, &f->blocks) {
             iterate_lir_instructions (bb) {
                 if (

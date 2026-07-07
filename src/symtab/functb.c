@@ -59,7 +59,7 @@ static int _is_function_presented(
         if (
             (s_id == FIELD_NO_CHANGE || fi->s_id == s_id) &&
             fi->name->equals(fi->name, name) &&
-            AST_hash_node_stop(args->c, SCOPE_TOKEN) == AST_hash_node_stop(fi->args->c, SCOPE_TOKEN) &&
+            AST_hash_node_stop(args->c, 1, SCOPE_TOKEN) == AST_hash_node_stop(fi->args->c, 1, SCOPE_TOKEN) &&
             (!gen || map_equals(&fi->template.generic, gen))
         ) {
             if (out) str_memcpy(out, fi, sizeof(func_info_t));
@@ -83,7 +83,7 @@ symbol_id_t FNTB_add_info(
 ) {
     print_log(
         "FNTB_add_info(name=%s, global=%i, entry=%i, naked=%i, args=%lu)", 
-        name ? name->body : "(null)", flags.global, flags.entry, flags.naked, args ? AST_hash_node_stop(args->c, SCOPE_TOKEN) : 0
+        name ? name->body : "(null)", flags.global, flags.entry, flags.naked, args ? AST_hash_node_stop(args->c, 1, SCOPE_TOKEN) : 0
     );
     
     func_info_t out;

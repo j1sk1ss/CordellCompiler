@@ -1,8 +1,5 @@
-:/ TODO: BUG, -O2 produces segfault at the end (after the 'p' option segfault) /:
+:/ TODO: BUG, -O3 produces segfault at the end (after the 'p' option segfault) /:
 #include "small_game_h.cpl"
-
-glob ro i8 PROMPT = '>'; :/ TODO: BUG, when add an array to a header - it duplicates itself /:
-glob arr storm_seed[LIS_SCENE_COUNT, i32] = { 1, 2, 2, 3 };
 
 function act_photo(ptr lis_game self) -> i0;
 function act_talk(ptr lis_game self) -> i0;
@@ -52,13 +49,13 @@ function intro_flash() -> i0 {
     putchar('\n');
 }
 
-@[inline(model)] :/ TODO: BUG can't find the function if args have different names from the prototype /:
-function scene::init(ptr scene self, ptr i8 title, ptr i8 clue, i32 focus, i32 empathy, i32 danger) -> i0 {
-    self.title   = title;
-    self.clue    = clue;
-    self.focus   = focus;
-    self.empathy = empathy;
-    self.danger  = danger;
+@[inline(model)]
+function scene::init(ptr scene s, ptr i8 title, ptr i8 clue, i32 focus, i32 empathy, i32 danger) -> i0 {
+    s.title   = title;
+    s.clue    = clue;
+    s.focus   = focus;
+    s.empathy = empathy;
+    s.danger  = danger;
 }
 
 @[inline(never)]

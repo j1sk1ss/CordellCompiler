@@ -129,19 +129,19 @@ Params:
     - `stp` - Stop token type.
 
 Returns a hash based on the provided node. */
-static unsigned long _hash_ast_node(ast_node_t* n, int s, token_type_t stp) {
+static unsigned long _hash_ast_node(ast_node_t* n, int s, int no_name, token_type_t stp) {
     if (!n || !n->t || n->t->t_type == stp) return 0;
     unsigned long hash = 0;
-    if (n->t) hash ^= TKN_hash_token(n->t);
-    if (s) hash ^= _hash_ast_node(n->siblings.n, 1, stp);
-    hash ^= _hash_ast_node(n->c, 1, stp);
+    if (n->t) hash ^= TKN_hash_token(n->t, no_name);
+    if (s) hash ^= _hash_ast_node(n->siblings.n, 1, no_name, stp);
+    hash ^= _hash_ast_node(n->c, 1, no_name, stp);
     return hash;
 }
 
 unsigned long AST_hash_node(ast_node_t* node) {
-    return _hash_ast_node(node, 0, -1);
+    return _hash_ast_node(node, 0, 0, -1);
 }
 
-unsigned long AST_hash_node_stop(ast_node_t* node, token_type_t stp) {
-    return _hash_ast_node(node, 1, stp);
+unsigned long AST_hash_node_stop(ast_node_t* node, int no_name, token_type_t stp) {
+    return _hash_ast_node(node, 1, no_name, stp);
 }
