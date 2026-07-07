@@ -1,5 +1,4 @@
-:/ TODO: BUG, -O3 tooks too long to compiler (maybe forever) /:
-:/ TODO: BUG, -O2 produces incorrect code / buggy code - segfault (after the 'p' option segfault) /:
+:/ TODO: BUG, -O2 produces segfault at the end (after the 'p' option segfault) /:
 #include "small_game_h.cpl"
 
 glob ro i8 PROMPT = '>'; :/ TODO: BUG, when add an array to a header - it duplicates itself /:

@@ -28,7 +28,7 @@ long LIR_peephole_get_long_number(lir_subject_t* s) {
     switch (s->t) {
         case LIR_CONSTVAL: return s->storage.cnst.value;
         case LIR_NUMBER:   return s->storage.num.value->to_llong(s->storage.num.value);
-        default: return -1;
+        default:           return -1;
     }
 }
 
@@ -45,7 +45,7 @@ long LIR_peephole_get_log2_number(lir_subject_t* s) {
 }
 
 int LIR_peephole_optimization(cfg_ctx_t* cctx, peephole_t* peephole) {
-    int optimized = 0;
+    int optimized = 0, rounds = 0;
     do {
         optimized = 0;
         foreach (cfg_func_t* fb, &cctx->funcs) {
@@ -55,7 +55,7 @@ int LIR_peephole_optimization(cfg_ctx_t* cctx, peephole_t* peephole) {
             }
         }
         optimized |= peephole->perform_peephole(cctx);
-    } while (optimized);
+    } while (optimized && ++rounds < 64);
 
     return 1;
 }
