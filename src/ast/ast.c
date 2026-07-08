@@ -133,7 +133,7 @@ static unsigned long _hash_ast_node(ast_node_t* n, int s, int no_name, token_typ
     if (!n || !n->t || n->t->t_type == stp) return 0;
     unsigned long hash = 0;
     if (n->t) hash ^= TKN_hash_token(n->t, no_name);
-    if (s) hash ^= _hash_ast_node(n->siblings.n, 1, no_name, stp);
+    if (s)    hash ^= _hash_ast_node(n->siblings.n, 1, no_name, stp);
     hash ^= _hash_ast_node(n->c, 1, no_name, stp);
     return hash;
 }

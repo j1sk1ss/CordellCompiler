@@ -396,7 +396,7 @@ unsigned long TKN_hash_token(token_t* t, int no_body) {
         t->body && 
         !no_body
     ) hash ^= t->body->hash;
-    hash *= t->t_type;
+    hash ^= t->t_type * 0xD0ED0E1;
     
     t->finfo.line   = tmp.line;
     t->finfo.column = tmp.column;
