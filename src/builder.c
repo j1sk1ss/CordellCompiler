@@ -30,6 +30,7 @@ static int _print_help_message() {
         { OPTION_PREPROCESS_ONLY, NULL, "Run preprocessor only" },
         { OPTION_WITHOUT_COMPILATION, NULL, "Build AST and HIR, then stop without compilation" },
         { OPTION_INLUCDE, "<dir>", "Add include directory" },
+        { OPTION_DEFINE, "<name=value>", "Define preprocessor variable" },
         { OPTION_PRINT_STDLIB, NULL, "Print the standard library directory" },
         { OPTION_OUTPUT, "<file>", "Set output file" },
         { OPTION_ENABLE_AST_ANALYSIS, NULL, "Enable AST analysis" },
@@ -354,8 +355,90 @@ static config_t _make_config(const options_t* options) {
     return conf;
 }
 
+typedef struct {
+    char* name;
+    char* value;
+} cli_define_t;
+
+static char* _copy_slice(const char* begin, size_t len) {
+    if (!begin) return NULL;
+    char* out = (char*)mm_malloc(len + 1);
+    if (!out) return NULL;
+    memcpy(out, begin, len);
+    out[len] = 0;
+    return out;
+}
+
+static int _valid_define_name(const char* name, size_t name_len) {
+    if (!name || !name_len) return 0;
+    for (size_t i = 0; i < name_len; i++) {
+        char c = name[i];
+        int ok =
+            (c >= 'a' && c <= 'z') ||
+            (c >= 'A' && c <= 'Z') ||
+            c == '_' ||
+            (i > 0 && c >= '0' && c <= '9');
+        if (!ok) return 0;
+    }
+
+    return 1;
+}
+
+static int _unload_cli_define(void* data) {
+    cli_define_t* define = (cli_define_t*)data;
+    if (!define) return 1;
+    mm_free(define->name);
+    mm_free(define->value);
+    mm_free(define);
+    return 1;
+}
+
+static cli_define_t* _make_define_arg(const char* arg) {
+    if (!arg || !arg[0]) return NULL;
+
+    const char* eq  = strchr(arg, '=');
+    size_t name_len = eq ? (size_t)(eq - arg) : strlen(arg);
+    if (!_valid_define_name(arg, name_len)) return NULL;
+
+    const char* value = eq ? eq + 1 : "1";
+    cli_define_t* define = (cli_define_t*)mm_malloc(sizeof(*define));
+    if (!define) return NULL;
+
+    define->name  = _copy_slice(arg, name_len);
+    define->value = _copy_slice(value, strlen(value));
+    if (!define->name || !define->value) {
+        _unload_cli_define(define);
+        return NULL;
+    }
+
+    return define;
+}
+
+static int _add_define_arg(options_t* out, const char* arg) {
+    if (!out) return 0;
+
+    cli_define_t* define = _make_define_arg(arg);
+    if (!define) return 0;
+
+    if (!list_push_back(&out->locations.defines, define)) {
+        _unload_cli_define(define);
+        return 0;
+    }
+
+    return 1;
+}
+
+static inline void _apply_cli_defines(pp_ctx_t* ppctx, list_t* defines) {
+    if (!ppctx || !defines) return;
+    cli_define_t* define = NULL;
+    foreach (define, defines) {
+        MCTB_put_define(define->name, define->value, &ppctx->defines);
+    }
+}
+
 static void _set_default_options(options_t* out) {
     memset(out, 0, sizeof(*out));
+    list_init(&out->locations.defines);
     out->tools.asm_compiler        = "nasm";
 #if defined(__linux__)
     out->tools.asm_format          = "elf64";
@@ -405,6 +488,13 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
         else if (!strcmp(argv[i], OPTION_INLUCDE)) {
             if (i + 1 >= argc) goto _fail;
             out->locations.include = argv[++i];
+        }
+        else if (!strcmp(argv[i], OPTION_DEFINE)) {
+            if (i + 1 >= argc || !_add_define_arg(out, argv[i + 1])) goto _fail;
+            i++;
+        }
+        else if (!strncmp(argv[i], OPTION_DEFINE, strlen(OPTION_DEFINE))) {
+            if (!_add_define_arg(out, argv[i] + strlen(OPTION_DEFINE))) goto _fail;
         }
         else if (!strcmp(argv[i], OPTION_PRINT_STDLIB)) out->flags.print_stdlib = 1;
         else if (!strcmp(argv[i], OPTION_ARCH)) {
@@ -527,6 +617,7 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
     return 1;
 
 _fail: {}
+    list_free_force_op(&out->locations.defines, _unload_cli_define);
     mm_free((void*)out->locations.files);
     out->locations.files = NULL;
     return 0;
@@ -556,18 +647,21 @@ int main(int argc, char* argv[]) {
 
     if (options.flags.show_help) {
         _print_help_message();
+        list_free_force_op(&options.locations.defines, _unload_cli_define);
         mm_free((void*)options.locations.files);
         return EXIT_SUCCESS;
     }
 
     if (options.flags.show_something) {
         _print_gem(stdout);
+        list_free_force_op(&options.locations.defines, _unload_cli_define);
         mm_free((void*)options.locations.files);
         return EXIT_SUCCESS;
     }
 
     if (options.flags.show_version) {
         _print_version(stdout);
+        list_free_force_op(&options.locations.defines, _unload_cli_define);
         mm_free((void*)options.locations.files);
         return EXIT_SUCCESS;
     }
@@ -577,16 +671,19 @@ int main(int argc, char* argv[]) {
     if (options.flags.print_stdlib) {
         if (options.locations.stdlib) {
             puts(options.locations.stdlib);
+            list_free_force_op(&options.locations.defines, _unload_cli_define);
             mm_free((void*)options.locations.files);
             return EXIT_SUCCESS;
         }
         fprintf(stderr, "CPL standard library isn't found\n");
+        list_free_force_op(&options.locations.defines, _unload_cli_define);
         mm_free((void*)options.locations.files);
         return EXIT_FAILURE;
     }
 
     if (options.locations.files_count == 0) {
         fprintf(stderr, "No input files\n");
+        list_free_force_op(&options.locations.defines, _unload_cli_define);
         mm_free((void*)options.locations.files);
         return EXIT_FAILURE;
     }
@@ -630,7 +727,11 @@ int main(int argc, char* argv[]) {
             .spath = options.locations.stdlib
         };
 
-        fd = PP_perform(fd, &finctx);
+        pp_ctx_t ppctx;
+        PP_init_pp_ctx(&ppctx);
+        _apply_cli_defines(&ppctx, &options.locations.defines);
+
+        fd = PP_perform(fd, &finctx, &ppctx);
         if (fd < 0) {
             fprintf(stderr, "Failed to preprocess %s\n", options.locations.files[i]);
             return 1;
@@ -976,6 +1077,7 @@ int main(int argc, char* argv[]) {
 
     mm_free(object_files);
     mm_free(token_lists);
+    list_free_force_op(&options.locations.defines, _unload_cli_define);
     mm_free((void*)options.locations.files);
     return EXIT_SUCCESS;
 }

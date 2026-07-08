@@ -37,7 +37,7 @@ Params:
     - `ctx` - PP context.
 
 Returns 1 if succeeds. */
-static inline int _init_pp_ctx(pp_ctx_t* ctx) {
+int PP_init_pp_ctx(pp_ctx_t* ctx) {
     memset(ctx, 0, sizeof(pp_ctx_t));
     return map_init(&ctx->defines.t, MAP_NO_CMP) && stack_init(&ctx->sources);
 }
@@ -195,13 +195,10 @@ static inline int _permitted_character(char* p) {
     return 0;
 }
 
-#define PREDEFINE_FLAG(name)         MCTB_put_define(name, "1", &ppctx.defines);
-#define PREDEFINE_VALUE(name, value) MCTB_put_define(name, value, &ppctx.defines);
+#define PREDEFINE_FLAG(name)         MCTB_put_define(name, "1", &ppctx->defines);
+#define PREDEFINE_VALUE(name, value) MCTB_put_define(name, value, &ppctx->defines);
 
-int PP_perform(int fd, finder_ctx_t* fctx) {
-    pp_ctx_t ppctx;
-    _init_pp_ctx(&ppctx);
-
+int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx) {
     switch (CONF_get_system_type()) {
         case MACHO64:   PREDEFINE_FLAG("CCPL_MACHO64");   break;
         case LINUX64:   PREDEFINE_FLAG("CCPL_GNU64");     break;
@@ -210,25 +207,25 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
         default: break;
     }
 
-    ppctx.fd = fd;
+    ppctx->fd = fd;
     int ffd = PP_create_tmp_file();
     if (ffd < 0) return -1;
 
-    ppctx.out = fdopen(dup(ffd), "w");
-    if (!ppctx.out) { 
-        _unload_pp_ctx(&ppctx);
+    ppctx->out = fdopen(dup(ffd), "w");
+    if (!ppctx->out) { 
+        _unload_pp_ctx(ppctx);
         return -1; 
     }
 
-    FILE* src = fdopen(dup(ppctx.fd), "r");
+    FILE* src = fdopen(dup(ppctx->fd), "r");
     if (!src) {
-        _unload_pp_ctx(&ppctx);
+        _unload_pp_ctx(ppctx);
         return -1;
     }
 
     char src_path[PP_PATH_MAX] = { 0 };
     if (!PP_file_path_from_fp(src, src_path, sizeof(src_path))) {
-        _unload_pp_ctx(&ppctx);
+        _unload_pp_ctx(ppctx);
         return -1;
     }
     
@@ -236,18 +233,18 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
     _put_line_macro(&init, src);
 
     source_pos_info_t* info = _create_info(src, src_path, 0);
-    if (!info || !stack_push(&ppctx.sources, info)) {
+    if (!info || !stack_push(&ppctx->sources, info)) {
         if (info) _destroy_info(info);
-        _unload_pp_ctx(&ppctx);
+        _unload_pp_ctx(ppctx);
         return -1;
     }
 
     source_pos_info_t* inf;
-    while (stack_top(&ppctx.sources, (void**)&inf)) {
-        ssize_t nread = getline(&ppctx.line, &ppctx.size, inf->f);
+    while (stack_top(&ppctx->sources, (void**)&inf)) {
+        ssize_t nread = getline(&ppctx->line, &ppctx->size, inf->f);
         for (int i = 0; i < nread - 1; i++) {
-            if (_permitted_character(ppctx.line + i)) {
-                _unload_pp_ctx(&ppctx);
+            if (_permitted_character(ppctx->line + i)) {
+                _unload_pp_ctx(ppctx);
                 return -1;
             }
         }
@@ -261,13 +258,13 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
             how to deal with a new complex file. */
         if (nread < 0) {
             source_pos_info_t* done;
-            stack_pop(&ppctx.sources, (void**)&done);
+            stack_pop(&ppctx->sources, (void**)&done);
             if (done) _destroy_info(done);
 
             /* Just to be sure, that we have another one file to continue.
                If we have, we must mark the return with an information line. */
-            if (stack_top(&ppctx.sources, (void**)&done) && done) {
-                _put_line_macro(done, ppctx.out);
+            if (stack_top(&ppctx->sources, (void**)&done) && done) {
+                _put_line_macro(done, ppctx->out);
             }
 
             continue;
@@ -277,33 +274,33 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
            Also remember the open comment statement if it exists
            in the line.
            This info will be saved in the cst structure. */
-        if (!PP_strip_colon_comments(ppctx.line, &inf->cst, &ppctx.clean, &ppctx.clean_size)) {
-            _unload_pp_ctx(&ppctx);
+        if (!PP_strip_colon_comments(ppctx->line, &inf->cst, &ppctx->clean, &ppctx->clean_size)) {
+            _unload_pp_ctx(ppctx);
             return -1;
         }
 
         /* Figure out which directive is presented in the line.
            If there is no directive, just copy the line into the output. */
-        char* d = PP_get_directive_from_line(ppctx.clean);
+        char* d = PP_get_directive_from_line(ppctx->clean);
         if (!d) {
             long stat;
             if (!stack_top(&inf->cst.skips, (void**)&stat) || !stat) {
                 char line_file[PP_PATH_MAX] = { 0 };
                 snprintf(line_file, sizeof(line_file), "\"%s\"", inf->n);
-                MCTB_put_define("__FILE__", line_file, &ppctx.defines);
+                MCTB_put_define("__FILE__", line_file, &ppctx->defines);
 
                 char line_num[32] = { 0 };
                 snprintf(line_num, sizeof(line_num), "%i", inf->l);
-                MCTB_put_define("__LINE__", line_num, &ppctx.defines);
+                MCTB_put_define("__LINE__", line_num, &ppctx->defines);
 
-                if (!PP_resolve_defines(&ppctx.clean, &ppctx.clean_size, &ppctx.defined, &ppctx.defined_size, &ppctx.defines)) {
-                    _unload_pp_ctx(&ppctx);
+                if (!PP_resolve_defines(&ppctx->clean, &ppctx->clean_size, &ppctx->defined, &ppctx->defined_size, &ppctx->defines)) {
+                    _unload_pp_ctx(ppctx);
                     return -1;
                 }
 
-                MCTB_remove_define("__FILE__", &ppctx.defines);
-                MCTB_remove_define("__LINE__", &ppctx.defines);
-                _lazy_fputs(ppctx.defined, ppctx.out);
+                MCTB_remove_define("__FILE__", &ppctx->defines);
+                MCTB_remove_define("__LINE__", &ppctx->defines);
+                _lazy_fputs(ppctx->defined, ppctx->out);
             }
         }
         else {
@@ -313,80 +310,80 @@ int PP_perform(int fd, finder_ctx_t* fctx) {
                 int is_system = 0;
                 char inc_name[PP_PATH_MAX] = { 0 };
                 if (!PP_parse_include_arg(PP_MV_LINE_DIR(d, PP_INCLUDE_DIRECTIVE), inc_name, sizeof(inc_name), &is_system)) {
-                    _unload_pp_ctx(&ppctx);
+                    _unload_pp_ctx(ppctx);
                     return -1;
                 }
 
-                if (!_push_include(inf->n, &ppctx.sources, fctx, inc_name, is_system)) {
+                if (!_push_include(inf->n, &ppctx->sources, fctx, inc_name, is_system)) {
                     fprintf(stderr, "%s:%i: include file '%s' isn't found\n", inf->n, inf->l, inc_name);
-                    _unload_pp_ctx(&ppctx);
+                    _unload_pp_ctx(ppctx);
                     return -1;
                 }
 
                 /* Put a line that indicates a new start for the
                    new include file. */
-                if (stack_top(&ppctx.sources, (void**)&inf) && inf) {
-                    _put_line_macro(inf, ppctx.out);
+                if (stack_top(&ppctx->sources, (void**)&inf) && inf) {
+                    _put_line_macro(inf, ppctx->out);
                 }
             }
             else if (IS_PP_DERICTIVE(d, PP_DEFINE_DIRECTIVE) && !skip) {
                 char defname[PP_PATH_MAX] = { 0 };
                 char defval[PP_PATH_MAX]  = { 0 };
                 if (!PP_parse_define_arg(PP_MV_LINE_DIR(d, PP_DEFINE_DIRECTIVE), defname, sizeof(defname), defval, sizeof(defval))) {
-                    _unload_pp_ctx(&ppctx);
+                    _unload_pp_ctx(ppctx);
                     return -1;
                 }
 
-                if (!MCTB_put_define(defname, defval, &ppctx.defines)) {
-                    _unload_pp_ctx(&ppctx);
+                if (!MCTB_put_define(defname, defval, &ppctx->defines)) {
+                    _unload_pp_ctx(ppctx);
                     return -1;
                 }
 
-                _put_line_macro(inf, ppctx.out);
+                _put_line_macro(inf, ppctx->out);
             }
             else if (IS_PP_DERICTIVE(d, PP_UNDEF_DIRECTIVE) && !skip) {
                 char defname[PP_PATH_MAX] = { 0 };
                 if (!PP_parse_define_arg(PP_MV_LINE_DIR(d, PP_DEFINE_DIRECTIVE), defname, sizeof(defname), NULL, 0)) {
-                    _unload_pp_ctx(&ppctx);
+                    _unload_pp_ctx(ppctx);
                     return -1;
                 }
 
-                if (!MCTB_remove_define(defname, &ppctx.defines)) {
-                    _unload_pp_ctx(&ppctx);
+                if (!MCTB_remove_define(defname, &ppctx->defines)) {
+                    _unload_pp_ctx(ppctx);
                     return -1;
                 }
 
-                _put_line_macro(inf, ppctx.out);
+                _put_line_macro(inf, ppctx->out);
             }
             else if (IS_PP_DERICTIVE(d, PP_IFDEF_DIRECTIVE)) {
                 char defname[PP_PATH_MAX] = { 0 };
                 if (!PP_parse_define_arg(PP_MV_LINE_DIR(d, PP_DEFINE_DIRECTIVE), defname, sizeof(defname), NULL, 0)) {
-                    _unload_pp_ctx(&ppctx);
+                    _unload_pp_ctx(ppctx);
                     return -1;
                 }
 
-                stack_push(&inf->cst.skips, (void*)((long)!MCTB_get_define(defname, NULL, &ppctx.defines)));
-                _put_line_macro(inf, ppctx.out);
+                stack_push(&inf->cst.skips, (void*)((long)!MCTB_get_define(defname, NULL, &ppctx->defines)));
+                _put_line_macro(inf, ppctx->out);
             }
             else if (IS_PP_DERICTIVE(d, PP_IFNDEF_DIRECTIVE)) {
                 char defname[PP_PATH_MAX] = { 0 };
                 if (!PP_parse_define_arg(PP_MV_LINE_DIR(d, PP_DEFINE_DIRECTIVE), defname, sizeof(defname), NULL, 0)) {
-                    _unload_pp_ctx(&ppctx);
+                    _unload_pp_ctx(ppctx);
                     return -1;
                 }
 
-                stack_push(&inf->cst.skips, (void*)((long)MCTB_get_define(defname, NULL, &ppctx.defines)));
-                _put_line_macro(inf, ppctx.out);
+                stack_push(&inf->cst.skips, (void*)((long)MCTB_get_define(defname, NULL, &ppctx->defines)));
+                _put_line_macro(inf, ppctx->out);
             }
             else if (IS_PP_DERICTIVE(d, PP_ENDIF_DIRECTIVE)) {
                 stack_pop(&inf->cst.skips, NULL);
-                _put_line_macro(inf, ppctx.out);
+                _put_line_macro(inf, ppctx->out);
             }
         }
     }
 
-    _lazy_fputs(NULL, ppctx.out);
-    _unload_pp_ctx(&ppctx);
+    _lazy_fputs(NULL, ppctx->out);
+    _unload_pp_ctx(ppctx);
     lseek(ffd, 0, SEEK_SET);
     return ffd;
 }

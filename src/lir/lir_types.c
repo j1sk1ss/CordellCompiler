@@ -142,7 +142,8 @@ int LIR_is_writeop(lir_operation_t op) {
 
 int LIR_is_readop(lir_operation_t op) {
     switch (op) {
-        case LIR_TST: case LIR_CMP: case LIR_FRET:
+        case LIR_TST:  case LIR_CMP:    case LIR_FRET:
+        case LIR_FCLL: case LIR_ECLL:
         case LIR_PUSH: case LIR_phiMOV: case LIR_aMOV:
         case LIR_LDREF:
         case LIR_VRUSE:

@@ -1,4 +1,3 @@
-: ONLY_THIS :
 start() {
     exit;
     exit 1;

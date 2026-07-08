@@ -1,0 +1,77 @@
+#ifndef SMALL_GAME_H
+#define SMALL_GAME_H
+
+#include <stdio_h.cpl>
+#include <stdlib_h.cpl>
+#include <string_h.cpl>
+
+#define LIS_SCENE_COUNT   4
+#define LIS_ACTION_COUNT  5
+#define LIS_START_REWINDS 3
+#define LIS_STORM_LIMIT   9
+#define LIS_WIN_SCORE     14
+
+glob ro i8 PROMPT = '>';
+glob arr storm_seed[LIS_SCENE_COUNT, i32] = { 1, 2, 2, 3 };
+
+container scene {
+    ptr i8 title;
+    ptr i8 clue;
+    i32    focus;
+    i32    empathy;
+    i32    danger;
+
+    @[self]
+    function init(ptr scene self, ptr i8 title, ptr i8 clue, i32 focus, i32 empathy, i32 danger) -> i0;
+}
+
+@[like_c]
+container timeline {
+    i32 focus;
+    i32 empathy;
+    i32 danger;
+    i32 photos;
+    i32 rewinds;
+    i32 scene;
+}
+
+@[align(1)]
+@[union]
+container omen_code {
+    u16 code;
+    arr bytes[2, u8];
+}
+
+container memory_note {
+    ptr memory_note next;
+    ptr i8          text;
+    i32             weight;
+}
+
+container lis_game {
+    arr scenes[LIS_SCENE_COUNT, scene];
+    arr scene_done[LIS_SCENE_COUNT, i8];
+    arr actions[LIS_ACTION_COUNT, ptr i0];
+    timeline now;
+    timeline saved;
+    memory_note photo_note;
+    memory_note friend_note;
+    memory_note storm_note;
+    ptr memory_note journal;
+    ptr i8 mood;
+    i8 running;
+    i8 won;
+
+    @[self] function new(ptr lis_game self) -> i0;
+    @[self] function save(ptr lis_game self) -> i0;
+    @[self] function rewind(ptr lis_game self) -> i0;
+    @[self] function advance(ptr lis_game self, i32 delta) -> i0;
+    @[self] function score(ptr lis_game self) -> i32;
+    @[self] function draw(ptr lis_game self) -> i0;
+    @[self] function journal_dump(ptr lis_game self) -> i0;
+    @[self] function step(ptr lis_game self, i32 input) -> i0;
+    @[self] function check_end(ptr lis_game self) -> i0;
+    @[self] function destroy(ptr lis_game self) -> i0;
+}
+
+#endif

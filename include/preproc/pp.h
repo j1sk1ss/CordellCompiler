@@ -63,6 +63,8 @@ typedef struct {
     FILE*          out;          /* Target file pointer     */
 } pp_ctx_t;
 
+int PP_init_pp_ctx(pp_ctx_t* ctx);
+
 /*
 Create and open temp file near to the source fd file.
 Returns FD of a tmp file or -1.
@@ -153,6 +155,6 @@ typedef struct {
     const char* spath; /* Compiler-provided standard library directory */
 } finder_ctx_t;
 
-int PP_perform(int fd, finder_ctx_t* fctx);
+int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx);
 
 #endif

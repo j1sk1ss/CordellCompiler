@@ -1,5 +1,13 @@
 #include <asm/x86_64_macho_nasm_asmgen.h>
 
+static int _rsp_misaligned = 1;
+#define TRICK_RSP() (_rsp_misaligned = !_rsp_misaligned)
+#define ALIGN_INST(finfo, inst) do {                                       \
+    if ((finfo)->flags.abi && _rsp_misaligned) EMIT_COMMAND("sub rsp, 8"); \
+    inst                                                                   \
+    if ((finfo)->flags.abi && _rsp_misaligned) EMIT_COMMAND("add rsp, 8"); \
+} while (0)
+
 /* Convert one LIR block into x86_64 Mach-O NASM assembly and write it to output.
 Params:
     - `b` - LIR block to emit.
@@ -21,18 +29,21 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_ECLL: {
             func_info_t fi;
             if (FNTB_get_info_id(b->farg->storage.str.sid, &fi, &smt->f) && fi.flags.vargs) EMIT_COMMAND("xor rax, rax");
-            EMIT_COMMAND("call %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG)); 
+            ALIGN_INST(&fi, EMIT_COMMAND("call %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG)););
             break;
         }
         case LIR_STRT:
         case LIR_FDCL: {
+            _rsp_misaligned = 1;
             if (!fi->flags.onlybody) EMIT_COMMAND("%s:", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));
             if (!fi->flags.naked) {
                 EMIT_COMMAND("push rbp");
+                TRICK_RSP();
                 EMIT_COMMAND("mov rbp, rsp");
-                if (b->sarg && b->sarg->storage.cnst.value > 0) {
-                    EMIT_COMMAND("sub rsp, %ld", ALIGN(b->sarg->storage.cnst.value, 8));
-                }
+                if (
+                    b->sarg && 
+                    b->sarg->storage.cnst.value > 0
+                ) EMIT_COMMAND("sub rsp, %ld", ALIGN(b->sarg->storage.cnst.value, 16));
             }
 
             break;
@@ -50,6 +61,7 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
             if (!fi->flags.naked) {
                 EMIT_COMMAND("mov rsp, rbp");
                 EMIT_COMMAND("pop rbp");
+                _rsp_misaligned = 1;
             }
             
             EMIT_COMMAND("ret");
@@ -114,8 +126,10 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_REF_GDREF:  EMIT_COMMAND("lea %s, [%s]", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, LEA_FLAG));    break;
         case LIR_LDREF:      EMIT_COMMAND("mov %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, LDREF_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));    break;
         case LIR_GDREF:      EMIT_COMMAND("mov %s, [%s]", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));     break;
-        case LIR_PUSH:       EMIT_COMMAND("push %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                       break;
-        case LIR_POP:        EMIT_COMMAND("pop %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                        break;
+        case LIR_PUSH:       EMIT_COMMAND("push %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG)); 
+                             TRICK_RSP(); break;
+        case LIR_POP:        EMIT_COMMAND("pop %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG)); 
+                             TRICK_RSP(); break;
         case LIR_iADD:       EMIT_COMMAND("add %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG));       break;
         case LIR_iSUB:       EMIT_COMMAND("sub %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG));       break;
         case LIR_iMUL:       EMIT_COMMAND("imul %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG));      break;

@@ -139,10 +139,11 @@ unsigned long AST_hash_node(ast_node_t* node);
 Hash an ast-node with the crc64 hash function.
 Params:
     - `node` - AST-node.
+    - `no_name` - Ignore token's name. 
     - `stp` - Stop token type.
 
 Return hash sum of the AST-node.
 */
-unsigned long AST_hash_node_stop(ast_node_t* node, token_type_t stp);
+unsigned long AST_hash_node_stop(ast_node_t* node, int no_name, token_type_t stp);
 
 #endif

@@ -1,14 +1,12 @@
 #include <hir/hirgens/hirgens.h>
 
-/*
-Check whether a generated HIR argument has the AST argument shape.
+/* Check whether a generated HIR argument has the AST argument shape.
 Compares pointer depth and scalar conversion class.
 Params:
     - `arg` - AST argument node.
     - `hir_arg` - Generated HIR argument subject.
 
-Returns 0 if shapes match, otherwise -1.
-*/
+Returns 0 if shapes match, otherwise -1 */
 static inline int _fit_arg_shape(ast_node_t* arg, hir_subject_t* hir_arg) {
     if (
         !arg || !arg->t || !hir_arg ||
@@ -21,15 +19,13 @@ static inline int _fit_arg_shape(ast_node_t* arg, hir_subject_t* hir_arg) {
     return 0;
 }
 
-/*
-Score a custom type argument match for overload resolution.
+/* Score a custom type argument match for overload resolution.
 Params:
     - `arg` - AST argument node.
     - `hir_arg` - Generated HIR argument subject.
     - `smt` - Symtable.
 
-Returns 1 for an exact custom type match, -1 for mismatch, or 0 if not applicable.
-*/
+Returns 1 for an exact custom type match, -1 for mismatch, or 0 if not applicable */
 static inline int _fit_custom_type(ast_node_t* arg, hir_subject_t* hir_arg, sym_table_t* smt) {
     if (
         !arg || !arg->t || !hir_arg || !HIR_is_vartype(hir_arg->t) ||
@@ -46,8 +42,7 @@ static inline int _fit_custom_type(ast_node_t* arg, hir_subject_t* hir_arg, sym_
             -1; /* otherwise - punish */
 }
 
-/*
-De-overload for functions in HIR.
+/* De-overload for functions in HIR.
 The idea to determine which function is beign called:
 ```cpl
 function foo(i32 a) -> i0;  : id=0 :
@@ -69,8 +64,7 @@ Params:
     - `cctx` - CFG context.
     - `smt` - Symtable.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds */
 static symbol_id_t _resolve_function_overload(
     hir_subject_t* callee, symbol_id_t s_id, hir_subject_t* args, sym_table_t* smt, int ret, token_t* out
 ) {
@@ -93,10 +87,8 @@ static symbol_id_t _resolve_function_overload(
         FNTB_collect_info(fi.name, s_id, &funcs, &smt->f) && 
         list_size(&funcs) > 1
     ) {
-        int most_fit = -999;
         func_info_t* resolved = NULL;
-        int arg_count = list_size(&args->storage.list.h);
-        
+        int most_fit = -999, arg_count = list_size(&args->storage.list.h);
         foreach (func_info_t* func, &funcs) {
             int fargs = 0;
             fn_iterate_args (func) {
