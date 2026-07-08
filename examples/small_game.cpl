@@ -1,4 +1,4 @@
-:/ TODO: BUG, -O3 produces segfault at the end (after the 'p' option segfault) /:
+:/ TODO: BUG, -O3 produces a wrong exit score (7 instead of 15, reproduce: p -> p -> ... till the end) /:
 #include "small_game_h.cpl"
 
 function act_photo(ptr lis_game self) -> i0;

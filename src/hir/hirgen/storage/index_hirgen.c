@@ -80,8 +80,13 @@ static hir_subject_t* _get_final_head(
         HIR_TMPVARU64, 
         VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(offt->t, HIR_I8CONSTVAL)), NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v)
     );
+    real_offset->ptr = offt->ptr;
 
-    HIR_BLOCK3(ctx, HIR_iMUL, real_offset, offt, HIR_SUBJ_CONST(_get_pointed_element_size(node->sinfo.t_id, base, smt)));
+    HIR_BLOCK3(
+        ctx, HIR_iMUL, real_offset, 
+        HIR_generate_implconv(ctx, real_offset->ptr, real_offset->t, offt, smt), 
+        HIR_SUBJ_CONST(_get_pointed_element_size(node->sinfo.t_id, base, smt))
+    );
 
     /* No we move the address (base) by the offser (addr):
         - final_head = head + real_offset */

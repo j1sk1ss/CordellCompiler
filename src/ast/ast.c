@@ -131,10 +131,12 @@ Params:
 Returns a hash based on the provided node. */
 static unsigned long _hash_ast_node(ast_node_t* n, int s, int no_name, token_type_t stp) {
     if (!n || !n->t || n->t->t_type == stp) return 0;
-    unsigned long hash = 0;
+    unsigned long hash = 0xF1F1F1F1;
     if (n->t) hash ^= TKN_hash_token(n->t, no_name);
-    if (s)    hash ^= _hash_ast_node(n->siblings.n, 1, no_name, stp);
-    hash ^= _hash_ast_node(n->c, 1, no_name, stp);
+    hash *= 0x123321;
+    hash += 99929929;
+    if (s) hash ^= _hash_ast_node(n->siblings.n, 1, no_name, stp) + 0xDEAD;
+    hash ^= _hash_ast_node(n->c, 1, no_name, stp) + 0xDEAD;
     return hash;
 }
 

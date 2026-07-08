@@ -2,10 +2,10 @@
 
 static int _rsp_misaligned = 1;
 #define TRICK_RSP() (_rsp_misaligned = !_rsp_misaligned)
-#define ALIGN_INST(inst) do {                         \
-    if (_rsp_misaligned) EMIT_COMMAND("sub rsp, 8");  \
-    inst                                              \
-    if (_rsp_misaligned) EMIT_COMMAND("add rsp, 8");  \
+#define ALIGN_INST(finfo, inst) do {                                       \
+    if ((finfo)->flags.abi && _rsp_misaligned) EMIT_COMMAND("sub rsp, 8"); \
+    inst                                                                   \
+    if ((finfo)->flags.abi && _rsp_misaligned) EMIT_COMMAND("add rsp, 8"); \
 } while (0)
 
 /* Convert one LIR block into x86_64 GNU NASM assembly and write it to output.
@@ -29,7 +29,7 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_ECLL: {
             func_info_t fi;
             if (FNTB_get_info_id(b->farg->storage.str.sid, &fi, &smt->f) && fi.flags.vargs) EMIT_COMMAND("xor rax, rax");
-            ALIGN_INST(EMIT_COMMAND("call %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG)););
+            ALIGN_INST(&fi, EMIT_COMMAND("call %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG)););
             break;
         }
         case LIR_STRT:
