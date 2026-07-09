@@ -1,4 +1,4 @@
-:/ TODO: BUG, -O3 produces a wrong exit score (7 instead of 15, reproduce: p -> p -> ... till the end) /:
+:/ TODO: BUG, -O3 produces a wrong exit score (garbadge / segfault instead of 15, reproduce: p -> p -> ... till the end) /:
 #include "small_game_h.cpl"
 
 function act_photo(ptr lis_game self) -> i0;
@@ -175,23 +175,23 @@ function lis_game::new(ptr lis_game self) -> i0 {
     self.scenes[2].init(ref "Missing posters in the dorm corridor", ref "The missing poster is a clue to the missing friend.", 1 as i32, 1 as i32, storm_seed[2]);
     self.scenes[3].init(ref "The lighthouse before the storm", ref "The final photo only works if trust survives.", 2 as i32, 1 as i32, storm_seed[3]);
 
-    self.scene_done[0] = 0;
-    self.scene_done[1] = 0;
-    self.scene_done[2] = 0;
-    self.scene_done[3] = 0;
+    self.scene_done[0]      = 0;
+    self.scene_done[1]      = 0;
+    self.scene_done[2]      = 0;
+    self.scene_done[3]      = 0;
 
-    self.actions[0] = act_photo;
-    self.actions[1] = act_talk;
-    self.actions[2] = act_search;
-    self.actions[3] = act_wait;
-    self.actions[4] = act_rewind;
+    self.actions[0]         = act_photo;
+    self.actions[1]         = act_talk;
+    self.actions[2]         = act_search;
+    self.actions[3]         = act_wait;
+    self.actions[4]         = act_rewind;
 
-    self.now.focus   = 1;
-    self.now.empathy = 1;
-    self.now.danger  = 0;
-    self.now.photos  = 0;
-    self.now.rewinds = LIS_START_REWINDS;
-    self.now.scene   = 0;
+    self.now.focus          = 1;
+    self.now.empathy        = 1;
+    self.now.danger         = 0;
+    self.now.photos         = 0;
+    self.now.rewinds        = LIS_START_REWINDS;
+    self.now.scene          = 0;
     self.save();
 
     self.photo_note.text    = strdup(ref "Photo note: every frame can become evidence.");
@@ -292,11 +292,9 @@ function lis_game::step(ptr lis_game self, i32 input) -> i0 {
         case 'j'; { self.journal_dump(); }
         case 'q'; {
             self.running = 0;
-            self.won = 0;
+            self.won     = 0;
         }
-        default {
-            draw_line(ref "Unknown command.");
-        }
+        default { draw_line(ref "Unknown command."); }
     }
 }
 
@@ -335,19 +333,19 @@ function act_photo(ptr lis_game self) -> i0 {
     self.now.photos += 1;
     self.mood = ref "focused";
     resolve_scene(self, 2 as i32, 0 as i32, 1 as i32);
-    draw_line(ref "Mira", ref "One photo. One tiny proof that time blinked.");
+    draw_line(ref "Max", ref "One photo. One tiny proof that time blinked.");
 }
 
 function act_talk(ptr lis_game self) -> i0 {
     self.mood = ref "kind";
     resolve_scene(self, 0 as i32, 3 as i32, 0 as i32);
-    draw_line(ref "Lena", ref "Do not make this about destiny. Just stay with me.");
+    draw_line(ref "Chloe", ref "Do not make this about destiny. Just stay with me.");
 }
 
 function act_search(ptr lis_game self) -> i0 {
     self.mood = ref "curious";
     resolve_scene(self, 1 as i32, 1 as i32, 0 as i32);
-    draw_line(ref "Mira", ref "The clue was not hidden. I was looking from the wrong minute.");
+    draw_line(ref "Max", ref "The clue was not hidden. I was looking from the wrong minute.");
 }
 
 function act_wait(ptr lis_game self) -> i0 {
@@ -359,15 +357,14 @@ function act_wait(ptr lis_game self) -> i0 {
 :/ TODO: Implement send a flag to the builder /:
 function act_rewind(ptr lis_game self) -> i0 {
 #ifdef LIS_DEBUG_BREAKPOINTS
-    printf(ref "_LIS_DEBUG_BREAKPOINTS_");
+    printf(ref "_LIS_DEBUG_BREAKPOINTS_\n");
 #endif
     self.rewind();
 }
 
 function read_command() -> i32 {
-    i32 ch = getchar();
+    i32 ch   = getchar();
     i32 rest = ch;
-
     while rest != '\n' && rest != EOF; {
         rest = getchar();
     }
