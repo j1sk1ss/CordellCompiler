@@ -1,0 +1,8 @@
+#include "io_h.cpl"
+
+start() {
+    ptr string msg = string::new(ref "Hello world!");
+    std::print(msg);
+    msg.destroy();
+    exit 0;
+}

@@ -6,9 +6,15 @@
 #include "types_h.cpl"
 
 #define EOF          -1
-#define SEEK_SET     0
-#define SEEK_CUR     1
-#define SEEK_END     2
+#ifndef SEEK_SET
+    #define SEEK_SET 0
+#endif
+#ifndef SEEK_CUR
+    #define SEEK_CUR 1
+#endif
+#ifndef SEEK_END
+    #define SEEK_END 2
+#endif
 #define BUFSIZ       8192
 #define FILENAME_MAX 4096
 #define FOPEN_MAX    16

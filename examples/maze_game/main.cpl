@@ -1,3 +1,4 @@
+:/ cplc main.cpl /:
 #include "game_h.cpl"
 
 @[entry("main")]

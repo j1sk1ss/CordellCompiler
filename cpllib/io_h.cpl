@@ -1,0 +1,52 @@
+#include "stdio_h.cpl"
+#include "stdlib_h.cpl"
+#include "fcntl_h.cpl"
+#include "unistd_h.cpl"
+#include "string_h.cpl"
+
+container std {
+    @[inline(always)]
+    function print(ptr string s) -> i32 {
+        return printf(ref "%s\n", s.body);
+    }
+
+    @[inline(always)]
+    function putc(i8 c) -> i32 {
+        return putchar(c);
+    }
+
+    @[inline(always)]
+    function gets(ptr i8 buffer) -> i8 {
+        return gets(buffer);
+    }
+
+    @[inline(always)]
+    function open(ptr i8 path, i32 flags, i32 mode) -> i32 {
+        return open(path, flags, mode);
+    }
+
+    @[inline(always)]
+    function fwrite(i32 fd, ptr u8 buffer, i32 size) -> i32 {
+        return fwrite(buffer, SEEK_CUR, size, fd);
+    }
+
+    @[inline(always)]
+    function fread(i32 fd, ptr u8 buffer, i32 size) -> i32 {
+        return fread(buffer, SEEK_CUR, size, fd);
+    }
+
+    @[inline(always)]
+    function close(i32 fd) -> i32 {
+        return close(fd);
+    }
+
+    @[inline(always)]
+    function malloc(u64 size) -> ptr i8 {
+        return malloc(size);
+    }
+
+    @[inline(always)]
+    function free(ptr i8 p) -> i0 {
+        free(p);
+    }
+}
