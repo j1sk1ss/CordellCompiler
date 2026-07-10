@@ -153,16 +153,35 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         __attribute__ ((fallthrough));
                     }
                     case LIR_SYSC: {
+                        int restore_align = 0;
                         if (lh->op == LIR_SYSC) { /* https://stackoverflow.com/questions/50571275/why-does-a-syscall-clobber-rcx-and-r11 */
                             _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(RCX, 8), NULL, NULL), lh);
                             queue_push(&dirty_regs, (void*)((long)RCX));
                             _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(R11, 8), NULL, NULL), lh);
                             queue_push(&dirty_regs, (void*)((long)R11));
                         }
+                        else if ((queue_size(&dirty_regs) % 2)) { // TODO: track the entry's align / nalign
+                            func_info_t callee;
+                            if (
+                                FNTB_get_info_id(lh->farg->storage.str.sid, &callee, &smt->f) && 
+                                callee.flags.abi
+                            ) restore_align = 1;
+                        }
 
                         long dirty;
                         while (queue_pop(&dirty_regs, (void**)&dirty)) {
                             _insert_instruction_after(bb, LIR_create_block(LIR_POP, LIR_SUBJ_REG(dirty, 8), NULL, NULL), lh);
+                        }
+
+                        if (restore_align) {
+                            _insert_instruction_before(
+                                bb, 
+                                LIR_create_block(LIR_iSUB, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(8)), lh
+                            );
+                            _insert_instruction_after(
+                                bb, 
+                                LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(8)), lh
+                            );
                         }
 
                         break;

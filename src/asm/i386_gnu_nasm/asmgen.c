@@ -12,8 +12,10 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
     if (b->unused) return 1;
     switch (b->op) {
         case LIR_SETPOS: {
-            if (!CONF_is_debug_compilation()) break;
-            if (!b->farg->storage.pos.file) break;
+            if (
+                !CONF_is_debug_compilation() ||
+                !b->farg->storage.pos.file
+            ) break;
             EMIT_COMMAND("%%line %li \"%s\"", b->farg->storage.pos.line, b->farg->storage.pos.file->body);
             break;
         }

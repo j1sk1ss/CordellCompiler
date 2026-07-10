@@ -229,7 +229,7 @@ int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx, call_graph_t* calls, sym_tabl
                         set_free(&visited_funcs);
                         queue_free(&work_list);
                         
-                        lir_block_t* pre = _find_pre_argload(lh->prev, bb->lmap.exit);
+                        lir_block_t* pre  = _find_pre_argload(lh->prev, bb->lmap.exit);
                         lir_block_t* post = _find_post_argunload(lh->next, bb->lmap.exit, _count_post_argload_pushes(pre, lh));
                         
                         long regs[32];

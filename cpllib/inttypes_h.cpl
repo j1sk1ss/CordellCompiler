@@ -9,22 +9,22 @@
 #define uintmax_t u64
 
 #ifdef CCPL_MACHO64
-@[vname("_imaxabs")] extern function imaxabs(i64 value) -> i64;
+@[vname("_imaxabs")] @[abi] extern function imaxabs(i64 value) -> i64;
 #endif
 #ifndef CCPL_MACHO64
-extern function imaxabs(i64 value) -> i64;
+@[abi] extern function imaxabs(i64 value) -> i64;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strtoimax")] extern function strtoimax(ptr i8 s, ptr ptr i8 endptr, i32 base) -> i64;
+@[vname("_strtoimax")] @[abi] extern function strtoimax(ptr i8 s, ptr ptr i8 endptr, i32 base) -> i64;
 #endif
 #ifndef CCPL_MACHO64
-extern function strtoimax(ptr i8 s, ptr ptr i8 endptr, i32 base) -> i64;
+@[abi] extern function strtoimax(ptr i8 s, ptr ptr i8 endptr, i32 base) -> i64;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strtoumax")] extern function strtoumax(ptr i8 s, ptr ptr i8 endptr, i32 base) -> u64;
+@[vname("_strtoumax")] @[abi] extern function strtoumax(ptr i8 s, ptr ptr i8 endptr, i32 base) -> u64;
 #endif
 #ifndef CCPL_MACHO64
-extern function strtoumax(ptr i8 s, ptr ptr i8 endptr, i32 base) -> u64;
+@[abi] extern function strtoumax(ptr i8 s, ptr ptr i8 endptr, i32 base) -> u64;
 #endif
 
 #endif

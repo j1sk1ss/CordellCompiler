@@ -79,7 +79,7 @@
 #include <asm/x86_64_macho_nasm_asmgen.h>
 
 #include <gem_data.h>
-#define CCPL_VERSION                 "3.6.6.1:0607.26" // major.minor<.sub> (old version style):ddmm.yy (new version style)
+#define CCPL_VERSION                 "3.6.7:1107.26" // major.minor<.sub> (old version style):ddmm.yy (new version style)
 
 #ifndef CPL_DEFAULT_INCLUDE_DIR
     #define CPL_DEFAULT_INCLUDE_DIR "/usr/local/share/cpl/include"

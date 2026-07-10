@@ -25,108 +25,108 @@
 #endif
 
 #ifdef CCPL_MACHO64
-@[vname("_read")] extern function read(i32 fd, ptr i0 buf, u64 count) -> i64;
+@[vname("_read")] @[abi] extern function read(i32 fd, ptr i0 buf, u64 count) -> i64;
 #endif
 #ifndef CCPL_MACHO64
-extern function read(i32 fd, ptr i0 buf, u64 count) -> i64;
+@[abi] extern function read(i32 fd, ptr i0 buf, u64 count) -> i64;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_write")] extern function write(i32 fd, ptr i0 buf, u64 count) -> i64;
+@[vname("_write")] @[abi] extern function write(i32 fd, ptr i0 buf, u64 count) -> i64;
 #endif
 #ifndef CCPL_MACHO64
-extern function write(i32 fd, ptr i0 buf, u64 count) -> i64;
+@[abi] extern function write(i32 fd, ptr i0 buf, u64 count) -> i64;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_close")] extern function close(i32 fd) -> i32;
+@[vname("_close")] @[abi] extern function close(i32 fd) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function close(i32 fd) -> i32;
+@[abi] extern function close(i32 fd) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_lseek")] extern function lseek(i32 fd, i64 offset, i32 whence) -> i64;
+@[vname("_lseek")] @[abi] extern function lseek(i32 fd, i64 offset, i32 whence) -> i64;
 #endif
 #ifndef CCPL_MACHO64
-extern function lseek(i32 fd, i64 offset, i32 whence) -> i64;
+@[abi] extern function lseek(i32 fd, i64 offset, i32 whence) -> i64;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_unlink")] extern function unlink(ptr i8 path) -> i32;
+@[vname("_unlink")] @[abi] extern function unlink(ptr i8 path) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function unlink(ptr i8 path) -> i32;
+@[abi] extern function unlink(ptr i8 path) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_rmdir")] extern function rmdir(ptr i8 path) -> i32;
+@[vname("_rmdir")] @[abi] extern function rmdir(ptr i8 path) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function rmdir(ptr i8 path) -> i32;
+@[abi] extern function rmdir(ptr i8 path) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_chdir")] extern function chdir(ptr i8 path) -> i32;
+@[vname("_chdir")] @[abi] extern function chdir(ptr i8 path) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function chdir(ptr i8 path) -> i32;
+@[abi] extern function chdir(ptr i8 path) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_getcwd")] extern function getcwd(ptr i8 buf, u64 size) -> ptr i8;
+@[vname("_getcwd")] @[abi] extern function getcwd(ptr i8 buf, u64 size) -> ptr i8;
 #endif
 #ifndef CCPL_MACHO64
-extern function getcwd(ptr i8 buf, u64 size) -> ptr i8;
+@[abi] extern function getcwd(ptr i8 buf, u64 size) -> ptr i8;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_access")] extern function access(ptr i8 path, i32 mode) -> i32;
+@[vname("_access")] @[abi] extern function access(ptr i8 path, i32 mode) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function access(ptr i8 path, i32 mode) -> i32;
+@[abi] extern function access(ptr i8 path, i32 mode) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_dup")] extern function dup(i32 old_fd) -> i32;
+@[vname("_dup")] @[abi] extern function dup(i32 old_fd) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function dup(i32 old_fd) -> i32;
+@[abi] extern function dup(i32 old_fd) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_dup2")] extern function dup2(i32 old_fd, i32 new_fd) -> i32;
+@[vname("_dup2")] @[abi] extern function dup2(i32 old_fd, i32 new_fd) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function dup2(i32 old_fd, i32 new_fd) -> i32;
+@[abi] extern function dup2(i32 old_fd, i32 new_fd) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_pipe")] extern function pipe(ptr i32 pipefd) -> i32;
+@[vname("_pipe")] @[abi] extern function pipe(ptr i32 pipefd) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function pipe(ptr i32 pipefd) -> i32;
+@[abi] extern function pipe(ptr i32 pipefd) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 #ifdef CCPL_MACHO64
-@[vname("_pipe2")] extern function pipe2(ptr i32 pipefd, i32 flags) -> i32;
+@[vname("_pipe2")] @[abi] extern function pipe2(ptr i32 pipefd, i32 flags) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function pipe2(ptr i32 pipefd, i32 flags) -> i32;
+@[abi] extern function pipe2(ptr i32 pipefd, i32 flags) -> i32;
 #endif
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_fork")] extern function fork() -> i32;
+@[vname("_fork")] @[abi] extern function fork() -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function fork() -> i32;
+@[abi] extern function fork() -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("__exit")] extern function _exit(i32 status) -> i0;
+@[vname("__exit")] @[abi] extern function _exit(i32 status) -> i0;
 #endif
 #ifndef CCPL_MACHO64
-extern function _exit(i32 status) -> i0;
+@[abi] extern function _exit(i32 status) -> i0;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_execve")] extern function execve(ptr i8 path, ptr ptr i8 argv, ptr ptr i8 envp) -> i32;
+@[vname("_execve")] @[abi] extern function execve(ptr i8 path, ptr ptr i8 argv, ptr ptr i8 envp) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function execve(ptr i8 path, ptr ptr i8 argv, ptr ptr i8 envp) -> i32;
+@[abi] extern function execve(ptr i8 path, ptr ptr i8 argv, ptr ptr i8 envp) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_execv")] extern function execv(ptr i8 path, ptr ptr i8 argv) -> i32;
+@[vname("_execv")] @[abi] extern function execv(ptr i8 path, ptr ptr i8 argv) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function execv(ptr i8 path, ptr ptr i8 argv) -> i32;
+@[abi] extern function execv(ptr i8 path, ptr ptr i8 argv) -> i32;
 #endif
 #ifdef CCPL_MACHO64
 @[vname("_execl")] @[abi] extern function execl(ptr i8 path, ptr i8 arg0, ...) -> i32;
@@ -135,70 +135,70 @@ extern function execv(ptr i8 path, ptr ptr i8 argv) -> i32;
 @[abi] extern function execl(ptr i8 path, ptr i8 arg0, ...) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_getpid")] extern function getpid() -> i32;
+@[vname("_getpid")] @[abi] extern function getpid() -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function getpid() -> i32;
+@[abi] extern function getpid() -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_getppid")] extern function getppid() -> i32;
+@[vname("_getppid")] @[abi] extern function getppid() -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function getppid() -> i32;
+@[abi] extern function getppid() -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_getuid")] extern function getuid() -> u32;
+@[vname("_getuid")] @[abi] extern function getuid() -> u32;
 #endif
 #ifndef CCPL_MACHO64
-extern function getuid() -> u32;
+@[abi] extern function getuid() -> u32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_geteuid")] extern function geteuid() -> u32;
+@[vname("_geteuid")] @[abi] extern function geteuid() -> u32;
 #endif
 #ifndef CCPL_MACHO64
-extern function geteuid() -> u32;
+@[abi] extern function geteuid() -> u32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_getgid")] extern function getgid() -> u32;
+@[vname("_getgid")] @[abi] extern function getgid() -> u32;
 #endif
 #ifndef CCPL_MACHO64
-extern function getgid() -> u32;
+@[abi] extern function getgid() -> u32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_getegid")] extern function getegid() -> u32;
+@[vname("_getegid")] @[abi] extern function getegid() -> u32;
 #endif
 #ifndef CCPL_MACHO64
-extern function getegid() -> u32;
+@[abi] extern function getegid() -> u32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_isatty")] extern function isatty(i32 fd) -> i32;
+@[vname("_isatty")] @[abi] extern function isatty(i32 fd) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function isatty(i32 fd) -> i32;
+@[abi] extern function isatty(i32 fd) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_fsync")] extern function fsync(i32 fd) -> i32;
+@[vname("_fsync")] @[abi] extern function fsync(i32 fd) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function fsync(i32 fd) -> i32;
+@[abi] extern function fsync(i32 fd) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_ftruncate")] extern function ftruncate(i32 fd, i64 length) -> i32;
+@[vname("_ftruncate")] @[abi] extern function ftruncate(i32 fd, i64 length) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function ftruncate(i32 fd, i64 length) -> i32;
+@[abi] extern function ftruncate(i32 fd, i64 length) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_sleep")] extern function sleep(u32 seconds) -> u32;
+@[vname("_sleep")] @[abi] extern function sleep(u32 seconds) -> u32;
 #endif
 #ifndef CCPL_MACHO64
-extern function sleep(u32 seconds) -> u32;
+@[abi] extern function sleep(u32 seconds) -> u32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_usleep")] extern function usleep(u32 usec) -> i32;
+@[vname("_usleep")] @[abi] extern function usleep(u32 usec) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function usleep(u32 usec) -> i32;
+@[abi] extern function usleep(u32 usec) -> i32;
 #endif
 
 #endif

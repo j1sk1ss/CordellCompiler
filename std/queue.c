@@ -10,8 +10,11 @@ int queue_init(queue_t* q) {
     q->meta.head  = 0;
     q->meta.tail  = 0;
     q->meta.count = 0;
-
     return 1;
+}
+
+int queue_size(queue_t* q) {
+    return q->meta.count;
 }
 
 static int _queue_resize(queue_t* q) {

@@ -131,7 +131,11 @@ Params:
 Returns a hash based on the provided node. */
 static unsigned long _hash_ast_node(ast_node_t* n, int s, int no_name, token_type_t stp) {
     if (!n || !n->t || n->t->t_type == stp) return 0;
-    unsigned long hash = 0xF1F1F1F1;
+    unsigned long hash = 0xF123;
+    if (n->t && n->t->t_type == CUSTOM_VARIABLE_TOKEN) {
+        hash *= n->sinfo.t_id;
+    }
+
     if (n->t) hash ^= TKN_hash_token(n->t, no_name);
     hash *= 0x123321;
     hash += 99929929;

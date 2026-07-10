@@ -4,88 +4,88 @@
 #include "platform_h.cpl"
 
 #ifdef CCPL_MACHO64
-@[vname("_isalnum")] extern function isalnum(i32 c) -> i32;
+@[vname("_isalnum")] @[abi] extern function isalnum(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function isalnum(i32 c) -> i32;
+@[abi] extern function isalnum(i32 c) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_isalpha")] extern function isalpha(i32 c) -> i32;
+@[vname("_isalpha")] @[abi] extern function isalpha(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function isalpha(i32 c) -> i32;
+@[abi] extern function isalpha(i32 c) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_isblank")] extern function isblank(i32 c) -> i32;
+@[vname("_isblank")] @[abi] extern function isblank(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function isblank(i32 c) -> i32;
+@[abi] extern function isblank(i32 c) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_iscntrl")] extern function iscntrl(i32 c) -> i32;
+@[vname("_iscntrl")] @[abi] extern function iscntrl(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function iscntrl(i32 c) -> i32;
+@[abi] extern function iscntrl(i32 c) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_isdigit")] extern function isdigit(i32 c) -> i32;
+@[vname("_isdigit")] @[abi] extern function isdigit(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function isdigit(i32 c) -> i32;
+@[abi] extern function isdigit(i32 c) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_isgraph")] extern function isgraph(i32 c) -> i32;
+@[vname("_isgraph")] @[abi] extern function isgraph(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function isgraph(i32 c) -> i32;
+@[abi] extern function isgraph(i32 c) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_islower")] extern function islower(i32 c) -> i32;
+@[vname("_islower")] @[abi] extern function islower(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function islower(i32 c) -> i32;
+@[abi] extern function islower(i32 c) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_isprint")] extern function isprint(i32 c) -> i32;
+@[vname("_isprint")] @[abi] extern function isprint(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function isprint(i32 c) -> i32;
+@[abi] extern function isprint(i32 c) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_ispunct")] extern function ispunct(i32 c) -> i32;
+@[vname("_ispunct")] @[abi] extern function ispunct(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function ispunct(i32 c) -> i32;
+@[abi] extern function ispunct(i32 c) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_isspace")] extern function isspace(i32 c) -> i32;
+@[vname("_isspace")] @[abi] extern function isspace(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function isspace(i32 c) -> i32;
+@[abi] extern function isspace(i32 c) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_isupper")] extern function isupper(i32 c) -> i32;
+@[vname("_isupper")] @[abi] extern function isupper(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function isupper(i32 c) -> i32;
+@[abi] extern function isupper(i32 c) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_isxdigit")] extern function isxdigit(i32 c) -> i32;
+@[vname("_isxdigit")] @[abi] extern function isxdigit(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function isxdigit(i32 c) -> i32;
+@[abi] extern function isxdigit(i32 c) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_tolower")] extern function tolower(i32 c) -> i32;
+@[vname("_tolower")] @[abi] extern function tolower(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function tolower(i32 c) -> i32;
+@[abi] extern function tolower(i32 c) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_toupper")] extern function toupper(i32 c) -> i32;
+@[vname("_toupper")] @[abi] extern function toupper(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function toupper(i32 c) -> i32;
+@[abi] extern function toupper(i32 c) -> i32;
 #endif
 
 #endif

@@ -11,195 +11,195 @@
 #define RAND_MAX     2147483647
 
 #ifdef CCPL_MACHO64
-@[vname("_malloc")] extern function malloc(u64 size) -> ptr i0;
+@[vname("_malloc")] @[abi] extern function malloc(u64 size) -> ptr i0;
 #endif
 #ifndef CCPL_MACHO64
-extern function malloc(u64 size) -> ptr i0;
+@[abi] extern function malloc(u64 size) -> ptr i0;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_calloc")] extern function calloc(u64 count, u64 size) -> ptr i0;
+@[vname("_calloc")] @[abi] extern function calloc(u64 count, u64 size) -> ptr i0;
 #endif
 #ifndef CCPL_MACHO64
-extern function calloc(u64 count, u64 size) -> ptr i0;
+@[abi] extern function calloc(u64 count, u64 size) -> ptr i0;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_realloc")] extern function realloc(ptr i0 pointer, u64 size) -> ptr i0;
+@[vname("_realloc")] @[abi] extern function realloc(ptr i0 pointer, u64 size) -> ptr i0;
 #endif
 #ifndef CCPL_MACHO64
-extern function realloc(ptr i0 pointer, u64 size) -> ptr i0;
+@[abi] extern function realloc(ptr i0 pointer, u64 size) -> ptr i0;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_aligned_alloc")] extern function aligned_alloc(u64 alignment, u64 size) -> ptr i0;
+@[vname("_aligned_alloc")] @[abi] extern function aligned_alloc(u64 alignment, u64 size) -> ptr i0;
 #endif
 #ifndef CCPL_MACHO64
-extern function aligned_alloc(u64 alignment, u64 size) -> ptr i0;
+@[abi] extern function aligned_alloc(u64 alignment, u64 size) -> ptr i0;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_posix_memalign")] extern function posix_memalign(ptr ptr i0 result, u64 alignment, u64 size) -> i32;
+@[vname("_posix_memalign")] @[abi] extern function posix_memalign(ptr ptr i0 result, u64 alignment, u64 size) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function posix_memalign(ptr ptr i0 result, u64 alignment, u64 size) -> i32;
+@[abi] extern function posix_memalign(ptr ptr i0 result, u64 alignment, u64 size) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_free")] extern function free(ptr i0 pointer) -> i0;
+@[vname("_free")] @[abi] extern function free(ptr i0 pointer) -> i0;
 #endif
 #ifndef CCPL_MACHO64
-extern function free(ptr i0 pointer) -> i0;
+@[abi] extern function free(ptr i0 pointer) -> i0;
 #endif
 
 #ifdef CCPL_MACHO64
-@[vname("_abort")] extern function abort() -> i0;
+@[vname("_abort")] @[abi] extern function abort() -> i0;
 #endif
 #ifndef CCPL_MACHO64
-extern function abort() -> i0;
+@[abi] extern function abort() -> i0;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("__Exit")] extern function _Exit(i32 status) -> i0;
+@[vname("__Exit")] @[abi] extern function _Exit(i32 status) -> i0;
 #endif
 #ifndef CCPL_MACHO64
-extern function _Exit(i32 status) -> i0;
+@[abi] extern function _Exit(i32 status) -> i0;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_atexit")] extern function atexit(ptr i0 func) -> i32;
+@[vname("_atexit")] @[abi] extern function atexit(ptr i0 func) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function atexit(ptr i0 func) -> i32;
+@[abi] extern function atexit(ptr i0 func) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_system")] extern function system(ptr i8 command) -> i32;
+@[vname("_system")] @[abi] extern function system(ptr i8 command) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function system(ptr i8 command) -> i32;
+@[abi] extern function system(ptr i8 command) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_getenv")] extern function getenv(ptr i8 name) -> ptr i8;
+@[vname("_getenv")] @[abi] extern function getenv(ptr i8 name) -> ptr i8;
 #endif
 #ifndef CCPL_MACHO64
-extern function getenv(ptr i8 name) -> ptr i8;
+@[abi] extern function getenv(ptr i8 name) -> ptr i8;
 #endif
 
 #ifdef CCPL_MACHO64
-@[vname("_atoi")] extern function atoi(ptr i8 s) -> i32;
+@[vname("_atoi")] @[abi] extern function atoi(ptr i8 s) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function atoi(ptr i8 s) -> i32;
+@[abi] extern function atoi(ptr i8 s) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_atol")] extern function atol(ptr i8 s) -> i64;
+@[vname("_atol")] @[abi] extern function atol(ptr i8 s) -> i64;
 #endif
 #ifndef CCPL_MACHO64
-extern function atol(ptr i8 s) -> i64;
+@[abi] extern function atol(ptr i8 s) -> i64;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_atoll")] extern function atoll(ptr i8 s) -> i64;
+@[vname("_atoll")] @[abi] extern function atoll(ptr i8 s) -> i64;
 #endif
 #ifndef CCPL_MACHO64
-extern function atoll(ptr i8 s) -> i64;
+@[abi] extern function atoll(ptr i8 s) -> i64;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strtol")] extern function strtol(ptr i8 s, ptr ptr i8 endptr, i32 base) -> i64;
+@[vname("_strtol")] @[abi] extern function strtol(ptr i8 s, ptr ptr i8 endptr, i32 base) -> i64;
 #endif
 #ifndef CCPL_MACHO64
-extern function strtol(ptr i8 s, ptr ptr i8 endptr, i32 base) -> i64;
+@[abi] extern function strtol(ptr i8 s, ptr ptr i8 endptr, i32 base) -> i64;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strtoll")] extern function strtoll(ptr i8 s, ptr ptr i8 endptr, i32 base) -> i64;
+@[vname("_strtoll")] @[abi] extern function strtoll(ptr i8 s, ptr ptr i8 endptr, i32 base) -> i64;
 #endif
 #ifndef CCPL_MACHO64
-extern function strtoll(ptr i8 s, ptr ptr i8 endptr, i32 base) -> i64;
+@[abi] extern function strtoll(ptr i8 s, ptr ptr i8 endptr, i32 base) -> i64;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strtoul")] extern function strtoul(ptr i8 s, ptr ptr i8 endptr, i32 base) -> u64;
+@[vname("_strtoul")] @[abi] extern function strtoul(ptr i8 s, ptr ptr i8 endptr, i32 base) -> u64;
 #endif
 #ifndef CCPL_MACHO64
-extern function strtoul(ptr i8 s, ptr ptr i8 endptr, i32 base) -> u64;
+@[abi] extern function strtoul(ptr i8 s, ptr ptr i8 endptr, i32 base) -> u64;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strtoull")] extern function strtoull(ptr i8 s, ptr ptr i8 endptr, i32 base) -> u64;
+@[vname("_strtoull")] @[abi] extern function strtoull(ptr i8 s, ptr ptr i8 endptr, i32 base) -> u64;
 #endif
 #ifndef CCPL_MACHO64
-extern function strtoull(ptr i8 s, ptr ptr i8 endptr, i32 base) -> u64;
+@[abi] extern function strtoull(ptr i8 s, ptr ptr i8 endptr, i32 base) -> u64;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strtod")] extern function strtod(ptr i8 s, ptr ptr i8 endptr) -> f64;
+@[vname("_strtod")] @[abi] extern function strtod(ptr i8 s, ptr ptr i8 endptr) -> f64;
 #endif
 #ifndef CCPL_MACHO64
-extern function strtod(ptr i8 s, ptr ptr i8 endptr) -> f64;
+@[abi] extern function strtod(ptr i8 s, ptr ptr i8 endptr) -> f64;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strtof")] extern function strtof(ptr i8 s, ptr ptr i8 endptr) -> f32;
+@[vname("_strtof")] @[abi] extern function strtof(ptr i8 s, ptr ptr i8 endptr) -> f32;
 #endif
 #ifndef CCPL_MACHO64
-extern function strtof(ptr i8 s, ptr ptr i8 endptr) -> f32;
+@[abi] extern function strtof(ptr i8 s, ptr ptr i8 endptr) -> f32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strtold")] extern function strtold(ptr i8 s, ptr ptr i8 endptr) -> f64;
+@[vname("_strtold")] @[abi] extern function strtold(ptr i8 s, ptr ptr i8 endptr) -> f64;
 #endif
 #ifndef CCPL_MACHO64
-extern function strtold(ptr i8 s, ptr ptr i8 endptr) -> f64;
+@[abi] extern function strtold(ptr i8 s, ptr ptr i8 endptr) -> f64;
 #endif
 
 #ifdef CCPL_MACHO64
-@[vname("_rand")] extern function rand() -> i32;
+@[vname("_rand")] @[abi] extern function rand() -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function rand() -> i32;
+@[abi] extern function rand() -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_srand")] extern function srand(u32 seed) -> i0;
+@[vname("_srand")] @[abi] extern function srand(u32 seed) -> i0;
 #endif
 #ifndef CCPL_MACHO64
-extern function srand(u32 seed) -> i0;
+@[abi] extern function srand(u32 seed) -> i0;
 #endif
 
 #ifdef CCPL_MACHO64
-@[vname("_abs")] extern function abs(i32 x) -> i32;
+@[vname("_abs")] @[abi] extern function abs(i32 x) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function abs(i32 x) -> i32;
+@[abi] extern function abs(i32 x) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_labs")] extern function labs(i64 x) -> i64;
+@[vname("_labs")] @[abi] extern function labs(i64 x) -> i64;
 #endif
 #ifndef CCPL_MACHO64
-extern function labs(i64 x) -> i64;
+@[abi] extern function labs(i64 x) -> i64;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_llabs")] extern function llabs(i64 x) -> i64;
+@[vname("_llabs")] @[abi] extern function llabs(i64 x) -> i64;
 #endif
 #ifndef CCPL_MACHO64
-extern function llabs(i64 x) -> i64;
+@[abi] extern function llabs(i64 x) -> i64;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_div")] extern function div(i32 numer, i32 denom) -> ptr i8;
+@[vname("_div")] @[abi] extern function div(i32 numer, i32 denom) -> ptr i8;
 #endif
 #ifndef CCPL_MACHO64
-extern function div(i32 numer, i32 denom) -> ptr i8;
+@[abi] extern function div(i32 numer, i32 denom) -> ptr i8;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_ldiv")] extern function ldiv(i64 numer, i64 denom) -> ptr i8;
+@[vname("_ldiv")] @[abi] extern function ldiv(i64 numer, i64 denom) -> ptr i8;
 #endif
 #ifndef CCPL_MACHO64
-extern function ldiv(i64 numer, i64 denom) -> ptr i8;
+@[abi] extern function ldiv(i64 numer, i64 denom) -> ptr i8;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_lldiv")] extern function lldiv(i64 numer, i64 denom) -> ptr i8;
+@[vname("_lldiv")] @[abi] extern function lldiv(i64 numer, i64 denom) -> ptr i8;
 #endif
 #ifndef CCPL_MACHO64
-extern function lldiv(i64 numer, i64 denom) -> ptr i8;
+@[abi] extern function lldiv(i64 numer, i64 denom) -> ptr i8;
 #endif
 
 #ifdef CCPL_MACHO64
-@[vname("_bsearch")] extern function bsearch(ptr i0 key, ptr i0 base, u64 count, u64 size, ptr i0 cmp) -> ptr i0;
+@[vname("_bsearch")] @[abi] extern function bsearch(ptr i0 key, ptr i0 base, u64 count, u64 size, ptr i0 cmp) -> ptr i0;
 #endif
 #ifndef CCPL_MACHO64
-extern function bsearch(ptr i0 key, ptr i0 base, u64 count, u64 size, ptr i0 cmp) -> ptr i0;
+@[abi] extern function bsearch(ptr i0 key, ptr i0 base, u64 count, u64 size, ptr i0 cmp) -> ptr i0;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_qsort")] extern function qsort(ptr i0 base, u64 count, u64 size, ptr i0 cmp) -> i0;
+@[vname("_qsort")] @[abi] extern function qsort(ptr i0 base, u64 count, u64 size, ptr i0 cmp) -> i0;
 #endif
 #ifndef CCPL_MACHO64
-extern function qsort(ptr i0 base, u64 count, u64 size, ptr i0 cmp) -> i0;
+@[abi] extern function qsort(ptr i0 base, u64 count, u64 size, ptr i0 cmp) -> i0;
 #endif
 
 #endif

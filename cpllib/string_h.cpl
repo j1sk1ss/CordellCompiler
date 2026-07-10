@@ -5,162 +5,162 @@
 #include "stddef_h.cpl"
 
 #ifdef CCPL_MACHO64
-@[vname("_memcpy")] extern function memcpy(ptr i0 dst, ptr i0 src, u64 n) -> ptr i0;
+@[vname("_memcpy")] @[abi] extern function memcpy(ptr i0 dst, ptr i0 src, u64 n) -> ptr i0;
 #endif
 #ifndef CCPL_MACHO64
-extern function memcpy(ptr i0 dst, ptr i0 src, u64 n) -> ptr i0;
+@[abi] extern function memcpy(ptr i0 dst, ptr i0 src, u64 n) -> ptr i0;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_memmove")] extern function memmove(ptr i0 dst, ptr i0 src, u64 n) -> ptr i0;
+@[vname("_memmove")] @[abi] extern function memmove(ptr i0 dst, ptr i0 src, u64 n) -> ptr i0;
 #endif
 #ifndef CCPL_MACHO64
-extern function memmove(ptr i0 dst, ptr i0 src, u64 n) -> ptr i0;
+@[abi] extern function memmove(ptr i0 dst, ptr i0 src, u64 n) -> ptr i0;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_memset")] extern function memset(ptr i0 s, i32 c, u64 n) -> ptr i0;
+@[vname("_memset")] @[abi] extern function memset(ptr i0 s, i32 c, u64 n) -> ptr i0;
 #endif
 #ifndef CCPL_MACHO64
-extern function memset(ptr i0 s, i32 c, u64 n) -> ptr i0;
+@[abi] extern function memset(ptr i0 s, i32 c, u64 n) -> ptr i0;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_memcmp")] extern function memcmp(ptr i0 a, ptr i0 b, u64 n) -> i32;
+@[vname("_memcmp")] @[abi] extern function memcmp(ptr i0 a, ptr i0 b, u64 n) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function memcmp(ptr i0 a, ptr i0 b, u64 n) -> i32;
+@[abi] extern function memcmp(ptr i0 a, ptr i0 b, u64 n) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_memchr")] extern function memchr(ptr i0 s, i32 c, u64 n) -> ptr i0;
+@[vname("_memchr")] @[abi] extern function memchr(ptr i0 s, i32 c, u64 n) -> ptr i0;
 #endif
 #ifndef CCPL_MACHO64
-extern function memchr(ptr i0 s, i32 c, u64 n) -> ptr i0;
+@[abi] extern function memchr(ptr i0 s, i32 c, u64 n) -> ptr i0;
 #endif
 
 #ifdef CCPL_MACHO64
-@[vname("_strlen")] extern function strlen(ptr i8 s) -> u64;
+@[vname("_strlen")] @[abi] extern function strlen(ptr i8 s) -> u64;
 #endif
 #ifndef CCPL_MACHO64
-extern function strlen(ptr i8 s) -> u64;
+@[abi] extern function strlen(ptr i8 s) -> u64;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strnlen")] extern function strnlen(ptr i8 s, u64 max_len) -> u64;
+@[vname("_strnlen")] @[abi] extern function strnlen(ptr i8 s, u64 max_len) -> u64;
 #endif
 #ifndef CCPL_MACHO64
-extern function strnlen(ptr i8 s, u64 max_len) -> u64;
+@[abi] extern function strnlen(ptr i8 s, u64 max_len) -> u64;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strcpy")] extern function strcpy(ptr i8 dst, ptr i8 src) -> ptr i8;
+@[vname("_strcpy")] @[abi] extern function strcpy(ptr i8 dst, ptr i8 src) -> ptr i8;
 #endif
 #ifndef CCPL_MACHO64
-extern function strcpy(ptr i8 dst, ptr i8 src) -> ptr i8;
+@[abi] extern function strcpy(ptr i8 dst, ptr i8 src) -> ptr i8;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strncpy")] extern function strncpy(ptr i8 dst, ptr i8 src, u64 n) -> ptr i8;
+@[vname("_strncpy")] @[abi] extern function strncpy(ptr i8 dst, ptr i8 src, u64 n) -> ptr i8;
 #endif
 #ifndef CCPL_MACHO64
-extern function strncpy(ptr i8 dst, ptr i8 src, u64 n) -> ptr i8;
+@[abi] extern function strncpy(ptr i8 dst, ptr i8 src, u64 n) -> ptr i8;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strcat")] extern function strcat(ptr i8 dst, ptr i8 src) -> ptr i8;
+@[vname("_strcat")] @[abi] extern function strcat(ptr i8 dst, ptr i8 src) -> ptr i8;
 #endif
 #ifndef CCPL_MACHO64
-extern function strcat(ptr i8 dst, ptr i8 src) -> ptr i8;
+@[abi] extern function strcat(ptr i8 dst, ptr i8 src) -> ptr i8;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strncat")] extern function strncat(ptr i8 dst, ptr i8 src, u64 n) -> ptr i8;
+@[vname("_strncat")] @[abi] extern function strncat(ptr i8 dst, ptr i8 src, u64 n) -> ptr i8;
 #endif
 #ifndef CCPL_MACHO64
-extern function strncat(ptr i8 dst, ptr i8 src, u64 n) -> ptr i8;
+@[abi] extern function strncat(ptr i8 dst, ptr i8 src, u64 n) -> ptr i8;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strcmp")] extern function strcmp(ptr i8 a, ptr i8 b) -> i32;
+@[vname("_strcmp")] @[abi] extern function strcmp(ptr i8 a, ptr i8 b) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function strcmp(ptr i8 a, ptr i8 b) -> i32;
+@[abi] extern function strcmp(ptr i8 a, ptr i8 b) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strncmp")] extern function strncmp(ptr i8 a, ptr i8 b, u64 n) -> i32;
+@[vname("_strncmp")] @[abi] extern function strncmp(ptr i8 a, ptr i8 b, u64 n) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function strncmp(ptr i8 a, ptr i8 b, u64 n) -> i32;
+@[abi] extern function strncmp(ptr i8 a, ptr i8 b, u64 n) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strchr")] extern function strchr(ptr i8 s, i32 c) -> ptr i8;
+@[vname("_strchr")] @[abi] extern function strchr(ptr i8 s, i32 c) -> ptr i8;
 #endif
 #ifndef CCPL_MACHO64
-extern function strchr(ptr i8 s, i32 c) -> ptr i8;
+@[abi] extern function strchr(ptr i8 s, i32 c) -> ptr i8;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strrchr")] extern function strrchr(ptr i8 s, i32 c) -> ptr i8;
+@[vname("_strrchr")] @[abi] extern function strrchr(ptr i8 s, i32 c) -> ptr i8;
 #endif
 #ifndef CCPL_MACHO64
-extern function strrchr(ptr i8 s, i32 c) -> ptr i8;
+@[abi] extern function strrchr(ptr i8 s, i32 c) -> ptr i8;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strstr")] extern function strstr(ptr i8 haystack, ptr i8 needle) -> ptr i8;
+@[vname("_strstr")] @[abi] extern function strstr(ptr i8 haystack, ptr i8 needle) -> ptr i8;
 #endif
 #ifndef CCPL_MACHO64
-extern function strstr(ptr i8 haystack, ptr i8 needle) -> ptr i8;
+@[abi] extern function strstr(ptr i8 haystack, ptr i8 needle) -> ptr i8;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strpbrk")] extern function strpbrk(ptr i8 s, ptr i8 accept) -> ptr i8;
+@[vname("_strpbrk")] @[abi] extern function strpbrk(ptr i8 s, ptr i8 accept) -> ptr i8;
 #endif
 #ifndef CCPL_MACHO64
-extern function strpbrk(ptr i8 s, ptr i8 accept) -> ptr i8;
+@[abi] extern function strpbrk(ptr i8 s, ptr i8 accept) -> ptr i8;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strspn")] extern function strspn(ptr i8 s, ptr i8 accept) -> u64;
+@[vname("_strspn")] @[abi] extern function strspn(ptr i8 s, ptr i8 accept) -> u64;
 #endif
 #ifndef CCPL_MACHO64
-extern function strspn(ptr i8 s, ptr i8 accept) -> u64;
+@[abi] extern function strspn(ptr i8 s, ptr i8 accept) -> u64;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strcspn")] extern function strcspn(ptr i8 s, ptr i8 reject) -> u64;
+@[vname("_strcspn")] @[abi] extern function strcspn(ptr i8 s, ptr i8 reject) -> u64;
 #endif
 #ifndef CCPL_MACHO64
-extern function strcspn(ptr i8 s, ptr i8 reject) -> u64;
+@[abi] extern function strcspn(ptr i8 s, ptr i8 reject) -> u64;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strcoll")] extern function strcoll(ptr i8 a, ptr i8 b) -> i32;
+@[vname("_strcoll")] @[abi] extern function strcoll(ptr i8 a, ptr i8 b) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function strcoll(ptr i8 a, ptr i8 b) -> i32;
+@[abi] extern function strcoll(ptr i8 a, ptr i8 b) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strxfrm")] extern function strxfrm(ptr i8 dst, ptr i8 src, u64 n) -> u64;
+@[vname("_strxfrm")] @[abi] extern function strxfrm(ptr i8 dst, ptr i8 src, u64 n) -> u64;
 #endif
 #ifndef CCPL_MACHO64
-extern function strxfrm(ptr i8 dst, ptr i8 src, u64 n) -> u64;
+@[abi] extern function strxfrm(ptr i8 dst, ptr i8 src, u64 n) -> u64;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strtok")] extern function strtok(ptr i8 s, ptr i8 delim) -> ptr i8;
+@[vname("_strtok")] @[abi] extern function strtok(ptr i8 s, ptr i8 delim) -> ptr i8;
 #endif
 #ifndef CCPL_MACHO64
-extern function strtok(ptr i8 s, ptr i8 delim) -> ptr i8;
+@[abi] extern function strtok(ptr i8 s, ptr i8 delim) -> ptr i8;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strtok_r")] extern function strtok_r(ptr i8 s, ptr i8 delim, ptr ptr i8 state) -> ptr i8;
+@[vname("_strtok_r")] @[abi] extern function strtok_r(ptr i8 s, ptr i8 delim, ptr ptr i8 state) -> ptr i8;
 #endif
 #ifndef CCPL_MACHO64
-extern function strtok_r(ptr i8 s, ptr i8 delim, ptr ptr i8 state) -> ptr i8;
+@[abi] extern function strtok_r(ptr i8 s, ptr i8 delim, ptr ptr i8 state) -> ptr i8;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strerror")] extern function strerror(i32 errnum) -> ptr i8;
+@[vname("_strerror")] @[abi] extern function strerror(i32 errnum) -> ptr i8;
 #endif
 #ifndef CCPL_MACHO64
-extern function strerror(i32 errnum) -> ptr i8;
+@[abi] extern function strerror(i32 errnum) -> ptr i8;
 #endif
 
 #ifdef CCPL_MACHO64
-@[vname("_strdup")] extern function strdup(ptr i8 p) -> ptr i8;
+@[vname("_strdup")] @[abi] extern function strdup(ptr i8 p) -> ptr i8;
 #endif
 #ifndef CCPL_MACHO64
-extern function strdup(ptr i8 p) -> ptr i8;
+@[abi] extern function strdup(ptr i8 p) -> ptr i8;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strndup")] extern function strndup(ptr i8 p, u64 n) -> ptr i8;
+@[vname("_strndup")] @[abi] extern function strndup(ptr i8 p, u64 n) -> ptr i8;
 #endif
 #ifndef CCPL_MACHO64
-extern function strndup(ptr i8 p, u64 n) -> ptr i8;
+@[abi] extern function strndup(ptr i8 p, u64 n) -> ptr i8;
 #endif
 
 #ifndef CCPL_NO_CONTAINER_STRINGS

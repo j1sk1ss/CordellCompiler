@@ -1,26 +1,22 @@
 #include <lir/selector/x86_64_macho_nasm.h>
 // TODO: Complete AVX support
 
-/*
-Insert block before 'pos' block with the block entry update.
+/* Insert block before 'pos' block with the block entry update.
 Params:
     - `bb` - Source block.
     - `b` - New block for an insertion process.
-    - `pos` - Position for an insert.
-*/
+    - `pos` - Position for an insert */
 static inline void _insert_instruction_before(cfg_block_t* bb, lir_block_t* b, lir_block_t* pos) {
     if (!b) return;
     if (bb->lmap.entry == pos) bb->lmap.entry = b;
     LIR_insert_block_before(b, pos);
 }
 
-/*
-Insert block after 'pos' block with the block exit update.
+/* Insert block after 'pos' block with the block exit update.
 Params:
     - `bb` - Source block.
     - `b` - New block for an insertion process.
-    - `pos` - Position for an insert.
-*/
+    - `pos` - Position for an insert */
 static inline void _insert_instruction_after(cfg_block_t* bb, lir_block_t* b, lir_block_t* pos) {
     if (!b) return;
     if (bb->lmap.exit == pos) bb->lmap.exit = b;
@@ -32,16 +28,14 @@ typedef struct {
     int             off;
 } abi_argument_t;
 
-/*
-Generate the information which will tell where we should put a value for a function.
+/* Generate the information which will tell where we should put a value for a function.
 Params:
     - `index` - Argument index.
     - `s` - Target value which will be placed to a function.
     - `out` - Output information placeholder.
     - `smt` - Symtable.
 
-Returns 1 if this is a register value, otherwise 0.
-*/
+Returns 1 if this is a register value, otherwise 0 */
 static int _get_abi_argument(int index, int offset, lir_subject_t* s, abi_argument_t* out, func_info_t* fi, sym_table_t* smt) {
     int dec_abi_regs[]  = { RDI,  RSI,  RDX,  RCX,  R8,   R9 };
     int simd_abi_regs[] = { XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7 };
@@ -77,16 +71,14 @@ static int _get_abi_argument(int index, int offset, lir_subject_t* s, abi_argume
     return 1;
 }
 
-/*
-Count fixed function arguments.
+/* Count fixed function arguments.
 Variadic marker arguments are not counted because they do not occupy a
 regular named-argument slot.
 Params:
     - `f_id` - Function id.
     - `smt` - Symtable.
 
-Returns count of presented non-variadic arguments.
-*/
+Returns count of presented non-variadic arguments */
 static int _count_presented_args(symbol_id_t f_id, sym_table_t* smt) {
     func_info_t fi;
     if (!FNTB_get_info_id(f_id, &fi, &smt->f)) return 0;
@@ -121,9 +113,8 @@ int x86_64_macho_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
     queue_init(&dirty_regs);
     int clean_stack = 0;
 
-    foreach (cfg_func_t* fb, &cctx->funcs) {
+    foreach (cfg_func_t* fb, &cctx->funcs) { // TODO: Recursive + Create a tool for recursive CFG (see peephole)
         if (!fb->used) continue;
-
         func_info_t fi;
         if (!FNTB_get_info_id(fb->f_id, &fi, &smt->f)) continue;
         foreach (cfg_block_t* bb, &fb->blocks) {
@@ -161,16 +152,35 @@ int x86_64_macho_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                         __attribute__ ((fallthrough));
                     }
                     case LIR_SYSC: {
+                        int restore_align = 0;
                         if (lh->op == LIR_SYSC) { /* https://stackoverflow.com/questions/50571275/why-does-a-syscall-clobber-rcx-and-r11 */
                             _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(RCX, 8), NULL, NULL), lh);
                             queue_push(&dirty_regs, (void*)((long)RCX));
                             _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(R11, 8), NULL, NULL), lh);
                             queue_push(&dirty_regs, (void*)((long)R11));
                         }
+                        else if ((queue_size(&dirty_regs) % 2)) {
+                            func_info_t callee;
+                            if (
+                                FNTB_get_info_id(lh->farg->storage.str.sid, &callee, &smt->f) && 
+                                callee.flags.abi
+                            ) restore_align = 1;
+                        }
 
                         long dirty;
                         while (queue_pop(&dirty_regs, (void**)&dirty)) {
                             _insert_instruction_after(bb, LIR_create_block(LIR_POP, LIR_SUBJ_REG(dirty, 8), NULL, NULL), lh);
+                        }
+
+                        if (restore_align) {
+                            _insert_instruction_before(
+                                bb, 
+                                LIR_create_block(LIR_iSUB, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(8)), lh
+                            );
+                            _insert_instruction_after(
+                                bb, 
+                                LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(8)), lh
+                            );
                         }
 
                         break;

@@ -19,76 +19,76 @@
 #endif
 
 #ifdef CCPL_MACHO64
-@[vname("_clock")] extern function clock() -> i64;
+@[vname("_clock")] @[abi] extern function clock() -> i64;
 #endif
 #ifndef CCPL_MACHO64
-extern function clock() -> i64;
+@[abi] extern function clock() -> i64;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_time")] extern function time(ptr i64 timer) -> i64;
+@[vname("_time")] @[abi] extern function time(ptr i64 timer) -> i64;
 #endif
 #ifndef CCPL_MACHO64
-extern function time(ptr i64 timer) -> i64;
+@[abi] extern function time(ptr i64 timer) -> i64;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_difftime")] extern function difftime(i64 end_time, i64 begin_time) -> f64;
+@[vname("_difftime")] @[abi] extern function difftime(i64 end_time, i64 begin_time) -> f64;
 #endif
 #ifndef CCPL_MACHO64
-extern function difftime(i64 end_time, i64 begin_time) -> f64;
+@[abi] extern function difftime(i64 end_time, i64 begin_time) -> f64;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_mktime")] extern function mktime(ptr c_tm tm) -> i64;
+@[vname("_mktime")] @[abi] extern function mktime(ptr c_tm tm) -> i64;
 #endif
 #ifndef CCPL_MACHO64
-extern function mktime(ptr c_tm tm) -> i64;
+@[abi] extern function mktime(ptr c_tm tm) -> i64;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_asctime")] extern function asctime(ptr c_tm tm) -> ptr i8;
+@[vname("_asctime")] @[abi] extern function asctime(ptr c_tm tm) -> ptr i8;
 #endif
 #ifndef CCPL_MACHO64
-extern function asctime(ptr c_tm tm) -> ptr i8;
+@[abi] extern function asctime(ptr c_tm tm) -> ptr i8;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_ctime")] extern function ctime(ptr i64 timer) -> ptr i8;
+@[vname("_ctime")] @[abi] extern function ctime(ptr i64 timer) -> ptr i8;
 #endif
 #ifndef CCPL_MACHO64
-extern function ctime(ptr i64 timer) -> ptr i8;
+@[abi] extern function ctime(ptr i64 timer) -> ptr i8;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_gmtime")] extern function gmtime(ptr i64 timer) -> ptr c_tm;
+@[vname("_gmtime")] @[abi] extern function gmtime(ptr i64 timer) -> ptr c_tm;
 #endif
 #ifndef CCPL_MACHO64
-extern function gmtime(ptr i64 timer) -> ptr c_tm;
+@[abi] extern function gmtime(ptr i64 timer) -> ptr c_tm;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_localtime")] extern function localtime(ptr i64 timer) -> ptr c_tm;
+@[vname("_localtime")] @[abi] extern function localtime(ptr i64 timer) -> ptr c_tm;
 #endif
 #ifndef CCPL_MACHO64
-extern function localtime(ptr i64 timer) -> ptr c_tm;
+@[abi] extern function localtime(ptr i64 timer) -> ptr c_tm;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_strftime")] extern function strftime(ptr i8 s, u64 max_size, ptr i8 format, ptr c_tm tm) -> u64;
+@[vname("_strftime")] @[abi] extern function strftime(ptr i8 s, u64 max_size, ptr i8 format, ptr c_tm tm) -> u64;
 #endif
 #ifndef CCPL_MACHO64
-extern function strftime(ptr i8 s, u64 max_size, ptr i8 format, ptr c_tm tm) -> u64;
+@[abi] extern function strftime(ptr i8 s, u64 max_size, ptr i8 format, ptr c_tm tm) -> u64;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_clock_gettime")] extern function clock_gettime(i32 clock_id, ptr c_timespec time) -> i32;
+@[vname("_clock_gettime")] @[abi] extern function clock_gettime(i32 clock_id, ptr c_timespec time) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function clock_gettime(i32 clock_id, ptr c_timespec time) -> i32;
+@[abi] extern function clock_gettime(i32 clock_id, ptr c_timespec time) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_clock_getres")] extern function clock_getres(i32 clock_id, ptr c_timespec resolution) -> i32;
+@[vname("_clock_getres")] @[abi] extern function clock_getres(i32 clock_id, ptr c_timespec resolution) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function clock_getres(i32 clock_id, ptr c_timespec resolution) -> i32;
+@[abi] extern function clock_getres(i32 clock_id, ptr c_timespec resolution) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_nanosleep")] extern function nanosleep(ptr c_timespec duration, ptr c_timespec remaining) -> i32;
+@[vname("_nanosleep")] @[abi] extern function nanosleep(ptr c_timespec duration, ptr c_timespec remaining) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function nanosleep(ptr c_timespec duration, ptr c_timespec remaining) -> i32;
+@[abi] extern function nanosleep(ptr c_timespec duration, ptr c_timespec remaining) -> i32;
 #endif
 
 #endif

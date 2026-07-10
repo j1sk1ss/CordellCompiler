@@ -20,6 +20,7 @@ typedef struct {
 } queue_t;
 
 int queue_init(queue_t* q);
+int queue_size(queue_t* q);
 int queue_push(queue_t* q, void* d);
 int queue_isempty(queue_t* q);
 int queue_pop(queue_t* q, void** d);

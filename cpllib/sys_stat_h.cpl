@@ -28,52 +28,52 @@
 #define S_IXOTH 1
 
 #ifdef CCPL_MACHO64
-@[vname("_stat")] extern function stat(ptr i8 path, ptr i0 stat_buf) -> i32;
+@[vname("_stat")] @[abi] extern function stat(ptr i8 path, ptr i0 stat_buf) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function stat(ptr i8 path, ptr i0 stat_buf) -> i32;
+@[abi] extern function stat(ptr i8 path, ptr i0 stat_buf) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_fstat")] extern function fstat(i32 fd, ptr i0 stat_buf) -> i32;
+@[vname("_fstat")] @[abi] extern function fstat(i32 fd, ptr i0 stat_buf) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function fstat(i32 fd, ptr i0 stat_buf) -> i32;
+@[abi] extern function fstat(i32 fd, ptr i0 stat_buf) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_lstat")] extern function lstat(ptr i8 path, ptr i0 stat_buf) -> i32;
+@[vname("_lstat")] @[abi] extern function lstat(ptr i8 path, ptr i0 stat_buf) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function lstat(ptr i8 path, ptr i0 stat_buf) -> i32;
+@[abi] extern function lstat(ptr i8 path, ptr i0 stat_buf) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_chmod")] extern function chmod(ptr i8 path, u32 mode) -> i32;
+@[vname("_chmod")] @[abi] extern function chmod(ptr i8 path, u32 mode) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function chmod(ptr i8 path, u32 mode) -> i32;
+@[abi] extern function chmod(ptr i8 path, u32 mode) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_fchmod")] extern function fchmod(i32 fd, u32 mode) -> i32;
+@[vname("_fchmod")] @[abi] extern function fchmod(i32 fd, u32 mode) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function fchmod(i32 fd, u32 mode) -> i32;
+@[abi] extern function fchmod(i32 fd, u32 mode) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_mkdir")] extern function mkdir(ptr i8 path, u32 mode) -> i32;
+@[vname("_mkdir")] @[abi] extern function mkdir(ptr i8 path, u32 mode) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function mkdir(ptr i8 path, u32 mode) -> i32;
+@[abi] extern function mkdir(ptr i8 path, u32 mode) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_mkfifo")] extern function mkfifo(ptr i8 path, u32 mode) -> i32;
+@[vname("_mkfifo")] @[abi] extern function mkfifo(ptr i8 path, u32 mode) -> i32;
 #endif
 #ifndef CCPL_MACHO64
-extern function mkfifo(ptr i8 path, u32 mode) -> i32;
+@[abi] extern function mkfifo(ptr i8 path, u32 mode) -> i32;
 #endif
 #ifdef CCPL_MACHO64
-@[vname("_umask")] extern function umask(u32 mask) -> u32;
+@[vname("_umask")] @[abi] extern function umask(u32 mask) -> u32;
 #endif
 #ifndef CCPL_MACHO64
-extern function umask(u32 mask) -> u32;
+@[abi] extern function umask(u32 mask) -> u32;
 #endif
 
 #endif
