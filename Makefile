@@ -18,11 +18,19 @@ LOGS ?=
 PRINT_PARSE ?= 1
 ENABLE_Z3 ?= auto
 INPUT ?= examples/print.cpl
-RUN_ARGS ?= --arch x86_64 --sys-type linux64 --asm-format elf64 --linker gcc --linker-no-pie
 MODULE ?= asm
 TEST_CODE ?= dummy_data/simple.cpl
 UTEST ?= code_utesting
 STD_UTEST ?= std_utesting
+VSCODE_DOCKER_IMAGE ?= cpl-extension
+VSCODE_OUTPUT_DIR ?= $(CURDIR)/vscode/output
+
+UNAME_S ?= $(shell uname -s)
+ifeq ($(UNAME_S),Darwin)
+RUN_ARGS ?= --arch x86_64 --sys-type macho64 --asm-format macho64 --linker clang
+else
+RUN_ARGS ?= --arch x86_64 --sys-type linux64 --asm-format elf64 --linker gcc --linker-no-pie
+endif
 
 Z3_AVAILABLE := $(shell pkg-config --exists z3 2>/dev/null && echo 1 || echo 0)
 ifeq ($(ENABLE_Z3),auto)
@@ -156,6 +164,12 @@ std-test: ## Run std library tests, e.g. make std-test or make std-test STD_UTES
 cpllib-test: $(OUTPUT) ## Parse all shipped CPL standard library headers.
 	$(OUTPUT) --without-compilation tests/cpllib_smoke.cpl
 
+vscode-docker-build: ## Build the VS Code extension Docker image.
+	docker build -t $(VSCODE_DOCKER_IMAGE) vscode
+
+vscode-docker-package: vscode-docker-build ## Build and package the VS Code extension in Docker.
+	docker run --rm -v $(CURDIR)/vscode:/app -v $(VSCODE_OUTPUT_DIR):/output $(VSCODE_DOCKER_IMAGE)
+
 clean: ## Remove compiler build outputs.
 	$(RM) -r builds
 
@@ -186,9 +200,11 @@ print-config:
 	@echo "LOGS=$(LOGS)"
 	@echo "INPUT=$(INPUT)"
 	@echo "RUN_ARGS=$(RUN_ARGS)"
+	@echo "VSCODE_DOCKER_IMAGE=$(VSCODE_DOCKER_IMAGE)"
+	@echo "VSCODE_OUTPUT_DIR=$(VSCODE_OUTPUT_DIR)"
 
 help:
 	@awk 'BEGIN {FS = ":.*## "; printf "Usage: make <target> [VAR=value]\n\nTargets:\n"} /^[a-zA-Z0-9_.-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 .DELETE_ON_ERROR:
-.PHONY: all debug release install package run test unit-test rewrite-test std-test cpllib-test clean clean-tests distclean print-sources print-config help
+.PHONY: all debug release install package run test unit-test rewrite-test std-test cpllib-test vscode-docker-build vscode-docker-package clean clean-tests distclean print-sources print-config help

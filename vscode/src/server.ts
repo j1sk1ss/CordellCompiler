@@ -10,7 +10,9 @@ import {
   Position,
   MarkupKind,
   Location,
-  SemanticTokensBuilder
+  SemanticTokensBuilder,
+  CompletionItem,
+  CompletionItemKind
 } from "vscode-languageserver/node";
 
 import * as fs from "fs";
@@ -25,8 +27,17 @@ import {
   formatFunctionSignature,
   FuncOverloadSym,
   ContainerSym,
-  sizeofType
+  sizeofType,
+  TypeNode
 } from "./cplSemantics";
+import {
+  CplSysType,
+  defaultSysTypeForHost,
+  expandMakeValue,
+  inferSysTypeFromCompilerArgs,
+  parseMakefileVarsText,
+  sysTypeToPredefinedMacro
+} from "./cplTarget";
 
 const connection = createConnection(ProposedFeatures.all);
 const documents: TextDocuments<TextDocument> = new TextDocuments(TextDocument);
@@ -56,6 +67,9 @@ connection.onInitialize((params: InitializeParams): InitializeResult => {
       textDocumentSync: TextDocumentSyncKind.Incremental,
       hoverProvider: true,
       definitionProvider: true,
+      completionProvider: {
+        triggerCharacters: [".", ":"]
+      },
       semanticTokensProvider: {
         legend: {
           tokenTypes: semanticTokenTypes,
@@ -114,26 +128,12 @@ function findMakefileUpwards(startPath?: string): string | undefined {
 }
 
 function parseMakefileVars(makefilePath: string): Map<string, string> {
-  const vars = new Map<string, string>();
-
   try {
     const text = fs.readFileSync(makefilePath, "utf8");
-    for (const line of text.split(/\r?\n/)) {
-      const m = line.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*(?:\?=|:=|=)\s*(.*)$/);
-      if (!m) continue;
-      vars.set(m[1], m[2].replace(/\s+#.*$/, "").trim());
-    }
+    return parseMakefileVarsText(text);
   } catch {}
 
-  return vars;
-}
-
-function expandMakeValue(value: string, vars: Map<string, string>, depth = 0): string {
-  if (depth > 20) return value;
-  return value.replace(/\$\(([^)]+)\)/g, (_full, name: string) => {
-    const replacement = vars.get(name.trim());
-    return replacement == null ? "" : expandMakeValue(replacement, vars, depth + 1);
-  });
+  return new Map<string, string>();
 }
 
 function makeIncludeDirs(fromFilePath?: string): string[] {
@@ -158,6 +158,20 @@ function makeIncludeDirs(fromFilePath?: string): string[] {
   dirs.push("/usr/share/cpl/include");
 
   return uniquePaths(dirs).filter((d) => fs.existsSync(d));
+}
+
+function inferSysTypeForFile(fromFilePath?: string): CplSysType {
+  const makefilePath = findMakefileUpwards(fromFilePath);
+  if (makefilePath) {
+    const vars = parseMakefileVars(makefilePath);
+    const runArgsRaw = vars.get("RUN_ARGS");
+    if (runArgsRaw) {
+      const inferred = inferSysTypeFromCompilerArgs(expandMakeValue(runArgsRaw, vars));
+      if (inferred) return inferred;
+    }
+  }
+
+  return defaultSysTypeForHost(process.platform);
 }
 
 function readCplFile(filePath: string): IncludeResolverResult | undefined {
@@ -214,7 +228,10 @@ async function validateTextDocument(doc: TextDocument) {
   const docFsPath = uriToFsPath(doc.uri);
   const include = makeIncludeResolver(documents, docFsPath);
 
-  const { issues, sem } = analyze(text, include, docFsPath);
+  const predefine = sysTypeToPredefinedMacro(inferSysTypeForFile(docFsPath));
+  const { issues, sem } = analyze(text, include, docFsPath, {
+    predefines: predefine ? [predefine] : []
+  });
   semByUri.set(doc.uri, sem);
 
   const diags: Diagnostic[] = issues.map((e) => ({
@@ -225,6 +242,20 @@ async function validateTextDocument(doc: TextDocument) {
   }));
 
   connection.sendDiagnostics({ uri: doc.uri, diagnostics: diags });
+}
+
+function semanticContextForDocument(doc: TextDocument): SemanticContext {
+  const existing = semByUri.get(doc.uri);
+  if (existing) return existing;
+
+  const docFsPath = uriToFsPath(doc.uri);
+  const include = makeIncludeResolver(documents, docFsPath);
+  const predefine = sysTypeToPredefinedMacro(inferSysTypeForFile(docFsPath));
+  const { sem } = analyze(doc.getText(), include, docFsPath, {
+    predefines: predefine ? [predefine] : []
+  });
+  semByUri.set(doc.uri, sem);
+  return sem;
 }
 
 function inRange(pos: Position, r: { start: Position; end: Position }) {
@@ -378,6 +409,177 @@ function renderOverloads(
   return lines.join("\n");
 }
 
+function isInstanceMethod(fn: FuncOverloadSym): boolean {
+  return !!fn.isSelfMethod || fn.params[0]?.name === "self";
+}
+
+function containerNameFromType(sem: SemanticContext, t: TypeNode): string | undefined {
+  if (t.kind === "container") return t.name;
+  if (t.kind === "prim" && sem.containers.has(t.name)) return t.name;
+  if (t.kind === "ptr") return containerNameFromType(sem, t.to);
+  return undefined;
+}
+
+function renderContainerMembers(container: ContainerSym, title = "Available members"): string {
+  const lines: string[] = [`**${title}**`];
+
+  const fields = [...container.fields.values()]
+    .sort((a, b) => a.name.localeCompare(b.name));
+  if (fields.length) {
+    lines.push("", "**Fields**");
+    for (const field of fields) {
+      lines.push(`- \`${field.readonly ? "ro " : ""}${formatType(field.type)} ${field.name}\``);
+    }
+  }
+
+  const methods = [...container.methods.values()].flat();
+  const instanceMethods = methods
+    .filter(isInstanceMethod)
+    .sort((a, b) => formatFunctionSignature(a).localeCompare(formatFunctionSignature(b)));
+  const associatedFunctions = methods
+    .filter((fn) => !isInstanceMethod(fn))
+    .sort((a, b) => formatFunctionSignature(a).localeCompare(formatFunctionSignature(b)));
+
+  if (instanceMethods.length) {
+    lines.push("", "**Methods**");
+    for (const fn of instanceMethods) lines.push(`- \`${formatFunctionSignature(fn)}\``);
+  }
+
+  if (associatedFunctions.length) {
+    lines.push("", "**Functions**");
+    for (const fn of associatedFunctions) lines.push(`- \`${formatFunctionSignature(fn)}\``);
+  }
+
+  if (lines.length === 1) lines.push("", "_No fields or methods declared._");
+  return lines.join("\n");
+}
+
+function renderContainerHover(container: ContainerSym): string {
+  const lines = ["```cpl", `container ${container.name}`, "```"];
+  if (container.doc?.trim()) lines.push("", container.doc);
+  lines.push("", renderContainerMembers(container));
+  return lines.join("\n");
+}
+
+function renderContainerDetailsForType(sem: SemanticContext, type: TypeNode): string | undefined {
+  const name = containerNameFromType(sem, type);
+  if (!name) return undefined;
+
+  const container = sem.containers.get(name);
+  if (!container) return undefined;
+
+  return renderContainerMembers(container, `Available on ${name}`);
+}
+
+function positionBeforeOrEqual(a: Position, b: Position): boolean {
+  return a.line < b.line || (a.line === b.line && a.character <= b.character);
+}
+
+function signaturesMarkdown(fns: FuncOverloadSym[]): string {
+  return ["```cpl", ...fns.map(formatFunctionSignature), "```"].join("\n");
+}
+
+function methodCompletionItems(container: ContainerSym, access: "::" | "."): CompletionItem[] {
+  const items: CompletionItem[] = [];
+
+  for (const [name, overloads] of container.methods) {
+    const associated = overloads.filter((fn) => !isInstanceMethod(fn));
+    const instance = overloads.filter(isInstanceMethod);
+    const visible = access === "::"
+      ? [...associated, ...instance]
+      : [...instance, ...associated];
+    if (!visible.length) continue;
+
+    const first = visible[0];
+    const docs = visible
+      .map((fn) => fn.doc?.trim())
+      .filter((doc): doc is string => !!doc);
+    const notes: string[] = [];
+    if (access === "::" && associated.length === 0 && instance.length > 0) {
+      notes.push("Instance method; call it with `.` on a value.");
+    }
+    if (access === "." && instance.length === 0 && associated.length > 0) {
+      notes.push("Associated function; call it with `::` on the container type.");
+    }
+
+    items.push({
+      label: name,
+      kind: isInstanceMethod(first) ? CompletionItemKind.Method : CompletionItemKind.Function,
+      detail: visible.map(formatFunctionSignature).join(" | "),
+      documentation: {
+        kind: MarkupKind.Markdown,
+        value: [
+          signaturesMarkdown(visible),
+          ...notes,
+          ...docs
+        ].filter(Boolean).join("\n\n")
+      },
+      insertText: name,
+      sortText: `${isInstanceMethod(first) ? "1" : "0"}_${name}`
+    });
+  }
+
+  return items;
+}
+
+function fieldCompletionItems(container: ContainerSym): CompletionItem[] {
+  return [...container.fields.values()].map((field) => ({
+    label: field.name,
+    kind: CompletionItemKind.Field,
+    detail: `${field.readonly ? "ro " : ""}${formatType(field.type)} ${field.name}`,
+    insertText: field.name,
+    sortText: `0_${field.name}`
+  }));
+}
+
+function findVarContainerAtPosition(
+  sem: SemanticContext,
+  name: string,
+  pos: Position,
+  currentFilePath: string | undefined
+): ContainerSym | undefined {
+  const candidates = sem.varDecls
+    .filter((v) => v.name === name && belongsToFile(v.filePath, currentFilePath) && positionBeforeOrEqual(v.range.start, pos))
+    .sort((a, b) => b.range.start.line - a.range.start.line || b.range.start.character - a.range.start.character);
+
+  for (const candidate of candidates) {
+    const containerName = containerNameFromType(sem, candidate.type);
+    if (!containerName) continue;
+    const container = sem.containers.get(containerName);
+    if (container) return container;
+  }
+
+  const global = sem.globals.get(name);
+  const globalContainerName = global ? containerNameFromType(sem, global.type) : undefined;
+  return globalContainerName ? sem.containers.get(globalContainerName) : undefined;
+}
+
+connection.onCompletion((params): CompletionItem[] => {
+  const doc = documents.get(params.textDocument.uri);
+  if (!doc) return [];
+
+  const sem = semanticContextForDocument(doc);
+  const docFsPath = uriToFsPath(params.textDocument.uri);
+  const prefix = doc.getText({
+    start: Position.create(params.position.line, 0),
+    end: params.position
+  });
+
+  const scopeMatch = prefix.match(/\b([A-Za-z_]\w*)::([A-Za-z_]\w*)?$/);
+  if (scopeMatch) {
+    const container = sem.containers.get(scopeMatch[1]);
+    return container ? methodCompletionItems(container, "::") : [];
+  }
+
+  const dotMatch = prefix.match(/\b([A-Za-z_]\w*)\.([A-Za-z_]\w*)?$/);
+  if (dotMatch) {
+    const container = findVarContainerAtPosition(sem, dotMatch[1], params.position, docFsPath);
+    return container ? [...fieldCompletionItems(container), ...methodCompletionItems(container, ".")] : [];
+  }
+
+  return [];
+});
+
 function findFuncDeclHover(sem: SemanticContext, pos: Position, currentFilePath?: string): FuncOverloadSym | undefined {
   for (const list of sem.funcs.values()) {
     for (const fn of list) {
@@ -399,6 +601,12 @@ connection.onHover((params) => {
 
   const docFsPath = uriToFsPath(params.textDocument.uri);
 
+  const docLink = sem.docLinks.find((d) => belongsToFile(d.filePath, docFsPath) && inRange(params.position, d.range));
+  if (docLink) {
+    const value = `Linked comment for \`${docLink.targetName}\`` + (docLink.doc.trim() ? `\n\n${docLink.doc}` : "");
+    return { contents: { kind: MarkupKind.Markdown, value } };
+  }
+
   const sz = sem.sizeofSites.find((s) => belongsToFile(s.filePath, docFsPath) && inRange(params.position, s.range));
   if (sz) {
     const computed = sz.size ?? sizeofType(sz.targetType) ?? null;
@@ -416,7 +624,8 @@ sizeof(${formatType(sz.targetType)}) = ${computed}
 
   const vu = sem.varUses.find((v) => belongsToFile(v.filePath, docFsPath) && inRange(params.position, v.range));
   if (vu) {
-    const value = `\`\`\`cpl\n${formatType(vu.type)} ${vu.name}\n\`\`\``;
+    const details = renderContainerDetailsForType(sem, vu.type);
+    const value = `\`\`\`cpl\n${formatType(vu.type)} ${vu.name}\n\`\`\`` + (details ? `\n\n${details}` : "");
     return { contents: { kind: MarkupKind.Markdown, value } };
   }
 
@@ -429,7 +638,7 @@ sizeof(${formatType(sz.targetType)}) = ${computed}
         ms.value.kind === "number" ? String(ms.value.value) :
         ms.value.text;
 
-      const value = `\`\`\`cpl\n#define ${ms.name} ${v}\n\`\`\``;
+      const value = `\`\`\`cpl\n#define ${ms.name} ${v}\n\`\`\`` + (ms.doc?.trim() ? `\n\n${ms.doc}` : "");
       return { contents: { kind: MarkupKind.Markdown, value } };
     }
   }
@@ -478,23 +687,13 @@ callable ${formatType(ics.calleeType)}
   if (cu) {
     const c = sem.containers.get(cu.name);
     if (c) {
-      const value = `\`\`\`cpl
-container ${c.name}
-\`\`\`` + (c.doc?.trim() ? `
-
-${c.doc}` : "");
-      return { contents: { kind: MarkupKind.Markdown, value } };
+      return { contents: { kind: MarkupKind.Markdown, value: renderContainerHover(c) } };
     }
   }
 
   const cd = findContainerAtDeclaration(sem, params.position, docFsPath);
   if (cd) {
-    const value = `\`\`\`cpl
-container ${cd.name}
-\`\`\`` + (cd.doc?.trim() ? `
-
-${cd.doc}` : "");
-    return { contents: { kind: MarkupKind.Markdown, value } };
+    return { contents: { kind: MarkupKind.Markdown, value: renderContainerHover(cd) } };
   }
 
   const fnDecl = findFuncDeclHover(sem, params.position, docFsPath);
@@ -507,7 +706,8 @@ ${cd.doc}` : "");
 
   const vd = sem.varDecls.find((v) => belongsToFile(v.filePath, docFsPath) && inRange(params.position, v.range));
   if (vd) {
-    const value = `\`\`\`cpl\n${formatType(vd.type)} ${vd.name}\n\`\`\``;
+    const details = renderContainerDetailsForType(sem, vd.type);
+    const value = `\`\`\`cpl\n${formatType(vd.type)} ${vd.name}\n\`\`\`` + (details ? `\n\n${details}` : "");
     return { contents: { kind: MarkupKind.Markdown, value } };
   }
 
@@ -548,6 +748,11 @@ connection.onDefinition((params) => {
 
   const docFsPath = uriToFsPath(params.textDocument.uri);
   const pos = params.position;
+
+  const docLink = sem.docLinks.find((d) => belongsToFile(d.filePath, docFsPath) && inRange(pos, d.range));
+  if (docLink) {
+    return locationFor(docLink.targetFilePath, docLink.targetRange, params.textDocument.uri);
+  }
 
   const mu = sem.macroUses.find((m) => belongsToFile(m.filePath, docFsPath) && inRange(pos, m.range));
   if (mu) {

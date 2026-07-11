@@ -1,10 +1,146 @@
 import * as path from "path";
+import * as fs from "fs";
 import * as vscode from "vscode";
 import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from "vscode-languageclient/node";
+import {
+  defaultSysTypeForHost,
+  expandMakeValue,
+  inferSysTypeFromCompilerArgs,
+  parseMakefileVarsText,
+  sysTypeToPredefinedMacro,
+  CplSysType
+} from "./cplTarget";
 
 let client: LanguageClient | undefined;
 
+function findMakefileUpwards(startPath?: string): string | undefined {
+  if (!startPath) return undefined;
+  let dir = fs.existsSync(startPath) && fs.statSync(startPath).isDirectory()
+    ? startPath
+    : path.dirname(startPath);
+
+  while (true) {
+    const candidate = path.join(dir, "Makefile");
+    if (fs.existsSync(candidate)) return candidate;
+
+    const parent = path.dirname(dir);
+    if (parent === dir) return undefined;
+    dir = parent;
+  }
+}
+
+function parseMakefileVars(makefilePath: string): Map<string, string> {
+  try {
+    const text = fs.readFileSync(makefilePath, "utf8");
+    return parseMakefileVarsText(text);
+  } catch {}
+
+  return new Map<string, string>();
+}
+
+function inferSysTypeForDocument(document: vscode.TextDocument): CplSysType {
+  const makefilePath = findMakefileUpwards(document.uri.fsPath);
+  if (makefilePath) {
+    const vars = parseMakefileVars(makefilePath);
+    const runArgsRaw = vars.get("RUN_ARGS");
+    if (runArgsRaw) {
+      const inferred = inferSysTypeFromCompilerArgs(expandMakeValue(runArgsRaw, vars));
+      if (inferred) return inferred;
+    }
+  }
+
+  return defaultSysTypeForHost(process.platform);
+}
+
+function inactivePreprocessorRanges(document: vscode.TextDocument): vscode.Range[] {
+  const targetMacro = sysTypeToPredefinedMacro(inferSysTypeForDocument(document));
+  const defined = new Set<string>();
+  if (targetMacro) defined.add(targetMacro.name);
+
+  const ranges: vscode.Range[] = [];
+  const activeStack: boolean[] = [];
+  let inactiveDepth = 0;
+  let inactiveStart: vscode.Position | undefined;
+
+  const isActive = () => activeStack.every(Boolean);
+
+  for (let lineNo = 0; lineNo < document.lineCount; lineNo++) {
+    const line = document.lineAt(lineNo);
+    const text = line.text;
+    const m = text.match(/^\s*#\s*(ifdef|ifndef|endif|define|undef)\b\s*([A-Za-z_]\w*)?/);
+    if (!m) continue;
+
+    const directive = m[1];
+    const name = m[2];
+
+    if (directive === "ifdef" || directive === "ifndef") {
+      const parentActive = isActive();
+      const cond = !!name && (directive === "ifdef" ? defined.has(name) : !defined.has(name));
+      const branchActive = parentActive && cond;
+      activeStack.push(branchActive);
+
+      if (!branchActive) {
+        if (inactiveDepth === 0) inactiveStart = new vscode.Position(lineNo, 0);
+        inactiveDepth++;
+      }
+
+      continue;
+    }
+
+    if (directive === "endif") {
+      const wasActive = activeStack.pop();
+      if (wasActive === false) {
+        inactiveDepth = Math.max(0, inactiveDepth - 1);
+        if (inactiveDepth === 0 && inactiveStart) {
+          ranges.push(new vscode.Range(inactiveStart, line.rangeIncludingLineBreak.end));
+          inactiveStart = undefined;
+        }
+      }
+      continue;
+    }
+
+    if (!isActive() || !name) continue;
+    if (directive === "define") {
+      if (!defined.has(name)) defined.add(name);
+    } else if (directive === "undef") {
+      defined.delete(name);
+    }
+  }
+
+  if (inactiveDepth > 0 && inactiveStart) {
+    const lastLine = document.lineAt(Math.max(0, document.lineCount - 1));
+    ranges.push(new vscode.Range(inactiveStart, lastLine.range.end));
+  }
+
+  return ranges;
+}
+
 export function activate(context: vscode.ExtensionContext) {
+  const inactiveBranchDecoration = vscode.window.createTextEditorDecorationType({
+    opacity: "0.45"
+  });
+
+  const updateInactiveBranches = (editor?: vscode.TextEditor) => {
+    if (!editor || editor.document.languageId !== "cpl") return;
+    editor.setDecorations(inactiveBranchDecoration, inactivePreprocessorRanges(editor.document));
+  };
+
+  const updateVisibleInactiveBranches = () => {
+    for (const editor of vscode.window.visibleTextEditors) updateInactiveBranches(editor);
+  };
+
+  context.subscriptions.push(
+    inactiveBranchDecoration,
+    vscode.window.onDidChangeActiveTextEditor((editor) => updateInactiveBranches(editor)),
+    vscode.window.onDidChangeVisibleTextEditors(() => updateVisibleInactiveBranches()),
+    vscode.workspace.onDidChangeTextDocument((event) => {
+      for (const editor of vscode.window.visibleTextEditors) {
+        if (editor.document === event.document) updateInactiveBranches(editor);
+      }
+    })
+  );
+  updateVisibleInactiveBranches();
+
   const keywords = [
     "start","exit","function","container","return",
     "if","else","while","loop","switch","case","default",

@@ -22,3 +22,8 @@ If you'd prefer the Docker as a base for the building, execute the next querry:
 docker build -t cpl-extension .
 docker run --rm -v $(pwd):/app -v $(pwd)/output:/output cpl-extension
 ```
+
+From the repository root, the same flow is available through Make:
+```bash
+make vscode-docker-package
+```

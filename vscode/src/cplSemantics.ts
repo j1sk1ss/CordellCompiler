@@ -132,6 +132,15 @@ export type SizeofSite = {
   size: number | null;
 };
 
+export type DocCommentLink = {
+  range: Range;
+  filePath?: string;
+  targetName: string;
+  targetRange: Range;
+  targetFilePath?: string;
+  doc: string;
+};
+
 export function sizeofType(t: TypeNode, opts?: { pointerSize?: number }): number | undefined {
   const pointerSize = opts?.pointerSize ?? 8;
 
@@ -347,6 +356,7 @@ export class SemanticContext {
   callSites: CallSite[] = [];
   indirectCallSites: IndirectCallSite[] = [];
   sizeofSites: SizeofSite[] = [];
+  docLinks: DocCommentLink[] = [];
 
   private currentFilePath: string | undefined;
   private scope: Scope = new Scope();
@@ -361,6 +371,17 @@ export class SemanticContext {
 
   getCurrentFilePath(): string | undefined {
     return this.currentFilePath;
+  }
+
+  linkDocComment(range: Range, doc: string, targetName: string, targetRange: Range, targetFilePath?: string) {
+    this.docLinks.push({
+      range,
+      filePath: this.currentFilePath,
+      targetName,
+      targetRange,
+      targetFilePath: targetFilePath ?? this.currentFilePath,
+      doc
+    });
   }
 
   hasContainer(name: string): boolean {
@@ -621,14 +642,7 @@ export class SemanticContext {
 
     if (!macroConditionsSatisfiable(conditions)) return;
 
-    const compatiblePrevious = this.macroDecls.find((m) =>
-      m.name === name && macroConditionsCompatible(m.conditions, conditions)
-    );
-
-    if (compatiblePrevious) {
-      this.issues.push({ message: `Macro '${name}' already defined`, range: nameRange });
-      return;
-    }
+    if (this.macros.has(name)) return;
 
     const sym: MacroSym = {
       kind: "macro",
@@ -647,6 +661,14 @@ export class SemanticContext {
     }
 
     this.macroDecls.push(sym);
+  }
+
+  undefMacro(name: string) {
+    this.macros.delete(name);
+  }
+
+  isMacroDefined(name: string): boolean {
+    return this.macros.has(name);
   }
 
   useMacro(name: string, range: Range) {

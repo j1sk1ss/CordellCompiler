@@ -1,5 +1,6 @@
 import { Range, Position } from "vscode-languageserver/node";
 import { SemanticContext, MacroValue, TypeNode, MacroCondition } from "./cplSemantics";
+import { CplPredefinedMacro } from "./cplTarget";
 
 function buildLineStarts(text: string): number[] {
   const starts = [0];
@@ -430,6 +431,7 @@ class Parser {
   private lines: number[];
   private sem?: SemanticContext;
   private pendingDoc: string | undefined;
+  private pendingDocRanges: Range[] = [];
   private pendingAnnotations: string[] = [];
   private ppConditionStack: MacroCondition[];
 
@@ -585,7 +587,31 @@ class Parser {
     }
   }
 
+  private captureDocComment(tok: Token) {
+    const doc = unwrapDocComment(tok.text);
+    if (!doc) return;
+
+    this.pendingDoc = this.pendingDoc ? (this.pendingDoc + "\n" + doc) : doc;
+    this.pendingDocRanges.push(rangeOf(this.lines, tok.start, tok.end));
+  }
+
+  private linkPendingDoc(targetName: string, targetRange: Range, doc = this.pendingDoc) {
+    if (!doc?.trim()) return;
+
+    for (const range of this.pendingDocRanges) {
+      this.sem?.linkDocComment(range, doc, targetName, targetRange);
+    }
+
+    this.clearPendingDoc();
+  }
+
+  private clearPendingDoc() {
+    this.pendingDoc = undefined;
+    this.pendingDocRanges = [];
+  }
+
   private clearPendingMetadata() {
+    this.clearPendingDoc();
     this.pendingAnnotations = [];
   }
 
@@ -707,9 +733,7 @@ class Parser {
     if (this.atRaw("comment")) {
       const tok = this.curRaw();
       this.i++;
-
-      const doc = unwrapDocComment(tok.text);
-      if (doc) this.pendingDoc = this.pendingDoc ? (this.pendingDoc + "\n" + doc) : doc;
+      this.captureDocComment(tok);
       return;
     }
 
@@ -929,10 +953,6 @@ class Parser {
           if (this.includeSeen.has(res.filePath)) return;
           this.includeSeen.add(res.filePath);
 
-          if (this.sem) {
-            collectDefines(res.text, this.sem, res.filePath, this.currentPPConditions());
-          }
-
           const p2 = new Parser(res.text, this.sem, this.include, this.includeSeen, res.filePath, this.currentPPConditions());
           p2.run();
         }
@@ -941,14 +961,20 @@ class Parser {
       }              
 
       case "undef":
-        this.expect("ident", undefined, "#undef: expected identifier");
+        if (this.expect("ident", undefined, "#undef: expected identifier")) {
+          this.sem?.undefMacro(this.prev().text);
+        }
         this.consumePPLineEnd();
         return;
 
       case "ifdef": {
         const condTok = this.cur();
         if (this.expect("ident", undefined, "#ifdef: expected identifier")) {
-          this.ppConditionStack.push({ name: condTok.text, isDefined: true });
+          this.sem?.useMacro(condTok.text, rangeOf(this.lines, condTok.start, condTok.end));
+          const isActive = this.sem?.isMacroDefined(condTok.text) ?? false;
+          this.consumePPLineEnd();
+          if (!isActive) this.skipInactivePPBlock();
+          return;
         }
         this.consumePPLineEnd();
         return;
@@ -957,24 +983,49 @@ class Parser {
       case "ifndef": {
         const condTok = this.cur();
         if (this.expect("ident", undefined, "#ifndef: expected identifier")) {
-          this.ppConditionStack.push({ name: condTok.text, isDefined: false });
+          this.sem?.useMacro(condTok.text, rangeOf(this.lines, condTok.start, condTok.end));
+          const isActive = !(this.sem?.isMacroDefined(condTok.text) ?? false);
+          this.consumePPLineEnd();
+          if (!isActive) this.skipInactivePPBlock();
+          return;
         }
         this.consumePPLineEnd();
         return;
       }
 
       case "endif":
-        if (this.ppConditionStack.length > 0) this.ppConditionStack.pop();
         this.consumePPLineEnd();
         return;
 
-      case "define":
-        this.expect("ident", undefined, "#define: expected identifier");
+      case "define": {
+        const nameTok = this.cur();
+        if (!this.expect("ident", undefined, "#define: expected identifier")) {
+          this.consumePPLineEnd();
+          return;
+        }
+
+        const valueStartTok = this.curRaw();
+        const valueStart = valueStartTok.start;
+        let valueEnd = valueStart;
+        const valueParts: string[] = [];
+
         while (!this.atRaw("eof") && !this.atRaw("eol") && !this.atRaw("punc", ";")) {
+          const tok = this.curRaw();
+          valueParts.push(tok.text);
+          valueEnd = tok.end;
           this.i++;
         }
+
+        this.sem?.defineMacro(
+          nameTok.text,
+          parseMacroValue(valueParts.join(" ").trim()),
+          rangeOf(this.lines, nameTok.start, nameTok.end),
+          rangeOf(this.lines, valueStart, valueEnd)
+        );
+
         this.consumePPLineEnd();
         return;
+      }
 
       default:
         this.issues.push({
@@ -986,6 +1037,43 @@ class Parser {
         this.consumePPLineEnd();
         return;
     }
+  }
+
+  private nextRawNonEolIndex(index: number): number {
+    let j = index;
+    while (j < this.t.length && this.t[j].kind === "eol") j++;
+    return j;
+  }
+
+  private skipInactivePPBlock() {
+    let depth = 1;
+    let j = this.i;
+
+    while (j < this.t.length && this.t[j].kind !== "eof" && depth > 0) {
+      const tok = this.t[j];
+
+      if (tok.kind === "punc" && tok.text === "#") {
+        const dirIndex = this.nextRawNonEolIndex(j + 1);
+        const dirTok = this.t[dirIndex];
+
+        if (dirTok?.kind === "kw") {
+          if (dirTok.text === "ifdef" || dirTok.text === "ifndef") {
+            depth++;
+          } else if (dirTok.text === "endif") {
+            depth--;
+            if (depth === 0) {
+              this.i = j;
+              this.parsePPDirective();
+              return;
+            }
+          }
+        }
+      }
+
+      j++;
+    }
+
+    this.i = j;
   }
 
   private consumePPLineEnd() {
@@ -1208,11 +1296,13 @@ class Parser {
     const fnRange = rangeOf(this.lines, nameTok.start, this.prev().end);
 
     if (this.match("punc", ";")) {
+      this.linkPendingDoc(containerName ? `${containerName}::${fnName}` : fnName, fnRange, doc);
       if (containerName) this.sem?.declareContainerMethod(containerName, fnName, paramsInfo, ret, fnRange, false, doc, typeParams, { self: hasSelfAnnotation });
       else this.sem?.declareFunc(fnName, paramsInfo, ret, fnRange, false, doc, typeParams);
       return;
     }
 
+    this.linkPendingDoc(containerName ? `${containerName}::${fnName}` : fnName, fnRange, doc);
     if (containerName) this.sem?.declareContainerMethod(containerName, fnName, paramsInfo, ret, fnRange, true, doc, typeParams, { self: hasSelfAnnotation });
     else this.sem?.declareFunc(fnName, paramsInfo, ret, fnRange, true, doc, typeParams);
 
@@ -1234,14 +1324,14 @@ class Parser {
     const containerRange = rangeOf(this.lines, nameTok.start, nameTok.end);
 
     this.sem?.declareContainer(containerName, containerRange, doc);
+    this.linkPendingDoc(containerName, containerRange, doc);
 
     this.expect("punc", "{", "container: expected '{'");
     while (!this.at("eof") && !this.at("punc", "}")) {
       if (this.atRaw("comment")) {
         const tok = this.curRaw();
         this.i++;
-        const itemDoc = unwrapDocComment(tok.text);
-        if (itemDoc) this.pendingDoc = this.pendingDoc ? (this.pendingDoc + "\n" + itemDoc) : itemDoc;
+        this.captureDocComment(tok);
         continue;
       }
 
@@ -1301,10 +1391,12 @@ class Parser {
     const fnRange = rangeOf(this.lines, nameTok.start, this.prev().end);
 
     if (this.match("punc", ";")) {
+      this.linkPendingDoc(`${containerName}::${fnName}`, fnRange, doc);
       this.sem?.declareContainerMethod(containerName, fnName, paramsInfo, ret, fnRange, false, doc, typeParams, { self: hasSelfAnnotation });
       return;
     }
 
+    this.linkPendingDoc(`${containerName}::${fnName}`, fnRange, doc);
     this.sem?.declareContainerMethod(containerName, fnName, paramsInfo, ret, fnRange, true, doc, typeParams, { self: hasSelfAnnotation });
 
     this.sem?.enterScope();
@@ -1323,6 +1415,7 @@ class Parser {
     if (this.looksLikeArrDeclForm()) {
       const arr = this.parseArrDeclHeader("container arr field");
       this.sem?.declareContainerField(containerName, arr.name, arr.type, arr.range, { readonly: mods.isReadonly });
+      this.linkPendingDoc(`${containerName}.${arr.name}`, arr.range);
       this.parseOptionalArrayInitializer();
       this.consumeStmtEnd("container arr field: expected ';' or end-of-line");
       return;
@@ -1335,6 +1428,7 @@ class Parser {
 
     const declRange = rangeOf(this.lines, nameTok.start, nameTok.end);
     this.sem?.declareContainerField(containerName, fieldName, fieldType, declRange, { readonly: mods.isReadonly });
+    this.linkPendingDoc(`${containerName}.${fieldName}`, declRange);
 
     if (this.match("op", "=")) this.parseExpression();
     this.consumeStmtEnd("container field: expected ';' or end-of-line");
@@ -1368,9 +1462,10 @@ class Parser {
       this.expect("punc", ";", "extern function: expected ';'");
 
       const fnRange = rangeOf(this.lines, nameTok.start, this.prev().end);
-      if (containerName) this.sem?.declareContainerMethod(containerName, fnName, params, ret, fnRange, false, this.pendingDoc, typeParams, { self: hasSelfAnnotation });
-      else this.sem?.declareFunc(fnName, params, ret, fnRange, false, this.pendingDoc, typeParams);
-      this.pendingDoc = undefined;
+      const doc = this.pendingDoc;
+      this.linkPendingDoc(containerName ? `${containerName}::${fnName}` : fnName, fnRange, doc);
+      if (containerName) this.sem?.declareContainerMethod(containerName, fnName, params, ret, fnRange, false, doc, typeParams, { self: hasSelfAnnotation });
+      else this.sem?.declareFunc(fnName, params, ret, fnRange, false, doc, typeParams);
       return;
     }
 
@@ -1382,6 +1477,7 @@ class Parser {
     this.match("punc", ";");
     if (nameTok.kind === "ident") {
       this.sem?.declareExternGlobalVar(vName, vType, vRange);
+      this.linkPendingDoc(vName, vRange);
     }
     this.pendingDoc = undefined;
   }
@@ -1397,8 +1493,7 @@ class Parser {
         if (this.atRaw("comment")) {
           const tok = this.curRaw();
           this.i++;
-          const doc = unwrapDocComment(tok.text);
-          if (doc) this.pendingDoc = this.pendingDoc ? (this.pendingDoc + "\n" + doc) : doc;
+          this.captureDocComment(tok);
           continue;
         }
         if (this.atRaw("punc", "@")) {
@@ -1452,8 +1547,7 @@ class Parser {
       if (this.atRaw("comment")) {
         const tok = this.curRaw();
         this.i++;
-        const doc = unwrapDocComment(tok.text);
-        if (doc) this.pendingDoc = this.pendingDoc ? (this.pendingDoc + "\n" + doc) : doc;
+        this.captureDocComment(tok);
         continue;
       }
 
@@ -1565,8 +1659,7 @@ class Parser {
     if (this.atRaw("comment")) {
       const tok = this.curRaw();
       this.i++;
-      const doc = unwrapDocComment(tok.text);
-      if (doc) this.pendingDoc = this.pendingDoc ? (this.pendingDoc + "\n" + doc) : doc;
+      this.captureDocComment(tok);
       return;
     }
 
@@ -1832,6 +1925,7 @@ class Parser {
       const arr = this.parseArrDeclHeader("arr_decl");
       if (isTopLevel) this.sem?.declareGlobalVar(arr.name, arr.type, arr.range, { readonly: mods.isReadonly });
       else this.sem?.declareLocalVar(arr.name, arr.type, arr.range, { readonly: mods.isReadonly });
+      this.linkPendingDoc(arr.name, arr.range);
 
       this.parseOptionalArrayInitializer();
       this.consumeStmtEnd("arr_decl: expected ';' or end-of-line");
@@ -1847,6 +1941,7 @@ class Parser {
     const declRange = rangeOf(this.lines, nameTok.start, nameTok.end);
     if (isTopLevel) this.sem?.declareGlobalVar(vName, vType, declRange, { readonly: mods.isReadonly });
     else this.sem?.declareLocalVar(vName, vType, declRange, { readonly: mods.isReadonly });
+    this.linkPendingDoc(vName, declRange);
 
     if (this.match("op", "=")) this.parseExpression();
     this.consumeStmtEnd("var_decl: expected ';' or end-of-line");
@@ -2312,6 +2407,10 @@ class Parser {
 export type IncludeResolverResult = { text: string; filePath: string };
 export type IncludeResolver = (includePath: string, fromFilePath?: string, isSystemInclude?: boolean) => IncludeResolverResult | undefined;
 
+export type AnalyzeOptions = {
+  predefines?: CplPredefinedMacro[];
+};
+
 export function parseAndDiagnose(text: string): ParseIssue[] {
   const sem = new SemanticContext();
   const p = new Parser(text, sem);
@@ -2321,9 +2420,14 @@ export function parseAndDiagnose(text: string): ParseIssue[] {
   return [...syntax, ...semantic];
 }
 
-export function analyze(text: string, include?: IncludeResolver, filePath?: string) {
+export function analyze(text: string, include?: IncludeResolver, filePath?: string, options: AnalyzeOptions = {}) {
   const sem = new SemanticContext();
-  collectDefines(text, sem, filePath);
+
+  for (const macro of options.predefines ?? []) {
+    const range = Range.create(Position.create(0, 0), Position.create(0, 0));
+    sem.defineMacro(macro.name, parseMacroValue(macro.value), range, range, { doc: macro.doc });
+  }
+
   const p = new Parser(text, sem, include, new Set<string>(), filePath);
   const syntax = p.run();
   sem.finish();
