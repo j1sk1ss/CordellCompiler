@@ -3,84 +3,167 @@
 
 #include "platform_h.cpl"
 
+:/ Checks whether a character is alphanumeric.
+- `c`:[i32] - Character value represented as an unsigned byte or end-of-file marker.
+
+Returns a nonzero value when the character satisfies the test, otherwise zero:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_isalnum")] @[abi] extern function isalnum(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function isalnum(i32 c) -> i32;
 #endif
+
+:/ Checks whether a character is alphabetic.
+- `c`:[i32] - Character value represented as an unsigned byte or end-of-file marker.
+
+Returns a nonzero value when the character satisfies the test, otherwise zero:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_isalpha")] @[abi] extern function isalpha(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function isalpha(i32 c) -> i32;
 #endif
+
+:/ Checks whether a character is a blank character.
+- `c`:[i32] - Character value represented as an unsigned byte or end-of-file marker.
+
+Returns a nonzero value when the character satisfies the test, otherwise zero:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_isblank")] @[abi] extern function isblank(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function isblank(i32 c) -> i32;
 #endif
+
+:/ Checks whether a character is a control character.
+- `c`:[i32] - Character value represented as an unsigned byte or end-of-file marker.
+
+Returns a nonzero value when the character satisfies the test, otherwise zero:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_iscntrl")] @[abi] extern function iscntrl(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function iscntrl(i32 c) -> i32;
 #endif
+
+:/ Checks whether a character is a decimal digit.
+- `c`:[i32] - Character value represented as an unsigned byte or end-of-file marker.
+
+Returns a nonzero value when the character satisfies the test, otherwise zero:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_isdigit")] @[abi] extern function isdigit(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function isdigit(i32 c) -> i32;
 #endif
+
+:/ Checks whether a character has a visible graphical representation.
+- `c`:[i32] - Character value represented as an unsigned byte or end-of-file marker.
+
+Returns a nonzero value when the character satisfies the test, otherwise zero:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_isgraph")] @[abi] extern function isgraph(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function isgraph(i32 c) -> i32;
 #endif
+
+:/ Checks whether a character is lowercase.
+- `c`:[i32] - Character value represented as an unsigned byte or end-of-file marker.
+
+Returns a nonzero value when the character satisfies the test, otherwise zero:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_islower")] @[abi] extern function islower(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function islower(i32 c) -> i32;
 #endif
+
+:/ Checks whether a character is printable, including spaces.
+- `c`:[i32] - Character value represented as an unsigned byte or end-of-file marker.
+
+Returns a nonzero value when the character satisfies the test, otherwise zero:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_isprint")] @[abi] extern function isprint(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function isprint(i32 c) -> i32;
 #endif
+
+:/ Checks whether a character is punctuation.
+- `c`:[i32] - Character value represented as an unsigned byte or end-of-file marker.
+
+Returns a nonzero value when the character satisfies the test, otherwise zero:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_ispunct")] @[abi] extern function ispunct(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function ispunct(i32 c) -> i32;
 #endif
+
+:/ Checks whether a character is whitespace.
+- `c`:[i32] - Character value represented as an unsigned byte or end-of-file marker.
+
+Returns a nonzero value when the character satisfies the test, otherwise zero:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_isspace")] @[abi] extern function isspace(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function isspace(i32 c) -> i32;
 #endif
+
+:/ Checks whether a character is uppercase.
+- `c`:[i32] - Character value represented as an unsigned byte or end-of-file marker.
+
+Returns a nonzero value when the character satisfies the test, otherwise zero:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_isupper")] @[abi] extern function isupper(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function isupper(i32 c) -> i32;
 #endif
+
+:/ Checks whether a character is a hexadecimal digit.
+- `c`:[i32] - Character value represented as an unsigned byte or end-of-file marker.
+
+Returns a nonzero value when the character satisfies the test, otherwise zero:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_isxdigit")] @[abi] extern function isxdigit(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function isxdigit(i32 c) -> i32;
 #endif
+
+:/ Converts an uppercase character to lowercase when possible.
+- `c`:[i32] - Character value represented as an unsigned byte or end-of-file marker.
+
+Returns the converted lowercase character, or the original character when no conversion exists:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_tolower")] @[abi] extern function tolower(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function tolower(i32 c) -> i32;
 #endif
+
+:/ Converts a lowercase character to uppercase when possible.
+- `c`:[i32] - Character value represented as an unsigned byte or end-of-file marker.
+
+Returns the converted uppercase character, or the original character when no conversion exists:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_toupper")] @[abi] extern function toupper(i32 c) -> i32;
 #endif

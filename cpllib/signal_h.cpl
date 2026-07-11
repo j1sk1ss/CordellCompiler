@@ -74,12 +74,24 @@
 #define SIGSYS  31
 #endif
 
+:/ Installs a handler for a signal.
+- `sig`:[i32] - Signal number.
+- `handler`:[ptr i0] - Pointer to the signal handler or a special handler constant.
+
+Returns the previous signal handler on success, otherwise the signal-error value:[ptr i0]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_signal")] @[abi] extern function signal(i32 sig, ptr i0 handler) -> ptr i0;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function signal(i32 sig, ptr i0 handler) -> ptr i0;
 #endif
+
+:/ Sends a signal to the calling process.
+- `sig`:[i32] - Signal number.
+
+Returns zero on success, otherwise a nonzero error value:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_raise")] @[abi] extern function raise(i32 sig) -> i32;
 #endif

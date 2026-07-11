@@ -3,36 +3,65 @@
 
 #include "platform_h.cpl"
 
-#define NULL 0
+#define NULL (0 as ptr i0)
 
+:/ Provides opaque storage for a C-compatible stream handle.
+- `_opaque`:[i64] - Opaque implementation storage not intended for direct access.
+/:
 @[like_c]
 container FILE {
     i64 _opaque;
 }
 
+:/ Provides opaque storage for a locale handle.
+- `_opaque`:[i64] - Opaque implementation storage not intended for direct access.
+/:
 @[like_c]
 container cpl_locale {
     i64 _opaque;
 }
 
+:/ Stores the quotient and remainder of signed integer division.
+- `quot`:[i32] - Integer quotient.
+- `rem`:[i32] - Integer remainder.
+/:
 @[like_c]
 container c_div {
     i32 quot;
     i32 rem;
 }
 
+:/ Stores the quotient and remainder of signed long-integer division.
+- `quot`:[i64] - Long-integer quotient.
+- `rem`:[i64] - Long-integer remainder.
+/:
 @[like_c]
 container c_ldiv {
     i64 quot;
     i64 rem;
 }
 
+:/ Stores the quotient and remainder of signed long-long-integer division.
+- `quot`:[i64] - Long-long-integer quotient.
+- `rem`:[i64] - Long-long-integer remainder.
+/:
 @[like_c]
 container c_lldiv {
     i64 quot;
     i64 rem;
 }
 
+:/ Stores a calendar date and time split into individual components.
+- `tm_sec`:[i32] - Seconds after the minute, normally in the range 0 through 60.
+- `tm_min`:[i32] - Minutes after the hour, in the range 0 through 59.
+- `tm_hour`:[i32] - Hours after midnight, in the range 0 through 23.
+- `tm_mday`:[i32] - Day of the month, in the range 1 through 31.
+- `tm_mon`:[i32] - Months since January, in the range 0 through 11.
+- `tm_year`:[i32] - Years since 1900.
+- `tm_wday`:[i32] - Days since Sunday, in the range 0 through 6.
+- `tm_yday`:[i32] - Days since January 1, in the range 0 through 365.
+- `tm_isdst`:[i32] - Daylight-saving-time flag: positive when active, zero when inactive, negative when unknown.
+/:
 @[like_c]
 container c_tm {
     i32 tm_sec;
@@ -46,12 +75,36 @@ container c_tm {
     i32 tm_isdst;
 }
 
+:/ Stores a time interval or timestamp with nanosecond precision.
+- `tv_sec`:[i64] - Whole seconds.
+- `tv_nsec`:[i64] - Additional nanoseconds.
+/:
 @[like_c]
 container c_timespec {
     i64 tv_sec;
     i64 tv_nsec;
 }
 
+:/ Stores locale-specific numeric and monetary formatting conventions.
+- `decimal_point`:[ptr i8] - Decimal-point string for non-monetary values.
+- `thousands_sep`:[ptr i8] - Thousands-separator string for non-monetary values.
+- `grouping`:[ptr i8] - Digit-grouping pattern for non-monetary values.
+- `int_curr_symbol`:[ptr i8] - International currency symbol and separator.
+- `currency_symbol`:[ptr i8] - Local currency symbol.
+- `mon_decimal_point`:[ptr i8] - Decimal-point string for monetary values.
+- `mon_thousands_sep`:[ptr i8] - Thousands-separator string for monetary values.
+- `mon_grouping`:[ptr i8] - Digit-grouping pattern for monetary values.
+- `positive_sign`:[ptr i8] - Sign string used for non-negative monetary values.
+- `negative_sign`:[ptr i8] - Sign string used for negative monetary values.
+- `int_frac_digits`:[i8] - Number of fractional digits for international monetary formatting.
+- `frac_digits`:[i8] - Number of fractional digits for local monetary formatting.
+- `p_cs_precedes`:[i8] - Indicates whether the currency symbol precedes a non-negative value.
+- `p_sep_by_space`:[i8] - Indicates whether a space separates the currency symbol and a non-negative value.
+- `n_cs_precedes`:[i8] - Indicates whether the currency symbol precedes a negative value.
+- `n_sep_by_space`:[i8] - Indicates whether a space separates the currency symbol and a negative value.
+- `p_sign_posn`:[i8] - Placement rule for the sign of a non-negative monetary value.
+- `n_sign_posn`:[i8] - Placement rule for the sign of a negative monetary value.
+/:
 @[like_c]
 container c_lconv {
     ptr i8 decimal_point;

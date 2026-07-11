@@ -36,24 +36,47 @@ extern ptr FILE stdout;
 extern ptr FILE stderr;
 #endif
 
+:/ Removes a file or an empty directory.
+- `path`:[ptr i8] - Null-terminated path to the target filesystem object.
+
+Returns zero on success, otherwise a nonzero value:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_remove")] @[abi] extern function remove(ptr i8 path) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function remove(ptr i8 path) -> i32;
 #endif
+
+:/ Renames or moves a filesystem object.
+- `old_path`:[ptr i8] - Null-terminated path of the existing filesystem object.
+- `new_path`:[ptr i8] - Null-terminated destination path.
+
+Returns zero on success, otherwise a nonzero value:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_rename")] @[abi] extern function rename(ptr i8 old_path, ptr i8 new_path) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function rename(ptr i8 old_path, ptr i8 new_path) -> i32;
 #endif
+
+:/ Creates and opens a temporary binary file that is removed automatically.
+
+Returns a pointer to the temporary stream, or a null pointer on failure:[ptr FILE]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_tmpfile")] @[abi] extern function tmpfile() -> ptr FILE;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function tmpfile() -> ptr FILE;
 #endif
+
+:/ Generates a name that can be used for a temporary file.
+- `s`:[ptr i8] - Optional caller-provided buffer for the generated name.
+
+Returns a pointer to the generated name, or a null pointer on failure:[ptr i8]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_tmpnam")] @[abi] extern function tmpnam(ptr i8 s) -> ptr i8;
 #endif
@@ -61,36 +84,78 @@ extern ptr FILE stderr;
 @[abi] extern function tmpnam(ptr i8 s) -> ptr i8;
 #endif
 
+:/ Flushes and closes a stream.
+- `stream`:[ptr FILE] - Pointer to the stream.
+
+Returns zero on success, otherwise an end-of-file marker:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_fclose")] @[abi] extern function fclose(ptr FILE stream) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function fclose(ptr FILE stream) -> i32;
 #endif
+
+:/ Flushes buffered output for a stream.
+- `stream`:[ptr FILE] - Pointer to the stream.
+
+Returns zero on success, otherwise an end-of-file marker:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_fflush")] @[abi] extern function fflush(ptr FILE stream) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function fflush(ptr FILE stream) -> i32;
 #endif
+
+:/ Opens a file and associates it with a stream.
+- `path`:[ptr i8] - Null-terminated path to the target filesystem object.
+- `mode`:[ptr i8] - Mode value controlling access, creation permissions, or stream behavior.
+
+Returns a pointer to the opened stream, or a null pointer on failure:[ptr FILE]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_fopen")] @[abi] extern function fopen(ptr i8 path, ptr i8 mode) -> ptr FILE;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function fopen(ptr i8 path, ptr i8 mode) -> ptr FILE;
 #endif
+
+:/ Reopens a file and associates it with an existing stream.
+- `path`:[ptr i8] - Null-terminated path to the target filesystem object.
+- `mode`:[ptr i8] - Mode value controlling access, creation permissions, or stream behavior.
+- `stream`:[ptr FILE] - Pointer to the stream.
+
+Returns a pointer to the reopened stream, or a null pointer on failure:[ptr FILE]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_freopen")] @[abi] extern function freopen(ptr i8 path, ptr i8 mode, ptr FILE stream) -> ptr FILE;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function freopen(ptr i8 path, ptr i8 mode, ptr FILE stream) -> ptr FILE;
 #endif
+
+:/ Configures buffering for a stream using a caller-provided buffer.
+- `stream`:[ptr FILE] - Pointer to the stream.
+- `buf`:[ptr i8] - Buffer to use, or a null pointer to disable buffering.
+
+Returns nothing:[i0]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_setbuf")] @[abi] extern function setbuf(ptr FILE stream, ptr i8 buf) -> i0;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function setbuf(ptr FILE stream, ptr i8 buf) -> i0;
 #endif
+
+:/ Configures the buffering mode and buffer for a stream.
+- `stream`:[ptr FILE] - Pointer to the stream.
+- `buf`:[ptr i8] - Buffer to use, or a null pointer to let the runtime allocate one.
+- `mode`:[i32] - Requested buffering mode.
+- `size`:[u64] - Size of one object, allocation, or buffer in bytes.
+
+Returns zero on success, otherwise a nonzero value:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_setvbuf")] @[abi] extern function setvbuf(ptr FILE stream, ptr i8 buf, i32 mode, u64 size) -> i32;
 #endif
@@ -98,42 +163,96 @@ extern ptr FILE stderr;
 @[abi] extern function setvbuf(ptr FILE stream, ptr i8 buf, i32 mode, u64 size) -> i32;
 #endif
 
+:/ Writes formatted output to a stream.
+- `stream`:[ptr FILE] - Pointer to the stream.
+- `fmt`:[ptr i8] - Null-terminated output format string.
+- `variadic_arguments`:[...] - Additional arguments required by the selected operation or format string.
+
+Returns the number of characters written, or a negative value on failure:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_fprintf")] @[abi] extern function fprintf(ptr FILE stream, ptr i8 fmt, ...) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function fprintf(ptr FILE stream, ptr i8 fmt, ...) -> i32;
 #endif
+
+:/ Reads formatted input from a stream.
+- `stream`:[ptr FILE] - Pointer to the stream.
+- `fmt`:[ptr i8] - Null-terminated input format string.
+- `variadic_arguments`:[...] - Additional arguments required by the selected operation or format string.
+
+Returns the number of successfully assigned input items, or an end-of-file marker:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_fscanf")] @[abi] extern function fscanf(ptr FILE stream, ptr i8 fmt, ...) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function fscanf(ptr FILE stream, ptr i8 fmt, ...) -> i32;
 #endif
+
+:/ Writes formatted output to standard output.
+- `fmt`:[ptr i8] - Null-terminated output format string.
+- `variadic_arguments`:[...] - Additional arguments required by the selected operation or format string.
+
+Returns the number of characters written, or a negative value on failure:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_printf")] @[abi] extern function printf(ptr i8 fmt, ...) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function printf(ptr i8 fmt, ...) -> i32;
 #endif
+
+:/ Reads formatted input from standard input.
+- `fmt`:[ptr i8] - Null-terminated input format string.
+- `variadic_arguments`:[...] - Additional arguments required by the selected operation or format string.
+
+Returns the number of successfully assigned input items, or an end-of-file marker:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_scanf")] @[abi] extern function scanf(ptr i8 fmt, ...) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function scanf(ptr i8 fmt, ...) -> i32;
 #endif
+
+:/ Writes formatted output to a size-limited byte buffer.
+- `s`:[ptr i8] - Destination byte buffer.
+- `n`:[u64] - Total capacity of the destination buffer, including the terminating null byte.
+- `fmt`:[ptr i8] - Null-terminated output format string.
+- `variadic_arguments`:[...] - Additional arguments required by the selected operation or format string.
+
+Returns the number of characters that would have been written, excluding the terminator, or a negative value on failure:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_snprintf")] @[abi] extern function snprintf(ptr i8 s, u64 n, ptr i8 fmt, ...) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function snprintf(ptr i8 s, u64 n, ptr i8 fmt, ...) -> i32;
 #endif
+
+:/ Writes formatted output to a byte buffer.
+- `s`:[ptr i8] - Destination byte buffer.
+- `fmt`:[ptr i8] - Null-terminated output format string.
+- `variadic_arguments`:[...] - Additional arguments required by the selected operation or format string.
+
+Returns the number of characters written, excluding the terminator, or a negative value on failure:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_sprintf")] @[abi] extern function sprintf(ptr i8 s, ptr i8 fmt, ...) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function sprintf(ptr i8 s, ptr i8 fmt, ...) -> i32;
 #endif
+
+:/ Reads formatted input from a byte string.
+- `s`:[ptr i8] - Null-terminated input byte string.
+- `fmt`:[ptr i8] - Null-terminated input format string.
+- `variadic_arguments`:[...] - Additional arguments required by the selected operation or format string.
+
+Returns the number of successfully assigned input items, or an end-of-file marker:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_sscanf")] @[abi] extern function sscanf(ptr i8 s, ptr i8 fmt, ...) -> i32;
 #endif
@@ -141,66 +260,136 @@ extern ptr FILE stderr;
 @[abi] extern function sscanf(ptr i8 s, ptr i8 fmt, ...) -> i32;
 #endif
 
+:/ Reads one character from a stream.
+- `stream`:[ptr FILE] - Pointer to the stream.
+
+Returns the read character as an unsigned byte, or an end-of-file marker:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_fgetc")] @[abi] extern function fgetc(ptr FILE stream) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function fgetc(ptr FILE stream) -> i32;
 #endif
+
+:/ Reads at most a specified number of characters from a stream.
+- `s`:[ptr i8] - Destination byte buffer.
+- `n`:[i32] - Maximum buffer size, including the terminating null byte.
+- `stream`:[ptr FILE] - Pointer to the stream.
+
+Returns the destination buffer on success, otherwise a null pointer:[ptr i8]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_fgets")] @[abi] extern function fgets(ptr i8 s, i32 n, ptr FILE stream) -> ptr i8;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function fgets(ptr i8 s, i32 n, ptr FILE stream) -> ptr i8;
 #endif
+
+:/ Writes one character to a stream.
+- `c`:[i32] - Character value to write, converted to an unsigned byte.
+- `stream`:[ptr FILE] - Pointer to the stream.
+
+Returns the written character on success, otherwise an end-of-file marker:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_fputc")] @[abi] extern function fputc(i32 c, ptr FILE stream) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function fputc(i32 c, ptr FILE stream) -> i32;
 #endif
+
+:/ Writes a null-terminated byte string to a stream.
+- `s`:[ptr i8] - Pointer to an input string or caller-provided output buffer.
+- `stream`:[ptr FILE] - Pointer to the stream.
+
+Returns a non-negative value on success, otherwise an end-of-file marker:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_fputs")] @[abi] extern function fputs(ptr i8 s, ptr FILE stream) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function fputs(ptr i8 s, ptr FILE stream) -> i32;
 #endif
+
+:/ Reads one character from a stream.
+- `stream`:[ptr FILE] - Pointer to the stream.
+
+Returns the read character as an unsigned byte, or an end-of-file marker:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_getc")] @[abi] extern function getc(ptr FILE stream) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function getc(ptr FILE stream) -> i32;
 #endif
+
+:/ Reads one character from standard input.
+
+Returns the read character as an unsigned byte, or an end-of-file marker:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_getchar")] @[abi] extern function getchar() -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function getchar() -> i32;
 #endif
+
+:/ Reads a line of input into a caller-provided buffer.
+- `s`:[ptr i8] - Pointer to an input string or caller-provided output buffer.
+
+Returns the destination buffer on success, otherwise a null pointer:[ptr i8]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_gets")] @[abi] extern function gets(ptr i8 s) -> ptr i8;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function gets(ptr i8 s) -> ptr i8;
 #endif
+
+:/ Writes one character to an output destination.
+- `c`:[i32] - Character value to write, converted to an unsigned byte.
+- `stream`:[ptr FILE] - Pointer to the stream.
+
+Returns the written character on success, otherwise an end-of-file marker:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_putc")] @[abi] extern function putc(i32 c, ptr FILE stream) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function putc(i32 c, ptr FILE stream) -> i32;
 #endif
+
+:/ Writes one character to standard output.
+- `c`:[i32] - Character value to write, converted to an unsigned byte.
+
+Returns the written character on success, otherwise an end-of-file marker:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_putchar")] @[abi] extern function putchar(i32 c) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function putchar(i32 c) -> i32;
 #endif
+
+:/ Writes a byte string followed by a newline to standard output.
+- `s`:[ptr i8] - Pointer to an input string or caller-provided output buffer.
+
+Returns a non-negative value on success, otherwise an end-of-file marker:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_puts")] @[abi] extern function puts(ptr i8 s) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function puts(ptr i8 s) -> i32;
 #endif
+
+:/ Pushes one character back onto an input stream.
+- `c`:[i32] - Character value to push back, or an end-of-file marker.
+- `stream`:[ptr FILE] - Pointer to the stream.
+
+Returns the pushed-back character on success, otherwise an end-of-file marker:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_ungetc")] @[abi] extern function ungetc(i32 c, ptr FILE stream) -> i32;
 #endif
@@ -208,42 +397,93 @@ extern ptr FILE stderr;
 @[abi] extern function ungetc(i32 c, ptr FILE stream) -> i32;
 #endif
 
+:/ Reads data from an input source into a buffer.
+- `pointer`:[ptr i0] - Pointer to the source, destination, or allocated memory block.
+- `size`:[u64] - Size of each object in bytes.
+- `count`:[u64] - Maximum number of objects to read.
+- `stream`:[ptr FILE] - Pointer to the stream.
+
+Returns the number of objects or bytes read, depending on the declared wrapper:[u64]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_fread")] @[abi] extern function fread(ptr i0 pointer, u64 size, u64 count, ptr FILE stream) -> u64;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function fread(ptr i0 pointer, u64 size, u64 count, ptr FILE stream) -> u64;
 #endif
+
+:/ Writes data from a buffer to an output destination.
+- `pointer`:[ptr i0] - Pointer to the source, destination, or allocated memory block.
+- `size`:[u64] - Size of each object in bytes.
+- `count`:[u64] - Number of objects to write.
+- `stream`:[ptr FILE] - Pointer to the stream.
+
+Returns the number of objects or bytes written, depending on the declared wrapper:[u64]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_fwrite")] @[abi] extern function fwrite(ptr i0 pointer, u64 size, u64 count, ptr FILE stream) -> u64;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function fwrite(ptr i0 pointer, u64 size, u64 count, ptr FILE stream) -> u64;
 #endif
+
+:/ Stores the current position of a stream.
+- `stream`:[ptr FILE] - Pointer to the stream.
+- `pos`:[ptr i0] - Pointer to a stream-position object.
+
+Returns zero on success, otherwise a nonzero value:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_fgetpos")] @[abi] extern function fgetpos(ptr FILE stream, ptr i0 pos) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function fgetpos(ptr FILE stream, ptr i0 pos) -> i32;
 #endif
+
+:/ Moves the position indicator of a stream.
+- `stream`:[ptr FILE] - Pointer to the stream.
+- `offset`:[i64] - Byte offset relative to the selected origin.
+- `whence`:[i32] - Origin from which the offset is measured.
+
+Returns zero on success, otherwise a nonzero value:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_fseek")] @[abi] extern function fseek(ptr FILE stream, i64 offset, i32 whence) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function fseek(ptr FILE stream, i64 offset, i32 whence) -> i32;
 #endif
+
+:/ Restores a previously saved stream position.
+- `stream`:[ptr FILE] - Pointer to the stream.
+- `pos`:[ptr i0] - Pointer to a stream-position object.
+
+Returns zero on success, otherwise a nonzero value:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_fsetpos")] @[abi] extern function fsetpos(ptr FILE stream, ptr i0 pos) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function fsetpos(ptr FILE stream, ptr i0 pos) -> i32;
 #endif
+
+:/ Returns the current position indicator of a stream.
+- `stream`:[ptr FILE] - Pointer to the stream.
+
+Returns the current byte offset on success, otherwise -1:[i64]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_ftell")] @[abi] extern function ftell(ptr FILE stream) -> i64;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function ftell(ptr FILE stream) -> i64;
 #endif
+
+:/ Moves a stream to its beginning and clears its error indicators.
+- `stream`:[ptr FILE] - Pointer to the stream.
+
+Returns nothing:[i0]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_rewind")] @[abi] extern function rewind(ptr FILE stream) -> i0;
 #endif
@@ -251,24 +491,47 @@ extern ptr FILE stderr;
 @[abi] extern function rewind(ptr FILE stream) -> i0;
 #endif
 
+:/ Clears the end-of-file and error indicators of a stream.
+- `stream`:[ptr FILE] - Pointer to the stream.
+
+Returns nothing:[i0]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_clearerr")] @[abi] extern function clearerr(ptr FILE stream) -> i0;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function clearerr(ptr FILE stream) -> i0;
 #endif
+
+:/ Checks whether the end-of-file indicator is set for a stream.
+- `stream`:[ptr FILE] - Pointer to the stream.
+
+Returns a nonzero value when the end-of-file indicator is set, otherwise zero:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_feof")] @[abi] extern function feof(ptr FILE stream) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function feof(ptr FILE stream) -> i32;
 #endif
+
+:/ Checks whether the error indicator is set for a stream.
+- `stream`:[ptr FILE] - Pointer to the stream.
+
+Returns a nonzero value when the error indicator is set, otherwise zero:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_ferror")] @[abi] extern function ferror(ptr FILE stream) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function ferror(ptr FILE stream) -> i32;
 #endif
+
+:/ Writes an error message describing the current error code to standard error.
+- `s`:[ptr i8] - Optional message prefix written before the system error description.
+
+Returns nothing:[i0]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_perror")] @[abi] extern function perror(ptr i8 s) -> i0;
 #endif
@@ -276,24 +539,49 @@ extern ptr FILE stderr;
 @[abi] extern function perror(ptr i8 s) -> i0;
 #endif
 
+:/ Associates an existing file descriptor with a stream.
+- `fd`:[i32] - Open file descriptor.
+- `mode`:[ptr i8] - Mode value controlling access, creation permissions, or stream behavior.
+
+Returns a pointer to the stream on success, otherwise a null pointer:[ptr FILE]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_fdopen")] @[abi] extern function fdopen(i32 fd, ptr i8 mode) -> ptr FILE;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function fdopen(i32 fd, ptr i8 mode) -> ptr FILE;
 #endif
+
+:/ Returns the file descriptor associated with a stream.
+- `stream`:[ptr FILE] - Pointer to the stream.
+
+Returns the associated file descriptor, otherwise -1:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_fileno")] @[abi] extern function fileno(ptr FILE stream) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function fileno(ptr FILE stream) -> i32;
 #endif
+
+:/ Starts a process and opens a stream connected to its standard input or output.
+- `command`:[ptr i8] - Null-terminated command string.
+- `mode`:[ptr i8] - Stream direction mode, normally read or write.
+
+Returns a pointer to the process stream on success, otherwise a null pointer:[ptr FILE]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_popen")] @[abi] extern function popen(ptr i8 command, ptr i8 mode) -> ptr FILE;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function popen(ptr i8 command, ptr i8 mode) -> ptr FILE;
 #endif
+
+:/ Closes a process stream and waits for the associated process.
+- `stream`:[ptr FILE] - Pointer to the stream.
+
+Returns the termination status of the associated process, otherwise -1:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_pclose")] @[abi] extern function pclose(ptr FILE stream) -> i32;
 #endif

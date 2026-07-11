@@ -1,52 +1,748 @@
+#ifndef CPL_IO_H_
+#define CPL_IO_H_ 0
+
 #include "stdio_h.cpl"
 #include "stdlib_h.cpl"
 #include "fcntl_h.cpl"
 #include "unistd_h.cpl"
 #include "string_h.cpl"
 
+:/ Provides static convenience wrappers for common console, file, descriptor, memory, and string operations.
+All functions remain thin wrappers over the global libc-compatible declarations from the included headers.
+/:
 container std {
+
+    :/ Writes a null-terminated string to standard output without appending a newline.
+    - `text`:[ptr i8] - Null-terminated string to write.
+
+    Returns the number of characters written, or a negative value on failure:[i32]
+    /:
+    @[static]
     @[inline(always)]
-    function print(ptr string s) -> i32 {
-        return printf(ref "%s\n", s.body);
+    function write(ptr i8 text) -> i32 {
+        return printf(ref "%s", text);
     }
 
+    :/ Writes a CPL string object to standard output without appending a newline.
+    - `text`:[ptr string] - String object whose body is written.
+
+    Returns the number of characters written, or a negative value on failure:[i32]
+    /:
+    @[static]
     @[inline(always)]
-    function putc(i8 c) -> i32 {
-        return putchar(c);
+    function write(ptr string text) -> i32 {
+        return printf(ref "%s", text.body);
     }
 
+    :/ Writes a null-terminated string followed by a newline.
+    - `text`:[ptr i8] - Null-terminated string to print.
+
+    Returns a non-negative value on success, otherwise a negative value:[i32]
+    /:
+    @[static]
     @[inline(always)]
-    function gets(ptr i8 buffer) -> i8 {
+    function print(ptr i8 text) -> i32 {
+        return puts(text);
+    }
+
+    :/ Writes a CPL string object followed by a newline.
+    - `text`:[ptr string] - String object to print.
+
+    Returns a non-negative value on success, otherwise a negative value:[i32]
+    /:
+    @[static]
+    @[inline(always)]
+    function print(ptr string text) -> i32 {
+        return puts(text.body);
+    }
+
+    :/ Writes a signed 32-bit integer followed by a newline.
+    - `value`:[i32] - Integer value to print.
+
+    Returns the number of characters written, or a negative value on failure:[i32]
+    /:
+    @[static]
+    @[inline(always)]
+    function print(i32 value) -> i32 {
+        return printf(ref "%d\n", value);
+    }
+
+    :/ Writes a signed 64-bit integer followed by a newline.
+    - `value`:[i64] - Integer value to print.
+
+    Returns the number of characters written, or a negative value on failure:[i32]
+    /:
+    @[static]
+    @[inline(always)]
+    function print(i64 value) -> i32 {
+        return printf(ref "%lld\n", value);
+    }
+
+    :/ Writes an unsigned 64-bit integer followed by a newline.
+    - `value`:[u64] - Integer value to print.
+
+    Returns the number of characters written, or a negative value on failure:[i32]
+    /:
+    @[static]
+    @[inline(always)]
+    function print(u64 value) -> i32 {
+        return printf(ref "%llu\n", value);
+    }
+
+    :/ Writes a 64-bit floating-point value followed by a newline.
+    - `value`:[f64] - Floating-point value to print.
+
+    Returns the number of characters written, or a negative value on failure:[i32]
+    /:
+    @[static]
+    @[inline(always)]
+    function print(f64 value) -> i32 {
+        return printf(ref "%f\n", value);
+    }
+
+    :/ Writes one byte-sized character to standard output.
+    - `value`:[i8] - Character value to write.
+
+    Returns the written character on success, otherwise an end-of-file marker:[i32]
+    /:
+    @[static]
+    @[inline(always)]
+    function putc(i8 value) -> i32 {
+        return putchar(value as i32);
+    }
+
+    :/ Reads one character from standard input.
+
+    Returns the read character as an unsigned byte converted to i32, or EOF:[i32]
+    /:
+    @[static]
+    @[inline(always)]
+    function getc() -> i32 {
+        return getchar();
+    }
+
+    :/ Reads a line from standard input using the libc-compatible gets function.
+    - `buffer`:[ptr i8] - Destination buffer supplied by the caller.
+
+    Returns the destination buffer on success, otherwise a null pointer:[ptr i8]
+    /:
+    @[static]
+    @[inline(always)]
+    function gets(ptr i8 buffer) -> ptr i8 {
         return gets(buffer);
     }
 
+    :/ Reads at most size minus one characters from standard input and terminates the result with zero.
+    - `buffer`:[ptr i8] - Destination buffer supplied by the caller.
+    - `size`:[i32] - Total capacity of the destination buffer.
+
+    Returns the destination buffer on success, otherwise a null pointer:[ptr i8]
+    /:
+    @[static]
+    @[inline(always)]
+    function gets(ptr i8 buffer, i32 size) -> ptr i8 {
+        return fgets(buffer, size, stdin);
+    }
+
+    :/ Opens a filesystem object without passing a creation mode.
+    - `path`:[ptr i8] - Null-terminated path to open.
+    - `flags`:[i32] - Access and behavior flags.
+
+    Returns a non-negative file descriptor on success, otherwise -1:[i32]
+    /:
+    @[static]
+    @[inline(always)]
+    function open(ptr i8 path, i32 flags) -> i32 {
+        return open(path, flags);
+    }
+
+    :/ Opens a filesystem object with an explicit creation mode.
+    - `path`:[ptr i8] - Null-terminated path to open.
+    - `flags`:[i32] - Access and behavior flags.
+    - `mode`:[i32] - Permission bits used when a new object is created.
+
+    Returns a non-negative file descriptor on success, otherwise -1:[i32]
+    /:
+    @[static]
     @[inline(always)]
     function open(ptr i8 path, i32 flags, i32 mode) -> i32 {
         return open(path, flags, mode);
     }
 
+    :/ Opens a path stored in a CPL string object without passing a creation mode.
+    - `path`:[ptr string] - String object containing the path.
+    - `flags`:[i32] - Access and behavior flags.
+
+    Returns a non-negative file descriptor on success, otherwise -1:[i32]
+    /:
+    @[static]
     @[inline(always)]
-    function fwrite(i32 fd, ptr u8 buffer, i32 size) -> i32 {
-        return fwrite(buffer, SEEK_CUR, size, fd);
+    function open(ptr string path, i32 flags) -> i32 {
+        return open(path.body, flags);
     }
 
+    :/ Opens a path stored in a CPL string object with an explicit creation mode.
+    - `path`:[ptr string] - String object containing the path.
+    - `flags`:[i32] - Access and behavior flags.
+    - `mode`:[i32] - Permission bits used when a new object is created.
+
+    Returns a non-negative file descriptor on success, otherwise -1:[i32]
+    /:
+    @[static]
+    @[inline(always)]
+    function open(ptr string path, i32 flags, i32 mode) -> i32 {
+        return open(path.body, flags, mode);
+    }
+
+    :/ Creates or truncates a regular file.
+    - `path`:[ptr i8] - Null-terminated path to create.
+    - `mode`:[i32] - Permission bits assigned to a newly created file.
+
+    Returns a non-negative file descriptor on success, otherwise -1:[i32]
+    /:
+    @[static]
+    @[inline(always)]
+    function create(ptr i8 path, i32 mode) -> i32 {
+        return creat(path, mode);
+    }
+
+    :/ Creates or truncates a regular file whose path is stored in a CPL string object.
+    - `path`:[ptr string] - String object containing the path.
+    - `mode`:[i32] - Permission bits assigned to a newly created file.
+
+    Returns a non-negative file descriptor on success, otherwise -1:[i32]
+    /:
+    @[static]
+    @[inline(always)]
+    function create(ptr string path, i32 mode) -> i32 {
+        return creat(path.body, mode);
+    }
+
+    :/ Reads bytes from a file descriptor into an untyped buffer.
+    - `fd`:[i32] - Open file descriptor.
+    - `buffer`:[ptr i0] - Destination memory block.
+    - `size`:[u64] - Maximum number of bytes to read.
+
+    Returns the number of bytes read, zero at end of input, or a negative value on failure:[i64]
+    /:
+    @[static]
+    @[inline(always)]
+    function read(i32 fd, ptr i0 buffer, u64 size) -> i64 {
+        return read(fd, buffer, size);
+    }
+
+    :/ Reads a number of typed elements from a file descriptor.
+    - `fd`:[i32] - Open file descriptor.
+    - `buffer`:[ptr T] - Destination element range.
+    - `count`:[u64] - Maximum number of elements to read.
+
+    Returns the number of bytes read, zero at end of input, or a negative value on failure:[i64]
+    /:
+    @[static]
+    @[inline(always)]
+    function read<T>(i32 fd, ptr T buffer, u64 count) -> i64 {
+        return read(fd, buffer as ptr i0, count * (sizeof(T) as u64));
+    }
+
+    :/ Writes bytes from an untyped buffer to a file descriptor.
+    - `fd`:[i32] - Open file descriptor.
+    - `buffer`:[ptr i0] - Source memory block.
+    - `size`:[u64] - Number of bytes to write.
+
+    Returns the number of bytes written, or a negative value on failure:[i64]
+    /:
+    @[static]
+    @[inline(always)]
+    function write(i32 fd, ptr i0 buffer, u64 size) -> i64 {
+        return write(fd, buffer, size);
+    }
+
+    :/ Writes a number of typed elements to a file descriptor.
+    - `fd`:[i32] - Open file descriptor.
+    - `buffer`:[ptr T] - Source element range.
+    - `count`:[u64] - Number of elements to write.
+
+    Returns the number of bytes written, or a negative value on failure:[i64]
+    /:
+    @[static]
+    @[inline(always)]
+    function write<T>(i32 fd, ptr T buffer, u64 count) -> i64 {
+        return write(fd, buffer as ptr i0, count * (sizeof(T) as u64));
+    }
+
+    :/ Reads bytes from a file descriptor using the original convenience name.
+    - `fd`:[i32] - Open file descriptor.
+    - `buffer`:[ptr u8] - Destination byte buffer.
+    - `size`:[i32] - Maximum number of bytes to read.
+
+    Returns the number of bytes read, zero at end of input, or a negative value on failure:[i32]
+    /:
+    @[static]
     @[inline(always)]
     function fread(i32 fd, ptr u8 buffer, i32 size) -> i32 {
-        return fread(buffer, SEEK_CUR, size, fd);
+        return read(fd, buffer as ptr i0, size as u64) as i32;
     }
 
+    :/ Writes bytes to a file descriptor using the original convenience name.
+    - `fd`:[i32] - Open file descriptor.
+    - `buffer`:[ptr u8] - Source byte buffer.
+    - `size`:[i32] - Number of bytes to write.
+
+    Returns the number of bytes written, or a negative value on failure:[i32]
+    /:
+    @[static]
+    @[inline(always)]
+    function fwrite(i32 fd, ptr u8 buffer, i32 size) -> i32 {
+        return write(fd, buffer as ptr i0, size as u64) as i32;
+    }
+
+    :/ Closes an open file descriptor.
+    - `fd`:[i32] - File descriptor to close.
+
+    Returns zero on success, otherwise -1:[i32]
+    /:
+    @[static]
     @[inline(always)]
     function close(i32 fd) -> i32 {
         return close(fd);
     }
 
+    :/ Changes the current position of a file descriptor.
+    - `fd`:[i32] - Open file descriptor.
+    - `offset`:[i64] - Signed offset relative to the selected origin.
+    - `whence`:[i32] - Origin selector such as SEEK_SET, SEEK_CUR, or SEEK_END.
+
+    Returns the resulting absolute position, or a negative value on failure:[i64]
+    /:
+    @[static]
     @[inline(always)]
-    function malloc(u64 size) -> ptr i8 {
-        return malloc(size);
+    function seek(i32 fd, i64 offset, i32 whence = SEEK_SET) -> i64 {
+        return lseek(fd, offset, whence);
     }
 
+    :/ Returns the current position of a file descriptor.
+    - `fd`:[i32] - Open file descriptor.
+
+    Returns the current absolute position, or a negative value on failure:[i64]
+    /:
+    @[static]
     @[inline(always)]
-    function free(ptr i8 p) -> i0 {
-        free(p);
+    function tell(i32 fd) -> i64 {
+        return lseek(fd, 0, SEEK_CUR);
+    }
+
+    :/ Flushes pending descriptor data to the underlying storage device.
+    - `fd`:[i32] - Open file descriptor.
+
+    Returns zero on success, otherwise -1:[i32]
+    /:
+    @[static]
+    @[inline(always)]
+    function flush(i32 fd) -> i32 {
+        return fsync(fd);
+    }
+
+    :/ Changes the logical size of a file represented by a descriptor.
+    - `fd`:[i32] - Open file descriptor.
+    - `length`:[i64] - New file length in bytes.
+
+    Returns zero on success, otherwise -1:[i32]
+    /:
+    @[static]
+    @[inline(always)]
+    function truncate(i32 fd, i64 length) -> i32 {
+        return ftruncate(fd, length);
+    }
+
+    :/ Checks whether a path exists.
+    - `path`:[ptr i8] - Null-terminated path to inspect.
+
+    Returns 1 when the path is accessible, otherwise 0:[i8]
+    /:
+    @[static]
+    @[inline(always)]
+    function exists(ptr i8 path) -> i8 {
+        return (access(path, F_OK) == 0) as i8;
+    }
+
+    :/ Checks whether a path stored in a CPL string object exists.
+    - `path`:[ptr string] - String object containing the path.
+
+    Returns 1 when the path is accessible, otherwise 0:[i8]
+    /:
+    @[static]
+    @[inline(always)]
+    function exists(ptr string path) -> i8 {
+        return (access(path.body, F_OK) == 0) as i8;
+    }
+
+    :/ Removes a filesystem object by path.
+    - `path`:[ptr i8] - Null-terminated path to remove.
+
+    Returns zero on success, otherwise a nonzero value:[i32]
+    /:
+    @[static]
+    @[inline(always)]
+    function remove(ptr i8 path) -> i32 {
+        return remove(path);
+    }
+
+    :/ Removes a filesystem object whose path is stored in a CPL string object.
+    - `path`:[ptr string] - String object containing the path.
+
+    Returns zero on success, otherwise a nonzero value:[i32]
+    /:
+    @[static]
+    @[inline(always)]
+    function remove(ptr string path) -> i32 {
+        return remove(path.body);
+    }
+
+    :/ Renames or moves a filesystem object.
+    - `old_path`:[ptr i8] - Existing null-terminated path.
+    - `new_path`:[ptr i8] - New null-terminated path.
+
+    Returns zero on success, otherwise a nonzero value:[i32]
+    /:
+    @[static]
+    @[inline(always)]
+    function rename(ptr i8 old_path, ptr i8 new_path) -> i32 {
+        return rename(old_path, new_path);
+    }
+
+    :/ Renames or moves a filesystem object using CPL string paths.
+    - `old_path`:[ptr string] - String object containing the existing path.
+    - `new_path`:[ptr string] - String object containing the new path.
+
+    Returns zero on success, otherwise a nonzero value:[i32]
+    /:
+    @[static]
+    @[inline(always)]
+    function rename(ptr string old_path, ptr string new_path) -> i32 {
+        return rename(old_path.body, new_path.body);
+    }
+
+    :/ Opens a buffered file stream.
+    - `path`:[ptr i8] - Null-terminated path to open.
+    - `mode`:[ptr i8] - Null-terminated stream mode string.
+
+    Returns a stream pointer on success, otherwise a null pointer:[ptr FILE]
+    /:
+    @[static]
+    @[inline(always)]
+    function fopen(ptr i8 path, ptr i8 mode) -> ptr FILE {
+        return fopen(path, mode);
+    }
+
+    :/ Opens a buffered file stream using CPL string objects.
+    - `path`:[ptr string] - String object containing the path.
+    - `mode`:[ptr string] - String object containing the stream mode.
+
+    Returns a stream pointer on success, otherwise a null pointer:[ptr FILE]
+    /:
+    @[static]
+    @[inline(always)]
+    function fopen(ptr string path, ptr string mode) -> ptr FILE {
+        return fopen(path.body, mode.body);
+    }
+
+    :/ Closes a buffered file stream.
+    - `stream`:[ptr FILE] - Stream to close.
+
+    Returns zero on success, otherwise EOF:[i32]
+    /:
+    @[static]
+    @[inline(always)]
+    function fclose(ptr FILE stream) -> i32 {
+        return fclose(stream);
+    }
+
+    :/ Reads elements from a buffered file stream using a convenient argument order.
+    - `stream`:[ptr FILE] - Input stream.
+    - `buffer`:[ptr i0] - Destination memory block.
+    - `count`:[u64] - Number of elements to read.
+    - `element_size`:[u64] - Size of one element in bytes.
+
+    Returns the number of complete elements read:[u64]
+    /:
+    @[static]
+    @[inline(always)]
+    function fread(ptr FILE stream, ptr i0 buffer, u64 count, u64 element_size = 1) -> u64 {
+        return fread(buffer, element_size, count, stream);
+    }
+
+    :/ Writes elements to a buffered file stream using a convenient argument order.
+    - `stream`:[ptr FILE] - Output stream.
+    - `buffer`:[ptr i0] - Source memory block.
+    - `count`:[u64] - Number of elements to write.
+    - `element_size`:[u64] - Size of one element in bytes.
+
+    Returns the number of complete elements written:[u64]
+    /:
+    @[static]
+    @[inline(always)]
+    function fwrite(ptr FILE stream, ptr i0 buffer, u64 count, u64 element_size = 1) -> u64 {
+        return fwrite(buffer, element_size, count, stream);
+    }
+
+    :/ Reads typed elements from a buffered file stream.
+    - `stream`:[ptr FILE] - Input stream.
+    - `buffer`:[ptr T] - Destination element range.
+    - `count`:[u64] - Number of elements to read.
+
+    Returns the number of complete elements read:[u64]
+    /:
+    @[static]
+    @[inline(always)]
+    function fread<T>(ptr FILE stream, ptr T buffer, u64 count) -> u64 {
+        return fread(buffer as ptr i0, sizeof(T) as u64, count, stream);
+    }
+
+    :/ Writes typed elements to a buffered file stream.
+    - `stream`:[ptr FILE] - Output stream.
+    - `buffer`:[ptr T] - Source element range.
+    - `count`:[u64] - Number of elements to write.
+
+    Returns the number of complete elements written:[u64]
+    /:
+    @[static]
+    @[inline(always)]
+    function fwrite<T>(ptr FILE stream, ptr T buffer, u64 count) -> u64 {
+        return fwrite(buffer as ptr i0, sizeof(T) as u64, count, stream);
+    }
+
+    :/ Flushes pending output for a buffered file stream.
+    - `stream`:[ptr FILE] - Stream to flush.
+
+    Returns zero on success, otherwise EOF:[i32]
+    /:
+    @[static]
+    @[inline(always)]
+    function flush(ptr FILE stream) -> i32 {
+        return fflush(stream);
+    }
+
+    :/ Changes the current position of a buffered file stream.
+    - `stream`:[ptr FILE] - Stream whose position is changed.
+    - `offset`:[i64] - Signed offset relative to the selected origin.
+    - `whence`:[i32] - Origin selector such as SEEK_SET, SEEK_CUR, or SEEK_END.
+
+    Returns zero on success, otherwise a nonzero value:[i32]
+    /:
+    @[static]
+    @[inline(always)]
+    function seek(ptr FILE stream, i64 offset, i32 whence = SEEK_SET) -> i32 {
+        return fseek(stream, offset, whence);
+    }
+
+    :/ Returns the current position of a buffered file stream.
+    - `stream`:[ptr FILE] - Stream to inspect.
+
+    Returns the current position, or a negative value on failure:[i64]
+    /:
+    @[static]
+    @[inline(always)]
+    function tell(ptr FILE stream) -> i64 {
+        return ftell(stream);
+    }
+
+    :/ Allocates an uninitialized block of memory.
+    - `size`:[u64] - Requested size in bytes.
+
+    Returns a byte pointer to the allocation, or a null pointer on failure:[ptr i8]
+    /:
+    @[static]
+    @[inline(always)]
+    function malloc(u64 size) -> ptr i8 {
+        return malloc(size) as ptr i8;
+    }
+
+    :/ Allocates a zero-initialized block containing count elements of the requested byte size.
+    - `count`:[u64] - Number of elements to allocate.
+    - `size`:[u64] - Size of one element in bytes.
+
+    Returns a pointer to the allocation, or a null pointer on failure:[ptr i0]
+    /:
+    @[static]
+    @[inline(always)]
+    function calloc(u64 count, u64 size) -> ptr i0 {
+        return calloc(count, size);
+    }
+
+    :/ Allocates a zero-initialized array of typed elements.
+    - `count`:[u64] - Number of elements to allocate.
+
+    Returns a typed pointer to the allocation, or a null pointer on failure:[ptr T]
+    /:
+    @[static]
+    @[inline(always)]
+    function calloc<T>(u64 count = 1) -> ptr T {
+        return calloc(count, sizeof(T) as u64) as ptr T;
+    }
+
+    :/ Resizes an untyped allocation.
+    - `pointer`:[ptr i0] - Existing allocation or a null pointer.
+    - `size`:[u64] - Requested new size in bytes.
+
+    Returns the resized allocation, or a null pointer on failure:[ptr i0]
+    /:
+    @[static]
+    @[inline(always)]
+    function realloc(ptr i0 pointer, u64 size) -> ptr i0 {
+        return realloc(pointer, size);
+    }
+
+    :/ Resizes a typed allocation for a requested element count.
+    - `pointer`:[ptr T] - Existing typed allocation or a null pointer.
+    - `count`:[u64] - Requested number of elements.
+
+    Returns the resized typed allocation, or a null pointer on failure:[ptr T]
+    /:
+    @[static]
+    @[inline(always)]
+    function realloc<T>(ptr T pointer, u64 count) -> ptr T {
+        return realloc(pointer as ptr i0, count * (sizeof(T) as u64)) as ptr T;
+    }
+
+    :/ Releases a byte allocation.
+    - `pointer`:[ptr i8] - Allocation to release.
+
+    Returns nothing:[i0]
+    /:
+    @[static]
+    @[inline(always)]
+    function free(ptr i8 pointer) -> i0 {
+        free(pointer as ptr i0);
+    }
+
+    :/ Releases a typed allocation without requiring an explicit cast.
+    - `pointer`:[ptr T] - Typed allocation to release.
+
+    Returns nothing:[i0]
+    /:
+    @[static]
+    @[inline(always)]
+    function free<T>(ptr T pointer) -> i0 {
+        free(pointer as ptr i0);
+    }
+
+    :/ Copies typed elements between non-overlapping memory ranges.
+    - `destination`:[ptr T] - Destination element range.
+    - `source`:[ptr T] - Source element range.
+    - `count`:[u64] - Number of elements to copy.
+
+    Returns the destination pointer:[ptr T]
+    /:
+    @[static]
+    @[inline(always)]
+    function copy<T>(ptr T destination, ptr T source, u64 count) -> ptr T {
+        return memcpy(
+            destination as ptr i0,
+            source as ptr i0,
+            count * (sizeof(T) as u64)
+        ) as ptr T;
+    }
+
+    :/ Moves typed elements between memory ranges that may overlap.
+    - `destination`:[ptr T] - Destination element range.
+    - `source`:[ptr T] - Source element range.
+    - `count`:[u64] - Number of elements to move.
+
+    Returns the destination pointer:[ptr T]
+    /:
+    @[static]
+    @[inline(always)]
+    function move<T>(ptr T destination, ptr T source, u64 count) -> ptr T {
+        return memmove(
+            destination as ptr i0,
+            source as ptr i0,
+            count * (sizeof(T) as u64)
+        ) as ptr T;
+    }
+
+    :/ Fills a typed element range with zero bytes.
+    - `destination`:[ptr T] - Destination element range.
+    - `count`:[u64] - Number of elements to clear.
+
+    Returns the destination pointer:[ptr T]
+    /:
+    @[static]
+    @[inline(always)]
+    function zero<T>(ptr T destination, u64 count = 1) -> ptr T {
+        return memset(
+            destination as ptr i0,
+            0,
+            count * (sizeof(T) as u64)
+        ) as ptr T;
+    }
+
+    :/ Returns the length of a null-terminated string.
+    - `text`:[ptr i8] - Null-terminated string to inspect.
+
+    Returns the number of bytes before the terminating zero:[u64]
+    /:
+    @[static]
+    @[inline(always)]
+    function strlen(ptr i8 text) -> u64 {
+        return strlen(text);
+    }
+
+    :/ Returns the length of the body stored in a CPL string object.
+    - `text`:[ptr string] - String object to inspect.
+
+    Returns the number of bytes before the terminating zero:[u64]
+    /:
+    @[static]
+    @[inline(always)]
+    function strlen(ptr string text) -> u64 {
+        return strlen(text.body);
+    }
+
+    :/ Compares two null-terminated strings lexicographically.
+    - `left`:[ptr i8] - First string.
+    - `right`:[ptr i8] - Second string.
+
+    Returns a negative value, zero, or a positive value according to the comparison result:[i32]
+    /:
+    @[static]
+    @[inline(always)]
+    function strcmp(ptr i8 left, ptr i8 right) -> i32 {
+        return strcmp(left, right);
+    }
+
+    :/ Compares two CPL string objects lexicographically.
+    - `left`:[ptr string] - First string object.
+    - `right`:[ptr string] - Second string object.
+
+    Returns a negative value, zero, or a positive value according to the comparison result:[i32]
+    /:
+    @[static]
+    @[inline(always)]
+    function strcmp(ptr string left, ptr string right) -> i32 {
+        return strcmp(left.body, right.body);
+    }
+
+    :/ Duplicates a null-terminated string using dynamically allocated memory.
+    - `text`:[ptr i8] - String to duplicate.
+
+    Returns the duplicated string, or a null pointer on failure:[ptr i8]
+    /:
+    @[static]
+    @[inline(always)]
+    function strdup(ptr i8 text) -> ptr i8 {
+        return strdup(text);
+    }
+
+    :/ Duplicates the body of a CPL string object using dynamically allocated memory.
+    - `text`:[ptr string] - String object to duplicate.
+
+    Returns the duplicated string, or a null pointer on failure:[ptr i8]
+    /:
+    @[static]
+    @[inline(always)]
+    function strdup(ptr string text) -> ptr i8 {
+        return strdup(text.body);
     }
 }
+
+#endif

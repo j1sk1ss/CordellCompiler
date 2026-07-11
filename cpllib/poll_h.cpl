@@ -2,7 +2,6 @@
 #define CPL_POLL_H_ 0
 
 #include "platform_h.cpl"
-
 #include "stddef_h.cpl"
 
 #define POLLIN   1
@@ -12,6 +11,11 @@
 #define POLLHUP  16
 #define POLLNVAL 32
 
+:/ Describes one file descriptor monitored by poll.
+- `fd`:[i32] - File descriptor to monitor.
+- `events`:[i16] - Bit mask of events requested by the caller.
+- `revents`:[i16] - Bit mask of events reported by the operating system.
+/:
 @[like_c]
 container c_pollfd {
     i32 fd;
@@ -19,6 +23,13 @@ container c_pollfd {
     i16 revents;
 }
 
+:/ Waits for events on a set of file descriptors.
+- `fds`:[ptr c_pollfd] - Pointer to the array of descriptors and requested events.
+- `count`:[u64] - Number of elements, objects, descriptors, or bytes involved in the operation.
+- `timeout`:[i32] - Maximum wait time in milliseconds, with a negative value meaning no timeout.
+
+Returns the number of descriptors with reported events, zero on timeout, or -1 on failure:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_poll")] @[abi] extern function poll(ptr c_pollfd fds, u64 count, i32 timeout) -> i32;
 #endif

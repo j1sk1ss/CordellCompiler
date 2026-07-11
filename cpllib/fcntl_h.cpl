@@ -50,18 +50,40 @@
 #define S_IWOTH 2
 #define S_IXOTH 1
 
+:/ Opens a file or device and returns a file descriptor.
+- `path`:[ptr i8] - Null-terminated path to the target filesystem object.
+- `flags`:[i32] - Bit mask controlling the operation.
+- `variadic_arguments`:[...] - Additional arguments required by the selected operation or format string.
+
+Returns a non-negative file descriptor on success, otherwise -1:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_open")] @[abi] extern function open(ptr i8 path, i32 flags, ...) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function open(ptr i8 path, i32 flags, ...) -> i32;
 #endif
+
+:/ Creates or truncates a file and opens it for writing.
+- `path`:[ptr i8] - Null-terminated path to the target filesystem object.
+- `mode`:[i32] - Creation permission bits for the new file.
+
+Returns a non-negative file descriptor on success, otherwise -1:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_creat")] @[abi] extern function creat(ptr i8 path, i32 mode) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function creat(ptr i8 path, i32 mode) -> i32;
 #endif
+
+:/ Performs a control operation on an open file descriptor.
+- `fd`:[i32] - Open file descriptor to control.
+- `cmd`:[i32] - Control command to execute.
+- `variadic_arguments`:[...] - Additional arguments required by the selected operation or format string.
+
+Returns a command-dependent result on success, otherwise -1:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_fcntl")] @[abi] extern function fcntl(i32 fd, i32 cmd, ...) -> i32;
 #endif

@@ -2,7 +2,6 @@
 #define CPL_STDLIB_H_ 0
 
 #include "platform_h.cpl"
-
 #include "stddef_h.cpl"
 #include "types_h.cpl"
 
@@ -10,36 +9,76 @@
 #define EXIT_FAILURE 1
 #define RAND_MAX     2147483647
 
+:/ Allocates an uninitialized block of memory.
+- `size`:[u64] - Size of one object, allocation, or buffer in bytes.
+
+Returns a pointer to the allocated block, or a null pointer on failure:[ptr i0]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_malloc")] @[abi] extern function malloc(u64 size) -> ptr i0;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function malloc(u64 size) -> ptr i0;
 #endif
+
+:/ Allocates zero-initialized storage for an array.
+- `count`:[u64] - Number of array elements to allocate.
+- `size`:[u64] - Size of each array element in bytes.
+
+Returns a pointer to the allocated zeroed block, or a null pointer on failure:[ptr i0]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_calloc")] @[abi] extern function calloc(u64 count, u64 size) -> ptr i0;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function calloc(u64 count, u64 size) -> ptr i0;
 #endif
+
+:/ Changes the size of an allocated memory block.
+- `pointer`:[ptr i0] - Pointer to the source, destination, or allocated memory block.
+- `size`:[u64] - Requested new block size in bytes.
+
+Returns a pointer to the resized block, or a null pointer on failure:[ptr i0]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_realloc")] @[abi] extern function realloc(ptr i0 pointer, u64 size) -> ptr i0;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function realloc(ptr i0 pointer, u64 size) -> ptr i0;
 #endif
+
+:/ Allocates a memory block with a specified alignment.
+- `alignment`:[u64] - Required power-of-two memory alignment in bytes.
+- `size`:[u64] - Allocation size in bytes, normally a multiple of the alignment.
+
+Returns a pointer to the aligned block, or a null pointer on failure:[ptr i0]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_aligned_alloc")] @[abi] extern function aligned_alloc(u64 alignment, u64 size) -> ptr i0;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function aligned_alloc(u64 alignment, u64 size) -> ptr i0;
 #endif
+
+:/ Allocates aligned memory and stores the resulting pointer.
+- `result`:[ptr ptr i0] - Output pointer that receives the allocated address on success.
+- `alignment`:[u64] - Required power-of-two memory alignment in bytes.
+- `size`:[u64] - Size of one object, allocation, or buffer in bytes.
+
+Returns zero on success, otherwise an error number:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_posix_memalign")] @[abi] extern function posix_memalign(ptr ptr i0 result, u64 alignment, u64 size) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function posix_memalign(ptr ptr i0 result, u64 alignment, u64 size) -> i32;
 #endif
+
+:/ Releases a previously allocated block of memory.
+- `pointer`:[ptr i0] - Pointer to the source, destination, or allocated memory block.
+
+Returns nothing:[i0]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_free")] @[abi] extern function free(ptr i0 pointer) -> i0;
 #endif
@@ -47,30 +86,58 @@
 @[abi] extern function free(ptr i0 pointer) -> i0;
 #endif
 
+:/ Terminates the process abnormally.
+
+Returns nothing because the function does not return normally:[i0]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_abort")] @[abi] extern function abort() -> i0;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function abort() -> i0;
 #endif
+
+:/ Terminates the process immediately without normal cleanup.
+- `status`:[i32] - Termination status made available to the parent process.
+
+Returns nothing because the function does not return normally:[i0]
+/:
 #ifdef CCPL_MACHO64
 @[vname("__Exit")] @[abi] extern function _Exit(i32 status) -> i0;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function _Exit(i32 status) -> i0;
 #endif
+
+:/ Registers a function to run during normal process termination.
+- `func`:[ptr i0] - Pointer to a parameterless termination callback.
+
+Returns zero on success, otherwise a nonzero value:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_atexit")] @[abi] extern function atexit(ptr i0 func) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function atexit(ptr i0 func) -> i32;
 #endif
+
+:/ Passes a command to the host command processor.
+- `command`:[ptr i8] - Command to execute, or a null pointer to test command-processor availability.
+
+Returns a command-processor-dependent status value:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_system")] @[abi] extern function system(ptr i8 command) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function system(ptr i8 command) -> i32;
 #endif
+
+:/ Retrieves the value of an environment variable.
+- `name`:[ptr i8] - Null-terminated environment variable name.
+
+Returns a pointer to the variable value, or a null pointer when not found:[ptr i8]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_getenv")] @[abi] extern function getenv(ptr i8 name) -> ptr i8;
 #endif
@@ -78,60 +145,130 @@
 @[abi] extern function getenv(ptr i8 name) -> ptr i8;
 #endif
 
+:/ Converts a byte string to a signed integer.
+- `s`:[ptr i8] - Null-terminated byte string containing the integer representation.
+
+Returns the converted integer value:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_atoi")] @[abi] extern function atoi(ptr i8 s) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function atoi(ptr i8 s) -> i32;
 #endif
+
+:/ Converts a byte string to a signed long integer.
+- `s`:[ptr i8] - Null-terminated byte string containing the integer representation.
+
+Returns the converted long integer value:[i64]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_atol")] @[abi] extern function atol(ptr i8 s) -> i64;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function atol(ptr i8 s) -> i64;
 #endif
+
+:/ Converts a byte string to a signed long long integer.
+- `s`:[ptr i8] - Null-terminated byte string containing the integer representation.
+
+Returns the converted long long integer value:[i64]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_atoll")] @[abi] extern function atoll(ptr i8 s) -> i64;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function atoll(ptr i8 s) -> i64;
 #endif
+
+:/ Converts a byte string to a signed long integer using a specified base.
+- `s`:[ptr i8] - Null-terminated byte string containing the integer representation.
+- `endptr`:[ptr ptr i8] - Optional output pointer that receives the address of the first unparsed character.
+- `base`:[i32] - Numeric base from 2 through 36, or zero to detect the base from the input prefix.
+
+Returns the converted signed long integer value:[i64]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_strtol")] @[abi] extern function strtol(ptr i8 s, ptr ptr i8 endptr, i32 base) -> i64;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function strtol(ptr i8 s, ptr ptr i8 endptr, i32 base) -> i64;
 #endif
+
+:/ Converts a byte string to a signed long long integer using a specified base.
+- `s`:[ptr i8] - Null-terminated byte string containing the integer representation.
+- `endptr`:[ptr ptr i8] - Optional output pointer that receives the address of the first unparsed character.
+- `base`:[i32] - Numeric base from 2 through 36, or zero to detect the base from the input prefix.
+
+Returns the converted signed long long integer value:[i64]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_strtoll")] @[abi] extern function strtoll(ptr i8 s, ptr ptr i8 endptr, i32 base) -> i64;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function strtoll(ptr i8 s, ptr ptr i8 endptr, i32 base) -> i64;
 #endif
+
+:/ Converts a byte string to an unsigned long integer using a specified base.
+- `s`:[ptr i8] - Null-terminated byte string containing the integer representation.
+- `endptr`:[ptr ptr i8] - Optional output pointer that receives the address of the first unparsed character.
+- `base`:[i32] - Numeric base from 2 through 36, or zero to detect the base from the input prefix.
+
+Returns the converted unsigned long integer value:[u64]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_strtoul")] @[abi] extern function strtoul(ptr i8 s, ptr ptr i8 endptr, i32 base) -> u64;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function strtoul(ptr i8 s, ptr ptr i8 endptr, i32 base) -> u64;
 #endif
+
+:/ Converts a byte string to an unsigned long long integer using a specified base.
+- `s`:[ptr i8] - Null-terminated byte string containing the integer representation.
+- `endptr`:[ptr ptr i8] - Optional output pointer that receives the address of the first unparsed character.
+- `base`:[i32] - Numeric base from 2 through 36, or zero to detect the base from the input prefix.
+
+Returns the converted unsigned long long integer value:[u64]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_strtoull")] @[abi] extern function strtoull(ptr i8 s, ptr ptr i8 endptr, i32 base) -> u64;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function strtoull(ptr i8 s, ptr ptr i8 endptr, i32 base) -> u64;
 #endif
+
+:/ Converts a byte string to a double-precision floating-point value.
+- `s`:[ptr i8] - Null-terminated byte string containing the floating-point representation.
+- `endptr`:[ptr ptr i8] - Optional output pointer that receives the address of the first unparsed character.
+
+Returns the converted double-precision value:[f64]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_strtod")] @[abi] extern function strtod(ptr i8 s, ptr ptr i8 endptr) -> f64;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function strtod(ptr i8 s, ptr ptr i8 endptr) -> f64;
 #endif
+
+:/ Converts a byte string to a single-precision floating-point value.
+- `s`:[ptr i8] - Null-terminated byte string containing the floating-point representation.
+- `endptr`:[ptr ptr i8] - Optional output pointer that receives the address of the first unparsed character.
+
+Returns the converted single-precision value:[f32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_strtof")] @[abi] extern function strtof(ptr i8 s, ptr ptr i8 endptr) -> f32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function strtof(ptr i8 s, ptr ptr i8 endptr) -> f32;
 #endif
+
+:/ Converts a byte string to an extended floating-point value represented by this library.
+- `s`:[ptr i8] - Null-terminated byte string containing the floating-point representation.
+- `endptr`:[ptr ptr i8] - Optional output pointer that receives the address of the first unparsed character.
+
+Returns the converted extended floating-point value:[f64]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_strtold")] @[abi] extern function strtold(ptr i8 s, ptr ptr i8 endptr) -> f64;
 #endif
@@ -139,12 +276,22 @@
 @[abi] extern function strtold(ptr i8 s, ptr ptr i8 endptr) -> f64;
 #endif
 
+:/ Generates a pseudo-random integer.
+
+Returns a pseudo-random integer in the supported range:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_rand")] @[abi] extern function rand() -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function rand() -> i32;
 #endif
+
+:/ Seeds the pseudo-random number generator.
+- `seed`:[u32] - Seed value used to initialize the pseudo-random generator.
+
+Returns nothing:[i0]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_srand")] @[abi] extern function srand(u32 seed) -> i0;
 #endif
@@ -152,36 +299,74 @@
 @[abi] extern function srand(u32 seed) -> i0;
 #endif
 
+:/ Computes the absolute value of a signed integer.
+- `x`:[i32] - Input value.
+
+Returns the absolute value:[i32]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_abs")] @[abi] extern function abs(i32 x) -> i32;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function abs(i32 x) -> i32;
 #endif
+
+:/ Computes the absolute value of a signed long integer.
+- `x`:[i64] - Input value.
+
+Returns the absolute value:[i64]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_labs")] @[abi] extern function labs(i64 x) -> i64;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function labs(i64 x) -> i64;
 #endif
+
+:/ Computes the absolute value of a signed long long integer.
+- `x`:[i64] - Input value.
+
+Returns the absolute value:[i64]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_llabs")] @[abi] extern function llabs(i64 x) -> i64;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function llabs(i64 x) -> i64;
 #endif
+
+:/ Computes an integer quotient and remainder in one operation.
+- `numer`:[i32] - Dividend.
+- `denom`:[i32] - Divisor.
+
+Returns a pointer-form result containing the quotient and remainder as declared by this binding:[ptr i8]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_div")] @[abi] extern function div(i32 numer, i32 denom) -> ptr i8;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function div(i32 numer, i32 denom) -> ptr i8;
 #endif
+
+:/ Computes a long-integer quotient and remainder in one operation.
+- `numer`:[i64] - Dividend.
+- `denom`:[i64] - Divisor.
+
+Returns a pointer-form result containing the quotient and remainder as declared by this binding:[ptr i8]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_ldiv")] @[abi] extern function ldiv(i64 numer, i64 denom) -> ptr i8;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function ldiv(i64 numer, i64 denom) -> ptr i8;
 #endif
+
+:/ Computes a long-long-integer quotient and remainder in one operation.
+- `numer`:[i64] - Dividend.
+- `denom`:[i64] - Divisor.
+
+Returns a pointer-form result containing the quotient and remainder as declared by this binding:[ptr i8]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_lldiv")] @[abi] extern function lldiv(i64 numer, i64 denom) -> ptr i8;
 #endif
@@ -189,12 +374,30 @@
 @[abi] extern function lldiv(i64 numer, i64 denom) -> ptr i8;
 #endif
 
+:/ Searches a sorted array using binary search.
+- `key`:[ptr i0] - Pointer to the search key.
+- `base`:[ptr i0] - Pointer to the first element of the sorted array.
+- `count`:[u64] - Number of elements in the array.
+- `size`:[u64] - Size of each array element in bytes.
+- `cmp`:[ptr i0] - Comparison function receiving the key and an array element.
+
+Returns a pointer to the matching element, or a null pointer when not found:[ptr i0]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_bsearch")] @[abi] extern function bsearch(ptr i0 key, ptr i0 base, u64 count, u64 size, ptr i0 cmp) -> ptr i0;
 #endif
 #ifndef CCPL_MACHO64
 @[abi] extern function bsearch(ptr i0 key, ptr i0 base, u64 count, u64 size, ptr i0 cmp) -> ptr i0;
 #endif
+
+:/ Sorts an array using a caller-provided comparison function.
+- `base`:[ptr i0] - Pointer to the first element of the array.
+- `count`:[u64] - Number of elements in the array.
+- `size`:[u64] - Size of each array element in bytes.
+- `cmp`:[ptr i0] - Comparison function receiving two array elements.
+
+Returns nothing:[i0]
+/:
 #ifdef CCPL_MACHO64
 @[vname("_qsort")] @[abi] extern function qsort(ptr i0 base, u64 count, u64 size, ptr i0 cmp) -> i0;
 #endif
