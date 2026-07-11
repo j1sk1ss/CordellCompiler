@@ -398,6 +398,70 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
     return 1;
 }
 
+typedef struct {
+    map_t block_alignment;
+} stack_alignment_ctx_t;
+
+static inline long _stack_alignment_mod(long alignment) {
+    long mod = alignment % 16;
+    return mod < 0 ? mod + 16 : mod;
+}
+
+static inline int _remember_stack_alignment(cfg_block_t* bb, long alignment, stack_alignment_ctx_t* ctx) {
+    long curr_alignment = _stack_alignment_mod(alignment);
+    long prev_alignment = 0;
+    if (map_get(&ctx->block_alignment, bb->id, (void**)&prev_alignment)) {
+        return prev_alignment == curr_alignment;
+    }
+
+    return map_put(&ctx->block_alignment, bb->id, (void*)curr_alignment);
+}
+
+static inline int _is_rsp_adjustment(lir_block_t* lh, lir_operation_t op) {
+    return (
+        lh && lh->op == op &&
+        lh->sarg && lh->sarg->t == LIR_REGISTER && LIR_format_register(lh->sarg->storage.reg.reg, 8) == RSP &&
+        lh->targ && lh->targ->t == LIR_CONSTVAL && lh->targ->storage.cnst.value == 8
+    );
+}
+
+static inline int _has_stack_alignment_fix(cfg_block_t* bb, lir_block_t* lh) {
+    if (!bb || !lh || lh == bb->lmap.entry || lh == bb->lmap.exit) return 0;
+    return _is_rsp_adjustment(lh->prev, LIR_iSUB) && _is_rsp_adjustment(lh->next, LIR_iADD);
+}
+
+static cfg_dfs_action_t _validate_stack_alignment(cfg_block_t* bb, long pred, long* alignment, stack_alignment_ctx_t* ctx, sym_table_t* smt) {
+    (void)pred;
+    if (!_remember_stack_alignment(bb, *alignment, ctx)) return CFG_DFS_STOP;
+    iterate_lir_instructions (bb) {
+        switch (lh->op) {
+            case LIR_PUSH: *alignment += 8; break;
+            case LIR_POP:  *alignment -= 8; break;
+            case LIR_ECLL:
+            case LIR_FCLL: {
+                func_info_t fi;
+                if (
+                    !FNTB_get_info_id(lh->farg->storage.str.sid, &fi, &smt->f) || !fi.flags.abi ||
+                    !_stack_alignment_mod(*alignment) || _has_stack_alignment_fix(bb, lh)
+                ) break;
+                lir_block_t* pre  = LIR_create_block(LIR_iSUB, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(8));
+                lir_block_t* post = LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(8));
+                if (!pre || !post) return CFG_DFS_STOP;
+                if (bb->lmap.entry == lh) bb->lmap.entry = pre;
+                if (bb->lmap.exit == lh)  bb->lmap.exit = post;
+                if (
+                    !LIR_insert_block_before(pre, lh) ||
+                    !LIR_insert_block_after(post, lh)
+                ) return CFG_DFS_STOP;
+                break;
+            }
+            default: break;
+        }
+    }
+
+    return CFG_DFS_CONTINUE;
+}
+
 int x86_64_macho_nasm_memory_validation(cfg_ctx_t* cctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         func_info_t fi;
@@ -415,6 +479,18 @@ int x86_64_macho_nasm_memory_validation(cfg_ctx_t* cctx, sym_table_t* smt) {
                 }
             }
         }
+
+        if (fi.flags.naked == 1) continue;
+        stack_alignment_ctx_t sactx;
+        if (!map_init(&sactx.block_alignment, MAP_NO_CMP)) return 0;
+
+        long stack_alignment = fb->lmap.entry->sarg ? ALIGN(fb->lmap.entry->sarg->storage.cnst.value, 16) : 8;
+        int stack_alignment_valid = CFG_DFS_WALK_STATE(
+            list_get_head(&fb->blocks), long, stack_alignment, _validate_stack_alignment, &sactx, smt
+        );
+
+        map_free(&sactx.block_alignment);
+        if (!stack_alignment_valid) return 0;
     }
 
     return 1;

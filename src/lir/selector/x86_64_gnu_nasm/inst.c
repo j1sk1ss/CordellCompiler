@@ -5,7 +5,7 @@
 Params:
     - `bb` - Source block.
     - `b` - New block for an insertion process.
-    - `pos` - Position for an insert. */
+    - `pos` - Position for an insert */
 static inline void _insert_instruction_before(cfg_block_t* bb, lir_block_t* b, lir_block_t* pos) {
     if (!b) return;
     if (bb->lmap.entry == pos) bb->lmap.entry = b;
@@ -16,7 +16,7 @@ static inline void _insert_instruction_before(cfg_block_t* bb, lir_block_t* b, l
 Params:
     - `bb` - Source block.
     - `b` - New block for an insertion process.
-    - `pos` - Position for an insert. */
+    - `pos` - Position for an insert */
 static inline void _insert_instruction_after(cfg_block_t* bb, lir_block_t* b, lir_block_t* pos) {
     if (!b) return;
     if (bb->lmap.exit == pos) bb->lmap.exit = b;
@@ -37,13 +37,13 @@ Params:
 
 Returns 1 if this is a register value, otherwise 0. */
 static int _get_abi_argument(int index, int offset, lir_subject_t* s, abi_argument_t* out, func_info_t* fi, sym_table_t* smt) {
-    int dec_abi_regs[]  = { RDI,  RSI,  RDX,  RCX,  R8,   R9 };
+    int dec_abi_regs[]  = { RDI,  RSI,  RDX,  RCX,  R8,   R9               };
     int simd_abi_regs[] = { XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7 };
 
     int is_float = 0;
     switch (s->t) {
         case LIR_VARIABLE: is_float = x86_64_gnu_nasm_is_simd_type(s, smt); break;
-        case LIR_NUMBER:   is_float = s->storage.num.is_float;                break;
+        case LIR_NUMBER:   is_float = s->storage.num.is_float;              break;
         default: break;
     }
 
@@ -101,15 +101,22 @@ Returns 1 if a following named call was found and resolved, otherwise 0. */
 static int _get_call_info(lir_block_t* arg, cfg_block_t* bb, func_info_t* out, sym_table_t* smt) {
     for (lir_block_t* curr = arg->next; curr; curr = LIR_get_next(curr, bb->lmap.exit, 1)) {
         if (curr->op != LIR_FCLL && curr->op != LIR_ECLL) continue;
-        if (!curr->farg || curr->farg->t != LIR_FNAME) return 0;
+        if (
+            !curr->farg || 
+            curr->farg->t != LIR_FNAME
+        ) return 0;
         return FNTB_get_info_id(curr->farg->storage.str.sid, out, &smt->f);
     }
 
     return 0;
 }
 
+typedef struct {
+    int clean_stack;
+} lir_translate_ctx_t;
+
 static cfg_dfs_action_t _instruction_selection_block(
-    cfg_block_t* bb, long pred, cfg_func_t* fb, func_info_t* fi, queue_t* dirty_regs, int* clean_stack, sym_table_t* smt
+    cfg_block_t* bb, long pred, cfg_func_t* fb, func_info_t* fi, queue_t* dirty_regs, lir_translate_ctx_t* ctx, sym_table_t* smt
 ) {
     (void)pred;
     iterate_lir_instructions (bb) {
@@ -139,42 +146,23 @@ static cfg_dfs_action_t _instruction_selection_block(
             }
             case LIR_ECLL:
             case LIR_FCLL: {
-                if (*clean_stack) {
-                    _insert_instruction_after(bb, LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(*clean_stack)), lh);
-                    *clean_stack = 0;
+                if (ctx->clean_stack) {
+                    _insert_instruction_after(bb, LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(ctx->clean_stack)), lh);
+                    ctx->clean_stack = 0;
                 }
                 __attribute__ ((fallthrough));
             }
             case LIR_SYSC: {
-                int restore_align = 0;
                 if (lh->op == LIR_SYSC) { /* https://stackoverflow.com/questions/50571275/why-does-a-syscall-clobber-rcx-and-r11 */
                     _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(RCX, 8), NULL, NULL), lh);
                     queue_push(dirty_regs, (void*)((long)RCX));
                     _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(R11, 8), NULL, NULL), lh);
                     queue_push(dirty_regs, (void*)((long)R11));
                 }
-                else if ((queue_size(dirty_regs) % 2)) { // TODO: track the entry's align / nalign
-                    func_info_t callee;
-                    if (
-                        FNTB_get_info_id(lh->farg->storage.str.sid, &callee, &smt->f) && 
-                        callee.flags.abi
-                    ) restore_align = 1;
-                }
 
                 long dirty;
                 while (queue_pop(dirty_regs, (void**)&dirty)) {
                     _insert_instruction_after(bb, LIR_create_block(LIR_POP, LIR_SUBJ_REG(dirty, 8), NULL, NULL), lh);
-                }
-
-                if (restore_align) {
-                    _insert_instruction_before(
-                        bb, 
-                        LIR_create_block(LIR_iSUB, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(8)), lh
-                    );
-                    _insert_instruction_after(
-                        bb, 
-                        LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(8)), lh
-                    );
                 }
 
                 break;
@@ -204,7 +192,7 @@ static cfg_dfs_action_t _instruction_selection_block(
                 abi_argument_t target;
                 if (!_get_abi_argument(lh->sarg->storage.cnst.value, 0, lh->farg, &target, &callee, smt)) {
                     lh->op = LIR_PUSH;
-                    *clean_stack += 8;
+                    ctx->clean_stack += 8;
                 }
                 else {
                     lir_subject_t* nfarg = x86_64_gnu_nasm_create_tmp(target.reg, lh->farg, smt, -1);
@@ -275,7 +263,6 @@ static cfg_dfs_action_t _instruction_selection_block(
                 }
 
                 _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, lh->farg, a_exit, NULL), lh);
-                // lir_subject_t* a_middle = x86_64_gnu_nasm_create_tmp(RAX, lh->sarg, smt, shared_size);
                 lh->farg = a_exit;
                 lh->sarg = a_entry;
                 break;
@@ -293,7 +280,6 @@ static cfg_dfs_action_t _instruction_selection_block(
                 lir_subject_t* a_entry = x86_64_gnu_nasm_create_tmp(RAX, lh->sarg, smt, 8);
                 _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a_entry, lh->sarg, NULL), lh);
 
-                // lir_subject_t* a_middle = x86_64_gnu_nasm_create_tmp(RAX, lh->sarg, smt, 8);
                 lir_subject_t* oldres = lh->farg;
                 lh->sarg = a_entry;
 
@@ -377,15 +363,17 @@ static cfg_dfs_action_t _instruction_selection_block(
 }
 
 int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
+    lir_translate_ctx_t ctx = { 0 };
     queue_t dirty_regs;
     queue_init(&dirty_regs);
-    int clean_stack = 0;
 
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
+        
         func_info_t fi;
         if (!FNTB_get_info_id(fb->f_id, &fi, &smt->f)) continue;
-        if (!CFG_DFS_WALK(list_get_head(&fb->blocks), _instruction_selection_block, fb, &fi, &dirty_regs, &clean_stack, smt)) {
+
+        if (!CFG_DFS_WALK(list_get_head(&fb->blocks), _instruction_selection_block, fb, &fi, &dirty_regs, &ctx, smt)) {
             queue_free(&dirty_regs);
             return 0;
         }

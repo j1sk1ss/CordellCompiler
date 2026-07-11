@@ -108,8 +108,12 @@ static int _get_call_info(lir_block_t* arg, cfg_block_t* bb, func_info_t* out, s
     return 0;
 }
 
+typedef struct {
+    int clean_stack;
+} lir_translate_ctx_t;
+
 static cfg_dfs_action_t _instruction_selection_block(
-    cfg_block_t* bb, long pred, cfg_func_t* fb, func_info_t* fi, queue_t* dirty_regs, int* clean_stack, sym_table_t* smt
+    cfg_block_t* bb, long pred, cfg_func_t* fb, func_info_t* fi, queue_t* dirty_regs, lir_translate_ctx_t* ctx, sym_table_t* smt
 ) {
     (void)pred;
     iterate_lir_instructions (bb) {
@@ -139,42 +143,23 @@ static cfg_dfs_action_t _instruction_selection_block(
             }
             case LIR_ECLL:
             case LIR_FCLL: {
-                if (*clean_stack) {
-                    _insert_instruction_after(bb, LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(*clean_stack)), lh);
-                    *clean_stack = 0;
+                if (ctx->clean_stack) {
+                    _insert_instruction_after(bb, LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(ctx->clean_stack)), lh);
+                    ctx->clean_stack = 0;
                 }
                 __attribute__ ((fallthrough));
             }
             case LIR_SYSC: {
-                int restore_align = 0;
                 if (lh->op == LIR_SYSC) { /* https://stackoverflow.com/questions/50571275/why-does-a-syscall-clobber-rcx-and-r11 */
                     _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(RCX, 8), NULL, NULL), lh);
                     queue_push(dirty_regs, (void*)((long)RCX));
                     _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(R11, 8), NULL, NULL), lh);
                     queue_push(dirty_regs, (void*)((long)R11));
                 }
-                else if ((queue_size(dirty_regs) % 2)) {
-                    func_info_t callee;
-                    if (
-                        FNTB_get_info_id(lh->farg->storage.str.sid, &callee, &smt->f) && 
-                        callee.flags.abi
-                    ) restore_align = 1;
-                }
 
                 long dirty;
                 while (queue_pop(dirty_regs, (void**)&dirty)) {
                     _insert_instruction_after(bb, LIR_create_block(LIR_POP, LIR_SUBJ_REG(dirty, 8), NULL, NULL), lh);
-                }
-
-                if (restore_align) {
-                    _insert_instruction_before(
-                        bb, 
-                        LIR_create_block(LIR_iSUB, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(8)), lh
-                    );
-                    _insert_instruction_after(
-                        bb, 
-                        LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(8)), lh
-                    );
                 }
 
                 break;
@@ -204,7 +189,7 @@ static cfg_dfs_action_t _instruction_selection_block(
                 abi_argument_t target;
                 if (!_get_abi_argument(lh->sarg->storage.cnst.value, 0, lh->farg, &target, &callee, smt)) {
                     lh->op = LIR_PUSH;
-                    *clean_stack += 8;
+                    ctx->clean_stack += 8;
                 }
                 else {
                     lir_subject_t* nfarg = x86_64_macho_nasm_create_tmp(target.reg, lh->farg, smt, -1);
@@ -275,7 +260,6 @@ static cfg_dfs_action_t _instruction_selection_block(
                 }
 
                 _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, lh->farg, a_exit, NULL), lh);
-                // lir_subject_t* a_middle = x86_64_macho_nasm_create_tmp(RAX, lh->sarg, smt, shared_size);
                 lh->farg = a_exit;
                 lh->sarg = a_entry;
                 break;
@@ -293,7 +277,6 @@ static cfg_dfs_action_t _instruction_selection_block(
                 lir_subject_t* a_entry = x86_64_macho_nasm_create_tmp(RAX, lh->sarg, smt, 8);
                 _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a_entry, lh->sarg, NULL), lh);
 
-                // lir_subject_t* a_middle = x86_64_macho_nasm_create_tmp(RAX, lh->farg, smt, 8);
                 lir_subject_t* oldres = lh->farg;
                 lh->sarg = a_entry;
 
@@ -377,15 +360,17 @@ static cfg_dfs_action_t _instruction_selection_block(
 }
 
 int x86_64_macho_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
+    lir_translate_ctx_t ctx = { 0 };
     queue_t dirty_regs;
     queue_init(&dirty_regs);
-    int clean_stack = 0;
 
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
+        
         func_info_t fi;
         if (!FNTB_get_info_id(fb->f_id, &fi, &smt->f)) continue;
-        if (!CFG_DFS_WALK(list_get_head(&fb->blocks), _instruction_selection_block, fb, &fi, &dirty_regs, &clean_stack, smt)) {
+
+        if (!CFG_DFS_WALK(list_get_head(&fb->blocks), _instruction_selection_block, fb, &fi, &dirty_regs, &ctx, smt)) {
             queue_free(&dirty_regs);
             return 0;
         }

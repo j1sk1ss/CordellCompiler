@@ -2,6 +2,7 @@
 #define CFG_H_
 
 #include <std/mm.h>
+#include <std/mem.h>
 #include <std/set.h>
 #include <std/str.h>
 #include <std/list.h>
@@ -113,6 +114,33 @@ static inline int __cfg_dfs_push(sstack_t* stack, cfg_block_t* block, long pred)
     return 1;
 }
 
+typedef struct {
+    cfg_block_t*  block;
+    long          pred;
+    unsigned long state_size;
+    unsigned char state[];
+} cfg_dfs_state_frame_t;
+
+static inline int __cfg_dfs_state_push(sstack_t* stack, cfg_block_t* block, long pred, const void* state, unsigned long state_size) {
+    if (!block) return 1;
+    if (state_size && !state) return 0;
+
+    cfg_dfs_state_frame_t* frame = (cfg_dfs_state_frame_t*)mm_malloc(sizeof(cfg_dfs_state_frame_t) + state_size);
+    if (!frame) return 0;
+
+    frame->block      = block;
+    frame->pred       = pred;
+    frame->state_size = state_size;
+    if (state_size) str_memcpy(frame->state, state, state_size);
+
+    if (!stack_push(stack, frame)) {
+        mm_free(frame);
+        return 0;
+    }
+
+    return 1;
+}
+
 /* Walk CFG blocks in depth-first order starting from the `head` block.
 Params:
     - `head` - Head CFG block.
@@ -128,53 +156,123 @@ Logic returns:
     - `CFG_DFS_STOP` - abort traversal and return 0.
 
 Returns 1 if traversal finished without CFG_DFS_STOP, otherwise 0 */
-#define CFG_DFS_WALK_COUNTER(head, start_pred, counter, logic, ...) ({                  \
-    int __cfg_dfs_result = 1;                                                           \
-    unsigned long long __cfg_dfs_active_counter = (counter);                            \
-    sstack_t __cfg_dfs_stack;                                                           \
-    if (!stack_init(&__cfg_dfs_stack)) {                                                \
-        __cfg_dfs_result = 0;                                                           \
-    }                                                                                   \
-    else {                                                                              \
+#define CFG_DFS_WALK_COUNTER(head, start_pred, counter, logic, ...) ({                    \
+    int __cfg_dfs_result = 1;                                                             \
+    unsigned long long __cfg_dfs_active_counter = (counter);                              \
+    sstack_t __cfg_dfs_stack;                                                             \
+    if (!stack_init(&__cfg_dfs_stack)) {                                                  \
+        __cfg_dfs_result = 0;                                                             \
+    }                                                                                     \
+    else {                                                                                \
         if (!__cfg_dfs_push(&__cfg_dfs_stack, (head), (start_pred))) {                    \
-            __cfg_dfs_result = 0;                                                       \
-        }                                                                               \
-        void* __cfg_dfs_raw = NULL;                                                     \
-        while (__cfg_dfs_result && stack_pop(&__cfg_dfs_stack, &__cfg_dfs_raw)) {       \
-            cfg_dfs_frame_t* __cfg_dfs_frame = (cfg_dfs_frame_t*)__cfg_dfs_raw;         \
-            cfg_block_t* __cfg_dfs_bb = __cfg_dfs_frame->block;                         \
-            long __cfg_dfs_pred = __cfg_dfs_frame->pred;                                \
-            mm_free(__cfg_dfs_frame);                                                   \
-            if (!__cfg_dfs_bb) continue;                                                \
-            if (__cfg_dfs_bb->visited != __cfg_dfs_active_counter) {                    \
-                set_free(&__cfg_dfs_bb->visitors);                                      \
-                set_init(&__cfg_dfs_bb->visitors, SET_NO_CMP);                          \
-            }                                                                           \
-            if (set_has(&__cfg_dfs_bb->visitors, (void*)__cfg_dfs_pred)) continue;      \
-            __cfg_dfs_bb->visited = __cfg_dfs_active_counter;                           \
-            set_add(&__cfg_dfs_bb->visitors, (void*)__cfg_dfs_pred);                    \
-            cfg_dfs_action_t __cfg_dfs_action = logic(                                  \
-                __cfg_dfs_bb,                                                           \
-                __cfg_dfs_pred,                                                         \
-                ##__VA_ARGS__                                                           \
-            );                                                                          \
-            if (__cfg_dfs_action == CFG_DFS_STOP) {                                     \
-                __cfg_dfs_result = 0;                                                   \
-                continue;                                                               \
-            }                                                                           \
-            if (__cfg_dfs_action == CFG_DFS_SKIP) continue;                             \
-            if (                                                                        \
+            __cfg_dfs_result = 0;                                                         \
+        }                                                                                 \
+        void* __cfg_dfs_raw = NULL;                                                       \
+        while (__cfg_dfs_result && stack_pop(&__cfg_dfs_stack, &__cfg_dfs_raw)) {         \
+            cfg_dfs_frame_t* __cfg_dfs_frame = (cfg_dfs_frame_t*)__cfg_dfs_raw;           \
+            cfg_block_t* __cfg_dfs_bb = __cfg_dfs_frame->block;                           \
+            long __cfg_dfs_pred = __cfg_dfs_frame->pred;                                  \
+            mm_free(__cfg_dfs_frame);                                                     \
+            if (!__cfg_dfs_bb) continue;                                                  \
+            if (__cfg_dfs_bb->visited != __cfg_dfs_active_counter) {                      \
+                set_free(&__cfg_dfs_bb->visitors);                                        \
+                set_init(&__cfg_dfs_bb->visitors, SET_NO_CMP);                            \
+            }                                                                             \
+            if (set_has(&__cfg_dfs_bb->visitors, (void*)__cfg_dfs_pred)) continue;        \
+            __cfg_dfs_bb->visited = __cfg_dfs_active_counter;                             \
+            set_add(&__cfg_dfs_bb->visitors, (void*)__cfg_dfs_pred);                      \
+            cfg_dfs_action_t __cfg_dfs_action = logic(                                    \
+                __cfg_dfs_bb,                                                             \
+                __cfg_dfs_pred,                                                           \
+                ##__VA_ARGS__                                                             \
+            );                                                                            \
+            if (__cfg_dfs_action == CFG_DFS_STOP) {                                       \
+                __cfg_dfs_result = 0;                                                     \
+                continue;                                                                 \
+            }                                                                             \
+            if (__cfg_dfs_action == CFG_DFS_SKIP) continue;                               \
+            if (                                                                          \
                 !__cfg_dfs_push(&__cfg_dfs_stack, __cfg_dfs_bb->jmp, __cfg_dfs_bb->id) || \
                 !__cfg_dfs_push(&__cfg_dfs_stack, __cfg_dfs_bb->l, __cfg_dfs_bb->id)      \
-            ) __cfg_dfs_result = 0;                                                     \
-        }                                                                               \
-        stack_free_force(&__cfg_dfs_stack);                                             \
-    }                                                                                   \
-    __cfg_dfs_result;                                                                   \
+            ) __cfg_dfs_result = 0;                                                       \
+        }                                                                                 \
+        stack_free_force(&__cfg_dfs_stack);                                               \
+    }                                                                                     \
+    __cfg_dfs_result;                                                                     \
 })
 
+/* Logic returns:
+    - `CFG_DFS_CONTINUE` - visit children.
+    - `CFG_DFS_SKIP` - stop the current path as successful.
+    - `CFG_DFS_STOP` - abort traversal and return 0 */
 #define CFG_DFS_WALK(head, logic, ...)                                                  \
     CFG_DFS_WALK_COUNTER((head), -1, CFG_get_unique_counter(), logic, ##__VA_ARGS__)
+
+/* Walk CFG blocks in depth-first order with a per-path state copy.
+Params:
+    - `head` - Head CFG block.
+    - `start_pred` - Initial predecessor id.
+    - `counter` - Shared traversal marker.
+    - `state_type` - Type copied into every DFS frame.
+    - `initial_state` - Initial state value.
+    - `logic` - Function-like object with the following signature:
+                cfg_dfs_action_t logic(cfg_block_t* bb, long pred, state_type* state, ...).
+    - `...` - Optional context arguments passed to `logic`.
+
+Logic may mutate `state`; updated value will be copied to child frames.
+
+Returns 1 if traversal finished without CFG_DFS_STOP, otherwise 0 */
+#define CFG_DFS_WALK_STATE_COUNTER(head, start_pred, counter, state_type, initial_state, logic, ...) ({ \
+    int __cfg_dfs_result = 1;                                                                           \
+    unsigned long long __cfg_dfs_active_counter = (counter);                                            \
+    state_type __cfg_dfs_root_state = (initial_state);                                                  \
+    sstack_t __cfg_dfs_stack;                                                                           \
+    if (!stack_init(&__cfg_dfs_stack)) {                                                                \
+        __cfg_dfs_result = 0;                                                                           \
+    }                                                                                                   \
+    else {                                                                                              \
+        if (!__cfg_dfs_state_push(&__cfg_dfs_stack, (head), (start_pred), &__cfg_dfs_root_state, sizeof(__cfg_dfs_root_state))) { \
+            __cfg_dfs_result = 0;                                                                       \
+        }                                                                                               \
+        void* __cfg_dfs_raw = NULL;                                                                     \
+        while (__cfg_dfs_result && stack_pop(&__cfg_dfs_stack, &__cfg_dfs_raw)) {                       \
+            cfg_dfs_state_frame_t* __cfg_dfs_frame = (cfg_dfs_state_frame_t*)__cfg_dfs_raw;             \
+            cfg_block_t* __cfg_dfs_bb = __cfg_dfs_frame->block;                                         \
+            long __cfg_dfs_pred = __cfg_dfs_frame->pred;                                                \
+            state_type __cfg_dfs_state;                                                                 \
+            str_memcpy(&__cfg_dfs_state, __cfg_dfs_frame->state, sizeof(__cfg_dfs_state));              \
+            mm_free(__cfg_dfs_frame);                                                                   \
+            if (!__cfg_dfs_bb) continue;                                                                \
+            if (__cfg_dfs_bb->visited != __cfg_dfs_active_counter) {                                    \
+                set_free(&__cfg_dfs_bb->visitors);                                                      \
+                set_init(&__cfg_dfs_bb->visitors, SET_NO_CMP);                                          \
+            }                                                                                           \
+            if (set_has(&__cfg_dfs_bb->visitors, (void*)__cfg_dfs_pred)) continue;                      \
+            __cfg_dfs_bb->visited = __cfg_dfs_active_counter;                                           \
+            set_add(&__cfg_dfs_bb->visitors, (void*)__cfg_dfs_pred);                                    \
+            cfg_dfs_action_t __cfg_dfs_action = logic(                                                  \
+                __cfg_dfs_bb,                                                                           \
+                __cfg_dfs_pred,                                                                         \
+                &__cfg_dfs_state,                                                                       \
+                ##__VA_ARGS__                                                                           \
+            );                                                                                          \
+            if (__cfg_dfs_action == CFG_DFS_STOP) {                                                     \
+                __cfg_dfs_result = 0;                                                                   \
+                continue;                                                                               \
+            }                                                                                           \
+            if (__cfg_dfs_action == CFG_DFS_SKIP) continue;                                             \
+            if (                                                                                        \
+                !__cfg_dfs_state_push(&__cfg_dfs_stack, __cfg_dfs_bb->jmp, __cfg_dfs_bb->id, &__cfg_dfs_state, sizeof(__cfg_dfs_state)) || \
+                !__cfg_dfs_state_push(&__cfg_dfs_stack, __cfg_dfs_bb->l, __cfg_dfs_bb->id, &__cfg_dfs_state, sizeof(__cfg_dfs_state))      \
+            ) __cfg_dfs_result = 0;                                                                     \
+        }                                                                                               \
+        stack_free_force(&__cfg_dfs_stack);                                                             \
+    }                                                                                                   \
+    __cfg_dfs_result;                                                                                   \
+})
+
+#define CFG_DFS_WALK_STATE(head, state_type, initial_state, logic, ...) \
+    CFG_DFS_WALK_STATE_COUNTER((head), -1, CFG_get_unique_counter(), state_type, initial_state, logic, ##__VA_ARGS__)
 
 #define iterate_hir_instructions(bb) \
     for (hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0); hh; hh = HIR_get_next(hh, bb->hmap.exit, 1))

@@ -42,8 +42,12 @@ static int _count_presented_args(symbol_id_t f_id, sym_table_t* smt) {
     return res;
 }
 
+typedef struct {
+    int clean_stack;
+} lir_translate_ctx_t;
+
 static cfg_dfs_action_t _instruction_selection_block(
-    cfg_block_t* bb, long pred, cfg_func_t* fb, func_info_t* fi, queue_t* dirty_regs, int* clean_stack, sym_table_t* smt
+    cfg_block_t* bb, long pred, cfg_func_t* fb, func_info_t* fi, queue_t* dirty_regs, lir_translate_ctx_t* ctx, sym_table_t* smt
 ) {
     (void)pred;
     iterate_lir_instructions (bb) {
@@ -73,9 +77,9 @@ static cfg_dfs_action_t _instruction_selection_block(
             }
             case LIR_ECLL:
             case LIR_FCLL: {
-                if (*clean_stack) {
-                    _insert_instruction_after(bb, LIR_create_block(LIR_iADD, LIR_SUBJ_REG(ESP, 4), LIR_SUBJ_REG(ESP, 4), LIR_SUBJ_CONST(*clean_stack)), lh);
-                    *clean_stack = 0;
+                if (ctx->clean_stack) {
+                    _insert_instruction_after(bb, LIR_create_block(LIR_iADD, LIR_SUBJ_REG(ESP, 4), LIR_SUBJ_REG(ESP, 4), LIR_SUBJ_CONST(ctx->clean_stack)), lh);
+                    ctx->clean_stack = 0;
                 }
                 __attribute__ ((fallthrough));
             }
@@ -107,9 +111,9 @@ static cfg_dfs_action_t _instruction_selection_block(
                 break;
             }
             case LIR_STFARG: {
-                lh->op         = LIR_PUSH;
-                lh->farg->size = 4;
-                *clean_stack   += 4;
+                lh->op           = LIR_PUSH;
+                lh->farg->size   = 4;
+                ctx->clean_stack += 4;
                 break;
             }
             case LIR_LOADFARG: {
@@ -299,20 +303,23 @@ static cfg_dfs_action_t _instruction_selection_block(
 }
 
 int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
-    queue_t dirty_regs;
-    queue_init(&dirty_regs);
-    int clean_stack = 0;
-
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
+        
         func_info_t fi;
         if (!FNTB_get_info_id(fb->f_id, &fi, &smt->f)) continue;
-        if (!CFG_DFS_WALK(list_get_head(&fb->blocks), _instruction_selection_block, fb, &fi, &dirty_regs, &clean_stack, smt)) {
+
+        lir_translate_ctx_t ctx;
+        queue_t dirty_regs;
+        queue_init(&dirty_regs);
+
+        if (!CFG_DFS_WALK(list_get_head(&fb->blocks), _instruction_selection_block, fb, &fi, &dirty_regs, &ctx, smt)) {
             queue_free(&dirty_regs);
             return 0;
         }
+
+        queue_free(&dirty_regs);
     }
 
-    queue_free(&dirty_regs);
     return 1;
 }
