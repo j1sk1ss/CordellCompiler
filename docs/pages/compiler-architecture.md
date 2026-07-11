@@ -15,7 +15,7 @@ The compiler pipeline is:
 7. **CFG and call graph construction**: build control-flow and interprocedural information.
 8. **Optimization**: apply HIR and LIR transformations.
 9. **LIR generation**: lower HIR toward target-sensitive operations.
-10. **Instruction selection and register allocation**: select x86-64 operations, allocate registers, and select memory locations.
+10. **Instruction selection and register allocation**: select target-specific x86 operations, allocate registers, and select memory locations.
 11. **Assembly generation**: emit NASM assembly, assemble, and link.
 
 ## Source layout
@@ -31,7 +31,7 @@ The compiler pipeline is:
 | Register allocation | `src/lir/regalloc`, `include/lir/regalloc` | Register allocation infrastructure |
 | Instruction selection | `src/lir/selector`, `include/lir/selector` | Target-specific lowering and memory/register selection |
 | Peephole optimization | `src/lir/peephole`, `include/lir/peephole` | Low-level rewrite passes |
-| Assembly generation | `src/asm`, `include/asm` | NASM backend for supported x86-64 targets |
+| Assembly generation | `src/asm`, `include/asm` | NASM backend for supported x86 and x86-64 targets |
 | Symbol tables | `src/symtab`, `include/symtab` | Variables, functions, strings, arrays, sections, and type tables |
 | Tests | `tests` | Module and integration testing infrastructure |
 
@@ -72,4 +72,4 @@ Some optimizations are more mature than others. Treat optimization pages and cha
 
 ## Target model
 
-The backend currently focuses on x86-64 NASM-style assembly. Mach-O and Linux-style target paths exist, but target behavior depends on command-line configuration and external assembler/linker tools. CPL does not currently provide a target-independent runtime library comparable to mature systems languages.
+The backend currently focuses on NASM-style assembly for x86-family targets. x86-64 Mach-O, x86-64 Linux, and i386 Linux-style paths exist, but target behavior depends on command-line configuration and external assembler/linker tools. CPL does not currently provide a target-independent runtime library comparable to mature systems languages.

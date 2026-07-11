@@ -9,7 +9,7 @@ function main() -> i0 {
 }
 ```
 
-The parser accepts the form `@[name]` and, for annotations that need a value, `@[name(value)]`. The value is read as the single token inside parentheses: numeric annotations convert it to an integer, while `entry`, `section`, and `inline` keep it as text.
+The parser accepts `@[name]`, `@[name(value)]`, and the two-argument form used by section placement: `@[section("name", alignment)]`. Annotation arguments are read as tokens inside parentheses. Numeric annotations convert their first argument to an integer; `entry`, `vname`, `section`, and `inline` keep their string argument as text.
 
 ## Available annotations
 
@@ -17,7 +17,7 @@ The parser accepts the form `@[name]` and, for annotations that need a value, `@
 |---|---|---|
 | `@[entry]`, `@[entry("name")]` | function or `start` | mark the function as the program entry; without `name`, the configured entry symbol is used |
 | `@[naked]` | function or `start` | suppress normal entry/exit routines |
-| `@[section("name")]` | global variable, global array, function, or `start` | place the symbol into a named section |
+| `@[section("name")]`, `@[section("name", N)]` | global or read-only variable, global array, function, or `start` | place the symbol into a named section; optional `N` sets section alignment |
 | `@[nosection]` | global function | place the function into the configured no-section bucket |
 | `@[align(N)]` | variable, array, or container | request memory/container alignment |
 | `@[register(N)]` | variable declaration | bind the variable to a target register index |
@@ -26,10 +26,11 @@ The parser accepts the form `@[name]` and, for annotations that need a value, `@
 | `@[inline(always)]` | function | force the inline decision toward always inline |
 | `@[inline(never)]` | function | force the inline decision toward never inline |
 | `@[inline(model)]` | function | use the model-based inline mode |
-| `@[only_body]` | function | exclude all entry and exit routine, just the function's body |
+| `@[only_body]` | function | emit only the function body, without the normal label/export wrapper |
 | `@[self]` | container function | mark the function as an explicit-self method for container call rewriting |
 | `@[abi]` | function | mark the function as ABI-compatible |
 | `@[weak]` | function | mark the function as a weak symbol |
+| `@[vname("symbol")]` | function | use an explicit backend/linker-visible symbol name without marking the function as the entry point |
 | `@[like_c]` | container | use C-like field layout handling instead of the requested CPL alignment value |
 | `@[no_fall]` | `switch` | make switch cases behave as if they end with `break` |
 | `@[straight]` | `switch` | force linear switch selection |
@@ -38,6 +39,8 @@ The parser accepts the form `@[name]` and, for annotations that need a value, `@
 | `@[cold]` | `if` or switch `case` | make the true branch, or the annotated case, cold for layout |
 | `@[not_lazy]` | logical expression | evaluate both sides of `&&` or `\|\|` |
 | `@[union]` | container | lay out all fields at offset zero and allocate enough memory for the largest field |
+
+`@[address(N)]` is still recognized by the annotation parser, but the current generation path does not consume the parsed address value. Treat it as reserved rather than as a supported placement feature.
 
 ## Entry, naked, sections
 
@@ -54,13 +57,13 @@ start() {
     }
 }
 
-@[section(".my_text")]
+@[section(".my_text", 16)]
 function helper() -> i0 {
     return;
 }
 ```
 
-Use `@[naked]` only for code that fully controls its own prologue, epilogue, and exit behavior. Default sections are target/config dependent. The CLI exposes `--ro-section`, `--glob-section`, and `--code-section`.
+Use `@[naked]` only for code that fully controls its own prologue, epilogue, and exit behavior. Default sections are target/config dependent. The CLI exposes `--ro-section`, `--glob-section`, and `--code-section`. If several symbols are placed in the same section with an alignment argument, the section table keeps the maximum requested alignment.
 
 `@[nosection]` is currently handled for functions:
 
@@ -114,11 +117,15 @@ function add(i64 a, i64 b) -> i64 {
 @[weak]
 @[abi]
 function external_hook() -> i0;
+
+@[vname("_printf")]
+@[abi]
+extern function printf(ptr i8 fmt, ...) -> i32;
 ```
 
 `@[inline]` without an option is a soft preference. Supported options are `always`, `never`, and `model`.
 
-`@[abi]` and `@[weak]` are low-level symbol/interop flags used by the function table and backend path.
+`@[abi]`, `@[weak]`, and `@[vname("symbol")]` are low-level symbol/interop flags used by the function table and backend path. `@[entry("symbol")]` also gives a function a backend-visible name, but it additionally marks that function as the program entry point. Use `@[vname("symbol")]` when only the emitted symbol name should change.
 
 ## Container self methods
 

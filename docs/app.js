@@ -399,7 +399,7 @@ function notifyCplContentReady(root) {
 }
 
 window.$docsify = {
-  name: 'CPL v3.6<small>Language docs & compiler internals</small>',
+  name: 'CPL v3.6.7<small>Language docs & compiler internals</small>',
   repo: 'https://github.com/j1sk1ss/CordellCompiler',
   homepage: 'README.md',
   loadSidebar: 'sidebar.md',
@@ -990,7 +990,7 @@ window.$docsify = {
 
         const startMenu = document.createElement('div');
         startMenu.className = 'win95-start-menu';
-        startMenu.innerHTML = '<div class="win95-start-rail">CPL v3.6</div><div class="win95-start-list"></div>';
+        startMenu.innerHTML = '<div class="win95-start-rail">CPL v3.6.7</div><div class="win95-start-list"></div>';
         document.body.appendChild(startMenu);
 
         const taskbar = document.createElement('div');

@@ -36,7 +36,7 @@ The current language core includes:
 - `glob`, `ro`, and `extern` declarations;
 - `syscall` and inline `asm`;
 - a small preprocessor with include, define, undef, ifdef, and ifndef directives;
-- annotations for entry points, sections, alignment, switch lowering, branch layout, counted loops, register placement, and varargs.
+- annotations for entry points, explicit emitted symbol names, ABI/linker metadata, sections, alignment, switch lowering, branch layout, counted loops, register placement, and varargs.
 
 The current implementation intentionally does not include enums, modules, a package manager, exceptions, or memory-safety guarantees.
 

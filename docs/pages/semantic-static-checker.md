@@ -6,7 +6,7 @@ The compiler has two optional analysis stages:
 - HIR/IR analysis, enabled with `--ir-analysis`.
 
 ```bash
-./builds/ccompiler --ast-analysis --ir-analysis main.cpl
+./builds/<platform>/cplc --ast-analysis --ir-analysis main.cpl
 ```
 
 These checks are intentionally lightweight. They help catch mistakes before or during lowering, but CPL is still an unsafe low-level language.

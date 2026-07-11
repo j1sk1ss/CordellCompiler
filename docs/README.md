@@ -85,7 +85,7 @@
             </a>
             <a href="#/pages/benchmarking" class="doc-card">
                 <h3>Evaluation</h3>
-                <p>Microbenchmark methodology and current performance measurements against C and Rust compilers.</p>
+                <p>Microbenchmark methodology and current performance measurements against GCC and Clang baselines.</p>
             </a>
             <a href="#/pages/used-links-and-literature" class="doc-card">
                 <h3>Literature</h3>
