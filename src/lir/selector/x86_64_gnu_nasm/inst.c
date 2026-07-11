@@ -108,6 +108,274 @@ static int _get_call_info(lir_block_t* arg, cfg_block_t* bb, func_info_t* out, s
     return 0;
 }
 
+static cfg_dfs_action_t _instruction_selection_block(
+    cfg_block_t* bb, long pred, cfg_func_t* fb, func_info_t* fi, queue_t* dirty_regs, int* clean_stack, sym_table_t* smt
+) {
+    (void)pred;
+    iterate_lir_instructions (bb) {
+        switch (lh->op) {
+            case LIR_STSARG: {
+                int sys_regs[] = { RAX, RDI, RSI, RDX, R10, R8, R9 };
+                if (lh->sarg->storage.cnst.value >= (long)(sizeof(sys_regs) / sizeof(RAX))) break;
+                if (sys_regs[lh->sarg->storage.cnst.value] != RAX) {
+                    _insert_instruction_before(
+                        bb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(sys_regs[lh->sarg->storage.cnst.value], 8), NULL, NULL), 
+                        lh
+                    );
+                    queue_push(dirty_regs, (void*)((long)sys_regs[lh->sarg->storage.cnst.value]));
+                }
+
+                lir_subject_t* nfarg = x86_64_gnu_nasm_create_tmp(sys_regs[lh->sarg->storage.cnst.value], lh->farg, smt, 8);
+                LIR_unload_subject(lh->sarg);
+                lh->op   = LIR_aMOV;
+                lh->sarg = lh->farg;
+                lh->farg = nfarg;
+                break;
+            }
+            case LIR_REF_ARGS: {
+                lh->op   = LIR_REF;
+                lh->sarg = LIR_SUBJ_OFF(RBP, (!fi->flags.naked + _count_presented_args(fb->f_id, smt) + 1) * -8, 8);
+                break;
+            }
+            case LIR_ECLL:
+            case LIR_FCLL: {
+                if (*clean_stack) {
+                    _insert_instruction_after(bb, LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(*clean_stack)), lh);
+                    *clean_stack = 0;
+                }
+                __attribute__ ((fallthrough));
+            }
+            case LIR_SYSC: {
+                int restore_align = 0;
+                if (lh->op == LIR_SYSC) { /* https://stackoverflow.com/questions/50571275/why-does-a-syscall-clobber-rcx-and-r11 */
+                    _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(RCX, 8), NULL, NULL), lh);
+                    queue_push(dirty_regs, (void*)((long)RCX));
+                    _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(R11, 8), NULL, NULL), lh);
+                    queue_push(dirty_regs, (void*)((long)R11));
+                }
+                else if ((queue_size(dirty_regs) % 2)) { // TODO: track the entry's align / nalign
+                    func_info_t callee;
+                    if (
+                        FNTB_get_info_id(lh->farg->storage.str.sid, &callee, &smt->f) && 
+                        callee.flags.abi
+                    ) restore_align = 1;
+                }
+
+                long dirty;
+                while (queue_pop(dirty_regs, (void**)&dirty)) {
+                    _insert_instruction_after(bb, LIR_create_block(LIR_POP, LIR_SUBJ_REG(dirty, 8), NULL, NULL), lh);
+                }
+
+                if (restore_align) {
+                    _insert_instruction_before(
+                        bb, 
+                        LIR_create_block(LIR_iSUB, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(8)), lh
+                    );
+                    _insert_instruction_after(
+                        bb, 
+                        LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(8)), lh
+                    );
+                }
+
+                break;
+            }
+            case LIR_STARGLD: {
+                lir_subject_t* src;
+                switch (lh->sarg->storage.cnst.value) {
+                    case 0: {
+                        src    = fi->flags.abi ? x86_64_gnu_nasm_create_tmp(RDI, lh->farg, smt, -1) : LIR_SUBJ_OFF(RBP, -8, 8);
+                        lh->op = LIR_iMOV; 
+                        break;
+                    }
+                    default: {
+                        src    = fi->flags.abi ? x86_64_gnu_nasm_create_tmp(RSI, lh->farg, smt, -1) : LIR_SUBJ_OFF(RBP, -16, 8);
+                        lh->op = fi->flags.abi ? LIR_REF_GDREF                                      : LIR_REF;  
+                        break;
+                    }
+                }
+
+                LIR_unload_subject(lh->sarg);
+                lh->sarg = src;
+                break;
+            }
+            case LIR_STFARG: {
+                func_info_t callee;
+                if (!_get_call_info(lh, bb, &callee, smt)) callee = *fi;
+                abi_argument_t target;
+                if (!_get_abi_argument(lh->sarg->storage.cnst.value, 0, lh->farg, &target, &callee, smt)) {
+                    lh->op = LIR_PUSH;
+                    *clean_stack += 8;
+                }
+                else {
+                    lir_subject_t* nfarg = x86_64_gnu_nasm_create_tmp(target.reg, lh->farg, smt, -1);
+                    LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(target.reg, 8), NULL, NULL), lh);
+                    queue_push(dirty_regs, (void*)((long)target.reg));
+                    LIR_unload_subject(lh->sarg);
+                    lh->op   = LIR_aMOV;
+                    lh->sarg = lh->farg;
+                    lh->farg = nfarg;
+                }
+                
+                break;
+            }
+            case LIR_LOADFARG: {
+                abi_argument_t target;
+                lir_subject_t* nfarg;
+                if (
+                    _get_abi_argument(lh->sarg->storage.cnst.value, lh->targ->storage.cnst.value, lh->farg, &target, fi, smt)
+                ) nfarg = x86_64_gnu_nasm_create_tmp(target.reg, lh->farg, smt, -1);
+                else nfarg = LIR_SUBJ_OFF(RBP, target.off, lh->farg->size);
+                LIR_unload_subject(lh->sarg);
+                lh->op   = LIR_phiMOV;
+                lh->sarg = nfarg;
+                break;
+            }
+            case LIR_LOADFRET: {
+                lh->op   = LIR_iMOV;
+                lh->sarg = x86_64_gnu_nasm_create_tmp(RAX, lh->farg, smt, -1);
+                break;
+            }
+            case LIR_NOT: {
+                lir_subject_t* a   = x86_64_gnu_nasm_create_tmp(RAX, lh->sarg, smt, -1);
+                lir_subject_t* res = LIR_SUBJ_REG(AL, 1);
+                _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->sarg, NULL), lh);
+                _insert_instruction_before(bb, LIR_create_block(LIR_TST, a, a, NULL), lh);
+                _insert_instruction_before(bb, LIR_create_block(LIR_SETE, res, NULL, NULL), lh);
+                lh->op = LIR_iMOV;
+                lh->sarg = res;
+                break;
+            }
+            case LIR_NEG: {
+                _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, LIR_copy_subject(lh->farg), lh->sarg, NULL), lh);
+                lh->sarg = LIR_copy_subject(lh->farg);
+                break;
+            }
+            case LIR_iBRHT: case LIR_iBLFT:
+            case LIR_bSHR:  case LIR_bSHL:
+            case LIR_bOR:   case LIR_bXOR: case LIR_bAND:
+            case LIR_iMUL:  case LIR_iSUB: case LIR_iADD: {
+                int is_shift = 
+                    lh->op == LIR_iBRHT || lh->op == LIR_iBLFT ||
+                    lh->op == LIR_bSHR  || lh->op == LIR_bSHL;
+                if (
+                    !is_shift &&
+                    lh->farg->t == LIR_REGISTER && 
+                    lh->sarg->t == LIR_REGISTER
+                ) break;
+                int shared_size = -1;
+                if (lh->op == LIR_iMUL) shared_size = lh->sarg->size < 4 ? 4 : lh->sarg->size; 
+                lir_subject_t* a_entry = x86_64_gnu_nasm_create_tmp(RAX, lh->sarg, smt, shared_size);
+                lir_subject_t* a_exit  = x86_64_gnu_nasm_create_tmp(RAX, lh->farg, smt, shared_size);
+                _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a_entry, lh->sarg, NULL), lh);
+
+                if (is_shift) {
+                    lir_subject_t* b_entry = x86_64_gnu_nasm_create_tmp(RCX, lh->targ, smt, 1);
+                    _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, b_entry, lh->targ, NULL), lh);
+                    lh->targ = b_entry;
+                }
+
+                _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, lh->farg, a_exit, NULL), lh);
+                // lir_subject_t* a_middle = x86_64_gnu_nasm_create_tmp(RAX, lh->sarg, smt, shared_size);
+                lh->farg = a_exit;
+                lh->sarg = a_entry;
+                break;
+            }
+            case LIR_FRET:
+            case LIR_EXITOP: {
+                if (!lh->farg) break;
+                lir_subject_t* a = x86_64_gnu_nasm_create_tmp(lh->op == LIR_FRET ? RAX : RDI, lh->farg, smt, -1);
+                _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->farg, NULL), lh);
+                lh->farg = a;
+                break;
+            }
+            case LIR_iDIV:
+            case LIR_iMOD: {
+                lir_subject_t* a_entry = x86_64_gnu_nasm_create_tmp(RAX, lh->sarg, smt, 8);
+                _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a_entry, lh->sarg, NULL), lh);
+
+                // lir_subject_t* a_middle = x86_64_gnu_nasm_create_tmp(RAX, lh->sarg, smt, 8);
+                lir_subject_t* oldres = lh->farg;
+                lh->sarg = a_entry;
+
+                lir_subject_t* b = x86_64_gnu_nasm_create_tmp(RCX, lh->targ, smt, 8);
+                _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, b, lh->targ, NULL), lh);
+                lh->targ = b;
+
+                lir_subject_t* mod = x86_64_gnu_nasm_create_tmp(RDX, lh->farg, smt, 8);
+                _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, mod, NULL, NULL), lh);
+                _insert_instruction_before(bb, LIR_create_block(LIR_CQO, NULL, NULL, NULL), lh);
+                if (lh->op != LIR_iMOD) {
+                    lh->farg = x86_64_gnu_nasm_create_tmp(RAX, lh->farg, smt, -1);
+                    _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, oldres, lh->farg, NULL), lh);
+                    _insert_instruction_after(bb, LIR_create_block(LIR_POP, mod, NULL, NULL), lh);
+                }
+                else {
+                    lh->farg = LIR_SUBJ_REG(RDX, lh->farg->size);
+                    _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, oldres, LIR_SUBJ_REG(RAX, oldres->size), NULL), lh);
+                    _insert_instruction_after(bb, LIR_create_block(LIR_POP, mod, NULL, NULL), lh);
+                    _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, LIR_SUBJ_REG(RAX, lh->farg->size), lh->farg, NULL), lh);
+                }
+
+                break;
+            }
+            case LIR_CMP: {
+                if (lh->farg->t == LIR_VARIABLE) break;
+                lir_subject_t* a = x86_64_gnu_nasm_create_tmp(RAX, lh->farg, smt, -1);
+                _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->farg, NULL), lh);
+                lh->farg = a;
+                break;
+            }
+            case LIR_iLWR: case LIR_iLRE: case LIR_iLRG: case LIR_iLGE:
+            case LIR_iCMP: case LIR_iNMP: {
+                lir_subject_t* a   = x86_64_gnu_nasm_create_tmp(RAX, lh->sarg, smt, -1);
+                lir_subject_t* b   = lh->targ;
+                lir_subject_t* res = LIR_SUBJ_REG(AL, 1);
+                _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->sarg, NULL), lh);
+                _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, lh->farg, res, NULL), lh);
+
+                switch (lh->op) {
+                    case LIR_iCMP: _insert_instruction_after(bb, LIR_create_block(LIR_SETE, res, NULL, NULL), lh); break;
+                    case LIR_iNMP: _insert_instruction_after(bb, LIR_create_block(LIR_STNE, res, NULL, NULL), lh); break;
+                    default: {
+                        if (x86_64_gnu_nasm_is_sign_type(lh->sarg, smt) && x86_64_gnu_nasm_is_sign_type(lh->targ, smt)) {
+                            switch (lh->op) {
+                                case LIR_iLWR: _insert_instruction_after(bb, LIR_create_block(LIR_SETL, res, NULL, NULL), lh); break;
+                                case LIR_iLRE: _insert_instruction_after(bb, LIR_create_block(LIR_STLE, res, NULL, NULL), lh); break;
+                                case LIR_iLRG: _insert_instruction_after(bb, LIR_create_block(LIR_SETG, res, NULL, NULL), lh); break;
+                                case LIR_iLGE: _insert_instruction_after(bb, LIR_create_block(LIR_STGE, res, NULL, NULL), lh); break;
+                                default: break;
+                            }
+                        }
+                        else {
+                            switch (lh->op) {
+                                case LIR_iLWR: _insert_instruction_after(bb, LIR_create_block(LIR_SETB, res, NULL, NULL), lh); break;
+                                case LIR_iLRE: _insert_instruction_after(bb, LIR_create_block(LIR_STBE, res, NULL, NULL), lh); break;
+                                case LIR_iLRG: _insert_instruction_after(bb, LIR_create_block(LIR_SETA, res, NULL, NULL), lh); break;
+                                case LIR_iLGE: _insert_instruction_after(bb, LIR_create_block(LIR_STAE, res, NULL, NULL), lh); break;
+                                default: break;
+                            }
+                        }
+                    }
+                }
+
+                lh->op = LIR_CMP;
+                lh->farg = a;
+                lh->sarg = b;
+                break;
+            }
+            case LIR_TF64: case LIR_TF32: 
+            case LIR_TI64: case LIR_TI32: case LIR_TI16: case LIR_TI8:
+            case LIR_TU64: case LIR_TU32: case LIR_TU16: case LIR_TU8: {
+                lh->op = x86_64_gnu_nasm_get_proper_mov(lh->farg, lh->sarg, smt, LIR_iMOV);
+                break;
+            }
+            default: break;
+        }
+    }
+
+    return CFG_DFS_CONTINUE;
+}
+
 int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
     queue_t dirty_regs;
     queue_init(&dirty_regs);
@@ -115,270 +383,11 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
 
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
-
         func_info_t fi;
         if (!FNTB_get_info_id(fb->f_id, &fi, &smt->f)) continue;
-        foreach (cfg_block_t* bb, &fb->blocks) {
-            iterate_lir_instructions (bb) {
-                switch (lh->op) {
-                    case LIR_STSARG: {
-                        int sys_regs[] = { RAX, RDI, RSI, RDX, R10, R8, R9 };
-                        if (lh->sarg->storage.cnst.value >= (long)(sizeof(sys_regs) / sizeof(RAX))) break;
-                        if (sys_regs[lh->sarg->storage.cnst.value] != RAX) {
-                            _insert_instruction_before(
-                                bb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(sys_regs[lh->sarg->storage.cnst.value], 8), NULL, NULL), 
-                                lh
-                            );
-                            queue_push(&dirty_regs, (void*)((long)sys_regs[lh->sarg->storage.cnst.value]));
-                        }
-
-                        lir_subject_t* nfarg = x86_64_gnu_nasm_create_tmp(sys_regs[lh->sarg->storage.cnst.value], lh->farg, smt, 8);
-                        LIR_unload_subject(lh->sarg);
-                        lh->op   = LIR_aMOV;
-                        lh->sarg = lh->farg;
-                        lh->farg = nfarg;
-                        break;
-                    }
-                    case LIR_REF_ARGS: {
-                        lh->op   = LIR_REF;
-                        lh->sarg = LIR_SUBJ_OFF(RBP, (!fi.flags.naked + _count_presented_args(fb->f_id, smt) + 1) * -8, 8);
-                        break;
-                    }
-                    case LIR_ECLL:
-                    case LIR_FCLL: {
-                        if (clean_stack) {
-                            _insert_instruction_after(bb, LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(clean_stack)), lh);
-                            clean_stack = 0;
-                        }
-                        __attribute__ ((fallthrough));
-                    }
-                    case LIR_SYSC: {
-                        int restore_align = 0;
-                        if (lh->op == LIR_SYSC) { /* https://stackoverflow.com/questions/50571275/why-does-a-syscall-clobber-rcx-and-r11 */
-                            _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(RCX, 8), NULL, NULL), lh);
-                            queue_push(&dirty_regs, (void*)((long)RCX));
-                            _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(R11, 8), NULL, NULL), lh);
-                            queue_push(&dirty_regs, (void*)((long)R11));
-                        }
-                        else if ((queue_size(&dirty_regs) % 2)) { // TODO: track the entry's align / nalign
-                            func_info_t callee;
-                            if (
-                                FNTB_get_info_id(lh->farg->storage.str.sid, &callee, &smt->f) && 
-                                callee.flags.abi
-                            ) restore_align = 1;
-                        }
-
-                        long dirty;
-                        while (queue_pop(&dirty_regs, (void**)&dirty)) {
-                            _insert_instruction_after(bb, LIR_create_block(LIR_POP, LIR_SUBJ_REG(dirty, 8), NULL, NULL), lh);
-                        }
-
-                        if (restore_align) {
-                            _insert_instruction_before(
-                                bb, 
-                                LIR_create_block(LIR_iSUB, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(8)), lh
-                            );
-                            _insert_instruction_after(
-                                bb, 
-                                LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(8)), lh
-                            );
-                        }
-
-                        break;
-                    }
-                    case LIR_STARGLD: {
-                        lir_subject_t* src;
-                        switch (lh->sarg->storage.cnst.value) {
-                            case 0: {
-                                src    = fi.flags.abi ? x86_64_gnu_nasm_create_tmp(RDI, lh->farg, smt, -1) : LIR_SUBJ_OFF(RBP, -8, 8);
-                                lh->op = LIR_iMOV; 
-                                break;
-                            }
-                            default: {
-                                src    = fi.flags.abi ? x86_64_gnu_nasm_create_tmp(RSI, lh->farg, smt, -1) : LIR_SUBJ_OFF(RBP, -16, 8);
-                                lh->op = fi.flags.abi ? LIR_REF_GDREF                                      : LIR_REF;  
-                                break;
-                            }
-                        }
-
-                        LIR_unload_subject(lh->sarg);
-                        lh->sarg = src;
-                        break;
-                    }
-                    case LIR_STFARG: {
-                        func_info_t callee;
-                        if (!_get_call_info(lh, bb, &callee, smt)) callee = fi;
-                        abi_argument_t target;
-                        if (!_get_abi_argument(lh->sarg->storage.cnst.value, 0, lh->farg, &target, &callee, smt)) {
-                            lh->op = LIR_PUSH;
-                            clean_stack += 8;
-                        }
-                        else {
-                            lir_subject_t* nfarg = x86_64_gnu_nasm_create_tmp(target.reg, lh->farg, smt, -1);
-                            LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(target.reg, 8), NULL, NULL), lh);
-                            queue_push(&dirty_regs, (void*)((long)target.reg));
-                            LIR_unload_subject(lh->sarg);
-                            lh->op   = LIR_aMOV;
-                            lh->sarg = lh->farg;
-                            lh->farg = nfarg;
-                        }
-                        
-                        break;
-                    }
-                    case LIR_LOADFARG: {
-                        abi_argument_t target;
-                        lir_subject_t* nfarg;
-                        if (
-                            _get_abi_argument(lh->sarg->storage.cnst.value, lh->targ->storage.cnst.value, lh->farg, &target, &fi, smt)
-                        ) nfarg = x86_64_gnu_nasm_create_tmp(target.reg, lh->farg, smt, -1);
-                        else nfarg = LIR_SUBJ_OFF(RBP, target.off, lh->farg->size);
-                        LIR_unload_subject(lh->sarg);
-                        lh->op   = LIR_phiMOV;
-                        lh->sarg = nfarg;
-                        break;
-                    }
-                    case LIR_LOADFRET: {
-                        lh->op   = LIR_iMOV;
-                        lh->sarg = x86_64_gnu_nasm_create_tmp(RAX, lh->farg, smt, -1);
-                        break;
-                    }
-                    case LIR_NOT: {
-                        lir_subject_t* a   = x86_64_gnu_nasm_create_tmp(RAX, lh->sarg, smt, -1);
-                        lir_subject_t* res = LIR_SUBJ_REG(AL, 1);
-                        _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->sarg, NULL), lh);
-                        _insert_instruction_before(bb, LIR_create_block(LIR_TST, a, a, NULL), lh);
-                        _insert_instruction_before(bb, LIR_create_block(LIR_SETE, res, NULL, NULL), lh);
-                        lh->op = LIR_iMOV;
-                        lh->sarg = res;
-                        break;
-                    }
-                    case LIR_NEG: {
-                        _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, LIR_copy_subject(lh->farg), lh->sarg, NULL), lh);
-                        lh->sarg = LIR_copy_subject(lh->farg);
-                        break;
-                    }
-                    case LIR_iBRHT: case LIR_iBLFT:
-                    case LIR_bSHR:  case LIR_bSHL:
-                    case LIR_bOR:   case LIR_bXOR: case LIR_bAND:
-                    case LIR_iMUL:  case LIR_iSUB: case LIR_iADD: {
-                        int is_shift = 
-                            lh->op == LIR_iBRHT || lh->op == LIR_iBLFT ||
-                            lh->op == LIR_bSHR  || lh->op == LIR_bSHL;
-                        if (
-                            !is_shift &&
-                            lh->farg->t == LIR_REGISTER && 
-                            lh->sarg->t == LIR_REGISTER
-                        ) break;
-                        int shared_size = -1;
-                        if (lh->op == LIR_iMUL) shared_size = lh->sarg->size < 4 ? 4 : lh->sarg->size; 
-                        lir_subject_t* a_entry = x86_64_gnu_nasm_create_tmp(RAX, lh->sarg, smt, shared_size);
-                        lir_subject_t* a_exit  = x86_64_gnu_nasm_create_tmp(RAX, lh->farg, smt, shared_size);
-                        _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a_entry, lh->sarg, NULL), lh);
-
-                        if (is_shift) {
-                            lir_subject_t* b_entry = x86_64_gnu_nasm_create_tmp(RCX, lh->targ, smt, 1);
-                            _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, b_entry, lh->targ, NULL), lh);
-                            lh->targ = b_entry;
-                        }
-
-                        _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, lh->farg, a_exit, NULL), lh);
-                        // lir_subject_t* a_middle = x86_64_gnu_nasm_create_tmp(RAX, lh->sarg, smt, shared_size);
-                        lh->farg = a_exit;
-                        lh->sarg = a_entry;
-                        break;
-                    }
-                    case LIR_FRET:
-                    case LIR_EXITOP: {
-                        if (!lh->farg) break;
-                        lir_subject_t* a = x86_64_gnu_nasm_create_tmp(lh->op == LIR_FRET ? RAX : RDI, lh->farg, smt, -1);
-                        _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->farg, NULL), lh);
-                        lh->farg = a;
-                        break;
-                    }
-                    case LIR_iDIV:
-                    case LIR_iMOD: {
-                        lir_subject_t* a_entry = x86_64_gnu_nasm_create_tmp(RAX, lh->sarg, smt, 8);
-                        _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a_entry, lh->sarg, NULL), lh);
-
-                        // lir_subject_t* a_middle = x86_64_gnu_nasm_create_tmp(RAX, lh->sarg, smt, 8);
-                        lir_subject_t* oldres = lh->farg;
-                        lh->sarg = a_entry;
-
-                        lir_subject_t* b = x86_64_gnu_nasm_create_tmp(RCX, lh->targ, smt, 8);
-                        _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, b, lh->targ, NULL), lh);
-                        lh->targ = b;
-
-                        lir_subject_t* mod = x86_64_gnu_nasm_create_tmp(RDX, lh->farg, smt, 8);
-                        _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, mod, NULL, NULL), lh);
-                        _insert_instruction_before(bb, LIR_create_block(LIR_CQO, NULL, NULL, NULL), lh);
-                        if (lh->op != LIR_iMOD) {
-                            lh->farg = x86_64_gnu_nasm_create_tmp(RAX, lh->farg, smt, -1);
-                            _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, oldres, lh->farg, NULL), lh);
-                            _insert_instruction_after(bb, LIR_create_block(LIR_POP, mod, NULL, NULL), lh);
-                        }
-                        else {
-                            lh->farg = LIR_SUBJ_REG(RDX, lh->farg->size);
-                            _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, oldres, LIR_SUBJ_REG(RAX, oldres->size), NULL), lh);
-                            _insert_instruction_after(bb, LIR_create_block(LIR_POP, mod, NULL, NULL), lh);
-                            _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, LIR_SUBJ_REG(RAX, lh->farg->size), lh->farg, NULL), lh);
-                        }
-
-                        break;
-                    }
-                    case LIR_CMP: {
-                        if (lh->farg->t == LIR_VARIABLE) break;
-                        lir_subject_t* a = x86_64_gnu_nasm_create_tmp(RAX, lh->farg, smt, -1);
-                        _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->farg, NULL), lh);
-                        lh->farg = a;
-                        break;
-                    }
-                    case LIR_iLWR: case LIR_iLRE: case LIR_iLRG: case LIR_iLGE:
-                    case LIR_iCMP: case LIR_iNMP: {
-                        lir_subject_t* a   = x86_64_gnu_nasm_create_tmp(RAX, lh->sarg, smt, -1);
-                        lir_subject_t* b   = lh->targ;
-                        lir_subject_t* res = LIR_SUBJ_REG(AL, 1);
-                        _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->sarg, NULL), lh);
-                        _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, lh->farg, res, NULL), lh);
-
-                        switch (lh->op) {
-                            case LIR_iCMP: _insert_instruction_after(bb, LIR_create_block(LIR_SETE, res, NULL, NULL), lh); break;
-                            case LIR_iNMP: _insert_instruction_after(bb, LIR_create_block(LIR_STNE, res, NULL, NULL), lh); break;
-                            default: {
-                                if (x86_64_gnu_nasm_is_sign_type(lh->sarg, smt) && x86_64_gnu_nasm_is_sign_type(lh->targ, smt)) {
-                                    switch (lh->op) {
-                                        case LIR_iLWR: _insert_instruction_after(bb, LIR_create_block(LIR_SETL, res, NULL, NULL), lh); break;
-                                        case LIR_iLRE: _insert_instruction_after(bb, LIR_create_block(LIR_STLE, res, NULL, NULL), lh); break;
-                                        case LIR_iLRG: _insert_instruction_after(bb, LIR_create_block(LIR_SETG, res, NULL, NULL), lh); break;
-                                        case LIR_iLGE: _insert_instruction_after(bb, LIR_create_block(LIR_STGE, res, NULL, NULL), lh); break;
-                                        default: break;
-                                    }
-                                }
-                                else {
-                                    switch (lh->op) {
-                                        case LIR_iLWR: _insert_instruction_after(bb, LIR_create_block(LIR_SETB, res, NULL, NULL), lh); break;
-                                        case LIR_iLRE: _insert_instruction_after(bb, LIR_create_block(LIR_STBE, res, NULL, NULL), lh); break;
-                                        case LIR_iLRG: _insert_instruction_after(bb, LIR_create_block(LIR_SETA, res, NULL, NULL), lh); break;
-                                        case LIR_iLGE: _insert_instruction_after(bb, LIR_create_block(LIR_STAE, res, NULL, NULL), lh); break;
-                                        default: break;
-                                    }
-                                }
-                            }
-                        }
-
-                        lh->op = LIR_CMP;
-                        lh->farg = a;
-                        lh->sarg = b;
-                        break;
-                    }
-                    case LIR_TF64: case LIR_TF32: 
-                    case LIR_TI64: case LIR_TI32: case LIR_TI16: case LIR_TI8:
-                    case LIR_TU64: case LIR_TU32: case LIR_TU16: case LIR_TU8: {
-                        lh->op = x86_64_gnu_nasm_get_proper_mov(lh->farg, lh->sarg, smt, LIR_iMOV);
-                        break;
-                    }
-                    default: break;
-                }
-            }
+        if (!CFG_DFS_WALK(list_get_head(&fb->blocks), _instruction_selection_block, fb, &fi, &dirty_regs, &clean_stack, smt)) {
+            queue_free(&dirty_regs);
+            return 0;
         }
     }
 

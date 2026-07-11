@@ -5,6 +5,7 @@
 #include <std/set.h>
 #include <std/str.h>
 #include <std/list.h>
+#include <std/stack.h>
 #include <symtab/symtab.h>
 #include <hir/hir.h>
 #include <hir/hirgen.h>
@@ -83,6 +84,97 @@ typedef struct cfg_block {
     set_t              copy_gen;  /* Generated copy targets      */
     set_t              copy_kill; /* Killed copy targets         */
 } cfg_block_t;
+
+typedef enum {
+    CFG_DFS_CONTINUE,
+    CFG_DFS_SKIP,
+    CFG_DFS_STOP,
+} cfg_dfs_action_t;
+
+typedef struct {
+    cfg_block_t* block;
+    long         pred;
+} cfg_dfs_frame_t;
+
+static inline int __cfg_dfs_push(sstack_t* stack, cfg_block_t* block, long pred) {
+    if (!block) return 1;
+
+    cfg_dfs_frame_t* frame = (cfg_dfs_frame_t*)mm_malloc(sizeof(cfg_dfs_frame_t));
+    if (!frame) return 0;
+
+    frame->block = block;
+    frame->pred  = pred;
+
+    if (!stack_push(stack, frame)) {
+        mm_free(frame);
+        return 0;
+    }
+
+    return 1;
+}
+
+/* Walk CFG blocks in depth-first order starting from the `head` block.
+Params:
+    - `head` - Head CFG block.
+    - `start_pred` - Initial predecessor id.
+    - `counter` - Shared traversal marker.
+    - `logic` - Function-like object with the following signature:
+                cfg_dfs_action_t logic(cfg_block_t* bb, long pred, ...).
+    - `...` - Optional context arguments passed to `logic`.
+
+Logic returns:
+    - `CFG_DFS_CONTINUE` - visit children.
+    - `CFG_DFS_SKIP` - stop the current path as successful.
+    - `CFG_DFS_STOP` - abort traversal and return 0.
+
+Returns 1 if traversal finished without CFG_DFS_STOP, otherwise 0 */
+#define CFG_DFS_WALK_COUNTER(head, start_pred, counter, logic, ...) ({                  \
+    int __cfg_dfs_result = 1;                                                           \
+    unsigned long long __cfg_dfs_active_counter = (counter);                            \
+    sstack_t __cfg_dfs_stack;                                                           \
+    if (!stack_init(&__cfg_dfs_stack)) {                                                \
+        __cfg_dfs_result = 0;                                                           \
+    }                                                                                   \
+    else {                                                                              \
+        if (!__cfg_dfs_push(&__cfg_dfs_stack, (head), (start_pred))) {                    \
+            __cfg_dfs_result = 0;                                                       \
+        }                                                                               \
+        void* __cfg_dfs_raw = NULL;                                                     \
+        while (__cfg_dfs_result && stack_pop(&__cfg_dfs_stack, &__cfg_dfs_raw)) {       \
+            cfg_dfs_frame_t* __cfg_dfs_frame = (cfg_dfs_frame_t*)__cfg_dfs_raw;         \
+            cfg_block_t* __cfg_dfs_bb = __cfg_dfs_frame->block;                         \
+            long __cfg_dfs_pred = __cfg_dfs_frame->pred;                                \
+            mm_free(__cfg_dfs_frame);                                                   \
+            if (!__cfg_dfs_bb) continue;                                                \
+            if (__cfg_dfs_bb->visited != __cfg_dfs_active_counter) {                    \
+                set_free(&__cfg_dfs_bb->visitors);                                      \
+                set_init(&__cfg_dfs_bb->visitors, SET_NO_CMP);                          \
+            }                                                                           \
+            if (set_has(&__cfg_dfs_bb->visitors, (void*)__cfg_dfs_pred)) continue;      \
+            __cfg_dfs_bb->visited = __cfg_dfs_active_counter;                           \
+            set_add(&__cfg_dfs_bb->visitors, (void*)__cfg_dfs_pred);                    \
+            cfg_dfs_action_t __cfg_dfs_action = logic(                                  \
+                __cfg_dfs_bb,                                                           \
+                __cfg_dfs_pred,                                                         \
+                ##__VA_ARGS__                                                           \
+            );                                                                          \
+            if (__cfg_dfs_action == CFG_DFS_STOP) {                                     \
+                __cfg_dfs_result = 0;                                                   \
+                continue;                                                               \
+            }                                                                           \
+            if (__cfg_dfs_action == CFG_DFS_SKIP) continue;                             \
+            if (                                                                        \
+                !__cfg_dfs_push(&__cfg_dfs_stack, __cfg_dfs_bb->jmp, __cfg_dfs_bb->id) || \
+                !__cfg_dfs_push(&__cfg_dfs_stack, __cfg_dfs_bb->l, __cfg_dfs_bb->id)      \
+            ) __cfg_dfs_result = 0;                                                     \
+        }                                                                               \
+        stack_free_force(&__cfg_dfs_stack);                                             \
+    }                                                                                   \
+    __cfg_dfs_result;                                                                   \
+})
+
+#define CFG_DFS_WALK(head, logic, ...)                                                  \
+    CFG_DFS_WALK_COUNTER((head), -1, CFG_get_unique_counter(), logic, ##__VA_ARGS__)
 
 #define iterate_hir_instructions(bb) \
     for (hir_block_t* hh = HIR_get_next(bb->hmap.entry, bb->hmap.exit, 0); hh; hh = HIR_get_next(hh, bb->hmap.exit, 1))
