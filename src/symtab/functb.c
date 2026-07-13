@@ -57,8 +57,8 @@ static int _is_function_presented(
 ) {
     map_foreach (func_info_t* fi, &ctx->functb) {
         if (
-            (s_id == FIELD_NO_CHANGE || fi->s_id == s_id) &&
-            fi->name->equals(fi->name, name) &&
+            (s_id == FIELD_NO_CHANGE || fi->s_id == s_id)                                                  &&
+            fi->name->equals(fi->name, name)                                                               &&
             AST_hash_node_stop(args->c, 1, SCOPE_TOKEN) == AST_hash_node_stop(fi->args->c, 1, SCOPE_TOKEN) &&
             (!gen || map_equals(&fi->template.generic, gen))
         ) {

@@ -30,10 +30,10 @@ symbol_id_t TPTB_add_info(string_t* name, symbol_id_t s_id, type_type_t t, int a
     info->t    = t;
 
     switch (t) {
-        case TYPE_GENERICS:  info->tt = GENERIC_TYPE_TOKEN; break;
-        case TYPE_CUSTOM:    info->tt = CUSTOM_TYPE_TOKEN;  break;
-        case TYPE_METHOD:    info->tt = FUNC_TOKEN;         break;
-        case TYPE_ARRAY:     info->tt = ARRAY_TYPE_TOKEN;   break;
+        case TYPE_GENERICS:  info->tt = GENERIC_TYPE_TOKEN;   break;
+        case TYPE_CUSTOM:    info->tt = CUSTOM_TYPE_TOKEN;    break;
+        case TYPE_METHOD:    info->tt = FUNC_TOKEN;           break;
+        case TYPE_ARRAY:     info->tt = ARRAY_TYPE_TOKEN;     break;
         case TYPE_PRIMITIVE:
         default:             info->tt = UNKNOWN_STRING_TOKEN; break;
     }
@@ -72,9 +72,9 @@ static inline symbol_id_t _get_type_by_token(token_t* t, typetab_ctx_t* ctx) {
     if (!t) return NO_SYMBOL_ID;
     if (t->t_type == ARRAY_TYPE_TOKEN) return NO_SYMBOL_ID;
     map_foreach (type_info_t* ti, &ctx->typetb) {
-        if (ti->tt != t->t_type || ti->memory.ptr != t->flags.ptr) continue;
-        if (ti->link.v_id != NO_SYMBOL_ID || ti->link.name) continue;
-        if (!t->body && !ti->name) return ti->id;
+        if (ti->tt != t->t_type || ti->memory.ptr != t->flags.ptr)     continue;
+        if (ti->link.v_id != NO_SYMBOL_ID || ti->link.name)            continue;
+        if (!t->body && !ti->name)                                     return ti->id;
         if (t->body && ti->name && t->body->equals(t->body, ti->name)) return ti->id;
     }
 
@@ -155,7 +155,6 @@ int TPTB_link_child(symbol_id_t p_id, symbol_id_t c_id, typetab_ctx_t* ctx) {
 
 symbol_id_t TPTB_get_first_child(symbol_id_t p_id, typetab_ctx_t* ctx) {
     p_id = _resolve_parent(p_id, ctx);
-
     type_info_t* p_ti;
     if (!map_get(&ctx->typetb, p_id, (void**)&p_ti)) return NO_SYMBOL_ID;
     if (!p_ti->link.c.s) return NO_SYMBOL_ID;
@@ -261,7 +260,6 @@ int TPTB_find_type_init_slot(
         long child_offset = TPTB_get_child_offset(t_id, child_id, ctx);
         long child_size   = TPTB_get_memory_size_id(child_id, ctx);
         if (child_offset < 0 || child_size <= 0) continue;
-
         long repeats = ti.t == TYPE_ARRAY ? type_size / child_size : 1;
         for (long repeat = 0; repeat < repeats; repeat++) {
             long nested_base = base_offset + child_offset + repeat * child_size;

@@ -5,9 +5,9 @@ int VRTB_update_memory(symbol_id_t id, long offset, long size, char reg, short a
     variable_info_t* vi;
     if (map_get(&ctx->vartb, id, (void**)&vi)) {
         if (offset != FIELD_NO_CHANGE) vi->vmi.offset = offset;
-        if (size != FIELD_NO_CHANGE)   vi->vmi.size   = size;
-        if (reg != FIELD_NO_CHANGE)    vi->vmi.reg    = reg;
-        if (align != FIELD_NO_CHANGE)  vi->vmi.align  = align;
+        if (size   != FIELD_NO_CHANGE) vi->vmi.size   = size;
+        if (reg    != FIELD_NO_CHANGE) vi->vmi.reg    = reg;
+        if (align  != FIELD_NO_CHANGE) vi->vmi.align  = align;
         if (reg < 0 && offset < 0) return 1;
         vi->vmi.allocated = 1;
         return 1;
@@ -88,15 +88,12 @@ static variable_info_t* _create_variable_info(string_t* name, token_type_t type,
     variable_info_t* var = (variable_info_t*)mm_malloc(sizeof(variable_info_t));
     if (!var) return NULL;
     str_memset(var, 0, sizeof(variable_info_t));
-
-    var->s_id = s_id;
+    var->s_id        = s_id;
     if (name) var->name = name->copy(name);
-    var->vfs = flags;
-
-    var->vmi.reg    = -1;
-    var->vmi.offset = -1;
-    var->vmi.align  = CONF_get_full_bytness();
-
+    var->vfs         = flags;
+    var->vmi.reg     = -1;
+    var->vmi.offset  = -1;
+    var->vmi.align   = CONF_get_full_bytness();
     var->vdi.defined = UNDEFINED_VARIABLE;
     var->p_id        = NO_SYMBOL_ID;
     var->type        = type;

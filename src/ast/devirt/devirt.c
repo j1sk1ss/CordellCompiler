@@ -40,7 +40,7 @@ static int _recursive_walk(
     ast_node_t* node, symbol_id_t v_id, symbol_id_t nv_id, token_type_t t, 
     void (*process)(ast_node_t*, symbol_id_t, symbol_id_t, token_type_t)
 ) {
-    if (!node) return 0;
+    if (!node)    return 0;
     _recursive_walk(node->siblings.n, v_id, nv_id, t, process);
     _recursive_walk(node->c, v_id, nv_id, t, process);
     if (!node->t) return 0;
@@ -55,7 +55,7 @@ Params:
     - `nv_id` - New variable Id.
     - `t` - New token type for a generic variables.
 
-Returns 1 if succeeds. */
+Returns 1 if succeeds */
 static void _update_variable_id(ast_node_t* node, symbol_id_t v_id, symbol_id_t nv_id, token_type_t t) {
     if (TKN_is_variable(node->t) && node->sinfo.v_id == v_id) {
         node->sinfo.v_id = nv_id;
@@ -72,7 +72,7 @@ Params:
     - `types` - Types map for a function.
     - `smt` - Symtable.
 
-Returns 1 if succeeds. */
+Returns 1 if succeeds */
 static int _find_type_usage_and_replace(ast_node_t* node, ast_node_t* root, map_t* types, sym_table_t* smt) {
     if (!node) return 0;
     _find_type_usage_and_replace(node->siblings.n, root, types, smt);
@@ -83,7 +83,7 @@ static int _find_type_usage_and_replace(ast_node_t* node, ast_node_t* root, map_
         if (
             node->t->t_type == GENERIC_TYPE_TOKEN && 
             map_get(types, node->sinfo.t_id, (void**)&t)
-        ) node->t->t_type = t; /* replace just a type node */
+        ) node->t->t_type = t; /* replace just a type node                */
         if (node->c) {         /* update the declared variable and its id */
             variable_info_t vi;
             if (!VRTB_get_info_id(node->c->sinfo.v_id, &vi, &smt->v)) return 0;
@@ -102,7 +102,7 @@ Params:
     - `v_id` - Old function Id.
     - `nv_id` - New function Id.
 
-Returns 1 if succeeds. */
+Returns 1 if succeeds */
 static void _update_function_id(ast_node_t* node, symbol_id_t v_id, symbol_id_t nv_id, __attribute__((unused)) token_type_t t) {
     if (
         (node->t->t_type == FUNC_NAME_TOKEN || node->t->t_type == LAMBDA_FUNCTION_TOKEN) && 
@@ -117,7 +117,7 @@ Params:
     - `smt` - Symtable.
     - `ctx` - Devirt context.
 
-Returns 1 if succeeds. */
+Returns 1 if succeeds */
 static int _find_function_declaration_and_replace(ast_node_t* node, ast_node_t* root, sym_table_t* smt, devirt_ctx_t* ctx) {
     if (!node) return 0;
     _find_function_declaration_and_replace(node->siblings.n, root, smt, ctx);
@@ -132,8 +132,8 @@ static int _find_function_declaration_and_replace(ast_node_t* node, ast_node_t* 
             break;
         }
         case LAMBDA_FUNCTION_TOKEN: {
-            name = node;
-            args = name->c;
+            name  = node;
+            args  = name->c;
             break;
         }
         default: break;
@@ -161,16 +161,14 @@ Params:
     - `smt` - Symtable.
     - `ctx` - Devir context.
 
-Returns 1 if succeeds. */
+Returns 1 if succeeds */
 ast_node_t* _implement_template(ast_node_t* root, symbol_id_t f_id, sym_table_t* smt, devirt_ctx_t* ctx) {
     if (f_id == NO_SYMBOL_ID) return root;
     func_info_t fi;
     if (!FNTB_get_info_id(f_id, &fi, &smt->f)) return root;
     ast_node_t* copy = AST_copy_node(root, 0, 0, 1, NULL);
-    
     _find_type_usage_and_replace(copy, copy, &fi.template.generic, smt);
     _find_function_declaration_and_replace(copy->c, copy, smt, ctx);
-
     AST_DVRT_resolve_calls(copy, smt, ctx);
     copy->c->sinfo.v_id = f_id;
     return copy;
@@ -181,7 +179,7 @@ int AST_DVRT_pop_implementation(sym_table_t* smt, devirt_ctx_t* ctx, ast_node_t*
     if (!queue_pop(&ctx->to_impl, (void**)&template)) return 0;
     ast_node_t* template_ast = template->root;
     if (!template_ast) {
-        print_warn("Pattern has a NULL root which means, there is no pattern implementation!");
+        print_warn("Pattern has a 'NULL' root which means, there is no pattern implementation!");
         *out = NULL;
     }
     else {
@@ -196,6 +194,6 @@ int AST_DVRT_pop_implementation(sym_table_t* smt, devirt_ctx_t* ctx, ast_node_t*
 int AST_DVRT_unload_ctx(devirt_ctx_t* ctx) {
     set_free(&ctx->impl);
     map_free(&ctx->templates);
-    queue_free_force_op(&ctx->to_impl, (int (*)(void *))_unload_template);
+    queue_free_force_op(&ctx->to_impl, (int (*)(void*))_unload_template);
     return 1;
 }

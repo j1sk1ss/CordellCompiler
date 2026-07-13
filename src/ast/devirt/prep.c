@@ -76,7 +76,7 @@ static int _find_and_register_resolved_call(ast_node_t* node, sym_table_t* smt, 
         
         string_t* section = SCTB_get_section_name(name->sinfo.v_id, SECTION_ELEMENT_FUNCTION, &smt->c);
         if (!section) section = create_string(CONF_get_code_section());
-        else section = section->copy(section);
+        else          section = section->copy(section);
         
         symbol_id_t base = name->sinfo.v_id;
         name->sinfo.v_id = FNTB_create_resolved_copy(base, &types, &smt->f);

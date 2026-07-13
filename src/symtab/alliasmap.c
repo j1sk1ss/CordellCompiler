@@ -4,10 +4,8 @@ static allias_t* _create_allias(symbol_id_t v_id) {
     allias_t* a = (allias_t*)mm_malloc(sizeof(allias_t));
     if (!a) return NULL;
     str_memset(a, 0, sizeof(allias_t));
-    
     set_init(&a->owners, SET_CMP);
     set_init(&a->delown, SET_CMP);
-    
     a->v_id = v_id;
     return a;
 }

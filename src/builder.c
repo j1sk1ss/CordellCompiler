@@ -140,11 +140,11 @@ static int _path_from_executable(const char* argv0, const char* suffix, char* ou
 
 static inline const char* _find_stdlib(const char* argv0, char* out, size_t out_size) {
     const char* env = getenv("CPL_INCLUDE_PATH");
-    if (_readable_directory(env)) return env;
+    if (_readable_directory(env))                                            return env;
     if (_path_from_executable(argv0, "../share/cpl/include", out, out_size)) return out;
-    if (_path_from_executable(argv0, "../../cpllib", out, out_size)) return out;
-    if (_readable_directory(CPL_DEFAULT_INCLUDE_DIR)) return CPL_DEFAULT_INCLUDE_DIR;
-    if (realpath("cpllib", out) && _readable_directory(out)) return out;
+    if (_path_from_executable(argv0, "../../cpllib", out, out_size))         return out;
+    if (_readable_directory(CPL_DEFAULT_INCLUDE_DIR))                        return CPL_DEFAULT_INCLUDE_DIR;
+    if (realpath("cpllib", out) && _readable_directory(out))                 return out;
     return NULL;
 }
 
@@ -189,7 +189,7 @@ static int _copy_fd_to_stream(int fd, FILE* stream) {
     return !nread && !ferror(stream);
 }
 
-static int _compile_asm_to_object(const options_t* options, const char* asm_path, const char* obj_path) {
+static inline int _compile_asm_to_object(const options_t* options, const char* asm_path, const char* obj_path) {
     char* const cmd[] = {
         (char*)options->tools.asm_compiler, "-f",
         (char*)options->tools.asm_format, (char*)asm_path, "-o",
@@ -209,7 +209,7 @@ static int _link_objects(const options_t* options, char* const objects[], int ob
     cmd[j++] = (char*)options->tools.linker;
     if (options->tools.linker_use_c_driver) {
         if (options->tools.linker_no_pie) cmd[j++] = "-no-pie";
-        if (options->tools.linker_m32) cmd[j++] = "-m32";
+        if (options->tools.linker_m32)    cmd[j++] = "-m32";
     }
     
     cmd[j++] = "-o";
@@ -266,7 +266,7 @@ static int _parse_sys_type(const char* s, options_t* out) {
         return 1;
     }
     else if (!strcmp(s, "windows64")) {
-        out->config.sys_type = WINDOWS64;
+        out->config.sys_type     = WINDOWS64;
         return 1;
     }
 
@@ -275,12 +275,12 @@ static int _parse_sys_type(const char* s, options_t* out) {
 
 static void _set_optimization_profile(options_t* out, int level) {
     if (!out) return;
-    out->config.tre       = 0;
-    out->config.finline   = 0;
-    out->config.licm      = 0;
-    out->config.constant  = 0;
-    out->config.peephole  = 0;
-    out->config.copy_prop = 0;
+    out->config.tre           = 0;
+    out->config.finline       = 0;
+    out->config.licm          = 0;
+    out->config.constant      = 0;
+    out->config.peephole      = 0;
+    out->config.copy_prop     = 0;
 
     if (level >= 2) {
         out->config.licm      = 1;
@@ -309,10 +309,8 @@ static void _set_arch_profile(options_t* out, const char* arch) {
         out->config.sys_type      = I386;
         out->tools.asm_format     = "elf32";
         out->tools.linker_m32     = 1;
-        return;
     }
-
-    if (
+    else if (
         !strcmp(arch, "x86_64") || 
         !strcmp(arch, "amd64")
     ) {
@@ -416,10 +414,8 @@ static cli_define_t* _make_define_arg(const char* arg) {
 
 static int _add_define_arg(options_t* out, const char* arg) {
     if (!out) return 0;
-
     cli_define_t* define = _make_define_arg(arg);
     if (!define) return 0;
-
     if (!list_push_back(&out->locations.defines, define)) {
         _unload_cli_define(define);
         return 0;
@@ -520,12 +516,12 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
             else if (!strcmp(mode, "raw") || !strcmp(mode, "ld")) out->tools.linker_use_c_driver    = 0;
             else goto _fail;
         }
-        else if (!strcmp(argv[i], OPTION_NO_COMPILE))      out->flags.no_compile      = 1;
-        else if (!strcmp(argv[i], OPTION_NO_OBJECT_BUILD)) out->flags.no_object_build = 1;
-        else if (!strcmp(argv[i], OPTION_LINKER_NO_PIE))   out->tools.linker_no_pie   = 1;
-        else if (!strcmp(argv[i], OPTION_LINKER_PIE))      out->tools.linker_no_pie   = 0;
-        else if (!strcmp(argv[i], OPTION_LINKER_M32))      out->tools.linker_m32      = 1;
-        else if (!strcmp(argv[i], OPTION_LINKER_NO_M32))   out->tools.linker_m32      = 0;
+        else if (!strcmp(argv[i], OPTION_NO_COMPILE))           out->flags.no_compile      = 1;
+        else if (!strcmp(argv[i], OPTION_NO_OBJECT_BUILD))      out->flags.no_object_build = 1;
+        else if (!strcmp(argv[i], OPTION_LINKER_NO_PIE))        out->tools.linker_no_pie   = 1;
+        else if (!strcmp(argv[i], OPTION_LINKER_PIE))           out->tools.linker_no_pie   = 0;
+        else if (!strcmp(argv[i], OPTION_LINKER_M32))           out->tools.linker_m32      = 1;
+        else if (!strcmp(argv[i], OPTION_LINKER_NO_M32))        out->tools.linker_m32      = 0;
         else if (!strcmp(argv[i], OPTION_ENTRY_NAME)) {
             if (i + 1 >= argc) goto _fail;
             out->config.entry_name = argv[++i];
@@ -681,7 +677,7 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    if (options.locations.files_count == 0) {
+    if (!options.locations.files_count) {
         fprintf(stderr, "No input files\n");
         list_free_force_op(&options.locations.defines, _unload_cli_define);
         mm_free((void*)options.locations.files);
@@ -821,7 +817,6 @@ int main(int argc, char* argv[]) {
                 list_free_force_op(&token_lists[j], (int (*)(void *))TKN_unload_token);
             }
             AST_unload_ctx(&sctx);
-
             SMT_unload(&smt);
             close(fd);
             continue;
@@ -1024,7 +1019,10 @@ int main(int argc, char* argv[]) {
 
         fclose(asm_file);
 
-        if (options.flags.no_compile || options.flags.no_object_build) {
+        if (
+            options.flags.no_compile || 
+            options.flags.no_object_build
+        ) {
             unlink(asm_path);
             mm_free(asm_path);
             mm_free(obj_path);
@@ -1056,9 +1054,9 @@ int main(int argc, char* argv[]) {
     }
 
     if (
-        !options.flags.no_compile &&
-        !options.flags.no_object_build &&
-        !options.flags.preprocess_only &&
+        !options.flags.no_compile          &&
+        !options.flags.no_object_build     &&
+        !options.flags.preprocess_only     &&
         !options.flags.without_compilation &&
         options.locations.files_count > 0
     ) {

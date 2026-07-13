@@ -64,8 +64,6 @@ int main(int argc, char* argv[]) {
 
     AST_finalize_parse(&sctx, &smt);
 
-    AST_DVRT_resolve_calls(sctx.r, &smt);
-
     map_foreach (func_info_t* fi, &smt.f.functb) {
         printf(
             "%sid: %li, name: %s (virt: %s), ext=%i, glob=%i, used=%i, local=%i, sid=%li, generic=%i\n", 

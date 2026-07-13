@@ -76,14 +76,12 @@ int ASTWLKR_ro_assign(AST_VISITOR_ARGS) {
     return 1;
 }
 
-/*
-Get basic type token from the AST node.
+/* Get basic type token from the AST node.
 If this is a cast node, extract a cast type.
 Params:
     - `nd` - AST node.
 
-Returns a token with a type.
-*/
+Returns a token with a type */
 static inline token_t* _get_base_type_token(ast_node_t* nd, int* ptr) {
     switch (nd->t->t_type) {
         case REF_TYPE_TOKEN: if (ptr) *ptr = TYPE_FULL_SIZE; 
@@ -293,8 +291,7 @@ int ASTWLKR_illegal_declaration(AST_VISITOR_ARGS) {
     return 1;
 }
 
-/*
-Search for the 'return' or for the 'exit' statement in the provided AST node.
+/* Search for the 'return' or for the 'exit' statement in the provided AST node.
 Params:
     - `nd` - Target AST node.
     - `found` - External flag. Will hold the `1` value if this function
@@ -303,8 +300,7 @@ Params:
                 - 1 - Found the 'exit' statement.
                 - 2 - Found the 'return' statement.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds */
 static int _search_term_node(ast_node_t* nd, int* found, int* type) {
     if (!nd) return 0;
     if (!nd->t) {
@@ -533,13 +529,11 @@ int ASTWLKR_duplicated_branches(AST_VISITOR_ARGS) {
     return 1;
 }
 
-/*
-Format format name by the provided type.
+/* Format format name by the provided type.
 Params:
     - `t` - Case type.
 
-Returns a formatted case type. 
-*/
+Returns a formatted case type */
 static inline char* _format_name(int t) {
     switch (t) {
         case 0: return "camelCase";
@@ -551,17 +545,15 @@ static inline char* _format_name(int t) {
     return "";
 }
 
-/*
-Check the string's case style.
+/* Check the string's case style.
 Params: 
     - `s` - String.
     
-Returns -1 for an unknown format.
-Returns 0 if the input string is camelCase.
-Returns 1 if the input string is PascalCase.
-Returns 2 if the input string is kebab-case.
-Returns 3 if the input string is snake_case.
-*/
+Returns -1 for an unknown format;
+Returns 0 if the input string is camelCase;
+Returns 1 if the input string is PascalCase;
+Returns 2 if the input string is kebab-case;
+Returns 3 if the input string is snake_case */
 static int _determine_string_style(const char* s) {
     int has_upper = 0;
     int has_hyphen = 0;
@@ -675,15 +667,13 @@ int ASTWLKR_valid_function_name(AST_VISITOR_ARGS) {
     return 1;
 }
 
-/*
-Check if the function's return type matches to the actual return value's type.
+/* Check if the function's return type matches to the actual return value's type.
 Params:
     - `fname` - Target function name.
     - `nd` - Base function node.
     - `rtype` - Function return type.
 
-Returns 1 if return types are equal.
-*/
+Returns 1 if return types are equal */
 static int _check_return_statement(const char* fname, ast_node_t* nd, token_t* rtype, sym_table_t* smt) {
     if (!nd) return 0;
     if (!nd->t) {
