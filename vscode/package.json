@@ -18,6 +18,7 @@
   "main": "./out/extension.js",
   "activationEvents": [
     "onLanguage:cpl",
+    "onCommand:cpl.runModuleTest",
     "onCommand:extension.sayHello"
   ],
   "contributes": {
@@ -56,7 +57,38 @@
         "uiTheme": "vs-dark",
         "path": "./themes/cpl-color-theme.json"
       }
-    ]
+    ],
+    "commands": [
+      {
+        "command": "cpl.runModuleTest",
+        "title": "Run CPL Module Test",
+        "category": "CPL",
+        "icon": "$(play)"
+      }
+    ],
+    "menus": {
+      "editor/title": [
+        {
+          "command": "cpl.runModuleTest",
+          "when": "resourceLangId == cpl",
+          "group": "navigation@1"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "cpl.runModuleTest",
+          "when": "resourceLangId == cpl",
+          "group": "navigation@1"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "cpl.runModuleTest",
+          "when": "resourceExtname == .cpl",
+          "group": "navigation@1"
+        }
+      ]
+    }
   },
   "scripts": {
     "build": "tsc -p ./",

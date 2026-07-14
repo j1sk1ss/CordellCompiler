@@ -38,6 +38,65 @@ function parseMakefileVars(makefilePath: string): Map<string, string> {
   return new Map<string, string>();
 }
 
+function findTestsDirUpwards(startPath?: string): string | undefined {
+  if (!startPath) return undefined;
+  let dir = fs.existsSync(startPath) && fs.statSync(startPath).isDirectory()
+    ? startPath
+    : path.dirname(startPath);
+
+  while (true) {
+    const candidate = path.join(dir, "tests", "module_testing.py");
+    if (fs.existsSync(candidate)) return path.join(dir, "tests");
+
+    const parent = path.dirname(dir);
+    if (parent === dir) return undefined;
+    dir = parent;
+  }
+}
+
+async function runModuleTest(resource?: vscode.Uri): Promise<void> {
+  const uri = resource ?? vscode.window.activeTextEditor?.document.uri;
+  if (!uri || uri.scheme !== "file") {
+    void vscode.window.showErrorMessage("Open a CPL test file before running module tests.");
+    return;
+  }
+
+  if (path.extname(uri.fsPath) !== ".cpl") {
+    void vscode.window.showErrorMessage("CPL module tests can be run only for .cpl files.");
+    return;
+  }
+
+  const testsDir = findTestsDirUpwards(uri.fsPath);
+  if (!testsDir) {
+    void vscode.window.showErrorMessage("Could not find tests/module_testing.py above the selected file.");
+    return;
+  }
+
+  const workspaceFolder = vscode.workspace.getWorkspaceFolder(uri);
+  const execution = new vscode.ShellExecution(
+    "python3",
+    ["module_testing.py", "--path", uri.fsPath],
+    { cwd: testsDir }
+  );
+
+  const task = new vscode.Task(
+    { type: "cpl", command: "runModuleTest", file: uri.fsPath },
+    workspaceFolder ?? vscode.TaskScope.Workspace,
+    "Run CPL Module Test",
+    "CPL",
+    execution,
+    []
+  );
+  task.group = vscode.TaskGroup.Test;
+  task.presentationOptions = {
+    reveal: vscode.TaskRevealKind.Always,
+    panel: vscode.TaskPanelKind.Dedicated,
+    clear: true
+  };
+
+  await vscode.tasks.executeTask(task);
+}
+
 function inferSysTypeForDocument(document: vscode.TextDocument): CplSysType {
   const makefilePath = findMakefileUpwards(document.uri.fsPath);
   if (makefilePath) {
@@ -131,6 +190,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     inactiveBranchDecoration,
+    vscode.commands.registerCommand("cpl.runModuleTest", runModuleTest),
     vscode.window.onDidChangeActiveTextEditor((editor) => updateInactiveBranches(editor)),
     vscode.window.onDidChangeVisibleTextEditors(() => updateVisibleInactiveBranches()),
     vscode.workspace.onDidChangeTextDocument((event) => {
