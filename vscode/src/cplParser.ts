@@ -160,6 +160,7 @@ type ParamInfo = {
   hasDefault: boolean;
   isVarArgs?: boolean;
   range: Range;
+  annotations?: string[];
 };
 
 type ExprInfo = {
@@ -675,11 +676,22 @@ class Parser {
   }
 
 
-  private hasPendingAnnotation(name: string): boolean {
-    return this.pendingAnnotations.some((ann) => {
+  private takePendingAnnotations(): string[] {
+    const annotations = [...this.pendingAnnotations];
+    this.pendingAnnotations = [];
+    return annotations;
+  }
+
+  private hasAnnotation(annotations: readonly string[], name: string): boolean {
+    return annotations.some((ann) => {
       const t = ann.trim();
-      return t === name || t.startsWith(`${name}(`);
+      const open = t.indexOf("(");
+      return (open < 0 ? t : t.slice(0, open).trim()) === name;
     });
+  }
+
+  private hasPendingAnnotation(name: string): boolean {
+    return this.hasAnnotation(this.pendingAnnotations, name);
   }
 
   private declareImplicitSelfIfNeeded(enabled: boolean, selfType: TypeNode, range: Range, paramsInfo: ParamInfo[]) {
@@ -811,7 +823,7 @@ class Parser {
         if (this.match("kw", "function")) {
           const doc = this.pendingDoc;
           this.pendingDoc = undefined;
-          this.parseFunctionAfterKeyword(doc);
+          this.parseFunctionAfterKeyword(doc, mods);
           this.clearPendingMetadata();
           return;
         }
@@ -1146,14 +1158,14 @@ class Parser {
   private parseParamListOptInfos(selfType?: TypeNode): ParamInfo[] {
     const params: ParamInfo[] = [];
     if (this.at("punc", ")")) return params;
-  
+
     let seenVarArgs = false;
     const unknownType: TypeNode = { kind: "unknown" };
-  
+
     while (true) {
       this.parseInlineAnnotations();
-      let isVarArgs = false;
-  
+      const leadingAnnotations = this.takePendingAnnotations();
+
       if (this.match("op", "...")) {
         if (seenVarArgs) {
           const c = this.prev();
@@ -1163,15 +1175,19 @@ class Parser {
           });
         }
         seenVarArgs = true;
-        isVarArgs = true;
-  
+
         this.parseInlineAnnotations();
+        const annotations = [...leadingAnnotations, ...this.takePendingAnnotations()];
 
         let t: TypeNode = unknownType;
-        if (this.at("kw") && TYPE_KW.has(this.cur().text)) {
+        if ((this.at("kw") && TYPE_KW.has(this.cur().text)) || this.at("ident") || this.at("punc", "(")) {
           t = this.parseType();
+          annotations.push(...this.takePendingAnnotations());
         }
-  
+
+        this.parseInlineAnnotations();
+        annotations.push(...this.takePendingAnnotations());
+
         let name = "__varargs";
         let nameTok = this.prev();
         if (this.at("ident")) {
@@ -1179,15 +1195,16 @@ class Parser {
           this.i++;
           name = nameTok.text;
         }
-  
+
         params.push({
           name,
           type: t,
           hasDefault: false,
           isVarArgs: true,
-          range: rangeOf(this.lines, nameTok.start, nameTok.end)
+          range: rangeOf(this.lines, nameTok.start, nameTok.end),
+          annotations: annotations.length ? annotations : undefined
         });
-  
+
         if (this.match("punc", ",")) {
           this.issues.push({
             message: "varargs parameter must be the last one",
@@ -1196,7 +1213,7 @@ class Parser {
         }
         break;
       }
-  
+
       if (selfType && this.at("ident") && this.cur().text === "self") {
         const nameTok = this.cur();
         this.i++;
@@ -1205,7 +1222,8 @@ class Parser {
           name: "self",
           type: selfType,
           hasDefault: false,
-          range: rangeOf(this.lines, nameTok.start, nameTok.end)
+          range: rangeOf(this.lines, nameTok.start, nameTok.end),
+          annotations: leadingAnnotations.length ? leadingAnnotations : undefined
         });
 
         if (!this.match("punc", ",")) break;
@@ -1213,28 +1231,31 @@ class Parser {
       }
 
       const t = this.parseType();
+      const annotations = [...leadingAnnotations, ...this.takePendingAnnotations()];
       this.parseInlineAnnotations();
-  
+      annotations.push(...this.takePendingAnnotations());
+
       const nameTok = this.cur();
       this.expect("ident", undefined, "param: expected identifier");
       const name = this.prev().text;
-  
+
       let hasDefault = false;
       if (this.match("op", "=")) {
         hasDefault = true;
         this.parseExpression();
       }
-  
+
       params.push({
         name,
         type: t,
         hasDefault,
-        range: rangeOf(this.lines, nameTok.start, nameTok.end)
+        range: rangeOf(this.lines, nameTok.start, nameTok.end),
+        annotations: annotations.length ? annotations : undefined
       });
-  
+
       if (!this.match("punc", ",")) break;
     }
-  
+
     return params;
   }  
 
@@ -1257,19 +1278,27 @@ class Parser {
   }
 
   private parseStartAfterKeyword() {
+    const startAnnotations = this.takePendingAnnotations();
     this.expect("punc", "(");
     const paramsInfo = this.parseParamListOptInfos();
     this.expect("punc", ")");
 
     this.sem?.enterScope();
-    for (const p of paramsInfo) this.sem?.declareLocalVar(p.name, p.type, p.range);
+    for (const p of paramsInfo) {
+      this.sem?.declareLocalVar(p.name, p.type, p.range, { annotations: p.annotations });
+    }
 
     this.parseBlock();
 
     this.sem?.exitScope();
+    void startAnnotations;
   }
 
-  private parseFunctionAfterKeyword(doc?: string) {
+  private parseFunctionAfterKeyword(
+    doc?: string,
+    mods: StorageMods = { isGlobal: false, isReadonly: false }
+  ) {
+    const annotations = this.takePendingAnnotations();
     const nameTok = this.cur();
     this.expect("ident", undefined, "function: expected identifier");
     let fnName = this.prev().text;
@@ -1283,7 +1312,7 @@ class Parser {
     }
 
     const typeParams = this.parseGenericParamListAfterName();
-    const hasSelfAnnotation = containerName ? this.hasPendingAnnotation("self") : false;
+    const hasSelfAnnotation = containerName ? this.hasAnnotation(annotations, "self") : false;
 
     this.expect("punc", "(");
     const selfType: TypeNode | undefined = containerName ? { kind: "container", name: containerName } : undefined;
@@ -1292,23 +1321,43 @@ class Parser {
 
     let ret: TypeNode = { kind: "prim", name: "i0" };
     if (this.match("op", "->")) ret = this.parseType();
+    this.takePendingAnnotations();
 
     const fnRange = rangeOf(this.lines, nameTok.start, this.prev().end);
+    const semanticOpts = {
+      self: hasSelfAnnotation,
+      global: mods.isGlobal,
+      annotations
+    };
 
     if (this.match("punc", ";")) {
       this.linkPendingDoc(containerName ? `${containerName}::${fnName}` : fnName, fnRange, doc);
-      if (containerName) this.sem?.declareContainerMethod(containerName, fnName, paramsInfo, ret, fnRange, false, doc, typeParams, { self: hasSelfAnnotation });
-      else this.sem?.declareFunc(fnName, paramsInfo, ret, fnRange, false, doc, typeParams);
+      if (containerName) {
+        this.sem?.declareContainerMethod(containerName, fnName, paramsInfo, ret, fnRange, false, doc, typeParams, semanticOpts);
+      } else {
+        this.sem?.declareFunc(fnName, paramsInfo, ret, fnRange, false, doc, typeParams, {
+          global: mods.isGlobal,
+          annotations
+        });
+      }
       return;
     }
 
     this.linkPendingDoc(containerName ? `${containerName}::${fnName}` : fnName, fnRange, doc);
-    if (containerName) this.sem?.declareContainerMethod(containerName, fnName, paramsInfo, ret, fnRange, true, doc, typeParams, { self: hasSelfAnnotation });
-    else this.sem?.declareFunc(fnName, paramsInfo, ret, fnRange, true, doc, typeParams);
+    if (containerName) {
+      this.sem?.declareContainerMethod(containerName, fnName, paramsInfo, ret, fnRange, true, doc, typeParams, semanticOpts);
+    } else {
+      this.sem?.declareFunc(fnName, paramsInfo, ret, fnRange, true, doc, typeParams, {
+        global: mods.isGlobal,
+        annotations
+      });
+    }
 
     this.sem?.enterScope();
     if (containerName && selfType) this.declareImplicitSelfIfNeeded(hasSelfAnnotation, selfType, fnRange, paramsInfo);
-    for (const p of paramsInfo) this.sem?.declareLocalVar(p.name, p.type, p.range);
+    for (const p of paramsInfo) {
+      this.sem?.declareLocalVar(p.name, p.type, p.range, { annotations: p.annotations });
+    }
 
     this.parseBlock();
 
@@ -1318,12 +1367,13 @@ class Parser {
 
 
   private parseContainerAfterKeyword(doc?: string) {
+    const annotations = this.takePendingAnnotations();
     const nameTok = this.cur();
     this.expect("ident", undefined, "container: expected identifier");
     const containerName = this.prev().text;
     const containerRange = rangeOf(this.lines, nameTok.start, nameTok.end);
 
-    this.sem?.declareContainer(containerName, containerRange, doc);
+    this.sem?.declareContainer(containerName, containerRange, doc, { annotations });
     this.linkPendingDoc(containerName, containerRange, doc);
 
     this.expect("punc", "{", "container: expected '{'");
@@ -1346,6 +1396,21 @@ class Parser {
         continue;
       }
 
+      {
+        const modsPos = this.i;
+        const mods = this.parseStorageMods();
+        if (mods.isGlobal || mods.isReadonly) {
+          if (this.match("kw", "function")) {
+            const itemDoc = this.pendingDoc;
+            this.pendingDoc = undefined;
+            this.parseContainerMethodAfterKeyword(containerName, itemDoc, mods);
+            this.clearPendingMetadata();
+            continue;
+          }
+          this.i = modsPos;
+        }
+      }
+
       if (this.match("kw", "function")) {
         const itemDoc = this.pendingDoc;
         this.pendingDoc = undefined;
@@ -1363,7 +1428,7 @@ class Parser {
 
       const c = this.cur();
       this.issues.push({
-        message: "container: expected field or method",
+        message: "container: expected field or function",
         range: rangeOf(this.lines, c.start, c.end)
       });
       this.syncToStatementEnd();
@@ -1373,12 +1438,17 @@ class Parser {
     this.expect("punc", "}", "container: expected '}'");
   }
 
-  private parseContainerMethodAfterKeyword(containerName: string, doc?: string) {
+  private parseContainerMethodAfterKeyword(
+    containerName: string,
+    doc?: string,
+    mods: StorageMods = { isGlobal: false, isReadonly: false }
+  ) {
+    const annotations = this.takePendingAnnotations();
     const nameTok = this.cur();
-    this.expect("ident", undefined, "container method: expected identifier");
+    this.expect("ident", undefined, "container function: expected identifier");
     const fnName = this.prev().text;
     const typeParams = this.parseGenericParamListAfterName();
-    const hasSelfAnnotation = this.hasPendingAnnotation("self");
+    const hasSelfAnnotation = this.hasAnnotation(annotations, "self");
 
     this.expect("punc", "(");
     const selfType: TypeNode = { kind: "container", name: containerName };
@@ -1387,21 +1457,29 @@ class Parser {
 
     let ret: TypeNode = { kind: "prim", name: "i0" };
     if (this.match("op", "->")) ret = this.parseType();
+    this.takePendingAnnotations();
 
     const fnRange = rangeOf(this.lines, nameTok.start, this.prev().end);
+    const semanticOpts = {
+      self: hasSelfAnnotation,
+      global: mods.isGlobal,
+      annotations
+    };
 
     if (this.match("punc", ";")) {
       this.linkPendingDoc(`${containerName}::${fnName}`, fnRange, doc);
-      this.sem?.declareContainerMethod(containerName, fnName, paramsInfo, ret, fnRange, false, doc, typeParams, { self: hasSelfAnnotation });
+      this.sem?.declareContainerMethod(containerName, fnName, paramsInfo, ret, fnRange, false, doc, typeParams, semanticOpts);
       return;
     }
 
     this.linkPendingDoc(`${containerName}::${fnName}`, fnRange, doc);
-    this.sem?.declareContainerMethod(containerName, fnName, paramsInfo, ret, fnRange, true, doc, typeParams, { self: hasSelfAnnotation });
+    this.sem?.declareContainerMethod(containerName, fnName, paramsInfo, ret, fnRange, true, doc, typeParams, semanticOpts);
 
     this.sem?.enterScope();
     this.declareImplicitSelfIfNeeded(hasSelfAnnotation, selfType, fnRange, paramsInfo);
-    for (const p of paramsInfo) this.sem?.declareLocalVar(p.name, p.type, p.range);
+    for (const p of paramsInfo) {
+      this.sem?.declareLocalVar(p.name, p.type, p.range, { annotations: p.annotations });
+    }
 
     this.parseBlock();
 
@@ -1411,10 +1489,14 @@ class Parser {
   private parseContainerFieldDecl(containerName: string) {
     const mods = this.parseStorageMods();
     this.parseInlineAnnotations();
+    const annotations = this.takePendingAnnotations();
 
     if (this.looksLikeArrDeclForm()) {
       const arr = this.parseArrDeclHeader("container arr field");
-      this.sem?.declareContainerField(containerName, arr.name, arr.type, arr.range, { readonly: mods.isReadonly });
+      this.sem?.declareContainerField(containerName, arr.name, arr.type, arr.range, {
+        readonly: mods.isReadonly,
+        annotations
+      });
       this.linkPendingDoc(`${containerName}.${arr.name}`, arr.range);
       this.parseOptionalArrayInitializer();
       this.consumeStmtEnd("container arr field: expected ';' or end-of-line");
@@ -1422,12 +1504,19 @@ class Parser {
     }
 
     const fieldType = this.parseType();
+    annotations.push(...this.takePendingAnnotations());
+    this.parseInlineAnnotations();
+    annotations.push(...this.takePendingAnnotations());
+
     const nameTok = this.cur();
     this.expect("ident", undefined, "container field: expected identifier");
     const fieldName = this.prev().text;
 
     const declRange = rangeOf(this.lines, nameTok.start, nameTok.end);
-    this.sem?.declareContainerField(containerName, fieldName, fieldType, declRange, { readonly: mods.isReadonly });
+    this.sem?.declareContainerField(containerName, fieldName, fieldType, declRange, {
+      readonly: mods.isReadonly,
+      annotations
+    });
     this.linkPendingDoc(`${containerName}.${fieldName}`, declRange);
 
     if (this.match("op", "=")) this.parseExpression();
@@ -1435,6 +1524,8 @@ class Parser {
   }
 
   private parseExternOp() {
+    const annotations = this.takePendingAnnotations();
+
     if (this.match("kw", "function")) {
       const nameTok = this.cur();
       this.expect("ident", undefined, "extern function: expected identifier");
@@ -1449,7 +1540,7 @@ class Parser {
       }
 
       const typeParams = this.parseGenericParamListAfterName();
-      const hasSelfAnnotation = containerName ? this.hasPendingAnnotation("self") : false;
+      const hasSelfAnnotation = containerName ? this.hasAnnotation(annotations, "self") : false;
 
       this.expect("punc", "(");
       const selfType: TypeNode | undefined = containerName ? { kind: "container", name: containerName } : undefined;
@@ -1458,25 +1549,36 @@ class Parser {
 
       let ret: TypeNode = { kind: "prim", name: "i0" };
       if (this.match("op", "->")) ret = this.parseType();
+      this.takePendingAnnotations();
 
       this.expect("punc", ";", "extern function: expected ';'");
 
       const fnRange = rangeOf(this.lines, nameTok.start, this.prev().end);
       const doc = this.pendingDoc;
       this.linkPendingDoc(containerName ? `${containerName}::${fnName}` : fnName, fnRange, doc);
-      if (containerName) this.sem?.declareContainerMethod(containerName, fnName, params, ret, fnRange, false, doc, typeParams, { self: hasSelfAnnotation });
-      else this.sem?.declareFunc(fnName, params, ret, fnRange, false, doc, typeParams);
+      if (containerName) {
+        this.sem?.declareContainerMethod(containerName, fnName, params, ret, fnRange, false, doc, typeParams, {
+          self: hasSelfAnnotation,
+          annotations
+        });
+      } else {
+        this.sem?.declareFunc(fnName, params, ret, fnRange, false, doc, typeParams, { annotations });
+      }
       return;
     }
 
     const vType = this.parseType();
+    annotations.push(...this.takePendingAnnotations());
+    this.parseInlineAnnotations();
+    annotations.push(...this.takePendingAnnotations());
+
     const nameTok = this.cur();
     this.expect("ident", undefined, "extern var: expected identifier");
     const vName = this.prev().text;
     const vRange = rangeOf(this.lines, nameTok.start, nameTok.end);
     this.match("punc", ";");
     if (nameTok.kind === "ident") {
-      this.sem?.declareExternGlobalVar(vName, vType, vRange);
+      this.sem?.declareExternGlobalVar(vName, vType, vRange, { annotations });
       this.linkPendingDoc(vName, vRange);
     }
     this.pendingDoc = undefined;
@@ -1590,7 +1692,7 @@ class Parser {
           if (this.match("kw", "function")) {
             const doc = this.pendingDoc;
             this.pendingDoc = undefined;
-            this.parseFunctionAfterKeyword(doc);
+            this.parseFunctionAfterKeyword(doc, mods);
             this.clearPendingMetadata();
             continue;
           }
@@ -1836,6 +1938,13 @@ class Parser {
       || c.kind === "ident";
   }
 
+  private looksLikeSizeofTypeStart(): boolean {
+    const c = this.cur();
+    if (this.atRaw("punc", "@")) return true;
+    if (c.kind === "kw" && TYPE_KW.has(c.text)) return true;
+    return c.kind === "ident" && !!this.sem?.hasContainer(c.text);
+  }
+
   private looksLikeGenericTypeDeclStart(): boolean {
     if (!this.atNonEOL(0, "ident") || !this.atNonEOL(1, "op", "<")) return false;
 
@@ -1920,11 +2029,13 @@ class Parser {
   private parseVarOrArrDecl(isTopLevel: boolean) {
     const mods = this.parseStorageMods();
     this.parseInlineAnnotations();
+    const annotations = this.takePendingAnnotations();
 
     if (this.looksLikeArrDeclForm()) {
       const arr = this.parseArrDeclHeader("arr_decl");
-      if (isTopLevel) this.sem?.declareGlobalVar(arr.name, arr.type, arr.range, { readonly: mods.isReadonly });
-      else this.sem?.declareLocalVar(arr.name, arr.type, arr.range, { readonly: mods.isReadonly });
+      const opts = { readonly: mods.isReadonly, annotations };
+      if (isTopLevel) this.sem?.declareGlobalVar(arr.name, arr.type, arr.range, opts);
+      else this.sem?.declareLocalVar(arr.name, arr.type, arr.range, opts);
       this.linkPendingDoc(arr.name, arr.range);
 
       this.parseOptionalArrayInitializer();
@@ -1933,14 +2044,18 @@ class Parser {
     }
 
     const vType = this.parseType();
+    annotations.push(...this.takePendingAnnotations());
+    this.parseInlineAnnotations();
+    annotations.push(...this.takePendingAnnotations());
 
     const nameTok = this.cur();
     this.expect("ident", undefined, "var_decl: expected identifier");
     const vName = this.prev().text;
 
     const declRange = rangeOf(this.lines, nameTok.start, nameTok.end);
-    if (isTopLevel) this.sem?.declareGlobalVar(vName, vType, declRange, { readonly: mods.isReadonly });
-    else this.sem?.declareLocalVar(vName, vType, declRange, { readonly: mods.isReadonly });
+    const opts = { readonly: mods.isReadonly, annotations };
+    if (isTopLevel) this.sem?.declareGlobalVar(vName, vType, declRange, opts);
+    else this.sem?.declareLocalVar(vName, vType, declRange, opts);
     this.linkPendingDoc(vName, declRange);
 
     if (this.match("op", "=")) this.parseExpression();
@@ -2074,7 +2189,7 @@ class Parser {
     let ret: TypeNode = { kind: "unknown" };
 
     this.sem?.enterScope();
-    for (const p of paramsInfo) this.sem?.declareLocalVar(p.name, p.type, p.range);
+    for (const p of paramsInfo) this.sem?.declareLocalVar(p.name, p.type, p.range, { annotations: p.annotations });
 
     if (this.at("punc", "{")) {
       this.parseBlock();
@@ -2315,7 +2430,7 @@ class Parser {
       let end = kwTok.end;
 
       if (this.match("punc", "(")) {
-        if (this.looksLikeTypeStart()) {
+        if (this.looksLikeSizeofTypeStart()) {
           targetType = this.parseType();
         } else {
           const inner = this.parseExpression();
@@ -2323,7 +2438,7 @@ class Parser {
         }
         this.expect("punc", ")", "sizeof: expected ')'" );
         end = this.prev().end;
-      } else if (this.looksLikeTypeStart()) {
+      } else if (this.looksLikeSizeofTypeStart()) {
         targetType = this.parseType();
         end = this.prev().end;
       } else {
@@ -2411,8 +2526,12 @@ export type AnalyzeOptions = {
   predefines?: CplPredefinedMacro[];
 };
 
+function pointerSizeForPredefines(predefines: readonly CplPredefinedMacro[] = []): number {
+  return predefines.some((macro) => macro.name === "CCPL_GNUI386") ? 4 : 8;
+}
+
 export function parseAndDiagnose(text: string): ParseIssue[] {
-  const sem = new SemanticContext();
+  const sem = new SemanticContext({ pointerSize: 8 });
   const p = new Parser(text, sem);
   const syntax = p.run();
   sem.finish();
@@ -2421,7 +2540,7 @@ export function parseAndDiagnose(text: string): ParseIssue[] {
 }
 
 export function analyze(text: string, include?: IncludeResolver, filePath?: string, options: AnalyzeOptions = {}) {
-  const sem = new SemanticContext();
+  const sem = new SemanticContext({ pointerSize: pointerSizeForPredefines(options.predefines) });
 
   for (const macro of options.predefines ?? []) {
     const range = Range.create(Position.create(0, 0), Position.create(0, 0));

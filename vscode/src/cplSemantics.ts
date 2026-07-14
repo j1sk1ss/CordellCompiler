@@ -35,6 +35,7 @@ export type ParamSig = {
   hasDefault: boolean;
   isVarArgs?: boolean;
   range: Range;
+  annotations?: string[];
 };
 
 export function formatType(t: TypeNode): string {
@@ -63,6 +64,7 @@ export type VarSym = {
   range: Range;
   filePath?: string;
   readonly?: boolean;
+  annotations?: string[];
 };
 
 export type FuncOverloadSym = {
@@ -70,6 +72,7 @@ export type FuncOverloadSym = {
   name: string;
   containerName?: string;
   isSelfMethod?: boolean;
+  isGlobal?: boolean;
   typeParams?: string[];
   params: ParamSig[];
   ret: TypeNode;
@@ -80,6 +83,7 @@ export type FuncOverloadSym = {
   primaryRange: Range;
   primaryFilePath?: string;
   doc?: string;
+  annotations?: string[];
 };
 
 export type ContainerSym = {
@@ -90,6 +94,7 @@ export type ContainerSym = {
   range: Range;
   filePath?: string;
   doc?: string;
+  annotations?: string[];
 };
 
 export type ContainerUse = {
@@ -141,56 +146,188 @@ export type DocCommentLink = {
   doc: string;
 };
 
-export function sizeofType(t: TypeNode, opts?: { pointerSize?: number }): number | undefined {
-  const pointerSize = opts?.pointerSize ?? 8;
+export function hasAnnotation(annotations: readonly string[] | undefined, name: string): boolean {
+  return annotations?.some((annotation) => {
+    const text = annotation.trim();
+    const open = text.indexOf("(");
+    return (open < 0 ? text : text.slice(0, open).trim()) === name;
+  }) ?? false;
+}
+
+export function annotationArgument(
+  annotations: readonly string[] | undefined,
+  name: string
+): string | undefined {
+  for (const annotation of annotations ?? []) {
+    const text = annotation.trim();
+    const open = text.indexOf("(");
+    if (open < 0 || !text.endsWith(")")) continue;
+    if (text.slice(0, open).trim() !== name) continue;
+    return text.slice(open + 1, -1).trim();
+  }
+  return undefined;
+}
+
+export function formatAnnotations(annotations: readonly string[] | undefined): string[] {
+  return (annotations ?? []).map((annotation) => `@[${annotation}]`);
+}
+
+function mergeAnnotations(
+  existing: readonly string[] | undefined,
+  incoming: readonly string[] | undefined
+): string[] | undefined {
+  const merged = [...(existing ?? [])];
+  for (const annotation of incoming ?? []) {
+    if (!merged.includes(annotation)) merged.push(annotation);
+  }
+  return merged.length ? merged : undefined;
+}
+
+function mergeParamAnnotations(existing: ParamSig[], incoming: ParamSig[]) {
+  for (let i = 0; i < Math.min(existing.length, incoming.length); i++) {
+    existing[i].annotations = mergeAnnotations(existing[i].annotations, incoming[i].annotations);
+  }
+}
+
+export type SizeofOptions = {
+  pointerSize?: number;
+  containers?: ReadonlyMap<string, ContainerSym>;
+  resolveAnnotationInt?: (annotations: readonly string[] | undefined, name: string) => number | undefined;
+};
+
+type TypeLayout = { size: number; alignment: number };
+
+function alignUp(value: number, alignment: number): number {
+  if (!Number.isFinite(alignment) || alignment <= 1) return value;
+  return Math.ceil(value / alignment) * alignment;
+}
+
+function parseAnnotationInt(
+  annotations: readonly string[] | undefined,
+  name: string
+): number | undefined {
+  const argument = annotationArgument(annotations, name);
+  if (argument == null) return undefined;
+  if (/^0x[0-9a-f]+$/i.test(argument)) return Number.parseInt(argument.slice(2), 16);
+  if (/^0b[01]+$/i.test(argument)) return Number.parseInt(argument.slice(2), 2);
+  if (/^\d+$/.test(argument)) return Number.parseInt(argument, 10);
+  return undefined;
+}
+
+function layoutOfType(
+  t: TypeNode,
+  opts: SizeofOptions,
+  visiting: Set<string>
+): TypeLayout | undefined {
+  const pointerSize = opts.pointerSize ?? 8;
 
   switch (t.kind) {
-    case "prim":
+    case "prim": {
+      let size: number | undefined;
       switch (t.name) {
-        case "i0": return 0;
+        case "i0": size = 0; break;
         case "i8":
-        case "u8": return 1;
+        case "u8": size = 1; break;
         case "i16":
-        case "u16": return 2;
+        case "u16": size = 2; break;
         case "i32":
         case "u32":
-        case "f32": return 4;
+        case "f32": size = 4; break;
         case "i64":
         case "u64":
-        case "f64": return 8;
-        case "str": return pointerSize;
-        default: return undefined;
+        case "f64": size = 8; break;
+        case "str": size = pointerSize; break;
+        default:
+          if (opts.containers?.has(t.name)) {
+            return layoutOfType({ kind: "container", name: t.name }, opts, visiting);
+          }
+          return undefined;
       }
+      return { size, alignment: Math.max(1, Math.min(size || 1, pointerSize)) };
+    }
     case "ptr":
-      return pointerSize;
+    case "func":
+      return { size: pointerSize, alignment: pointerSize };
     case "arr": {
       if (t.len == null) return undefined;
-      const elem = sizeofType(t.elem, opts);
-      return elem == null ? undefined : t.len * elem;
+      const elem = layoutOfType(t.elem, opts, visiting);
+      return elem ? { size: t.len * elem.size, alignment: elem.alignment } : undefined;
     }
-    case "func":
-      return pointerSize;
-    case "container":
-      return undefined;
+    case "container": {
+      const container = opts.containers?.get(t.name);
+      if (!container || visiting.has(t.name)) return undefined;
+
+      visiting.add(t.name);
+      try {
+        const resolveInt = opts.resolveAnnotationInt ?? parseAnnotationInt;
+        const explicitContainerAlignment = resolveInt(container.annotations, "align");
+        const defaultAlignment = Math.max(1, explicitContainerAlignment ?? pointerSize);
+        const likeC = hasAnnotation(container.annotations, "like_c");
+        const isUnion = hasAnnotation(container.annotations, "union");
+        const fields = [...container.fields.values()];
+
+        const fieldLayouts: { field: VarSym; layout: TypeLayout; alignment: number }[] = [];
+        for (const field of fields) {
+          const layout = layoutOfType(field.type, opts, visiting);
+          if (!layout) return undefined;
+          const explicitAlignment = resolveInt(field.annotations, "align");
+          const alignment = Math.max(1, explicitAlignment ?? (likeC ? layout.alignment : defaultAlignment));
+          fieldLayouts.push({ field, layout, alignment });
+        }
+
+        if (isUnion) {
+          const largest = fieldLayouts.reduce((max, item) => Math.max(max, item.layout.size), 0);
+          const baseAlignment = likeC ? (explicitContainerAlignment ?? 1) : defaultAlignment;
+          const alignment = fieldLayouts.reduce(
+            (max, item) => Math.max(max, item.alignment),
+            Math.max(1, baseAlignment)
+          );
+          return { size: alignUp(largest, alignment), alignment };
+        }
+
+        let offset = 0;
+        let containerAlignment = likeC
+          ? Math.max(1, explicitContainerAlignment ?? 1)
+          : defaultAlignment;
+        for (const item of fieldLayouts) {
+          offset = alignUp(offset, item.alignment);
+          offset += item.layout.size;
+          containerAlignment = Math.max(containerAlignment, item.alignment);
+        }
+
+        return {
+          size: alignUp(offset, containerAlignment),
+          alignment: containerAlignment
+        };
+      } finally {
+        visiting.delete(t.name);
+      }
+    }
     case "unknown":
       return undefined;
   }
+}
+
+export function sizeofType(t: TypeNode, opts: SizeofOptions = {}): number | undefined {
+  return layoutOfType(t, opts, new Set<string>())?.size;
 }
 
 export function formatFunctionSignature(fn: FuncOverloadSym): string {
   const displayName = fn.containerName ? `${fn.containerName}::${fn.name}` : fn.name;
   const paramsStr = fn.params
     .map((p) => {
-      if (p.isVarArgs) return "...";
-      return `${formatType(p.type)} ${p.name}${p.hasDefault ? " = <default>" : ""}`;
+      const annotations = formatAnnotations(p.annotations).join(" ");
+      if (p.isVarArgs) return `${annotations ? annotations + " " : ""}...`;
+      return `${annotations ? annotations + " " : ""}${formatType(p.type)} ${p.name}${p.hasDefault ? " = <default>" : ""}`;
     })
     .join(", ");
 
   const retStr = formatType(fn.ret);
   const typeParamsStr = fn.typeParams?.length ? `<${fn.typeParams.join(", ")}>` : "";
+  const prefix = fn.isGlobal ? "glob " : "";
   return retStr === "i0"
-    ? `function ${displayName}${typeParamsStr}(${paramsStr})`
-    : `function ${displayName}${typeParamsStr}(${paramsStr}) -> ${retStr}`;
+    ? `${prefix}function ${displayName}${typeParamsStr}(${paramsStr})`
+    : `${prefix}function ${displayName}${typeParamsStr}(${paramsStr}) -> ${retStr}`;
 }
 
 class Scope {
@@ -337,6 +474,10 @@ function macroConditionsSatisfiable(conditions: MacroCondition[] = []): boolean 
   return normalizeMacroConditions(conditions) !== undefined;
 }
 
+export type SemanticContextOptions = {
+  pointerSize?: number;
+};
+
 export class SemanticContext {
   issues: Issue[] = [];
 
@@ -351,7 +492,7 @@ export class SemanticContext {
   macroUses: { name: string; range: Range; filePath?: string }[] = [];
 
   varDecls: VarSym[] = [];
-  varUses: { name: string; type: TypeNode; range: Range; filePath?: string; targetRange?: Range; targetFilePath?: string }[] = [];
+  varUses: { name: string; type: TypeNode; range: Range; filePath?: string; targetRange?: Range; targetFilePath?: string; readonly?: boolean; annotations?: string[] }[] = [];
   funcValueUses: FuncValueUse[] = [];
   callSites: CallSite[] = [];
   indirectCallSites: IndirectCallSite[] = [];
@@ -362,6 +503,34 @@ export class SemanticContext {
   private scope: Scope = new Scope();
   private pendingCalls: { name: string; argc: number; range: Range; filePath?: string; scope: Scope }[] = [];
   private pendingAssociatedCalls: { containerName: string; name: string; argc: number; range: Range; filePath?: string }[] = [];
+
+  constructor(private readonly options: SemanticContextOptions = {}) {}
+
+  getPointerSize(): number {
+    return this.options.pointerSize ?? 8;
+  }
+
+  private resolveAnnotationInt = (
+    annotations: readonly string[] | undefined,
+    name: string
+  ): number | undefined => {
+    const argument = annotationArgument(annotations, name);
+    if (argument == null) return undefined;
+    if (/^0x[0-9a-f]+$/i.test(argument)) return Number.parseInt(argument.slice(2), 16);
+    if (/^0b[01]+$/i.test(argument)) return Number.parseInt(argument.slice(2), 2);
+    if (/^\d+$/.test(argument)) return Number.parseInt(argument, 10);
+
+    const macro = this.macros.get(argument);
+    return macro?.value.kind === "number" ? macro.value.value : undefined;
+  };
+
+  sizeofType(type: TypeNode): number | undefined {
+    return sizeofType(type, {
+      pointerSize: this.getPointerSize(),
+      containers: this.containers,
+      resolveAnnotationInt: this.resolveAnnotationInt
+    });
+  }
 
   setCurrentFilePath(filePath?: string): string | undefined {
     const prev = this.currentFilePath;
@@ -443,7 +612,7 @@ export class SemanticContext {
     return undefined;
   }
 
-  declareContainer(name: string, range: Range, doc?: string) {
+  declareContainer(name: string, range: Range, doc?: string, opts?: { annotations?: string[] }) {
     if (this.containers.has(name)) {
       this.issues.push({ message: `Container '${name}' already declared`, range });
       return;
@@ -456,14 +625,21 @@ export class SemanticContext {
       methods: new Map<string, FuncOverloadSym[]>(),
       range,
       filePath: this.currentFilePath,
-      doc
+      doc,
+      annotations: opts?.annotations?.length ? [...opts.annotations] : undefined
     };
 
     this.containers.set(name, sym);
     this.containerDecls.push(sym);
   }
 
-  declareContainerField(containerName: string, name: string, type: TypeNode, range: Range, opts?: { readonly?: boolean }) {
+  declareContainerField(
+    containerName: string,
+    name: string,
+    type: TypeNode,
+    range: Range,
+    opts?: { readonly?: boolean; annotations?: string[] }
+  ) {
     const container = this.containers.get(containerName);
     if (!container) {
       this.issues.push({ message: `Unknown container '${containerName}'`, range });
@@ -475,7 +651,15 @@ export class SemanticContext {
       return;
     }
 
-    const sym: VarSym = { kind: "var", name, type, range, filePath: this.currentFilePath, readonly: opts?.readonly };
+    const sym: VarSym = {
+      kind: "var",
+      name,
+      type,
+      range,
+      filePath: this.currentFilePath,
+      readonly: opts?.readonly,
+      annotations: opts?.annotations?.length ? [...opts.annotations] : undefined
+    };
     container.fields.set(name, sym);
     this.varDecls.push(sym);
   }
@@ -489,7 +673,7 @@ export class SemanticContext {
     isDefinition: boolean,
     doc?: string,
     typeParams?: string[],
-    opts?: { self?: boolean }
+    opts?: { self?: boolean; global?: boolean; annotations?: string[] }
   ) {
     const container = this.containers.get(containerName);
     if (!container) {
@@ -516,6 +700,7 @@ export class SemanticContext {
         name,
         containerName,
         isSelfMethod: opts?.self || params[0]?.name === "self",
+        isGlobal: opts?.global,
         typeParams,
         params,
         ret,
@@ -525,7 +710,8 @@ export class SemanticContext {
         defFilePath: isDefinition ? this.currentFilePath : undefined,
         primaryRange: range,
         primaryFilePath: this.currentFilePath,
-        doc
+        doc,
+        annotations: opts?.annotations?.length ? [...opts.annotations] : undefined
       };
 
       local.push(sym);
@@ -548,6 +734,9 @@ export class SemanticContext {
 
     if (doc && !exact.doc) exact.doc = doc;
     if (opts?.self) exact.isSelfMethod = true;
+    if (opts?.global) exact.isGlobal = true;
+    exact.annotations = mergeAnnotations(exact.annotations, opts?.annotations);
+    mergeParamAnnotations(exact.params, params);
 
     if (isDefinition) {
       if (exact.def) {
@@ -589,7 +778,9 @@ export class SemanticContext {
         range,
         filePath: this.currentFilePath,
         targetRange: field.range,
-        targetFilePath: field.filePath
+        targetFilePath: field.filePath,
+        readonly: field.readonly,
+        annotations: field.annotations?.length ? [...field.annotations] : undefined
       });
       return field.type;
     }
@@ -713,7 +904,9 @@ export class SemanticContext {
         range,
         filePath: this.currentFilePath,
         targetRange: v.range,
-        targetFilePath: v.filePath
+        targetFilePath: v.filePath,
+        readonly: v.readonly,
+        annotations: v.annotations?.length ? [...v.annotations] : undefined
       });
       return;
     }
@@ -745,15 +938,25 @@ export class SemanticContext {
     name: string,
     type: TypeNode,
     range: Range,
-    opts?: { readonly?: boolean }
+    opts?: { readonly?: boolean; annotations?: string[] }
   ) {
     const existing = this.globals.get(name);
     if (existing) {
       if (!existing.filePath && this.currentFilePath) existing.filePath = this.currentFilePath;
+      existing.annotations = mergeAnnotations(existing.annotations, opts?.annotations);
+      if (opts?.readonly) existing.readonly = true;
       return;
     }
 
-    const sym: VarSym = { kind: "var", name, type, range, filePath: this.currentFilePath, readonly: opts?.readonly };
+    const sym: VarSym = {
+      kind: "var",
+      name,
+      type,
+      range,
+      filePath: this.currentFilePath,
+      readonly: opts?.readonly,
+      annotations: opts?.annotations?.length ? [...opts.annotations] : undefined
+    };
     this.globals.set(name, sym);
     this.varDecls.push(sym);
   }
@@ -762,12 +965,20 @@ export class SemanticContext {
     name: string,
     type: TypeNode,
     range: Range,
-    opts?: { readonly?: boolean }
+    opts?: { readonly?: boolean; annotations?: string[] }
   ) {
     if (this.globals.has(name)) {
       this.issues.push({ message: `Global '${name}' already declared`, range });
     }
-    const sym: VarSym = { kind: "var", name, type, range, filePath: this.currentFilePath, readonly: opts?.readonly };
+    const sym: VarSym = {
+      kind: "var",
+      name,
+      type,
+      range,
+      filePath: this.currentFilePath,
+      readonly: opts?.readonly,
+      annotations: opts?.annotations?.length ? [...opts.annotations] : undefined
+    };
     this.globals.set(name, sym);
     this.varDecls.push(sym);
   }
@@ -776,12 +987,20 @@ export class SemanticContext {
     name: string,
     type: TypeNode,
     range: Range,
-    opts?: { readonly?: boolean }
+    opts?: { readonly?: boolean; annotations?: string[] }
   ) {
     if (this.scope.vars.has(name)) {
       this.issues.push({ message: `Variable '${name}' already declared in this scope`, range });
     }
-    const sym: VarSym = { kind: "var", name, type, range, filePath: this.currentFilePath, readonly: opts?.readonly };
+    const sym: VarSym = {
+      kind: "var",
+      name,
+      type,
+      range,
+      filePath: this.currentFilePath,
+      readonly: opts?.readonly,
+      annotations: opts?.annotations?.length ? [...opts.annotations] : undefined
+    };
     this.scope.vars.set(name, sym);
     this.varDecls.push(sym);
   }
@@ -793,7 +1012,8 @@ export class SemanticContext {
     range: Range,
     isDefinition: boolean,
     doc?: string,
-    typeParams?: string[]
+    typeParams?: string[],
+    opts?: { global?: boolean; annotations?: string[] }
   ) {
     const local = this.scope.funcs.get(name) ?? [];
 
@@ -812,6 +1032,7 @@ export class SemanticContext {
       const sym: FuncOverloadSym = {
         kind: "func",
         name,
+        isGlobal: opts?.global,
         typeParams,
         params,
         ret,
@@ -821,7 +1042,8 @@ export class SemanticContext {
         defFilePath: isDefinition ? this.currentFilePath : undefined,
         primaryRange: range,
         primaryFilePath: this.currentFilePath,
-        doc
+        doc,
+        annotations: opts?.annotations?.length ? [...opts.annotations] : undefined
       };
 
       local.push(sym);
@@ -841,6 +1063,9 @@ export class SemanticContext {
     }
 
     if (doc && !exact.doc) exact.doc = doc;
+    if (opts?.global) exact.isGlobal = true;
+    exact.annotations = mergeAnnotations(exact.annotations, opts?.annotations);
+    mergeParamAnnotations(exact.params, params);
 
     if (isDefinition) {
       if (exact.def) {
@@ -998,7 +1223,7 @@ export class SemanticContext {
       range,
       filePath: this.currentFilePath,
       targetType,
-      size: sizeofType(targetType) ?? null
+      size: this.sizeofType(targetType) ?? null
     });
   }
 

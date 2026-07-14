@@ -27,7 +27,7 @@ import {
   formatFunctionSignature,
   FuncOverloadSym,
   ContainerSym,
-  sizeofType,
+  formatAnnotations,
   TypeNode
 } from "./cplSemantics";
 import {
@@ -359,6 +359,26 @@ function rangeLen(r: { start: Position; end: Position }): number {
   return Math.max(0, r.end.character - r.start.character);
 }
 
+function annotatedFunctionLines(fn: FuncOverloadSym): string[] {
+  return [...formatAnnotations(fn.annotations), formatFunctionSignature(fn)];
+}
+
+function annotatedFunctionInline(fn: FuncOverloadSym): string {
+  return [...formatAnnotations(fn.annotations), formatFunctionSignature(fn)].join(" ");
+}
+
+function annotatedVariableLines(
+  name: string,
+  type: TypeNode,
+  annotations?: readonly string[],
+  readonly = false
+): string[] {
+  return [
+    ...formatAnnotations(annotations),
+    `${readonly ? "ro " : ""}${formatType(type)} ${name}`
+  ];
+}
+
 function renderOverloads(
   overloads: FuncOverloadSym[],
   opts?: { selected?: FuncOverloadSym; title?: string; extra?: string }
@@ -375,24 +395,22 @@ function renderOverloads(
   });
 
   if (ordered.length === 1) {
-    lines.push("```cpl", formatFunctionSignature(ordered[0]), "```");
-    if (ordered[0].doc?.trim()) {
-      lines.push("", ordered[0].doc);
-    }
+    lines.push("```cpl", ...annotatedFunctionLines(ordered[0]), "```");
+    if (ordered[0].doc?.trim()) lines.push("", ordered[0].doc);
     if (opts?.extra) lines.push("", opts.extra);
     return lines.join("\n");
   }
 
   const selected = opts?.selected;
   if (selected) {
-    lines.push("```cpl", formatFunctionSignature(selected), "```", "");
+    lines.push("```cpl", ...annotatedFunctionLines(selected), "```", "");
     lines.push(`_Overloads: ${ordered.length}_`, "");
   } else {
     lines.push(`_Found overloads: ${ordered.length}_`, "");
   }
 
   for (const fn of ordered) {
-    const sig = formatFunctionSignature(fn);
+    const sig = annotatedFunctionInline(fn);
     const marker = selected === fn ? "- **(selected)** " : "- ";
     lines.push(`${marker}\`${sig}\``);
   }
@@ -405,7 +423,6 @@ function renderOverloads(
   }
 
   if (opts?.extra) lines.push("", opts.extra);
-
   return lines.join("\n");
 }
 
@@ -428,7 +445,8 @@ function renderContainerMembers(container: ContainerSym, title = "Available memb
   if (fields.length) {
     lines.push("", "**Fields**");
     for (const field of fields) {
-      lines.push(`- \`${field.readonly ? "ro " : ""}${formatType(field.type)} ${field.name}\``);
+      const declaration = annotatedVariableLines(field.name, field.type, field.annotations, !!field.readonly).join(" ");
+      lines.push(`- \`${declaration}\``);
     }
   }
 
@@ -442,20 +460,28 @@ function renderContainerMembers(container: ContainerSym, title = "Available memb
 
   if (instanceMethods.length) {
     lines.push("", "**Methods**");
-    for (const fn of instanceMethods) lines.push(`- \`${formatFunctionSignature(fn)}\``);
+    for (const fn of instanceMethods) lines.push(`- \`${annotatedFunctionInline(fn)}\``);
   }
 
   if (associatedFunctions.length) {
     lines.push("", "**Functions**");
-    for (const fn of associatedFunctions) lines.push(`- \`${formatFunctionSignature(fn)}\``);
+    for (const fn of associatedFunctions) lines.push(`- \`${annotatedFunctionInline(fn)}\``);
   }
 
-  if (lines.length === 1) lines.push("", "_No fields or methods declared._");
+  if (lines.length === 1) lines.push("", "_No fields or functions declared._");
   return lines.join("\n");
 }
 
-function renderContainerHover(container: ContainerSym): string {
-  const lines = ["```cpl", `container ${container.name}`, "```"];
+function renderContainerHover(sem: SemanticContext, container: ContainerSym): string {
+  const lines = [
+    "```cpl",
+    ...formatAnnotations(container.annotations),
+    `container ${container.name}`,
+    "```"
+  ];
+
+  const size = sem.sizeofType({ kind: "container", name: container.name });
+  if (size != null) lines.push("", `**Size:** \`${size} bytes\``);
   if (container.doc?.trim()) lines.push("", container.doc);
   lines.push("", renderContainerMembers(container));
   return lines.join("\n");
@@ -468,7 +494,15 @@ function renderContainerDetailsForType(sem: SemanticContext, type: TypeNode): st
   const container = sem.containers.get(name);
   if (!container) return undefined;
 
-  return renderContainerMembers(container, `Available on ${name}`);
+  const lines: string[] = [];
+  if (container.annotations?.length) {
+    lines.push("**Container annotations**", "", `\`${formatAnnotations(container.annotations).join(" ")}\``, "");
+  }
+
+  const size = sem.sizeofType({ kind: "container", name });
+  if (size != null) lines.push(`**Size:** \`${size} bytes\``, "");
+  lines.push(renderContainerMembers(container, `Available on ${name}`));
+  return lines.join("\n");
 }
 
 function positionBeforeOrEqual(a: Position, b: Position): boolean {
@@ -476,7 +510,10 @@ function positionBeforeOrEqual(a: Position, b: Position): boolean {
 }
 
 function signaturesMarkdown(fns: FuncOverloadSym[]): string {
-  return ["```cpl", ...fns.map(formatFunctionSignature), "```"].join("\n");
+  const lines = ["```cpl"];
+  for (const fn of fns) lines.push(...annotatedFunctionLines(fn));
+  lines.push("```");
+  return lines.join("\n");
 }
 
 function methodCompletionItems(container: ContainerSym, access: "::" | "."): CompletionItem[] {
@@ -505,7 +542,7 @@ function methodCompletionItems(container: ContainerSym, access: "::" | "."): Com
     items.push({
       label: name,
       kind: isInstanceMethod(first) ? CompletionItemKind.Method : CompletionItemKind.Function,
-      detail: visible.map(formatFunctionSignature).join(" | "),
+      detail: visible.map(annotatedFunctionInline).join(" | "),
       documentation: {
         kind: MarkupKind.Markdown,
         value: [
@@ -523,13 +560,20 @@ function methodCompletionItems(container: ContainerSym, access: "::" | "."): Com
 }
 
 function fieldCompletionItems(container: ContainerSym): CompletionItem[] {
-  return [...container.fields.values()].map((field) => ({
-    label: field.name,
-    kind: CompletionItemKind.Field,
-    detail: `${field.readonly ? "ro " : ""}${formatType(field.type)} ${field.name}`,
-    insertText: field.name,
-    sortText: `0_${field.name}`
-  }));
+  return [...container.fields.values()].map((field) => {
+    const declaration = annotatedVariableLines(field.name, field.type, field.annotations, !!field.readonly);
+    return {
+      label: field.name,
+      kind: CompletionItemKind.Field,
+      detail: declaration.join(" "),
+      documentation: {
+        kind: MarkupKind.Markdown,
+        value: ["```cpl", ...declaration, "```"].join("\n")
+      },
+      insertText: field.name,
+      sortText: `0_${field.name}`
+    };
+  });
 }
 
 function findVarContainerAtPosition(
@@ -609,7 +653,7 @@ connection.onHover((params) => {
 
   const sz = sem.sizeofSites.find((s) => belongsToFile(s.filePath, docFsPath) && inRange(params.position, s.range));
   if (sz) {
-    const computed = sz.size ?? sizeofType(sz.targetType) ?? null;
+    const computed = sem.sizeofType(sz.targetType) ?? sz.size ?? null;
     const value = computed == null
       ? `\`\`\`cpl
 sizeof(${formatType(sz.targetType)}) = ?
@@ -625,7 +669,8 @@ sizeof(${formatType(sz.targetType)}) = ${computed}
   const vu = sem.varUses.find((v) => belongsToFile(v.filePath, docFsPath) && inRange(params.position, v.range));
   if (vu) {
     const details = renderContainerDetailsForType(sem, vu.type);
-    const value = `\`\`\`cpl\n${formatType(vu.type)} ${vu.name}\n\`\`\`` + (details ? `\n\n${details}` : "");
+    const declaration = annotatedVariableLines(vu.name, vu.type, vu.annotations, !!vu.readonly);
+    const value = ["```cpl", ...declaration, "```"].join("\n") + (details ? `\n\n${details}` : "");
     return { contents: { kind: MarkupKind.Markdown, value } };
   }
 
@@ -687,13 +732,13 @@ callable ${formatType(ics.calleeType)}
   if (cu) {
     const c = sem.containers.get(cu.name);
     if (c) {
-      return { contents: { kind: MarkupKind.Markdown, value: renderContainerHover(c) } };
+      return { contents: { kind: MarkupKind.Markdown, value: renderContainerHover(sem, c) } };
     }
   }
 
   const cd = findContainerAtDeclaration(sem, params.position, docFsPath);
   if (cd) {
-    return { contents: { kind: MarkupKind.Markdown, value: renderContainerHover(cd) } };
+    return { contents: { kind: MarkupKind.Markdown, value: renderContainerHover(sem, cd) } };
   }
 
   const fnDecl = findFuncDeclHover(sem, params.position, docFsPath);
@@ -707,7 +752,8 @@ callable ${formatType(ics.calleeType)}
   const vd = sem.varDecls.find((v) => belongsToFile(v.filePath, docFsPath) && inRange(params.position, v.range));
   if (vd) {
     const details = renderContainerDetailsForType(sem, vd.type);
-    const value = `\`\`\`cpl\n${formatType(vd.type)} ${vd.name}\n\`\`\`` + (details ? `\n\n${details}` : "");
+    const declaration = annotatedVariableLines(vd.name, vd.type, vd.annotations, !!vd.readonly);
+    const value = ["```cpl", ...declaration, "```"].join("\n") + (details ? `\n\n${details}` : "");
     return { contents: { kind: MarkupKind.Markdown, value } };
   }
 
