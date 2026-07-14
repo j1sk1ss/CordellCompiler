@@ -8,10 +8,7 @@ Params:
 
 Returns 0 if shapes match, otherwise -1 */
 static inline int _fit_arg_shape(ast_node_t* arg, hir_subject_t* hir_arg) {
-    if (
-        !arg || !arg->t || !hir_arg ||
-        (arg->t->flags.ptr != hir_arg->ptr)
-    ) return -1;
+    if (arg->t->flags.ptr != hir_arg->ptr) return -1;
     if (
         HIR_get_convop(HIR_get_tmp_type(hir_arg->t)) !=                 /* Provided */
         HIR_get_convop(HIR_get_tmptype_tkn(arg->t, !arg->t->flags.ptr)) /* Expected */
@@ -27,17 +24,11 @@ Params:
 
 Returns 1 for an exact custom type match, -1 for mismatch, or 0 if not applicable */
 static inline int _fit_custom_type(ast_node_t* arg, hir_subject_t* hir_arg, sym_table_t* smt) {
-    if (
-        !arg || !arg->t || !hir_arg || !HIR_is_vartype(hir_arg->t) ||
-        (
-            arg->t->t_type != CUSTOM_TYPE_TOKEN && 
-            arg->t->t_type != CUSTOM_VARIABLE_TOKEN
-        )
-    ) return 0;
+    if (!HIR_is_vartype(hir_arg->t)) return 0;
     variable_info_t vi;
     if (!VRTB_get_info_id(hir_arg->storage.var.v_id, &vi, &smt->v)) return 0;
-    if (arg->sinfo.t_id == NO_SYMBOL_ID || vi.v_id == NO_SYMBOL_ID) return -1;
-    return arg->sinfo.t_id == vi.v_id ? 
+    if (arg->sinfo.t_id == NO_SYMBOL_ID || vi.t_id == NO_SYMBOL_ID) return -1;
+    return TPTB_resolve_parent(arg->sinfo.t_id, &smt->t) == TPTB_resolve_parent(vi.t_id, &smt->t) ? 
             1 : /* If types are equal */
             -1; /* otherwise - punish */
 }
@@ -102,9 +93,10 @@ static symbol_id_t _resolve_function_overload(
                 fn_iterate_args (func) {
                     if (arg_count <= arg_index || arg->t->t_type == VAR_ARGUMENTS_TOKEN) break;
                     hir_subject_t* hir_arg = (hir_subject_t*)fl_args[arg_index++];
-                    if (!hir_arg) continue;
-                    fits += _fit_arg_shape(arg, hir_arg);
-                    fits += _fit_custom_type(arg, hir_arg, smt);
+                    if (hir_arg) switch (arg->t->t_type) {
+                        case CUSTOM_TYPE_TOKEN: fits += _fit_custom_type(arg, hir_arg, smt); break;
+                        default:                fits += _fit_arg_shape(arg, hir_arg);        break;
+                    }
                 }
 
                 mm_free(fl_args);

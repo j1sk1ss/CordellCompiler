@@ -18,3 +18,7 @@ glob function string::destroy(ptr string self) -> i0 {
     free(self.body);
     free(self);
 }
+
+glob function string::print(ptr string self) -> i0 {
+    printf(self.body);
+}

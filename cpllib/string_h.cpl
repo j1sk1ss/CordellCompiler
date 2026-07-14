@@ -351,6 +351,7 @@ Returns a pointer to the allocated duplicate, or a null pointer on failure:[ptr 
 
 #ifndef CCPL_NO_CONTAINER_STRINGS
 #include "stdlib_h.cpl"
+#include "stdio_h.cpl"
 
 :/ Owns a dynamically allocated null-terminated byte string.
 - `body`:[ptr i8] - Pointer to the owned null-terminated byte sequence.
@@ -363,7 +364,7 @@ container string {
     
     Returns a pointer to the newly allocated string object:[ptr string]
     /:
-    @[vname("__string_new")]
+    @[vname("__string_new")] @[abi]
     glob function new(ptr i8 data) -> ptr string;
 
     :/ Returns the length of the byte sequence owned by a string object.
@@ -372,7 +373,7 @@ container string {
     Returns the number of bytes before the terminating null byte:[i32]
     /:
     @[self] 
-    @[vname("__string_len")]
+    @[vname("__string_len")] @[abi]
     glob function strlen(ptr string self) -> i32;
 
     :/ Checks whether two strings contain equal byte sequences.
@@ -382,7 +383,7 @@ container string {
     Returns one when the strings are equal, otherwise zero:[i8]
     /:
     @[self] 
-    @[vname("__string_equals")]
+    @[vname("__string_equals")] @[abi]
     glob function equals(ptr string self, ptr string other) -> i8;
 
     :/ Releases the storage owned by a string object.
@@ -391,8 +392,12 @@ container string {
     Returns nothing:[i0]
     /:
     @[self] 
-    @[vname("__string_destroy")]
+    @[vname("__string_destroy")] @[abi]
     glob function destroy(ptr string self) -> i0;
+
+    @[self]
+    @[vname("__string_print")] @[abi]
+    glob function print(ptr string self) -> i0;
 }
 #endif
 
