@@ -406,16 +406,13 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
 }
 
 typedef struct {
-    map_t block_alignment;
+    map_t      block_alignment;
+    set_t      broken_funcs;
+    cfg_ctx_t* cctx;
 } stack_alignment_ctx_t;
 
-static inline long _stack_alignment_mod(long alignment) {
-    long mod = alignment % 16;
-    return mod < 0 ? mod + 16 : mod;
-}
-
 static inline int _remember_stack_alignment(cfg_block_t* bb, long alignment, stack_alignment_ctx_t* ctx) {
-    long curr_alignment = _stack_alignment_mod(alignment);
+    long curr_alignment = ALIGN_MOD(alignment, 16);
     long prev_alignment = 0;
     if (map_get(&ctx->block_alignment, bb->id, (void**)&prev_alignment)) {
         return prev_alignment == curr_alignment;
@@ -428,28 +425,93 @@ static inline int _is_rsp_adjustment(lir_block_t* lh, lir_operation_t op) {
     return (
         lh && lh->op == op &&
         lh->sarg && lh->sarg->t == LIR_REGISTER && LIR_format_register(lh->sarg->storage.reg.reg, 8) == RSP &&
-        lh->targ && lh->targ->t == LIR_CONSTVAL && lh->targ->storage.cnst.value == 8
+        lh->targ && lh->targ->t == LIR_CONSTVAL
     );
 }
 
 static inline int _has_stack_alignment_fix(cfg_block_t* bb, lir_block_t* lh) {
     if (!bb || !lh || lh == bb->lmap.entry || lh == bb->lmap.exit) return 0;
-    return _is_rsp_adjustment(lh->prev, LIR_iSUB) && _is_rsp_adjustment(lh->next, LIR_iADD);
+    return (
+        _is_rsp_adjustment(lh->prev, LIR_iSUB) && lh->prev->targ->storage.cnst.value == 8 &&
+        _is_rsp_adjustment(lh->next, LIR_iADD) && lh->next->targ->storage.cnst.value == 8
+    );
 }
 
-static cfg_dfs_action_t _validate_stack_alignment(cfg_block_t* bb, long pred, long* alignment, stack_alignment_ctx_t* ctx, sym_table_t* smt) {
+#define IS_REGULAR_FCALL(lh) (lh && (lh->op == LIR_ECLL || lh->op == LIR_FCLL) && lh->farg && lh->farg->t == LIR_FNAME)
+
+static inline int _call_is_abi(lir_block_t* lh, sym_table_t* smt) {
+    func_info_t fi;
+    return IS_REGULAR_FCALL(lh) && FNTB_get_info_id(lh->farg->storage.str.sid, &fi, &smt->f) && fi.flags.abi;
+}
+
+/* If a function has an abi call, and its aligned is broken, we
+mark this function as a broken function.
+Params:
+- `cctx` - CFG context.
+- `smt` - Symtable.
+- `bloren_funcs` - Output set of function to fix. 
+    
+Returns 1 if succeed, otherwise will return 0 */
+static int _search_for_broken_funcs(cfg_ctx_t* cctx, sym_table_t* smt, set_t* broken_funcs) {
+    int changed = 0;
+    do {
+        changed = 0;
+        foreach (cfg_func_t* fb, &cctx->funcs) {
+            if (
+                !fb->used || 
+                set_has(broken_funcs, (void*)fb->f_id)
+            ) continue;
+            foreach (cfg_block_t* bb, &fb->blocks) {
+                iterate_lir_instructions (bb) {
+                    if (
+                        _call_is_abi(lh, smt) ||
+                        (
+                            IS_REGULAR_FCALL(lh) &&
+                            set_has(broken_funcs, (void*)lh->farg->storage.str.sid)
+                        )
+                    ) goto _add_broken_func;
+                }
+            }
+
+            if (0) {
+_add_broken_func: {}
+                if (!set_add(broken_funcs, (void*)fb->f_id)) return 0;
+                changed = 1;
+            }
+        }
+    } while (changed);
+    return 1;
+}
+
+static cfg_dfs_action_t _validate_stack_alignment(
+    cfg_block_t* bb, long pred, long* alignment, stack_alignment_ctx_t* ctx, sym_table_t* smt
+) {
     (void)pred;
     if (!_remember_stack_alignment(bb, *alignment, ctx)) return CFG_DFS_STOP;
     iterate_lir_instructions (bb) {
         switch (lh->op) {
             case LIR_PUSH: *alignment += 8; break;
             case LIR_POP:  *alignment -= 8; break;
+            case LIR_iSUB: {
+                if (_is_rsp_adjustment(lh, LIR_iSUB)) *alignment += lh->targ->storage.cnst.value;
+                break;
+            }
+            case LIR_iADD: {
+                if (_is_rsp_adjustment(lh, LIR_iADD)) *alignment -= lh->targ->storage.cnst.value;
+                break;
+            }
             case LIR_ECLL:
             case LIR_FCLL: {
-                func_info_t fi;
                 if (
-                    !FNTB_get_info_id(lh->farg->storage.str.sid, &fi, &smt->f) || !fi.flags.abi ||
-                    !_stack_alignment_mod(*alignment) || _has_stack_alignment_fix(bb, lh)
+                    !(
+                        _call_is_abi(lh, smt) ||
+                        (
+                            IS_REGULAR_FCALL(lh) &&
+                            set_has(&ctx->broken_funcs, (void*)lh->farg->storage.str.sid)
+                        )
+                    ) ||
+                    !(ALIGN_MOD(*alignment, 16)) ||
+                    _has_stack_alignment_fix(bb, lh)
                 ) break;
                 lir_block_t* pre  = LIR_create_block(LIR_iSUB, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(8));
                 lir_block_t* post = LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(8));
@@ -460,6 +522,7 @@ static cfg_dfs_action_t _validate_stack_alignment(cfg_block_t* bb, long pred, lo
                     !LIR_insert_block_before(pre, lh) ||
                     !LIR_insert_block_after(post, lh)
                 ) return CFG_DFS_STOP;
+                *alignment += 8;
                 break;
             }
             default: break;
@@ -487,9 +550,24 @@ int x86_64_gnu_nasm_memory_validation(cfg_ctx_t* cctx, sym_table_t* smt) {
             }
         }
 
+    }
+
+    stack_alignment_ctx_t sactx = { .cctx = cctx };
+    if (!set_init(&sactx.broken_funcs, SET_NO_CMP)) return 0;
+    if (!_search_for_broken_funcs(cctx, smt, &sactx.broken_funcs)) {
+        set_free(&sactx.broken_funcs);
+        return 0;
+    }
+
+    foreach (cfg_func_t* fb, &cctx->funcs) {
+        func_info_t fi;
+        if (!FNTB_get_info_id(fb->f_id, &fi, &smt->f)) continue;
         if (fi.flags.naked == 1) continue;
-        stack_alignment_ctx_t sactx;
-        if (!map_init(&sactx.block_alignment, MAP_NO_CMP)) return 0;
+
+        if (!map_init(&sactx.block_alignment, MAP_NO_CMP)) {
+            set_free(&sactx.broken_funcs);
+            return 0;
+        }
 
         long stack_alignment = fb->lmap.entry->sarg ? ALIGN(fb->lmap.entry->sarg->storage.cnst.value, 16) : 8;
         int stack_alignment_valid = CFG_DFS_WALK_STATE(
@@ -497,8 +575,12 @@ int x86_64_gnu_nasm_memory_validation(cfg_ctx_t* cctx, sym_table_t* smt) {
         );
 
         map_free(&sactx.block_alignment);
-        if (!stack_alignment_valid) return 0;
+        if (!stack_alignment_valid) {
+            set_free(&sactx.broken_funcs);
+            return 0;
+        }
     }
 
+    set_free(&sactx.broken_funcs);
     return 1;
 }
