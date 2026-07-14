@@ -363,11 +363,8 @@ container string {
     
     Returns a pointer to the newly allocated string object:[ptr string]
     /:
-    function new(ptr i8 data) -> ptr string {
-        ptr string self = malloc(sizeof(string)) as ptr string;
-        self.body = strdup(data);
-        return self;
-    }
+    @[vname("__string_new")]
+    glob function new(ptr i8 data) -> ptr string;
 
     :/ Returns the length of the byte sequence owned by a string object.
     - `self`:[ptr string] - Pointer to the current string object.
@@ -375,9 +372,8 @@ container string {
     Returns the number of bytes before the terminating null byte:[i32]
     /:
     @[self] 
-    function strlen(ptr string self) -> i32 {
-        return strlen(self.body) as i32;
-    }
+    @[vname("__string_len")]
+    glob function strlen(ptr string self) -> i32;
 
     :/ Checks whether two strings contain equal byte sequences.
     - `self`:[ptr string] - Pointer to the current string object.
@@ -386,20 +382,8 @@ container string {
     Returns one when the strings are equal, otherwise zero:[i8]
     /:
     @[self] 
-    function equals(ptr string self, ptr string other) -> i8 {
-        return (strcmp(self.body, other.body) == 0) as i8;
-    }
-
-    :/ Checks whether two strings contain equal byte sequences.
-    - `self`:[ptr string] - Pointer to the current string object.
-    - `other`:[ptr i8] - String object or null-terminated byte string to compare.
-    
-    Returns one when the strings are equal, otherwise zero:[i8]
-    /:
-    @[self] 
-    function equals(ptr string self, ptr i8 other) -> i8 {
-        return (strcmp(self.body, other) == 0) as i8;
-    }
+    @[vname("__string_equals")]
+    glob function equals(ptr string self, ptr string other) -> i8;
 
     :/ Releases the storage owned by a string object.
     - `self`:[ptr string] - Pointer to the current string object.
@@ -407,10 +391,8 @@ container string {
     Returns nothing:[i0]
     /:
     @[self] 
-    function destroy(ptr string self) -> i0 {
-        free(self.body);
-        free(self);
-    }
+    @[vname("__string_destroy")]
+    glob function destroy(ptr string self) -> i0;
 }
 #endif
 

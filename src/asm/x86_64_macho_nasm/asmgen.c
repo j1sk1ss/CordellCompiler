@@ -236,7 +236,7 @@ Params:
     - `smt` - Symtable used to resolve type layout.
     - `output` - Output assembly stream.
 
-Returns 1 if succeeds. */
+Returns 1 if succeeds */
 static int _generate_typed_initializer(variable_info_t* vi, array_info_t* ai, sym_table_t* smt, FILE* output) {
     long emitted_end = 0, value = 0, value_count = list_size(&ai->elems), reserve_size = _array_reserve_size(vi, ai, NULL, smt);
     list_iter_t values;
@@ -259,15 +259,13 @@ static int _generate_typed_initializer(variable_info_t* vi, array_info_t* ai, sy
     return 1;
 }
 
-/*
-Emit storage for a non-external variable into the current assembly section.
+/* Emit storage for a non-external variable into the current assembly section.
 Params:
     - `id` - Variable symbol ID.
     - `smt` - Symtable used to resolve variable and array metadata.
     - `output` - Output assembly stream.
 
-Returns 1 on success, otherwise 0.
-*/
+Returns 1 on success, otherwise 0 */
 static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
     variable_info_t vi;
     if (!VRTB_get_info_id(id, &vi, &smt->v) || vi.vfs.ext) return 0;
@@ -335,22 +333,20 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
     return 1;
 }
 
-/*
-Emit assembly for a used CFG function.
+/* Emit assembly for a used CFG function.
 Params:
     - `f_id` - Function symbol ID.
     - `cctx` - CFG context with function LIR maps.
     - `smt` - Symtable used to resolve function metadata.
     - `output` - Output assembly stream.
 
-Returns 1 on success, otherwise 0.
-*/
+Returns 1 on success, otherwise 0 */
 static int _generate_function(symbol_id_t f_id, cfg_ctx_t* cctx, sym_table_t* smt, FILE* output) {
     func_info_t fi;
     if (!FNTB_get_info_id(f_id, &fi, &smt->f) || !fi.flags.used) return 0;
     
     if (!fi.flags.onlybody) {
-        if (fi.flags.external == 2) EMIT_COMMAND("extern %s", fi.name->body);
+        if (fi.flags.external == 2) EMIT_COMMAND("extern %s", fi.flags.vname ? fi.virt->body : fi.name->body);
         else { 
             const char* name = NULL;
             if (fi.flags.entry)       name = fi.virt->body;

@@ -3,7 +3,7 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
-## Overloads and generics
+## Overloads, generics and standart library
 <div class="change-date">Date: 2026-14-02</div>
 At this point there is no valid way to properly handle the case like that:
 
@@ -16,7 +16,8 @@ foo<i32>(1, 1 as i32);
 foo<i32>(1, 1 as i64);
 ```
 
-That's why I've decided to forbid this usage in this way. 
+That's why I've decided to forbid this usage in this way. </br>
+Also I've decided to start working on my standart library which implies I have a lot of stuff to do.
 
 ## CPL standart library!
 <div class="change-date">Date: 2026-07-02</div>

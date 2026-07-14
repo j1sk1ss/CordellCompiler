@@ -79,10 +79,14 @@
 #include <asm/x86_64_macho_nasm_asmgen.h>
 
 #include <gem_data.h>
-#define CCPL_VERSION                 "3.6.7:1107.26" // major.minor<.sub> (old version style):ddmm.yy (new version style)
+#define CCPL_VERSION                 "3.6.8:1407.26" // major.minor<.sub> (old version style):ddmm.yy (new version style)
 
 #ifndef CPL_DEFAULT_INCLUDE_DIR
     #define CPL_DEFAULT_INCLUDE_DIR "/usr/local/share/cpl/include"
+#endif
+
+#ifndef CPL_DEFAULT_RUNTIME_LIB
+    #define CPL_DEFAULT_RUNTIME_LIB "/usr/local/lib/cpl/libcpl.a"
 #endif
 
 #ifndef PATH_MAX
@@ -114,6 +118,9 @@
 #define OPTION_ASM_FORMAT            "--asm-format"
 #define OPTION_LINKER                "--linker"
 #define OPTION_LINKER_MODE           "--linker-mode"
+#define OPTION_COMPILE_ONLY_SHORT    "-c"
+#define OPTION_COMPILE_ONLY          "--compile-only"
+#define OPTION_WITHOUT_LINKER        "--without-linker"
 #define OPTION_LINKER_NO_PIE         "--linker-no-pie"
 #define OPTION_LINKER_PIE            "--linker-pie"
 #define OPTION_LINKER_M32            "--linker-m32"
@@ -160,6 +167,7 @@ typedef struct {
     struct {
         const char*  include;
         const char*  stdlib;
+        const char*  runtime;
         const char** files;
         int          files_count;
         list_t       defines;
@@ -208,6 +216,7 @@ typedef struct {
         int          show_something       : 1;
         int          preprocess_only      : 1;
         int          without_compilation  : 1;
+        int          compile_only         : 1;
         int          no_compile           : 1;
         int          no_object_build      : 1;
     } flags;

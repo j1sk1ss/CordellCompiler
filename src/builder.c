@@ -71,6 +71,7 @@ static int _print_help_message() {
     static const cli_help_option_t linker_options[] = {
         { OPTION_LINKER, "<linker>", "Set linker (ld, gcc, clang, ...)" },
         { OPTION_LINKER_MODE, "<mode>", "Set linker mode (c, driver, raw, ld)" },
+        { OPTION_COMPILE_ONLY_SHORT ", " OPTION_COMPILE_ONLY ", " OPTION_WITHOUT_LINKER, NULL, "Build an object file and skip linking" },
         { OPTION_NO_COMPILE, NULL, "Stop after assembly generation" },
         { OPTION_NO_OBJECT_BUILD, NULL, "Stop after assembly generation without building an object file" },
         { OPTION_LINKER_NO_PIE, NULL, "Disable PIE" },
@@ -111,6 +112,10 @@ static inline int _readable_directory(const char* path) {
     return path && path[0] && !access(path, R_OK | X_OK);
 }
 
+static inline int _readable_file(const char* path) {
+    return path && path[0] && !access(path, R_OK);
+}
+
 static int _path_from_executable(const char* argv0, const char* suffix, char* out, size_t out_size) {
     if (!argv0 || !suffix || !out || !out_size) return 0;
     char executable[PATH_MAX] = { 0 };
@@ -138,6 +143,33 @@ static int _path_from_executable(const char* argv0, const char* suffix, char* ou
     return 1;
 }
 
+static int _file_from_executable(const char* argv0, const char* suffix, char* out, size_t out_size) {
+    if (!argv0 || !suffix || !out || !out_size) return 0;
+    char executable[PATH_MAX] = { 0 };
+#ifdef __linux__
+    ssize_t nread = readlink("/proc/self/exe", executable, sizeof(executable) - 1);
+    if (nread > 0) executable[nread] = 0;
+    else
+#endif
+    {
+        if (!realpath(argv0, executable)) return 0;
+    }
+
+    char* slash = strrchr(executable, '/');
+    if (!slash) return 0;
+    *slash = 0;
+
+    char candidate[PATH_MAX] = { 0 };
+    int written = snprintf(candidate, sizeof(candidate), "%s/%s", executable, suffix);
+    if (written <= 0 || (size_t)written >= sizeof(candidate)) return 0;
+
+    char resolved[PATH_MAX] = { 0 };
+    if (!realpath(candidate, resolved) || !_readable_file(resolved)) return 0;
+    if (strlen(resolved) + 1 > out_size) return 0;
+    strcpy(out, resolved);
+    return 1;
+}
+
 static inline const char* _find_stdlib(const char* argv0, char* out, size_t out_size) {
     const char* env = getenv("CPL_INCLUDE_PATH");
     if (_readable_directory(env))                                            return env;
@@ -145,6 +177,15 @@ static inline const char* _find_stdlib(const char* argv0, char* out, size_t out_
     if (_path_from_executable(argv0, "../../cpllib", out, out_size))         return out;
     if (_readable_directory(CPL_DEFAULT_INCLUDE_DIR))                        return CPL_DEFAULT_INCLUDE_DIR;
     if (realpath("cpllib", out) && _readable_directory(out))                 return out;
+    return NULL;
+}
+
+static inline const char* _find_runtime_library(const char* argv0, char* out, size_t out_size) {
+    const char* env = getenv("CPL_RUNTIME_LIB");
+    if (_readable_file(env))                                                return env;
+    if (_file_from_executable(argv0, "../lib/cpl/libcpl.a", out, out_size)) return out;
+    if (_file_from_executable(argv0, "cpllib/libcpl.a", out, out_size))     return out;
+    if (_readable_file(CPL_DEFAULT_RUNTIME_LIB))                            return CPL_DEFAULT_RUNTIME_LIB;
     return NULL;
 }
 
@@ -189,6 +230,45 @@ static int _copy_fd_to_stream(int fd, FILE* stream) {
     return !nread && !ferror(stream);
 }
 
+static int _copy_file_path(const char* src, const char* dst) {
+    int src_fd = open(src, O_RDONLY);
+    if (src_fd < 0) return 0;
+
+    int dst_fd = open(dst, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (dst_fd < 0) {
+        close(src_fd);
+        return 0;
+    }
+
+    int ok = 1;
+    char buffer[4096] = { 0 };
+    ssize_t nread = 0;
+    while ((nread = read(src_fd, buffer, sizeof(buffer))) > 0) {
+        ssize_t offset = 0;
+        while (offset < nread) {
+            ssize_t written = write(dst_fd, buffer + offset, (size_t)(nread - offset));
+            if (written < 0) {
+                ok = 0;
+                break;
+            }
+            offset += written;
+        }
+        if (!ok) break;
+    }
+
+    if (nread < 0) ok = 0;
+    if (close(dst_fd) < 0) ok = 0;
+    close(src_fd);
+    return ok;
+}
+
+static int _move_file_path(const char* src, const char* dst) {
+    if (rename(src, dst) == 0) return 1;
+    if (errno != EXDEV) return 0;
+    if (!_copy_file_path(src, dst)) return 0;
+    return unlink(src) == 0;
+}
+
 static inline int _compile_asm_to_object(const options_t* options, const char* asm_path, const char* obj_path) {
     char* const cmd[] = {
         (char*)options->tools.asm_compiler, "-f",
@@ -200,8 +280,9 @@ static inline int _compile_asm_to_object(const options_t* options, const char* a
 }
 
 static int _link_objects(const options_t* options, char* const objects[], int objects_count) {
-    int extra    = (options->tools.linker_use_c_driver ? 1 : 0) + (options->tools.linker_no_pie ? 1 : 0) + (options->tools.linker_m32 ? 1 : 0);
-    int cmd_size = objects_count + 5 + extra;
+    int extra         = (options->tools.linker_use_c_driver ? 1 : 0) + (options->tools.linker_no_pie ? 1 : 0) + (options->tools.linker_m32 ? 1 : 0);
+    int runtime_count = options->locations.runtime ? 1 : 0;
+    int cmd_size      = objects_count + runtime_count + 5 + extra;
     char** cmd   = (char**)mm_malloc((size_t)cmd_size * sizeof(*cmd));
     if (!cmd) return 0;
 
@@ -216,6 +297,9 @@ static int _link_objects(const options_t* options, char* const objects[], int ob
     cmd[j++] = options->locations.output ? options->locations.output : "a.out";
     for (int i = 0; i < objects_count; i++) {
         cmd[j++] = objects[i];
+    }
+    if (options->locations.runtime) {
+        cmd[j++] = (char*)options->locations.runtime;
     }
 
     cmd[j] = NULL;
@@ -516,6 +600,11 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
             else if (!strcmp(mode, "raw") || !strcmp(mode, "ld")) out->tools.linker_use_c_driver    = 0;
             else goto _fail;
         }
+        else if (
+            !strcmp(argv[i], OPTION_COMPILE_ONLY_SHORT) ||
+            !strcmp(argv[i], OPTION_COMPILE_ONLY)       ||
+            !strcmp(argv[i], OPTION_WITHOUT_LINKER)
+        ) out->flags.compile_only = 1;
         else if (!strcmp(argv[i], OPTION_NO_COMPILE))           out->flags.no_compile      = 1;
         else if (!strcmp(argv[i], OPTION_NO_OBJECT_BUILD))      out->flags.no_object_build = 1;
         else if (!strcmp(argv[i], OPTION_LINKER_NO_PIE))        out->tools.linker_no_pie   = 1;
@@ -606,6 +695,8 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
         else out->locations.files[out->locations.files_count++] = argv[i];
     }
 
+    if (out->flags.compile_only && (out->flags.no_compile || out->flags.no_object_build)) goto _fail;
+
     if (out->flags.no_compile || out->flags.no_object_build) {
         out->config.emit_asm = 1;
     }
@@ -664,6 +755,8 @@ int main(int argc, char* argv[]) {
 
     char stdlib_path[PATH_MAX] = { 0 };
     options.locations.stdlib = _find_stdlib(argv[0], stdlib_path, sizeof(stdlib_path));
+    char runtime_path[PATH_MAX] = { 0 };
+    options.locations.runtime = _find_runtime_library(argv[0], runtime_path, sizeof(runtime_path));
     if (options.flags.print_stdlib) {
         if (options.locations.stdlib) {
             puts(options.locations.stdlib);
@@ -1035,7 +1128,19 @@ int main(int argc, char* argv[]) {
 
             unlink(asm_path);
             mm_free(asm_path);
-            object_files[0] = obj_path;
+            if (options.flags.compile_only) {
+                const char* object_output = _output_path_or_default(options.locations.output, "output.o");
+                if (!_move_file_path(obj_path, object_output)) {
+                    fprintf(stderr, "Can't write object file %s: %s\n", object_output, strerror(errno));
+                    mm_free(obj_path);
+                    return 1;
+                }
+
+                mm_free(obj_path);
+            }
+            else {
+                object_files[0] = obj_path;
+            }
         }
 
         map_free(&colors);
@@ -1056,6 +1161,7 @@ int main(int argc, char* argv[]) {
     if (
         !options.flags.no_compile          &&
         !options.flags.no_object_build     &&
+        !options.flags.compile_only        &&
         !options.flags.preprocess_only     &&
         !options.flags.without_compilation &&
         options.locations.files_count > 0

@@ -1,4 +1,5 @@
 CC ?= gcc
+AR ?= ar
 PYTHON ?= python3
 RM ?= rm -f
 MKDIR_P ?= mkdir -p
@@ -7,8 +8,10 @@ INSTALL ?= install
 PREFIX ?= /usr/local
 DESTDIR ?=
 BINDIR ?= $(PREFIX)/bin
+LIBDIR ?= $(PREFIX)/lib
 DATADIR ?= $(PREFIX)/share
 CPLLIBDIR ?= $(DATADIR)/cpl/include
+CPLRUNTIMEDIR ?= $(LIBDIR)/cpl
 DOCDIR ?= $(DATADIR)/doc/cpl
 VERSION ?= 3.6_X
 
@@ -54,8 +57,13 @@ PLATFORM ?= $(shell uname -s | tr '[:upper:]' '[:lower:]')-$(shell uname -m | tr
 
 SOURCES := $(sort $(shell find src std -type f -name '*.c'))
 OUTPUT = builds/$(PLATFORM)/cplc
+CPLLIB_IMPLS := $(sort $(shell find cpllib -type f -name '*.cpl' ! -name '*_h.cpl'))
+CPLLIB_BUILDDIR := builds/$(PLATFORM)/cpllib
+CPLLIB_OBJDIR := $(CPLLIB_BUILDDIR)/obj
+CPLLIB_OBJS := $(patsubst cpllib/%.cpl,$(CPLLIB_OBJDIR)/%.o,$(CPLLIB_IMPLS))
+CPLLIB_ARCHIVE := $(CPLLIB_BUILDDIR)/libcpl.a
 
-CPPFLAGS += -Iinclude -DALLOC_BUFFER_SIZE=$(AVAILABLE_MEMORY) -DCPL_DEFAULT_INCLUDE_DIR=\"$(CPLLIBDIR)\"
+CPPFLAGS += -Iinclude -DALLOC_BUFFER_SIZE=$(AVAILABLE_MEMORY) -DCPL_DEFAULT_INCLUDE_DIR=\"$(CPLLIBDIR)\" -DCPL_DEFAULT_RUNTIME_LIB=\"$(CPLRUNTIMEDIR)/libcpl.a\"
 CFLAGS += -Wall -Wno-int-conversion
 LDFLAGS +=
 LDLIBS +=
@@ -115,24 +123,37 @@ $(OUTPUT): $(SOURCES)
 	@$(MKDIR_P) $(dir $@)
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(SOURCES) -o $@ $(LDFLAGS) $(LDLIBS)
 
+$(CPLLIB_OBJDIR)/%.o: cpllib/%.cpl $(OUTPUT)
+	@$(MKDIR_P) $(dir $@)
+	$(OUTPUT) $(RUN_ARGS) -c --output $@ $<
+
+$(CPLLIB_ARCHIVE): $(CPLLIB_OBJS)
+	@$(MKDIR_P) $(dir $@)
+	$(RM) $@
+	$(AR) rcs $@ $^
+
+cpllib: $(CPLLIB_ARCHIVE) ## Build the CPL runtime static library.
+
 debug: ## Build a debug compiler.
 	$(MAKE) BUILD=debug all
 
 release: ## Build an optimized compiler.
 	$(MAKE) BUILD=release PRINT_PARSE=0 all
 
-install: $(OUTPUT) ## Install the compiler and CPL standard library under PREFIX.
-	$(INSTALL) -d $(DESTDIR)$(BINDIR) $(DESTDIR)$(CPLLIBDIR) $(DESTDIR)$(DOCDIR)
+install: $(OUTPUT) $(CPLLIB_ARCHIVE) ## Install the compiler and CPL standard library under PREFIX.
+	$(INSTALL) -d $(DESTDIR)$(BINDIR) $(DESTDIR)$(CPLLIBDIR) $(DESTDIR)$(CPLRUNTIMEDIR) $(DESTDIR)$(DOCDIR)
 	$(INSTALL) -m 0755 $(OUTPUT) $(DESTDIR)$(BINDIR)/cplc
 	$(INSTALL) -m 0644 cpllib/*.cpl $(DESTDIR)$(CPLLIBDIR)/
+	$(INSTALL) -m 0644 $(CPLLIB_ARCHIVE) $(DESTDIR)$(CPLRUNTIMEDIR)/libcpl.a
 	$(INSTALL) -m 0644 LICENSE $(DESTDIR)$(DOCDIR)/
 
 package: ## Build a relocatable binary tarball with the standard library.
-	$(MAKE) BUILD=release PRINT_PARSE=0 -B all
+	$(MAKE) BUILD=release PRINT_PARSE=0 -B all cpllib
 	$(RM) -r builds/package/cpl-$(VERSION)
-	$(INSTALL) -d builds/package/cpl-$(VERSION)/bin builds/package/cpl-$(VERSION)/share/cpl/include builds/package/cpl-$(VERSION)/share/doc/cpl
+	$(INSTALL) -d builds/package/cpl-$(VERSION)/bin builds/package/cpl-$(VERSION)/lib/cpl builds/package/cpl-$(VERSION)/share/cpl/include builds/package/cpl-$(VERSION)/share/doc/cpl
 	$(INSTALL) -m 0755 $(OUTPUT) builds/package/cpl-$(VERSION)/bin/cplc
 	$(INSTALL) -m 0644 cpllib/*.cpl builds/package/cpl-$(VERSION)/share/cpl/include/
+	$(INSTALL) -m 0644 $(CPLLIB_ARCHIVE) builds/package/cpl-$(VERSION)/lib/cpl/libcpl.a
 	$(INSTALL) -m 0644 LICENSE builds/package/cpl-$(VERSION)/share/doc/cpl/
 	tar -C builds/package -czf builds/cpl-$(VERSION)-$(PLATFORM).tar.gz cpl-$(VERSION)
 
@@ -161,9 +182,6 @@ std-test: ## Run std library tests, e.g. make std-test or make std-test STD_UTES
 		cd tests && $(PYTHON) std_testing.py --path $(STD_UTEST) --compiler $(CC) --output-dir bin --base ../; \
 	fi
 
-cpllib-test: $(OUTPUT) ## Parse all shipped CPL standard library headers.
-	$(OUTPUT) --without-compilation tests/cpllib_smoke.cpl
-
 vscode-docker-build: ## Build the VS Code extension Docker image.
 	docker build -t $(VSCODE_DOCKER_IMAGE) vscode
 
@@ -187,7 +205,11 @@ print-config:
 	@echo "PLATFORM=$(PLATFORM)"
 	@echo "OUTPUT=$(OUTPUT)"
 	@echo "PREFIX=$(PREFIX)"
+	@echo "LIBDIR=$(LIBDIR)"
 	@echo "CPLLIBDIR=$(CPLLIBDIR)"
+	@echo "CPLRUNTIMEDIR=$(CPLRUNTIMEDIR)"
+	@echo "CPLLIB_IMPLS=$(CPLLIB_IMPLS)"
+	@echo "CPLLIB_ARCHIVE=$(CPLLIB_ARCHIVE)"
 	@echo "CPPFLAGS=$(CPPFLAGS)"
 	@echo "CFLAGS=$(CFLAGS)"
 	@echo "LDFLAGS=$(LDFLAGS)"
@@ -207,4 +229,4 @@ help:
 	@awk 'BEGIN {FS = ":.*## "; printf "Usage: make <target> [VAR=value]\n\nTargets:\n"} /^[a-zA-Z0-9_.-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 .DELETE_ON_ERROR:
-.PHONY: all debug release install package run test unit-test rewrite-test std-test cpllib-test vscode-docker-build vscode-docker-package clean clean-tests distclean print-sources print-config help
+.PHONY: all cpllib debug release install package run test unit-test rewrite-test std-test vscode-docker-build vscode-docker-package clean clean-tests distclean print-sources print-config help

@@ -346,7 +346,7 @@ static int _generate_function(symbol_id_t f_id, cfg_ctx_t* cctx, sym_table_t* sm
     if (!FNTB_get_info_id(f_id, &fi, &smt->f) || !fi.flags.used) return 0;
     
     if (!fi.flags.onlybody) {
-        if (fi.flags.external == 2) EMIT_COMMAND("extern %s", fi.name->body);
+        if (fi.flags.external == 2) EMIT_COMMAND("extern %s", fi.flags.vname ? fi.virt->body : fi.name->body);
         else { 
             const char* modifier = fi.flags.weak ? ":function weak" : "";
             if (fi.flags.entry)       EMIT_COMMAND("global %s%s", fi.virt->body, modifier);
