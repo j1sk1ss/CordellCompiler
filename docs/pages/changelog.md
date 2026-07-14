@@ -3,6 +3,21 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Overloads and generics
+<div class="change-date">Date: 2026-14-02</div>
+At this point there is no valid way to properly handle the case like that:
+
+```cpl
+function foo<T>(T a, i32 b) -> T {
+}
+function foo<U>(U a, i64 b) -> U {
+}
+foo<i32>(1, 1 as i32);
+foo<i32>(1, 1 as i64);
+```
+
+That's why I've decided to forbid this usage in this way. 
+
 ## CPL standart library!
 <div class="change-date">Date: 2026-07-02</div>
 Now the compiler has a library which provides a major part of the C-glibc library. To use it, provide the glibc-name and add at its end `_h` part:
