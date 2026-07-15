@@ -21,6 +21,7 @@ typedef struct {
         long            size;
         char            reg;
         char            allocated : 1;
+        char            used      : 1;
     } vmi; /* VariableMemoryInfo     */
 
     struct {
@@ -38,6 +39,7 @@ typedef struct {
 #define DEFINED_VARIABLE     1
 #define OVERDEFINED_VARIABLE 2
 
+int VRTB_set_used(symbol_id_t id, vartab_ctx_t* ctx);
 int VRTB_update_memory(symbol_id_t id, long offset, long size, char reg, short align, vartab_ctx_t* ctx);
 int VRTB_update_definition(symbol_id_t id, long definition, symbol_id_t overdefined, vartab_ctx_t* ctx, int rewrite);
 int VRTB_update_type(symbol_id_t id, int t, symbol_id_t t_id, vartab_ctx_t* ctx);

@@ -63,10 +63,10 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_SYSC: EMIT_COMMAND("syscall"); break;
         case LIR_OEXT: {
             variable_info_t vi;
-            if (VRTB_get_info_id(b->farg->storage.cnst.value, &vi, &smt->v)) {
-                EMIT_COMMAND("extern %s", vi.name->body); 
-            }
-
+            if (
+                VRTB_get_info_id(b->farg->storage.cnst.value, &vi, &smt->v) && 
+                vi.vmi.used
+            ) EMIT_COMMAND("extern %s", vi.name->body); 
             break;
         }
         case LIR_BREAKPOINT: EMIT_COMMAND("int3 ; %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                     break;
@@ -268,7 +268,7 @@ Params:
 Returns 1 on success, otherwise 0 */
 static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
     variable_info_t vi;
-    if (!VRTB_get_info_id(id, &vi, &smt->v) || vi.vfs.ext) return 0;
+    if (!VRTB_get_info_id(id, &vi, &smt->v) || vi.vfs.ext || !vi.vmi.used) return 0;
     token_t tmptkn = { .t_type = vi.type, .flags = { .ptr = vi.vfs.ptr, .ro = vi.vfs.ro } };
 
     if (!TKN_is_one_slot(&tmptkn)) {

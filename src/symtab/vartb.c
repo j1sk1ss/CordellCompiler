@@ -1,5 +1,16 @@
 #include <symtab/vartb.h>
 
+int VRTB_set_used(symbol_id_t id, vartab_ctx_t* ctx) {
+    print_log("VRTB_set_unused(id=%li)", id);
+    variable_info_t* vi;
+    if (map_get(&ctx->vartb, id, (void**)&vi)) {
+        vi->vmi.used = 1;
+        return 1;
+    }
+
+    return 0;
+}
+
 int VRTB_update_memory(symbol_id_t id, long offset, long size, char reg, short align, vartab_ctx_t* ctx) {
     print_log("VRTB_update_memory(id=%li, offset=%li, size=%li, reg=%c, align=%i)", id, offset, size, reg, align);
     variable_info_t* vi;
@@ -13,7 +24,7 @@ int VRTB_update_memory(symbol_id_t id, long offset, long size, char reg, short a
         return 1;
     }
 
-    return 0;    
+    return 0;  
 }
 
 int VRTB_update_definition(symbol_id_t id, long definition, symbol_id_t overdefined, vartab_ctx_t* ctx, int rewrite) {

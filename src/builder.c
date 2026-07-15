@@ -1076,6 +1076,7 @@ int main(int argc, char* argv[]) {
         }
         
         LIR_validate_memory(&cfgctx, &smt, &mem_sel);
+        LIR_clear_global_variables(&cfgctx, &smt);
 
         char* asm_path = _make_temp_path();
         char* obj_path = _make_temp_path();
