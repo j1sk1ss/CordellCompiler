@@ -4,51 +4,51 @@
 #include "platform_h.cpl"
 
 #ifdef CCPL_MACHO64
-#define O_RDONLY    0
-#define O_WRONLY    1
-#define O_RDWR      2
-#define O_ACCMODE   3
-#define O_NONBLOCK  4
-#define O_APPEND    8
-#define O_CREAT     512
-#define O_TRUNC     1024
-#define O_EXCL      2048
-#define O_NOCTTY    131072
-#define O_DIRECTORY 1048576
-#define O_CLOEXEC   16777216
+    #define O_RDONLY    0
+    #define O_WRONLY    1
+    #define O_RDWR      2
+    #define O_ACCMODE   3
+    #define O_NONBLOCK  4
+    #define O_APPEND    8
+    #define O_CREAT     512
+    #define O_TRUNC     1024
+    #define O_EXCL      2048
+    #define O_NOCTTY    131072
+    #define O_DIRECTORY 1048576
+    #define O_CLOEXEC   16777216
 #endif
 #ifndef CCPL_MACHO64
-#define O_RDONLY    0
-#define O_WRONLY    1
-#define O_RDWR      2
-#define O_ACCMODE   3
-#define O_CREAT     64
-#define O_EXCL      128
-#define O_NOCTTY    256
-#define O_TRUNC     512
-#define O_APPEND    1024
-#define O_NONBLOCK  2048
-#define O_DIRECTORY 65536
-#define O_NOFOLLOW  131072
-#define O_CLOEXEC   524288
+    #define O_RDONLY    0
+    #define O_WRONLY    1
+    #define O_RDWR      2
+    #define O_ACCMODE   3
+    #define O_CREAT     64
+    #define O_EXCL      128
+    #define O_NOCTTY    256
+    #define O_TRUNC     512
+    #define O_APPEND    1024
+    #define O_NONBLOCK  2048
+    #define O_DIRECTORY 65536
+    #define O_NOFOLLOW  131072
+    #define O_CLOEXEC   524288
 #endif
 
-#define F_DUPFD  0
-#define F_GETFD  1
-#define F_SETFD  2
-#define F_GETFL  3
-#define F_SETFL  4
-#define FD_CLOEXEC 1
+#define F_DUPFD     0
+#define F_GETFD     1
+#define F_SETFD     2
+#define F_GETFL     3
+#define F_SETFL     4
+#define FD_CLOEXEC  1
 
-#define S_IRUSR 256
-#define S_IWUSR 128
-#define S_IXUSR 64
-#define S_IRGRP 32
-#define S_IWGRP 16
-#define S_IXGRP 8
-#define S_IROTH 4
-#define S_IWOTH 2
-#define S_IXOTH 1
+#define S_IRUSR     256
+#define S_IWUSR     128
+#define S_IXUSR     64
+#define S_IRGRP     32
+#define S_IWGRP     16
+#define S_IXGRP     8
+#define S_IROTH     4
+#define S_IWOTH     2
+#define S_IXOTH     1
 
 :/ Opens a file or device and returns a file descriptor.
 - `path`:[ptr i8] - Null-terminated path to the target filesystem object.

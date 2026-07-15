@@ -3,6 +3,19 @@
 
 #include "platform_h.cpl"
 
+#define char     i8
+#define uchar    u8
+#define short    i16
+#define ushort   u16
+#define signed   i32
+#define int      i32
+#define uint     u32
+#define unsigned u32
+#define long     i64
+#define ulong    u64
+#define float    f32
+#define double   f64
+
 :/ Checks whether a character is alphanumeric.
 - `c`:[i32] - Character value represented as an unsigned byte or end-of-file marker.
 

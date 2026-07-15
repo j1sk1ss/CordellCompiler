@@ -5,22 +5,22 @@
 #include "types_h.cpl"
 
 #ifdef CCPL_MACHO64
-#define LC_ALL      0
-#define LC_COLLATE  1
-#define LC_CTYPE    2
-#define LC_MONETARY 3
-#define LC_NUMERIC  4
-#define LC_TIME     5
-#define LC_MESSAGES 6
+    #define LC_ALL      0
+    #define LC_COLLATE  1
+    #define LC_CTYPE    2
+    #define LC_MONETARY 3
+    #define LC_NUMERIC  4
+    #define LC_TIME     5
+    #define LC_MESSAGES 6
 #endif
 #ifndef CCPL_MACHO64
-#define LC_CTYPE    0
-#define LC_NUMERIC  1
-#define LC_TIME     2
-#define LC_COLLATE  3
-#define LC_MONETARY 4
-#define LC_MESSAGES 5
-#define LC_ALL      6
+    #define LC_CTYPE    0
+    #define LC_NUMERIC  1
+    #define LC_TIME     2
+    #define LC_COLLATE  3
+    #define LC_MONETARY 4
+    #define LC_MESSAGES 5
+    #define LC_ALL      6
 #endif
 
 :/ Selects or queries the program locale for a category.

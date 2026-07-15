@@ -7,39 +7,38 @@
 #define clock_t   i64
 
 #ifdef CCPL_MACHO64
-#define dev_t     i32
-#define gid_t     u32
-#define ino_t     u64
-#define mode_t    u16
-#define nlink_t   u16
-#define off_t     i64
-#define pid_t     i32
-#define time_t    i64
-#define uid_t     u32
+    #define dev_t     i32
+    #define gid_t     u32
+    #define ino_t     u64
+    #define mode_t    u16
+    #define nlink_t   u16
+    #define off_t     i64
+    #define pid_t     i32
+    #define time_t    i64
+    #define uid_t     u32
 #endif
 #ifndef CCPL_MACHO64
 #ifdef CCPL_GNUI386
-#define dev_t     u64
-#define gid_t     u32
-#define ino_t     u32
-#define mode_t    u32
-#define nlink_t   u32
-#define off_t     i32
-#define pid_t     i32
-#define time_t    i32
-#define uid_t     u32
+    #define dev_t     u64
+    #define gid_t     u32
+    #define ino_t     u32
+    #define mode_t    u32
+    #define nlink_t   u32
+    #define off_t     i32
+    #define pid_t     i32
+    #define time_t    i32
+    #define uid_t     u32
 #endif
 #ifndef CCPL_GNUI386
-#define dev_t     u64
-#define gid_t     u32
-#define ino_t     u64
-#define mode_t    u32
-#define nlink_t   u64
-#define off_t     i64
-#define pid_t     i32
-#define time_t    i64
-#define uid_t     u32
-#endif
+    #define dev_t     u64
+    #define gid_t     u32
+    #define ino_t     u64
+    #define mode_t    u32
+    #define nlink_t   u64
+    #define off_t     i64
+    #define pid_t     i32
+    #define time_t    i64
+    #define uid_t     u32
 #endif
 
 #endif
