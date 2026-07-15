@@ -74,7 +74,7 @@ Returns a pointer to the matching byte, or a null pointer when not found:[ptr i0
 @[abi] extern function memchr(ptr i0 s, i32 c, u64 n) -> ptr i0;
 #endif
 
-:/ Returns the length of the byte sequence owned by a string object.
+:/ Returns the length of a null-terminated byte string.
 - `s`:[ptr i8] - Null-terminated byte string to inspect.
 
 Returns the number of bytes before the terminating null byte:[u64]
@@ -361,7 +361,8 @@ container string {
 
     :/ Creates an owned string object from a null-terminated byte string.
     - `data`:[ptr i8] - Null-terminated byte string used to initialize the object.
-    
+
+    The object stores a duplicated buffer, so later changes to `data` do not update `body`.
     Returns a pointer to the newly allocated string object:[ptr string]
     /:
     @[vname("__string_new")] @[abi]
@@ -369,32 +370,40 @@ container string {
 
     :/ Returns the length of the byte sequence owned by a string object.
     - `self`:[ptr string] - Pointer to the current string object.
-    
+
     Returns the number of bytes before the terminating null byte:[i32]
     /:
-    @[self] 
+    @[self]
     @[vname("__string_len")] @[abi]
     glob function strlen(ptr string self) -> i32;
 
     :/ Checks whether two strings contain equal byte sequences.
     - `self`:[ptr string] - Pointer to the current string object.
-    - `other`:[ptr string] - String object or null-terminated byte string to compare.
-    
+    - `other`:[ptr string] - Other string object to compare.
+
+    Compares `self.body` and `other.body` with `strcmp`.
     Returns one when the strings are equal, otherwise zero:[i8]
     /:
-    @[self] 
+    @[self]
     @[vname("__string_equals")] @[abi]
     glob function equals(ptr string self, ptr string other) -> i8;
 
     :/ Releases the storage owned by a string object.
     - `self`:[ptr string] - Pointer to the current string object.
-    
+
+    Frees both `body` and the object itself; `self` must not be reused after this call.
     Returns nothing:[i0]
     /:
-    @[self] 
+    @[self]
     @[vname("__string_destroy")] @[abi]
     glob function destroy(ptr string self) -> i0;
 
+    :/ Writes the owned byte string to standard output.
+    - `self`:[ptr string] - Pointer to the current string object.
+
+    This forwards the string body to `printf`; the body is treated as the format string.
+    Returns nothing:[i0]
+    /:
     @[self]
     @[vname("__string_print")] @[abi]
     glob function print(ptr string self) -> i0;

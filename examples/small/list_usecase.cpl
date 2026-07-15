@@ -1,0 +1,31 @@
+#include "list_h.cpl"
+
+start() {
+    i32 a = 10;
+    i32 b = 20;
+    i32 c = 30;
+
+    ptr linked_list list = linked_list::new();
+    if not list; exit 1;
+
+    list.push_back(ref a);
+    list.push_back(ref b);
+    list.push_front(ref c);
+
+    if list.size() != 3; exit 2;
+    if dref (list.front() as ptr i32) != 30; exit 3;
+    if dref (list.back() as ptr i32) != 20; exit 4;
+
+    ptr i32 first = list.pop_front() as ptr i32;
+    if dref first != 30; exit 5;
+
+    ptr i32 last = list.pop_back() as ptr i32;
+    if dref last != 20; exit 6;
+
+    if list.size() != 1; exit 7;
+    if dref (list.pop_front() as ptr i32) != 10; exit 8;
+    if not list.empty(); exit 9;
+
+    list.destroy();
+    exit 0;
+}
