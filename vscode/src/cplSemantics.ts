@@ -417,6 +417,26 @@ function sameParamTypesOnly(a: ParamSig[], b: ParamSig[]): boolean {
   return true;
 }
 
+function hasTypeParams(typeParams: readonly string[] | undefined): boolean {
+  return !!typeParams?.length;
+}
+
+function isTypeNamedContainer(t: TypeNode, containerName: string): boolean {
+  return (t.kind === "container" || t.kind === "prim") && t.name === containerName;
+}
+
+function isSelfRefParam(param: ParamSig | undefined, containerName: string): boolean {
+  return !!param && param.type.kind === "ptr" && isTypeNamedContainer(param.type.to, containerName);
+}
+
+function hasExplicitAnnotationArgument(
+  annotations: readonly string[] | undefined,
+  name: string
+): boolean {
+  const arg = annotationArgument(annotations, name);
+  return arg != null && arg.trim().length > 0;
+}
+
 function arityBounds(params: ParamSig[]): { minArgs: number; maxArgs: number } {
   const varIndex = params.findIndex((p) => p.isVarArgs);
   const fixed = varIndex >= 0 ? params.slice(0, varIndex) : params;
@@ -683,6 +703,31 @@ export class SemanticContext {
 
     const local = container.methods.get(name) ?? [];
     const exact = local.find((f) => sameParamIdentity(f.params, params));
+
+    if (opts?.self && !isSelfRefParam(params[0], containerName)) {
+      this.issues.push({
+        message: `@[self] method '${containerName}.${name}' must start with a reference to '${containerName}' (expected 'ptr ${containerName} self')`,
+        range: params[0]?.range ?? range
+      });
+    }
+
+    if (
+      opts?.global &&
+      !hasExplicitAnnotationArgument(opts?.annotations, "vname") &&
+      !hasExplicitAnnotationArgument(exact?.annotations, "vname")
+    ) {
+      this.issues.push({
+        message: `Global container method '${containerName}.${name}' must declare an exported name with @[vname("...")]`,
+        range
+      });
+    }
+
+    if (!exact && hasTypeParams(typeParams) && local.some((f) => hasTypeParams(f.typeParams))) {
+      this.issues.push({
+        message: `Generic method '${containerName}.${name}' cannot have another generic overload`,
+        range
+      });
+    }
 
     if (!exact) {
       const sameTypesDifferentDefaults = local.find(
@@ -1018,6 +1063,13 @@ export class SemanticContext {
     const local = this.scope.funcs.get(name) ?? [];
 
     const exact = local.find((f) => sameParamIdentity(f.params, params));
+    if (!exact && hasTypeParams(typeParams) && local.some((f) => hasTypeParams(f.typeParams))) {
+      this.issues.push({
+        message: `Generic function '${name}' cannot have another generic overload`,
+        range
+      });
+    }
+
     if (!exact) {
       const sameTypesDifferentDefaults = local.find(
         (f) => sameParamTypesOnly(f.params, params) && !sameParamIdentity(f.params, params)

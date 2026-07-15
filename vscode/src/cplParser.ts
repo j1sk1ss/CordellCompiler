@@ -434,6 +434,7 @@ class Parser {
   private pendingDoc: string | undefined;
   private pendingDocRanges: Range[] = [];
   private pendingAnnotations: string[] = [];
+  private typeParamScopes: string[][] = [];
   private ppConditionStack: MacroCondition[];
 
   constructor(
@@ -586,6 +587,12 @@ class Parser {
       if (this.t[this.i]?.kind !== "comment") break;
       this.i++;
     }
+  }
+
+  private atBlockEndAfterTrivia(): boolean {
+    let j = this.i;
+    while (this.t[j]?.kind === "eol" || this.t[j]?.kind === "comment") j++;
+    return this.t[j]?.kind === "punc" && this.t[j].text === "}";
   }
 
   private captureDocComment(tok: Token) {
@@ -1129,6 +1136,21 @@ class Parser {
     return params;
   }
 
+  private enterTypeParamScope(typeParams: string[]) {
+    this.typeParamScopes.push(typeParams);
+  }
+
+  private exitTypeParamScope() {
+    this.typeParamScopes.pop();
+  }
+
+  private hasActiveTypeParam(name: string): boolean {
+    for (let i = this.typeParamScopes.length - 1; i >= 0; i--) {
+      if (this.typeParamScopes[i].includes(name)) return true;
+    }
+    return false;
+  }
+
   private tryParseTypeArgsBeforeCall(): boolean {
     if (!this.at("op", "<")) return false;
 
@@ -1259,12 +1281,12 @@ class Parser {
     return params;
   }  
 
-  private parseBlock() {
+  private parseBlock(allowTailExpression = false) {
     this.expect("punc", "{", "block: expected '{'");
     this.sem?.enterScope();
     while (!this.at("eof") && !this.at("punc", "}")) {
       const before = this.i;
-      this.parseStatement();
+      this.parseStatement(allowTailExpression);
       if (this.i === before) this.i++;
     }
     this.sem?.exitScope();
@@ -1312,6 +1334,7 @@ class Parser {
     }
 
     const typeParams = this.parseGenericParamListAfterName();
+    this.enterTypeParamScope(typeParams);
     const hasSelfAnnotation = containerName ? this.hasAnnotation(annotations, "self") : false;
 
     this.expect("punc", "(");
@@ -1340,6 +1363,7 @@ class Parser {
           annotations
         });
       }
+      this.exitTypeParamScope();
       return;
     }
 
@@ -1359,9 +1383,10 @@ class Parser {
       this.sem?.declareLocalVar(p.name, p.type, p.range, { annotations: p.annotations });
     }
 
-    this.parseBlock();
+    this.parseBlock(true);
 
     this.sem?.exitScope();
+    this.exitTypeParamScope();
   }
 
 
@@ -1448,6 +1473,7 @@ class Parser {
     this.expect("ident", undefined, "container function: expected identifier");
     const fnName = this.prev().text;
     const typeParams = this.parseGenericParamListAfterName();
+    this.enterTypeParamScope(typeParams);
     const hasSelfAnnotation = this.hasAnnotation(annotations, "self");
 
     this.expect("punc", "(");
@@ -1469,6 +1495,7 @@ class Parser {
     if (this.match("punc", ";")) {
       this.linkPendingDoc(`${containerName}::${fnName}`, fnRange, doc);
       this.sem?.declareContainerMethod(containerName, fnName, paramsInfo, ret, fnRange, false, doc, typeParams, semanticOpts);
+      this.exitTypeParamScope();
       return;
     }
 
@@ -1481,9 +1508,10 @@ class Parser {
       this.sem?.declareLocalVar(p.name, p.type, p.range, { annotations: p.annotations });
     }
 
-    this.parseBlock();
+    this.parseBlock(true);
 
     this.sem?.exitScope();
+    this.exitTypeParamScope();
   }
 
   private parseContainerFieldDecl(containerName: string) {
@@ -1540,6 +1568,7 @@ class Parser {
       }
 
       const typeParams = this.parseGenericParamListAfterName();
+      this.enterTypeParamScope(typeParams);
       const hasSelfAnnotation = containerName ? this.hasAnnotation(annotations, "self") : false;
 
       this.expect("punc", "(");
@@ -1564,6 +1593,7 @@ class Parser {
       } else {
         this.sem?.declareFunc(fnName, params, ret, fnRange, false, doc, typeParams, { annotations });
       }
+      this.exitTypeParamScope();
       return;
     }
 
@@ -1755,7 +1785,7 @@ class Parser {
     return { isGlobal, isReadonly };
   }
 
-  private parseStatement() {
+  private parseStatement(allowTailExpression = false) {
     if (this.atRaw("punc", "#")) { this.parsePPDirective(); return; }
 
     if (this.atRaw("comment")) {
@@ -1922,6 +1952,11 @@ class Parser {
 
     try {
       this.parseExpression();
+      if (allowTailExpression && this.atBlockEndAfterTrivia()) {
+        this.pendingDoc = undefined;
+        this.clearPendingMetadata();
+        return;
+      }
       this.expect("punc", ";");
       this.pendingDoc = undefined;
       this.clearPendingMetadata();
@@ -1942,7 +1977,7 @@ class Parser {
     const c = this.cur();
     if (this.atRaw("punc", "@")) return true;
     if (c.kind === "kw" && TYPE_KW.has(c.text)) return true;
-    return c.kind === "ident" && !!this.sem?.hasContainer(c.text);
+    return c.kind === "ident" && (this.hasActiveTypeParam(c.text) || !!this.sem?.hasContainer(c.text));
   }
 
   private looksLikeGenericTypeDeclStart(): boolean {
@@ -2112,6 +2147,10 @@ class Parser {
       let name = nameTok.text;
       this.i++;
 
+      if (this.hasActiveTypeParam(name) && !this.at("op", "<")) {
+        return { kind: "prim", name };
+      }
+
       if (this.match("op", "<")) {
         const args: string[] = [];
         const first = this.parseType();
@@ -2192,7 +2231,7 @@ class Parser {
     for (const p of paramsInfo) this.sem?.declareLocalVar(p.name, p.type, p.range, { annotations: p.annotations });
 
     if (this.at("punc", "{")) {
-      this.parseBlock();
+      this.parseBlock(true);
     } else {
       const body = this.parseExpression();
       ret = body.type;

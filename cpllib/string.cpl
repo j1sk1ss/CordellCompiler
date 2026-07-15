@@ -3,15 +3,15 @@
 glob function string::new(ptr i8 data) -> ptr string {
     ptr string self = malloc(sizeof(string)) as ptr string;
     self.body = strdup(data);
-    self;
+    self
 }
 
 glob function string::strlen(ptr string self) -> i32 {
-    strlen(self.body) as i32;
+    strlen(self.body) as i32
 }
 
 glob function string::equals(ptr string self, ptr string other) -> i8 {
-    (not strcmp(self.body, other.body)) as i8;
+    (not strcmp(self.body, other.body)) as i8
 }
 
 glob function string::destroy(ptr string self) -> i0 {
