@@ -5,7 +5,7 @@
 
 #define HUGE_VAL 1.0e999
 #define INFINITY 1.0e999
-#define NAN 0.0
+#define NAN      0.0
 
 :/ Computes the arc cosine of a value.
 - `x`:[f64] - Input value.

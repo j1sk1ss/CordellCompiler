@@ -1,0 +1,110 @@
+#ifndef QUEUE_H_
+#define QUEUE_H_ 0
+
+#include "list_h.cpl"
+
+:/ FIFO queue of untyped caller-owned payload pointers.
+- `data`:[linked_list] - Embedded list used to store queue entries.
+
+The queue owns only internal list nodes. Pushed payload pointers are stored as-is; `pop`,
+`clear`, and `destroy` do not free payloads.
+/:
+container queue {
+    linked_list data;
+
+    :/ Allocates and initializes an empty queue object.
+
+    Returns a new queue, or a null pointer on allocation failure:[ptr queue]
+    /:
+    @[vname("__queue_new")] @[abi]
+    glob function new() -> ptr queue;
+
+    :/ Initializes an already allocated queue object as empty.
+    - `self`:[ptr queue] - Queue object to reset.
+
+    Existing entries are not freed by this function; call `clear` first when reinitializing a non-empty queue.
+    Returns nothing:[i0]
+    /:
+    @[self]
+    @[vname("__queue_init")] @[abi]
+    glob function init(ptr queue self) -> i0;
+
+    :/ Pushes a payload pointer to the back of the queue.
+    - `self`:[ptr queue] - Queue to modify.
+    - `elem`:[ptr i0] - Caller-owned payload pointer to store.
+
+    On allocation failure the queue is left unchanged.
+    Returns nothing:[i0]
+    /:
+    @[self]
+    @[vname("__queue_push")] @[abi]
+    glob function push(ptr queue self, ptr i0 elem) -> i0;
+
+    :/ Removes and returns the front payload pointer.
+    - `self`:[ptr queue] - Queue to modify.
+
+    Frees only the removed queue node. The returned payload pointer remains caller-owned.
+    Returns the removed payload pointer, or a null pointer when the queue is empty:[ptr i0]
+    /:
+    @[self]
+    @[vname("__queue_pop")] @[abi]
+    glob function pop(ptr queue self) -> ptr i0;
+
+    :/ Reads the payload pointer at the front of the queue without removing it.
+    - `self`:[ptr queue] - Queue to inspect.
+
+    Returns the front payload pointer, or a null pointer when the queue is empty:[ptr i0]
+    /:
+    @[self]
+    @[vname("__queue_front")] @[abi]
+    glob function front(ptr queue self) -> ptr i0;
+
+    :/ Reads the payload pointer at the back of the queue without removing it.
+    - `self`:[ptr queue] - Queue to inspect.
+
+    Returns the back payload pointer, or a null pointer when the queue is empty:[ptr i0]
+    /:
+    @[self]
+    @[vname("__queue_back")] @[abi]
+    glob function back(ptr queue self) -> ptr i0;
+
+    :/ Removes every entry from the queue.
+    - `self`:[ptr queue] - Queue to clear.
+
+    Payload pointers are not freed.
+    Returns nothing:[i0]
+    /:
+    @[self]
+    @[vname("__queue_clear")] @[abi]
+    glob function clear(ptr queue self) -> i0;
+
+    :/ Clears and frees a heap-allocated queue object.
+    - `self`:[ptr queue] - Queue allocated by `queue::new`.
+
+    Safe to call with a null pointer. Payload pointers are not freed.
+    Returns nothing:[i0]
+    /:
+    @[self]
+    @[vname("__queue_destroy")] @[abi]
+    glob function destroy(ptr queue self) -> i0;
+
+    :/ Returns the number of entries in the queue.
+    - `self`:[ptr queue] - Queue to inspect.
+
+    Returns the cached entry count:[u64]
+    /:
+    @[self]
+    @[vname("__queue_size")] @[abi]
+    glob function size(ptr queue self) -> u64;
+
+    :/ Checks whether the queue contains no entries.
+    - `self`:[ptr queue] - Queue to inspect.
+
+    Returns one when the queue length is zero, otherwise zero:[i8]
+    /:
+    @[self]
+    @[vname("__queue_empty")] @[abi]
+    glob function empty(ptr queue self) -> i8;
+}
+
+#endif

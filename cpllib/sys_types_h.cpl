@@ -4,7 +4,7 @@
 #include "platform_h.cpl"
 #include "stddef_h.cpl"
 
-#define clock_t   i64
+#define clock_t       i64
 
 #ifdef CCPL_MACHO64
     #define dev_t     i32

@@ -1,0 +1,42 @@
+#include "stack_h.cpl"
+
+glob function stack::new() -> ptr stack {
+    ptr stack self = malloc(sizeof(stack)) as ptr stack;
+    if not self; return 0 as ptr stack;
+    self.init();
+    self
+}
+
+glob function stack::init(ptr stack self) -> i0 {
+    self.data.init();
+}
+
+glob function stack::push(ptr stack self, ptr i0 elem) -> i0 {
+    self.data.push_back(elem);
+}
+
+glob function stack::pop(ptr stack self) -> ptr i0 {
+    self.data.pop_back()
+}
+
+glob function stack::top(ptr stack self) -> ptr i0 {
+    self.data.back()
+}
+
+glob function stack::clear(ptr stack self) -> i0 {
+    self.data.clear();
+}
+
+glob function stack::destroy(ptr stack self) -> i0 {
+    if not self; return;
+    self.clear();
+    free(self as ptr i0);
+}
+
+glob function stack::size(ptr stack self) -> u64 {
+    self.data.size()
+}
+
+glob function stack::empty(ptr stack self) -> i8 {
+    self.data.empty()
+}

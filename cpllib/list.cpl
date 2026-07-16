@@ -3,25 +3,22 @@
 function linked_list_block::new(ptr i0 elem) -> ptr linked_list_block {
     ptr linked_list_block block = malloc(sizeof(linked_list_block)) as ptr linked_list_block;
     if not block; return 0 as ptr linked_list_block;
-
     block.elem = elem;
-    block.n = 0 as ptr linked_list_block;
-    block.p = 0 as ptr linked_list_block;
-
+    block.n    = 0 as ptr linked_list_block;
+    block.p    = 0 as ptr linked_list_block;
     block
 }
 
 glob function linked_list::new() -> ptr linked_list {
     ptr linked_list self = malloc(sizeof(linked_list)) as ptr linked_list;
     if not self; return 0 as ptr linked_list;
-
     self.init();
     self
 }
 
 glob function linked_list::init(ptr linked_list self) -> i0 {
-    self.h = 0 as ptr linked_list_block;
-    self.t = 0 as ptr linked_list_block;
+    self.h   = 0 as ptr linked_list_block;
+    self.t   = 0 as ptr linked_list_block;
     self.len = 0;
 }
 
@@ -34,12 +31,8 @@ glob function linked_list::push_front(ptr linked_list self, ptr i0 elem) -> i0 {
     if not block; return;
 
     block.n = self.h;
-
-    if self.h; {
-        self.h.p = block;
-    } else {
-        self.t = block;
-    }
+    if self.h; self.h.p = block;
+    else self.t = block;
 
     self.h = block;
     self.len += 1;
@@ -50,12 +43,8 @@ glob function linked_list::push_back(ptr linked_list self, ptr i0 elem) -> i0 {
     if not block; return;
 
     block.p = self.t;
-
-    if self.t; {
-        self.t.n = block;
-    } else {
-        self.h = block;
-    }
+    if self.t; self.t.n = block;
+    else self.h = block;
 
     self.t = block;
     self.len += 1;
@@ -83,28 +72,18 @@ glob function linked_list::remove(ptr linked_list self, ptr linked_list_block bl
     if not block; return 0 as ptr i0;
 
     ptr i0 elem = block.elem;
-
-    if block.p; {
-        block.p.n = block.n;
-    } else {
-        self.h = block.n;
-    }
-
-    if block.n; {
-        block.n.p = block.p;
-    } else {
-        self.t = block.p;
-    }
+    if block.p; block.p.n = block.n;
+    else self.h = block.n;
+    if block.n; block.n.p = block.p;
+    else self.t = block.p;
 
     if self.len > 0; self.len -= 1;
-
     free(block as ptr i0);
     elem
 }
 
 glob function linked_list::clear(ptr linked_list self) -> i0 {
     ptr linked_list_block block = self.h;
-
     while block; {
         ptr linked_list_block next = block.n;
         free(block as ptr i0);

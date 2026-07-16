@@ -1,0 +1,46 @@
+#include "queue_h.cpl"
+
+glob function queue::new() -> ptr queue {
+    ptr queue self = malloc(sizeof(queue)) as ptr queue;
+    if not self; return 0 as ptr queue;
+    self.init();
+    self
+}
+
+glob function queue::init(ptr queue self) -> i0 {
+    self.data.init();
+}
+
+glob function queue::push(ptr queue self, ptr i0 elem) -> i0 {
+    self.data.push_back(elem);
+}
+
+glob function queue::pop(ptr queue self) -> ptr i0 {
+    self.data.pop_front()
+}
+
+glob function queue::front(ptr queue self) -> ptr i0 {
+    self.data.front()
+}
+
+glob function queue::back(ptr queue self) -> ptr i0 {
+    self.data.back()
+}
+
+glob function queue::clear(ptr queue self) -> i0 {
+    self.data.clear();
+}
+
+glob function queue::destroy(ptr queue self) -> i0 {
+    if not self; return;
+    self.clear();
+    free(self as ptr i0);
+}
+
+glob function queue::size(ptr queue self) -> u64 {
+    self.data.size()
+}
+
+glob function queue::empty(ptr queue self) -> i8 {
+    self.data.empty()
+}

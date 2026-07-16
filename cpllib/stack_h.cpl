@@ -1,0 +1,101 @@
+#ifndef STACK_H_
+#define STACK_H_ 0
+
+#include "list_h.cpl"
+
+:/ LIFO stack of untyped caller-owned payload pointers.
+- `data`:[linked_list] - Embedded list used to store stack entries.
+
+The stack owns only internal list nodes. Pushed payload pointers are stored as-is; `pop`,
+`clear`, and `destroy` do not free payloads.
+/:
+container stack {
+    linked_list data;
+
+    :/ Allocates and initializes an empty stack object.
+
+    Returns a new stack, or a null pointer on allocation failure:[ptr stack]
+    /:
+    @[vname("__stack_new")] @[abi]
+    glob function new() -> ptr stack;
+
+    :/ Initializes an already allocated stack object as empty.
+    - `self`:[ptr stack] - Stack object to reset.
+
+    Existing entries are not freed by this function; call `clear` first when reinitializing a non-empty stack.
+    Returns nothing:[i0]
+    /:
+    @[self]
+    @[vname("__stack_init")] @[abi]
+    glob function init(ptr stack self) -> i0;
+
+    :/ Pushes a payload pointer onto the top of the stack.
+    - `self`:[ptr stack] - Stack to modify.
+    - `elem`:[ptr i0] - Caller-owned payload pointer to store.
+
+    On allocation failure the stack is left unchanged.
+    Returns nothing:[i0]
+    /:
+    @[self]
+    @[vname("__stack_push")] @[abi]
+    glob function push(ptr stack self, ptr i0 elem) -> i0;
+
+    :/ Removes and returns the top payload pointer.
+    - `self`:[ptr stack] - Stack to modify.
+
+    Frees only the removed stack node. The returned payload pointer remains caller-owned.
+    Returns the removed payload pointer, or a null pointer when the stack is empty:[ptr i0]
+    /:
+    @[self]
+    @[vname("__stack_pop")] @[abi]
+    glob function pop(ptr stack self) -> ptr i0;
+
+    :/ Reads the payload pointer at the top of the stack without removing it.
+    - `self`:[ptr stack] - Stack to inspect.
+
+    Returns the top payload pointer, or a null pointer when the stack is empty:[ptr i0]
+    /:
+    @[self]
+    @[vname("__stack_top")] @[abi]
+    glob function top(ptr stack self) -> ptr i0;
+
+    :/ Removes every entry from the stack.
+    - `self`:[ptr stack] - Stack to clear.
+
+    Payload pointers are not freed.
+    Returns nothing:[i0]
+    /:
+    @[self]
+    @[vname("__stack_clear")] @[abi]
+    glob function clear(ptr stack self) -> i0;
+
+    :/ Clears and frees a heap-allocated stack object.
+    - `self`:[ptr stack] - Stack allocated by `stack::new`.
+
+    Safe to call with a null pointer. Payload pointers are not freed.
+    Returns nothing:[i0]
+    /:
+    @[self]
+    @[vname("__stack_destroy")] @[abi]
+    glob function destroy(ptr stack self) -> i0;
+
+    :/ Returns the number of entries in the stack.
+    - `self`:[ptr stack] - Stack to inspect.
+
+    Returns the cached entry count:[u64]
+    /:
+    @[self]
+    @[vname("__stack_size")] @[abi]
+    glob function size(ptr stack self) -> u64;
+
+    :/ Checks whether the stack contains no entries.
+    - `self`:[ptr stack] - Stack to inspect.
+
+    Returns one when the stack length is zero, otherwise zero:[i8]
+    /:
+    @[self]
+    @[vname("__stack_empty")] @[abi]
+    glob function empty(ptr stack self) -> i8;
+}
+
+#endif

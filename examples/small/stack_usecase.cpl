@@ -1,0 +1,31 @@
+#include <stack_h.cpl>
+
+start() {
+    i32 a = 10;
+    i32 b = 20;
+    i32 c = 30;
+
+    ptr stack s = stack::new();
+    if not s; exit 1;
+
+    s.push(ref a);
+    s.push(ref b);
+    s.push(ref c);
+
+    if s.size() != 3; exit 2;
+    if dref (s.top() as ptr i32) != 30; exit 3;
+
+    ptr i32 first = s.pop() as ptr i32;
+    if dref first != 30; exit 4;
+    if dref (s.top() as ptr i32) != 20; exit 5;
+
+    ptr i32 second = s.pop() as ptr i32;
+    if dref second != 20; exit 6;
+
+    ptr i32 third = s.pop() as ptr i32;
+    if dref third != 10; exit 7;
+    if not s.empty(); exit 8;
+
+    s.destroy();
+    exit 0;
+}

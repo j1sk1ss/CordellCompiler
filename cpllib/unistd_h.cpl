@@ -8,19 +8,19 @@
 #define STDOUT_FILENO 1
 #define STDERR_FILENO 2
 
-#define F_OK 0
-#define X_OK 1
-#define W_OK 2
-#define R_OK 4
+#define F_OK          0
+#define X_OK          1
+#define W_OK          2
+#define R_OK          4
 
 #ifndef SEEK_SET
-    #define SEEK_SET 0
+    #define SEEK_SET  0
 #endif
 #ifndef SEEK_CUR
-    #define SEEK_CUR 1
+    #define SEEK_CUR  1
 #endif
 #ifndef SEEK_END
-    #define SEEK_END 2
+    #define SEEK_END  2
 #endif
 
 :/ Reads bytes from a file descriptor.

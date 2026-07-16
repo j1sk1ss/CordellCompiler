@@ -1,0 +1,32 @@
+#include <queue_h.cpl>
+
+start() {
+    i32 a = 10;
+    i32 b = 20;
+    i32 c = 30;
+
+    ptr queue q = queue::new();
+    if not q; exit 1;
+
+    q.push(ref a);
+    q.push(ref b);
+    q.push(ref c);
+
+    if q.size() != 3; exit 2;
+    if dref (q.front() as ptr i32) != 10; exit 3;
+    if dref (q.back() as ptr i32) != 30; exit 4;
+
+    ptr i32 first = q.pop() as ptr i32;
+    if dref first != 10; exit 5;
+    if dref (q.front() as ptr i32) != 20; exit 6;
+
+    ptr i32 second = q.pop() as ptr i32;
+    if dref second != 20; exit 7;
+
+    ptr i32 third = q.pop() as ptr i32;
+    if dref third != 30; exit 8;
+    if not q.empty(); exit 9;
+
+    q.destroy();
+    exit 0;
+}
