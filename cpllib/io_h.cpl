@@ -328,7 +328,7 @@ container std {
     @[static]
     @[inline(always)]
     function tell(i32 fd) -> i64 {
-        return lseek(fd, 0, SEEK_CUR);
+        return lseek(fd, 0 as i64, SEEK_CUR as i32);
     }
 
     :/ Flushes pending descriptor data to the underlying storage device.
@@ -362,7 +362,7 @@ container std {
     @[static]
     @[inline(always)]
     function exists(ptr i8 path) -> i8 {
-        return (access(path, F_OK) == 0) as i8;
+        return (access(path, F_OK as i32) == 0) as i8;
     }
 
     :/ Checks whether a path stored in a CPL string object exists.
@@ -373,7 +373,7 @@ container std {
     @[static]
     @[inline(always)]
     function exists(ptr string path) -> i8 {
-        return (access(path.body, F_OK) == 0) as i8;
+        return (access(path.body, F_OK as i32) == 0) as i8;
     }
 
     :/ Removes a filesystem object by path.

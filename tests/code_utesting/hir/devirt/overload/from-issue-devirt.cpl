@@ -1,4 +1,3 @@
-: ONLY_THIS :
 container smth {
 }
 

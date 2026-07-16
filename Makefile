@@ -21,8 +21,6 @@ LOGS ?=
 PRINT_PARSE ?= 1
 ENABLE_Z3 ?= auto
 INPUT ?= examples/print.cpl
-MODULE ?= asm
-TEST_CODE ?= dummy_data/simple.cpl
 UTEST ?= code_utesting
 STD_UTEST ?= std_utesting
 VSCODE_DOCKER_IMAGE ?= cpl-extension
@@ -160,8 +158,7 @@ package: ## Build a relocatable binary tarball with the standard library.
 run: $(OUTPUT) ## Compile INPUT with the built compiler.
 	$(OUTPUT) $(RUN_ARGS) $(INPUT)
 
-test: ## Run integration tests, e.g. make test MODULE=asm.
-	cd tests && $(PYTHON) integrated_testing.py --run --module $(MODULE) --test-code $(TEST_CODE) --compiler $(CC) --output-dir bin --base ../
+test: unit-test ## Run module tests.
 
 unit-test: ## Run module tests, e.g. make unit-test UTEST=code_utesting/ast.
 	cd tests && $(PYTHON) module_testing.py --path $(UTEST) --compiler $(CC) --output-dir bin --base ../
