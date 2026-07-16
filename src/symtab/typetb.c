@@ -127,6 +127,13 @@ int TPTB_set_memory_size_id(symbol_id_t id, long size, typetab_ctx_t* ctx) {
     return 1;
 }
 
+int TPTB_set_child_scope_id(symbol_id_t id, symbol_id_t cs_id, typetab_ctx_t* ctx) {
+    type_info_t* ti;
+    if (!map_get(&ctx->typetb, id, (void**)&ti)) return 0;
+    ti->cs_id = cs_id;
+    return 1;
+}
+
 symbol_id_t TPTB_resolve_parent(symbol_id_t c, typetab_ctx_t* ctx) {
     type_info_t* c_ti;
     while (

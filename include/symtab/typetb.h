@@ -52,6 +52,7 @@ symbol_id_t TPTB_add_copy(symbol_id_t id, symbol_id_t nv_id, int ptr, typetab_ct
 symbol_id_t TPTB_add_info_from_token(symbol_id_t s_id, token_t* t, symbol_id_t v_id, typetab_ctx_t* ctx);
 long TPTB_get_memory_size_id(symbol_id_t id, typetab_ctx_t* ctx);
 int TPTB_set_memory_size_id(symbol_id_t id, long size, typetab_ctx_t* ctx);
+int TPTB_set_child_scope_id(symbol_id_t id, symbol_id_t cs_id, typetab_ctx_t* ctx);
 int TPTB_link_child(symbol_id_t p_id, symbol_id_t c_id, typetab_ctx_t* ctx);
 symbol_id_t TPTB_get_first_child(symbol_id_t p_id, typetab_ctx_t* ctx);
 symbol_id_t TPTB_get_indexed_type(symbol_id_t id, typetab_ctx_t* ctx);

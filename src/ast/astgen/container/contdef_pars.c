@@ -34,7 +34,10 @@ ast_node_t* cpl_parse_contdef(PARSER_ARGS) {
     ctx->t_id = name->sinfo.t_id;
     ast_node_t* decls = cpl_parse_scope(it, ctx, smt, 1);
     ctx->t_id = NO_SYMBOL_ID;
-    if (decls) AST_add_node(base, decls);
+    if (decls) {
+        TPTB_set_child_scope_id(name->sinfo.t_id, decls->sinfo.s_id, &smt->t);
+        AST_add_node(base, decls);
+    }
     else {
         PARSE_ERROR("Can't parse the container's body!");
         AST_unload(base);
