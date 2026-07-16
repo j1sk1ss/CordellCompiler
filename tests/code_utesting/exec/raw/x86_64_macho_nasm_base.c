@@ -29,6 +29,7 @@
 #include <lir/regalloc/ra.h>
 #include <lir/regalloc/regalloc.h>
 #include <lir/regalloc/x86_64_gnu_precolor.h>
+#include <lir/copyprop.h>
 #include <lir/dump.h>
 
 #include <asm/asmgen.h>
@@ -149,6 +150,7 @@ int main(int argc, char* argv[]) {
     LIR_save_registers(&cfgctx, &callctx, &smt, &reg_save);
 
     LIR_validate_memory(&cfgctx, &smt, &mem_sel);
+    LIR_clear_global_variables(&cfgctx, &smt);
 
     asm_gen_t asmgen = { .generator = x86_64_macho_nasm_generate_asm };
     ASM_generate(&cfgctx, &smt, &asmgen, stdout);

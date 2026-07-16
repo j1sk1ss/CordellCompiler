@@ -198,6 +198,7 @@ int main(int argc, char* argv[]) {
     LIR_peephole_optimization(&cfgctx, &pph);
 
     LIR_validate_memory(&cfgctx, &smt, &mem_sel);
+    LIR_clear_global_variables(&cfgctx, &smt);
 
     asm_gen_t asmgen = { .generator = i386_gnu_nasm_generate_asm };
     ASM_generate(&cfgctx, &smt, &asmgen, stdout);
