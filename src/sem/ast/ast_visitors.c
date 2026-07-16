@@ -398,51 +398,6 @@ int ASTWLKR_no_exit(AST_VISITOR_ARGS) {
     return 1;
 }
 
-int ASTWLKR_not_enough_args(AST_VISITOR_ARGS) {
-    AST_VISITOR_ARGS_USE;
-
-    func_info_t fi;
-    ast_node_t* callee = _call_callee(nd);
-    if (!callee || !FNTB_get_info_id(callee->sinfo.v_id, &fi, &smt->f)) {
-        SEMANTIC_ERROR(
-            " %s Function '%s' isn't registered for some reason! Check previous logs!",
-            _format_location((callee && callee->t) ? &callee->t->finfo : &nd->t->finfo),
-            callee && callee->t ? callee->t->body->body : ""
-        );
-
-        return 0;
-    }
-
-    ast_node_t* provided_arg = _call_args(nd);
-    ast_node_t* expected_arg = fi.args->c;
-    for (
-        ; provided_arg && expected_arg && expected_arg->t->t_type != SCOPE_TOKEN; 
-        provided_arg = provided_arg->siblings.n, expected_arg = expected_arg->siblings.n
-    );
-
-    if (!provided_arg && (expected_arg && expected_arg->t->t_type != SCOPE_TOKEN)) {
-        SEMANTIC_ERROR(
-            " %s Not enough arguments for the '%s' function!",
-            _format_location(callee && callee->t ? &callee->t->finfo : &nd->t->finfo),
-            callee && callee->t ? callee->t->body->body : ""
-        );
-        REBUILD_CODE_1TRG(nd, NULL);
-        return 0;
-    }
-
-    if (provided_arg && (!expected_arg || expected_arg->t->t_type == SCOPE_TOKEN) && !fi.flags.vargs) {
-        SEMANTIC_ERROR(
-            " %s Too many arguments for the '%s' function!",
-            _format_location(callee && callee->t ? &callee->t->finfo : &nd->t->finfo),
-            callee && callee->t ? callee->t->body->body : ""
-        );
-        REBUILD_CODE_1TRG(nd, NULL);
-        return 0;
-    }
-
-    return 1;
-}
-
 int ASTWLKR_wrong_arg_type(AST_VISITOR_ARGS) {
     AST_VISITOR_ARGS_USE;
 

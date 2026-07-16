@@ -130,22 +130,6 @@ Returns 1 if the node is correct, otherwise 0.
 int ASTWLKR_no_exit(AST_VISITOR_ARGS);
 
 /*
-ASTWLKR_not_enough_args checks provided argument's count in function call body.
-Example:
-```cpl
-    function a(i32 b) -> i0 { return; }
-    a(100, 100); : <= Will fire a warning : 
-    a(); : <= Will fire a warning : 
-```
-
-Params:
-    - AST_VISITOR_ARGS - Default AST visitor args.
-
-Returns 1 if the node is correct, otherwise 0.
-*/
-int ASTWLKR_not_enough_args(AST_VISITOR_ARGS);
-
-/*
 ASTWLKR_wrong_arg_type checks provided arguments into the function call body.
 Example:
 ```cpl
