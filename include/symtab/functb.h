@@ -8,6 +8,7 @@
 #include <ast/ast.h>
 #include <ast/dump.h>
 #include <symtab/symtab_id.h>
+#include <symtab/scopetb.h>
 
 typedef struct {
     signed char global;   /* keyword   */
@@ -53,13 +54,14 @@ typedef struct func_ctx {
 Collect all functions with the same name.
 Params:
     - `fname` - Target function name.
-    - `s_id` - Function's scope.
+    - `s_id` - Function call scope.
     - `out` - The output list.
     - `ctx` - Function symbol table.
+    - `sctx` - Scope symbol table.
 
 Returns 1 on success, otherwise 0.
 */
-int FNTB_collect_info(string_t* fname, symbol_id_t s_id, list_t* out, functab_ctx_t* ctx);
+int FNTB_collect_info(string_t* fname, symbol_id_t s_id, list_t* out, functab_ctx_t* ctx, scopetab_ctx_t* sctx);
 
 /*
 Get function from a table by the provided ID.

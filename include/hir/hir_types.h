@@ -28,6 +28,7 @@ typedef enum hir_operation {
         HIR_TU32,        // x = (u32)y
         HIR_TU16,        // x = (u16)y
         HIR_TU8,         // x = (u8)y
+        HIR_TI0,         // x = (i0)y ! Only for cast comparison !
 
         HIR_STRT,        // start macro
         HIR_STEND,       // end macro

@@ -378,6 +378,7 @@ hir_operation_t HIR_get_convop(hir_subject_type_t t) {
         case HIR_TMPVARU32: case HIR_STKVARU32: case HIR_GLBVARU32: return HIR_TU32;
         case HIR_TMPVARU16: case HIR_STKVARU16: case HIR_GLBVARU16: return HIR_TU16;
         case HIR_TMPVARU8:  case HIR_STKVARU8:  case HIR_GLBVARU8:  return HIR_TU8; 
+        case HIR_TMPVARI0:  case HIR_STKVARI0:  case HIR_GLBVARI0:  return HIR_TI0;
         default: return HIR_STORE;
     }
 }

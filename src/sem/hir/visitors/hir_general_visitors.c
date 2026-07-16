@@ -348,6 +348,18 @@ static int _create_type_name(hir_subject_type_t t, int ptr, char* buffer, int bu
     return 1;
 }
 
+static inline int _compare_expected_with_provided(ast_node_t* expected, hir_subject_t* provided, sym_table_t* smt) {
+    if (expected->t->flags.ptr != provided->ptr) return 0;
+    if (expected->t->t_type != CUSTOM_TYPE_TOKEN) return HIR_get_tmptype_tkn(expected->t, 0) == HIR_get_tmp_type(provided->t);
+
+    variable_info_t pvi;
+    if (
+        HIR_is_vartype(provided->t) && 
+        VRTB_get_info_id(provided->storage.var.v_id, &pvi, &smt->v)
+    ) return TPTB_resolve_parent(expected->sinfo.t_id, &smt->t) == TPTB_resolve_parent(pvi.t_id, &smt->t);
+    return 0;
+}
+
 int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
     if (b->op == HIR_SYSC || b->op == HIR_STORE_SYSC) return 1;
@@ -362,10 +374,8 @@ int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
     int arg_index = 0;
     hir_subject_t** hir_args = (hir_subject_t**)list_flatten(&b->targ->storage.list.h);
     fn_iterate_args (&fi) {
-        if (
-            HIR_get_tmptype_tkn(arg->t, 0) != HIR_get_tmp_type(hir_args[arg_index]->t) ||
-            arg->t->flags.ptr != hir_args[arg_index]->ptr
-        ) {
+        if (arg->t->t_type == VAR_ARGUMENTS_TOKEN) continue;
+        if (!_compare_expected_with_provided(arg, hir_args[arg_index], smt)) {
             char received[64], expected[64];
             _create_type_name(HIR_get_tmptype_tkn(arg->t, 0), arg->t->flags.ptr, expected, sizeof(expected));
             _create_type_name(hir_args[arg_index]->t, hir_args[arg_index]->ptr, received, sizeof(received));

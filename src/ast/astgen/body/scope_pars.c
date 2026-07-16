@@ -10,7 +10,7 @@ ast_node_t* cpl_parse_line_scope(PARSER_ARGS) {
         return NULL;
     }
 
-    if (carry) stack_push(&ctx->scopes.stack, (void*)((long)++ctx->scopes.s_id));
+    if (carry) SCPTB_push_scope(&smt->sc, &ctx->scopes.stack);
     ast_node_t* body = cpl_parse_element(it, ctx, smt, carry);
     if (body) AST_add_node(base, body);
     else {
@@ -32,9 +32,10 @@ ast_node_t* cpl_parse_line_scope(PARSER_ARGS) {
 ast_node_t* cpl_parse_scope(PARSER_ARGS) {
     PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
-    if (carry) stack_push(&ctx->scopes.stack, (void*)((long)++ctx->scopes.s_id));
+    if (carry) SCPTB_push_scope(&smt->sc, &ctx->scopes.stack);
     if (CURRENT_TOKEN->t_type == OPEN_BLOCK_TOKEN) forward_token(it, 1);
     else {
+        if (carry) stack_pop(&ctx->scopes.stack, NULL);
         PARSE_ERROR("Expect the '{' token!");
         RESTORE_TOKEN_POINT;
         return NULL;

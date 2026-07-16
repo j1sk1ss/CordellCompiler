@@ -88,7 +88,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     }
 
     stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
-    stack_push(&ctx->scopes.stack, (void*)((long)++ctx->scopes.s_id));
+    symbol_id_t args_scope = SCPTB_push_scope(&smt->sc, &ctx->scopes.stack);
 
     list_t generic_types;
     list_init(&generic_types);
@@ -98,7 +98,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         case LOWER_TOKEN: {
             forward_token(it, 1);
             do {
-                symbol_id_t t_id = TPTB_add_info(CURRENT_TOKEN->body, ctx->scopes.s_id, TYPE_GENERICS, FIELD_NO_CHANGE, 0, &smt->t);
+                symbol_id_t t_id = TPTB_add_info(CURRENT_TOKEN->body, args_scope, TYPE_GENERICS, FIELD_NO_CHANGE, 0, &smt->t);
                 if (t_id != NO_SYMBOL_ID) list_add(&generic_types, (void*)t_id);
                 if (consume_token(it, COMMA_TOKEN)) forward_token(it, 1);
             } while (CURRENT_TOKEN->t_type != LARGER_TOKEN);
@@ -109,6 +109,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
             PARSE_ERROR("Expected either the 'OPEN_BRACKET_TOKEN' or 'LOWER_TOKEN' (<) tokens!");
             AST_unload(base);
             list_free(&generic_types);
+            stack_pop(&ctx->scopes.stack, NULL);
             RESTORE_TOKEN_POINT;
             return NULL;
         }
@@ -117,12 +118,13 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     ast_node_t* args = AST_create_node_bt(CREATE_SCOPE_TOKEN);
     if (args) {
         AST_add_node(base, args);
-        args->sinfo.s_id = ctx->scopes.s_id;
+        args->sinfo.s_id = args_scope;
     }
     else {
         PARSE_ERROR("Can't create a base for the function's arguments!");
         AST_unload(base);
         list_free(&generic_types);
+        stack_pop(&ctx->scopes.stack, NULL);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -139,6 +141,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         AST_unload(base);
         list_free(&generic_types);
         ANNOT_destroy_summary(&annots);
+        stack_pop(&ctx->scopes.stack, NULL);
         ctx->t_id = preserved_tid;
         RESTORE_TOKEN_POINT;
         return NULL;
@@ -189,8 +192,10 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     name->sinfo.v_id = FNTB_add_info(
         name->t->body, virt_name, 
         (func_info_flags_t) {
-            .global = base->t->flags.glob, .local = local, .entry = annots.is_entry, .naked = annots.is_naked ? 1 : 0, .vargs = vargs, .onlybody = annots.is_onlybody,
-            .generic = list_size(&generic_types) != 0, .inln = annots.do_inline, .self = annots.is_self, .abi = annots.is_abi, .weak = annots.is_weak, .vname = annots.is_vname
+            .global  = base->t->flags.glob,            .local = local,            .entry    = annots.is_entry, 
+            .naked   = annots.is_naked ? 1 : 0,        .vargs = vargs,            .onlybody = annots.is_onlybody,
+            .generic = list_size(&generic_types) != 0, .inln  = annots.do_inline, .self     = annots.is_self, 
+            .abi     = annots.is_abi,                  .weak  = annots.is_weak,   .vname    = annots.is_vname
         },
         name->sinfo.s_id, args, name->c, &smt->f
     );
@@ -239,6 +244,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         PARSE_ERROR("Error during the function's body parsing!");
         AST_unload(base);
         list_free(&generic_types);
+        stack_pop(&ctx->scopes.stack, NULL);
         ctx->t_id = preserved_tid;
         RESTORE_TOKEN_POINT;
         return NULL;

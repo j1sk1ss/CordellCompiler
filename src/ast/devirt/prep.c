@@ -82,7 +82,7 @@ static int _find_and_register_resolved_call(ast_node_t* node, sym_table_t* smt, 
         list_init(&resolved_copies);
 
         if (
-            FNTB_collect_info(name->t->body, name->sinfo.s_id, &resolved_copies, &smt->f) && 
+            FNTB_collect_info(name->t->body, name->sinfo.s_id, &resolved_copies, &smt->f, &smt->sc) && 
             list_size(&resolved_copies) > 1
         ) printf("Found more than one function as a candidate for a generic function!\nPlease, remove the second function or rename it!");
 

@@ -11,13 +11,18 @@ int FNTB_get_info_id(symbol_id_t id, func_info_t* out, functab_ctx_t* ctx) {
     return 0;
 }
 
-int FNTB_collect_info(string_t* fname, symbol_id_t s_id, list_t* out, functab_ctx_t* ctx) {
+int FNTB_collect_info(string_t* fname, symbol_id_t s_id, list_t* out, functab_ctx_t* ctx, scopetab_ctx_t* sctx) {
     print_log("FNTB_collect_info(name=%s, s_id=%li)", fname ? fname->body : "(null)", s_id);
-    map_foreach (func_info_t* fi, &ctx->functb) {
-        if (
-            fi->name->equals(fi->name, fname) && 
-            fi->s_id == s_id && !fi->flags.generic && fi->s_id != NO_SYMBOL_ID
-        ) list_add(out, fi);
+    for (symbol_id_t visible_sid = s_id; visible_sid != NO_SYMBOL_ID; visible_sid = SCPTB_get_parent(visible_sid, sctx)) {
+        map_foreach (func_info_t* fi, &ctx->functb) {
+            if (fi->flags.generic) continue;
+            if (
+                fi->s_id == visible_sid &&
+                fi->name->equals(fi->name, fname)
+            ) list_add(out, fi);
+        }
+
+        if (list_size(out)) break;
     }
 
     print_warn("FNTB_collect_info -> %i!", list_size(out));

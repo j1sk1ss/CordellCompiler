@@ -20,8 +20,7 @@ ast_node_t* cpl_parse_lambda(PARSER_ARGS) {
     }
 
     stack_top(&ctx->scopes.stack, (void**)&base->sinfo.s_id);
-    stack_push(&ctx->scopes.stack, (void*)((long)++ctx->scopes.s_id));
-    args->sinfo.s_id = ctx->scopes.s_id;
+    args->sinfo.s_id = SCPTB_push_scope(&smt->sc, &ctx->scopes.stack);
 
     symbol_id_t preserved_tid = ctx->t_id;
     ctx->t_id = NO_SYMBOL_ID;
@@ -30,6 +29,7 @@ ast_node_t* cpl_parse_lambda(PARSER_ARGS) {
         PARSE_ERROR("Can't parse lambdas's arguments!");
         AST_unload(base);
         ctx->t_id = preserved_tid;
+        stack_pop(&ctx->scopes.stack, NULL);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -38,6 +38,7 @@ ast_node_t* cpl_parse_lambda(PARSER_ARGS) {
         PARSE_ERROR("Expected the 'LAMBDA_TOKEN'!");
         AST_unload(base);
         ctx->t_id = preserved_tid;
+        stack_pop(&ctx->scopes.stack, NULL);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -57,6 +58,7 @@ ast_node_t* cpl_parse_lambda(PARSER_ARGS) {
         PARSE_ERROR("Error during the lambdas's body parsing!");
         AST_unload(base);
         ctx->t_id = preserved_tid;
+        stack_pop(&ctx->scopes.stack, NULL);
         RESTORE_TOKEN_POINT;
         return NULL;
     }

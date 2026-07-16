@@ -35,7 +35,6 @@ typedef struct ast_node {
 typedef struct {
     ast_node_t*     r;      /* AST root.                                */
     struct {
-        int         s_id;   /* Current scope id.                        */
         sstack_t    stack;  /* Scope id stack.                          */
     } scopes;
     symbol_id_t     t_id;   /* Current type id.                         */

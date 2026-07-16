@@ -10,8 +10,8 @@ Returns 0 if shapes match, otherwise -1 */
 static inline int _fit_arg_shape(ast_node_t* arg, hir_subject_t* hir_arg) {
     if (arg->t->flags.ptr != hir_arg->ptr) return -1;
     if (
-        HIR_get_convop(HIR_get_tmp_type(hir_arg->t)) !=                 /* Provided */
-        HIR_get_convop(HIR_get_tmptype_tkn(arg->t, !arg->t->flags.ptr)) /* Expected */
+        HIR_get_convop(HIR_get_tmp_type(hir_arg->t)) != /* Provided */
+        HIR_get_convop(HIR_get_tmptype_tkn(arg->t, 0))  /* Expected */
     ) return -1;
     return 0;
 }
@@ -75,7 +75,7 @@ static symbol_id_t _resolve_function_overload(
     list_t funcs;
     list_init(&funcs);
     if (
-        FNTB_collect_info(fi.name, s_id, &funcs, &smt->f) && 
+        FNTB_collect_info(fi.name, s_id, &funcs, &smt->f, &smt->sc) && 
         list_size(&funcs) > 1
     ) {
         func_info_t* resolved = NULL;
