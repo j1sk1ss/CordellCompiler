@@ -28,13 +28,13 @@ static int _print_help_message() {
         { OPTION_VERSION_SHORT ", " OPTION_VERSION, NULL, "Show compiler version" },
         { OPTION_SOMETHING_SHORT ", " OPTION_SOMETHING, NULL, "Show something" },
         { OPTION_PREPROCESS_ONLY, NULL, "Run preprocessor only" },
-        { OPTION_WITHOUT_COMPILATION, NULL, "Build AST and HIR, then stop without compilation" },
         { OPTION_INLUCDE, "<dir>", "Add include directory" },
         { OPTION_DEFINE, "<name=value>", "Define preprocessor variable" },
         { OPTION_PRINT_STDLIB, NULL, "Print the standard library directory" },
         { OPTION_OUTPUT, "<file>", "Set output file" },
         { OPTION_ENABLE_AST_ANALYSIS, NULL, "Enable AST analysis" },
         { OPTION_ENABLE_IR_ANALYSIS, NULL, "Enable IR analysis" },
+        { OPTION_ANALYSIS_ONLY, NULL, "Run AST and HIR analysis, then stop before code generation" },
         { OPTION_DEBUG, NULL, "Enable debug mode" },
         { OPTION_NO_DEBUG, NULL, "Disable debug mode" },
     };
@@ -71,9 +71,7 @@ static int _print_help_message() {
     static const cli_help_option_t linker_options[] = {
         { OPTION_LINKER, "<linker>", "Set linker (ld, gcc, clang, ...)" },
         { OPTION_LINKER_MODE, "<mode>", "Set linker mode (c, driver, raw, ld)" },
-        { OPTION_COMPILE_ONLY_SHORT ", " OPTION_COMPILE_ONLY ", " OPTION_WITHOUT_LINKER, NULL, "Build an object file and skip linking" },
-        { OPTION_NO_COMPILE, NULL, "Stop after assembly generation" },
-        { OPTION_NO_OBJECT_BUILD, NULL, "Stop after assembly generation without building an object file" },
+        { OPTION_COMPILE_ONLY_SHORT ", " OPTION_COMPILE_ONLY, NULL, "Build an object file and skip linking" },
         { OPTION_LINKER_NO_PIE, NULL, "Disable PIE" },
         { OPTION_LINKER_PIE, NULL, "Enable PIE" },
         { OPTION_LINKER_M32, NULL, "Enable m32 mode" },
@@ -407,6 +405,13 @@ static void _set_arch_profile(options_t* out, const char* arch) {
     }
 }
 
+static inline int _set_build_mode(options_t* out, build_mode_t mode) {
+    if (!out) return 0;
+    if (out->build_mode != BUILD_MODE_EXECUTABLE && out->build_mode != mode) return 0;
+    out->build_mode = mode;
+    return 1;
+}
+
 static config_t _make_config(const options_t* options) {
     config_t conf = {
         .system = {
@@ -519,6 +524,7 @@ static inline void _apply_cli_defines(pp_ctx_t* ppctx, list_t* defines) {
 static void _set_default_options(options_t* out) {
     memset(out, 0, sizeof(*out));
     list_init(&out->locations.defines);
+    out->build_mode                = BUILD_MODE_EXECUTABLE;
     out->tools.asm_compiler        = "nasm";
 #if defined(__linux__)
     out->tools.asm_format          = "elf64";
@@ -560,7 +566,11 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
         else if (!strcmp(argv[i], OPTION_VERSION_SHORT) || !strcmp(argv[i], OPTION_VERSION))     out->flags.show_version        = 1;
         else if (!strcmp(argv[i], OPTION_SOMETHING_SHORT) || !strcmp(argv[i], OPTION_SOMETHING)) out->flags.show_something      = 1;
         else if (!strcmp(argv[i], OPTION_PREPROCESS_ONLY))                                       out->flags.preprocess_only     = 1;
-        else if (!strcmp(argv[i], OPTION_WITHOUT_COMPILATION))                                   out->flags.without_compilation = 1;
+        else if (!strcmp(argv[i], OPTION_ANALYSIS_ONLY)) {
+            if (!_set_build_mode(out, BUILD_MODE_ANALYSIS)) goto _fail;
+            out->flags.ast_analysis = 1;
+            out->flags.hir_analysis = 1;
+        }
         else if (!strcmp(argv[i], OPTION_OUTPUT)) {
             if (i + 1 >= argc) goto _fail;
             out->locations.output = argv[++i];
@@ -602,11 +612,10 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
         }
         else if (
             !strcmp(argv[i], OPTION_COMPILE_ONLY_SHORT) ||
-            !strcmp(argv[i], OPTION_COMPILE_ONLY)       ||
-            !strcmp(argv[i], OPTION_WITHOUT_LINKER)
-        ) out->flags.compile_only = 1;
-        else if (!strcmp(argv[i], OPTION_NO_COMPILE))           out->flags.no_compile      = 1;
-        else if (!strcmp(argv[i], OPTION_NO_OBJECT_BUILD))      out->flags.no_object_build = 1;
+            !strcmp(argv[i], OPTION_COMPILE_ONLY)
+        ) {
+            if (!_set_build_mode(out, BUILD_MODE_OBJECT)) goto _fail;
+        }
         else if (!strcmp(argv[i], OPTION_LINKER_NO_PIE))        out->tools.linker_no_pie   = 1;
         else if (!strcmp(argv[i], OPTION_LINKER_PIE))           out->tools.linker_no_pie   = 0;
         else if (!strcmp(argv[i], OPTION_LINKER_M32))           out->tools.linker_m32      = 1;
@@ -695,11 +704,8 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
         else out->locations.files[out->locations.files_count++] = argv[i];
     }
 
-    if (out->flags.compile_only && (out->flags.no_compile || out->flags.no_object_build)) goto _fail;
-
-    if (out->flags.no_compile || out->flags.no_object_build) {
-        out->config.emit_asm = 1;
-    }
+    if (out->flags.preprocess_only && out->build_mode != BUILD_MODE_EXECUTABLE) goto _fail;
+    if (out->build_mode == BUILD_MODE_ANALYSIS && (out->config.emit_lir || out->config.emit_asm)) goto _fail;
 
     return 1;
 
@@ -893,28 +899,6 @@ int main(int argc, char* argv[]) {
         hir_ctx_t hirctx = { 0 };
         HIR_generate(&sctx, &hirctx, &smt);
 
-        if (options.flags.without_compilation && options.config.emit_ir) {
-            const char* ir_output = _output_path_or_default(options.locations.ir_output, "output.ir");
-            FILE* ir_file = fopen(ir_output, "w");
-            if (!ir_file) {
-                fprintf(stderr, "Can't open HIR output file %s: %s\n", ir_output, strerror(errno));
-                return 1;
-            }
-            DUMP_format_hirctx(&hirctx, &smt, 0, 0, ir_file);
-            fclose(ir_file);
-        }
-
-        if (options.flags.without_compilation) {
-            HIR_unload_blocks(hirctx.hot.h);
-            for (int j = 0; j < token_lists_count; j++) {
-                list_free_force_op(&token_lists[j], (int (*)(void *))TKN_unload_token);
-            }
-            AST_unload_ctx(&sctx);
-            SMT_unload(&smt);
-            close(fd);
-            continue;
-        }
-
         cfg_ctx_t cfgctx = { .cid = 0 };
         HIR_CFG_build(&hirctx, &cfgctx, &smt);
         
@@ -967,8 +951,11 @@ int main(int argc, char* argv[]) {
         HIR_CFG_make_allias(&cfgctx, &smt);
         dag_ctx_t dagctx = { .curr_id = 0 };
         HIR_DAG_init(&dagctx);
-        if (options.config.constant) {
+        int needs_hir_analysis = options.flags.hir_analysis || options.build_mode == BUILD_MODE_ANALYSIS;
+        if (options.config.constant || needs_hir_analysis) {
             HIR_DAG_generate(&cfgctx, &dagctx, &smt);
+        }
+        if (options.config.constant) {
             HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);
             int folded = 0;
             do {
@@ -981,7 +968,7 @@ int main(int argc, char* argv[]) {
 
         HIR_CFG_squeeze_blocks(&cfgctx);
 
-        if (options.flags.hir_analysis) {
+        if (needs_hir_analysis) {
             SEM_perform_hir_check(&cfgctx, &dagctx, &hirctx, &smt);
         }
 
@@ -994,6 +981,21 @@ int main(int argc, char* argv[]) {
             }
             DUMP_format_hirctx(&hirctx, &smt, 0, 0, ir_file);
             fclose(ir_file);
+        }
+
+        if (options.build_mode == BUILD_MODE_ANALYSIS) {
+            HIR_DAG_unload(&dagctx);
+            HIR_LTREE_unload_ctx(&lctx);
+            HIR_CG_unload(&callctx);
+            HIR_CFG_unload(&cfgctx);
+            HIR_unload_blocks(hirctx.hot.h);
+            for (int j = 0; j < token_lists_count; j++) {
+                list_free_force_op(&token_lists[j], (int (*)(void *))TKN_unload_token);
+            }
+            AST_unload_ctx(&sctx);
+            SMT_unload(&smt);
+            close(fd);
+            continue;
         }
 
         lir_ctx_t lirctx = { 0 };
@@ -1113,39 +1115,28 @@ int main(int argc, char* argv[]) {
 
         fclose(asm_file);
 
-        if (
-            options.flags.no_compile || 
-            options.flags.no_object_build
-        ) {
-            unlink(asm_path);
-            mm_free(asm_path);
-            mm_free(obj_path);
+        if (!_compile_asm_to_object(&options, asm_path, obj_path)) {
+            fprintf(stderr, "ASM compilation failed for %s\n", options.locations.files[i]);
+            return 1;
         }
+
+        unlink(asm_path);
+        mm_free(asm_path);
+        if (options.build_mode != BUILD_MODE_OBJECT) object_files[0] = obj_path;
         else {
-            if (!_compile_asm_to_object(&options, asm_path, obj_path)) {
-                fprintf(stderr, "ASM compilation failed for %s\n", options.locations.files[i]);
+            const char* object_output = _output_path_or_default(options.locations.output, "output.o");
+            if (!_move_file_path(obj_path, object_output)) {
+                fprintf(stderr, "Can't write object file %s: %s\n", object_output, strerror(errno));
+                mm_free(obj_path);
                 return 1;
             }
 
-            unlink(asm_path);
-            mm_free(asm_path);
-            if (options.flags.compile_only) {
-                const char* object_output = _output_path_or_default(options.locations.output, "output.o");
-                if (!_move_file_path(obj_path, object_output)) {
-                    fprintf(stderr, "Can't write object file %s: %s\n", object_output, strerror(errno));
-                    mm_free(obj_path);
-                    return 1;
-                }
-
-                mm_free(obj_path);
-            }
-            else {
-                object_files[0] = obj_path;
-            }
+            mm_free(obj_path);
         }
 
         map_free(&colors);
         LIR_unload_blocks(lirctx.h);
+        HIR_DAG_unload(&dagctx);
         HIR_LTREE_unload_ctx(&lctx);
         HIR_CG_unload(&callctx);
         HIR_CFG_unload(&cfgctx);
@@ -1160,11 +1151,8 @@ int main(int argc, char* argv[]) {
     }
 
     if (
-        !options.flags.no_compile          &&
-        !options.flags.no_object_build     &&
-        !options.flags.compile_only        &&
-        !options.flags.preprocess_only     &&
-        !options.flags.without_compilation &&
+        options.build_mode == BUILD_MODE_EXECUTABLE &&
+        !options.flags.preprocess_only &&
         options.locations.files_count > 0
     ) {
         if (!_link_objects(&options, object_files, 1)) {

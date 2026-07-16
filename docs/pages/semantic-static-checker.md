@@ -9,6 +9,12 @@ The compiler has two optional analysis stages:
 ./builds/<platform>/cplc --ast-analysis --ir-analysis main.cpl
 ```
 
+Use `--analysis-only` when you want both passes without producing LIR, assembly, objects, or an executable:
+
+```bash
+./builds/<platform>/cplc --analysis-only main.cpl
+```
+
 These checks are intentionally lightweight. They help catch mistakes before or during lowering, but CPL is still an unsafe low-level language.
 
 ## AST analysis

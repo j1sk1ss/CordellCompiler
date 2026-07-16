@@ -179,6 +179,16 @@ static inline void _put_line_macro(source_pos_info_t* d, FILE* o) {
     _lazy_fputs(lder, o);
 }
 
+static int _count_newlines(const char* s) {
+    int count = 0;
+    if (!s) return count;
+    for (; *s; s++) {
+        if (*s == '\n') count++;
+    }
+
+    return count;
+}
+
 /* Check whether this is a permitted character.
 Params:
     - `p` - Input character (1 byte or more than 1 byte size).
@@ -278,13 +288,16 @@ int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx) {
             _unload_pp_ctx(ppctx);
             return -1;
         }
+        int comment_removed_newline = _count_newlines(ppctx->line) > _count_newlines(ppctx->clean);
 
         /* Figure out which directive is presented in the line.
            If there is no directive, just copy the line into the output. */
         char* d = PP_get_directive_from_line(ppctx->clean);
+        long skip = 0;
+        stack_top(&inf->cst.skips, (void**)&skip);
+        int needs_comment_line_macro = 0;
         if (!d) {
-            long stat;
-            if (!stack_top(&inf->cst.skips, (void**)&stat) || !stat) {
+            if (!skip) {
                 char line_file[PP_PATH_MAX] = { 0 };
                 snprintf(line_file, sizeof(line_file), "\"%s\"", inf->n);
                 MCTB_put_define("__FILE__", line_file, &ppctx->defines);
@@ -301,11 +314,10 @@ int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx) {
                 MCTB_remove_define("__FILE__", &ppctx->defines);
                 MCTB_remove_define("__LINE__", &ppctx->defines);
                 _lazy_fputs(ppctx->defined, ppctx->out);
+                needs_comment_line_macro = comment_removed_newline;
             }
         }
         else {
-            long skip = 0;
-            stack_top(&inf->cst.skips, (void**)&skip);
             if (IS_PP_DERICTIVE(d, PP_INCLUDE_DIRECTIVE) && !skip) {
                 int is_system = 0;
                 char inc_name[PP_PATH_MAX] = { 0 };
@@ -379,6 +391,10 @@ int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx) {
                 stack_pop(&inf->cst.skips, NULL);
                 _put_line_macro(inf, ppctx->out);
             }
+        }
+
+        if (needs_comment_line_macro) {
+            _put_line_macro(inf, ppctx->out);
         }
     }
 

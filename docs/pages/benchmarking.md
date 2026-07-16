@@ -25,23 +25,32 @@ The compiler was built with:
 make BUILD=release PRINT_PARSE=0
 ```
 
-CPL binaries were built through an explicit assembly path. For x86-64 the target triple is `--arch x86_64 --sys-type linux64 --asm-format elf64`; for i386 it is `--arch i386 --sys-type i386 --asm-format elf32`.
+CPL binaries were built through an explicit object path. For x86-64 the target triple is `--arch x86_64 --sys-type linux64 --asm-format elf64`; for i386 it is `--arch i386 --sys-type i386 --asm-format elf32`.
 
 ```bash
 ./builds/linux-x86_64/cplc -O3 \
   --arch x86_64 \
   --sys-type linux64 \
   --asm-format elf64 \
+  -c \
+  --output /tmp/bench_x64.o \
   --emit-asm \
-  --asm-output /tmp/bench.asm \
-  --no-compile \
+  --asm-output /tmp/bench_x64.asm \
   /tmp/bench.cpl
 
-nasm -f elf64 /tmp/bench.asm -o /tmp/bench.o
-ld -e _main -o /tmp/bench /tmp/bench.o
+ld -e _main -o /tmp/bench_x64 /tmp/bench_x64.o
 
-nasm -f elf32 /tmp/bench.asm -o /tmp/bench.o
-ld -m elf_i386 -e _main -o /tmp/bench /tmp/bench.o
+./builds/linux-x86_64/cplc -O3 \
+  --arch i386 \
+  --sys-type i386 \
+  --asm-format elf32 \
+  -c \
+  --output /tmp/bench_i386.o \
+  --emit-asm \
+  --asm-output /tmp/bench_i386.asm \
+  /tmp/bench.cpl
+
+ld -m elf_i386 -e _main -o /tmp/bench_i386 /tmp/bench_i386.o
 ```
 
 GCC and Clang baselines use freestanding `_main` entry points so i386 does not depend on 32-bit libc or CRT startup files:

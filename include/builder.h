@@ -79,7 +79,7 @@
 #include <asm/x86_64_macho_nasm_asmgen.h>
 
 #include <gem_data.h>
-#define CCPL_VERSION                 "3.6.8:1407.26" // major.minor<.sub> (old version style):ddmm.yy (new version style)
+#define CCPL_VERSION                 "3.6.9:1607.26" // major.minor<.sub> (old version style):ddmm.yy (new version style)
 
 #ifndef CPL_DEFAULT_INCLUDE_DIR
     #define CPL_DEFAULT_INCLUDE_DIR "/usr/local/share/cpl/include"
@@ -104,9 +104,9 @@
 #define OPTION_DEFINE                "-D"
 #define OPTION_PRINT_STDLIB          "--print-stdlib-path"
 #define OPTION_OUTPUT                "--output"
-#define OPTION_WITHOUT_COMPILATION   "--without-compilation"
 #define OPTION_ENABLE_AST_ANALYSIS   "--ast-analysis"
 #define OPTION_ENABLE_IR_ANALYSIS    "--ir-analysis"
+#define OPTION_ANALYSIS_ONLY         "--analysis-only"
 #define OPTION_DEBUG                 "--debug"
 #define OPTION_NO_DEBUG              "--no-debug"
 #define OPTION_NO_OPTIMIZATION       "-O0"
@@ -120,13 +120,10 @@
 #define OPTION_LINKER_MODE           "--linker-mode"
 #define OPTION_COMPILE_ONLY_SHORT    "-c"
 #define OPTION_COMPILE_ONLY          "--compile-only"
-#define OPTION_WITHOUT_LINKER        "--without-linker"
 #define OPTION_LINKER_NO_PIE         "--linker-no-pie"
 #define OPTION_LINKER_PIE            "--linker-pie"
 #define OPTION_LINKER_M32            "--linker-m32"
 #define OPTION_LINKER_NO_M32         "--linker-no-m32"
-#define OPTION_NO_COMPILE            "--no-compile"
-#define OPTION_NO_OBJECT_BUILD       "--no-object-build"
 #define OPTION_ENTRY_NAME            "--entry-name"
 #define OPTION_RO_SECTION            "--ro-section"
 #define OPTION_GLOB_SECTION          "--glob-section"
@@ -163,7 +160,14 @@ typedef struct {
     const char* description;
 } cli_help_option_t;
 
+typedef enum {
+    BUILD_MODE_EXECUTABLE,
+    BUILD_MODE_OBJECT,
+    BUILD_MODE_ANALYSIS
+} build_mode_t;
+
 typedef struct {
+    build_mode_t     build_mode;
     struct {
         const char*  include;
         const char*  stdlib;
@@ -215,10 +219,6 @@ typedef struct {
         int          print_stdlib         : 1;
         int          show_something       : 1;
         int          preprocess_only      : 1;
-        int          without_compilation  : 1;
-        int          compile_only         : 1;
-        int          no_compile           : 1;
-        int          no_object_build      : 1;
     } flags;
 } options_t;
 

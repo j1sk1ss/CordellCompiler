@@ -87,7 +87,16 @@ Each default path can be replaced:
 --asm-output program.s
 ```
 
-In the current implementation, `--emit-asm` still continues through assembly and linking. Treat it as "also emit assembly", not as "stop after assembly". Use `--no-compile` or `--no-object-build` when you want the compiler to stop after assembly generation; both flags also enable assembly emission.
+These emit flags write dumps in addition to the selected build mode.
+
+Build modes:
+
+| Flag | Behavior |
+|---|---|
+| `-E` | preprocess input and stop |
+| `--analysis-only` | run AST and HIR analysis, then stop before LIR/code generation |
+| `-c`, `--compile-only` | build an object file and skip linking |
+| no build-mode flag | assemble and link an executable |
 
 ## Optimization flags
 
@@ -146,8 +155,6 @@ Linker-related switches:
 ```bash
 --linker-pie / --linker-no-pie
 --linker-m32 / --linker-no-m32
---no-compile
---no-object-build
 ```
 
 ## Analysis flags
@@ -157,6 +164,7 @@ The compiler has optional static analysis passes:
 ```bash
 --ast-analysis
 --ir-analysis
+--analysis-only
 ```
 
-AST analysis checks source-level semantic issues. IR analysis runs after HIR and CFG construction and can report lower-level problems such as suspicious control flow and invalid memory patterns.
+AST analysis checks source-level semantic issues. IR analysis runs after HIR and CFG construction and can report lower-level problems such as suspicious control flow and invalid memory patterns. `--analysis-only` enables both analysis passes and stops before code generation.
