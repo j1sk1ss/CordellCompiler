@@ -32,7 +32,7 @@ _unknown_call: {}
     }
 }
 
-static unsigned int _visit_counter = 10; /* Magic index offset */
+static unsigned long long _visit_counter = 0;
 
 static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_t* bbh, lir_block_t* off);
 
@@ -177,7 +177,7 @@ int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx, call_graph_t* calls, sym_tabl
                         set_init(&func_regs, SET_NO_CMP);
                         set_init(&save_regs, SET_NO_CMP);
                         
-                        _visit_counter++;
+                        _visit_counter = CFG_get_unique_counter();
 
                         cfg_func_t* func = NULL;
                         if (lh->farg->t == LIR_FNAME) map_get(&cctx->fmap, lh->farg->storage.str.sid, (void**)&func);
@@ -204,10 +204,10 @@ int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx, call_graph_t* calls, sym_tabl
                             call_graph_node_t* call;
                             if (map_get(&calls->verts, func->f_id, (void**)&call)) {
                                 set_foreach(call_graph_node_t* f, &call->edges) {
-                                    cfg_block_t* another;
-                                    if (f != call && map_get(&cctx->fmap, f->f_id, (void**)&another)) {
-                                        queue_push(&work_list, another);
-                                    }
+                                    cfg_func_t* another = NULL;
+                                    if (f == call) continue;
+                                    if (map_get(&cctx->fmap, f->f_id, (void**)&another)) queue_push(&work_list, another);
+                                    else queue_push(&work_list, NULL);
                                 }
                             }
                         }
