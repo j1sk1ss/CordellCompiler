@@ -16,6 +16,7 @@
   - [Binary and unary operations](pages/binary-and-unary-operations.md)
   - [Control flow statements](pages/control-flow-statements.md)
   - [Functions and built-ins](pages/functions-and-inbuilt-macros.md)
+  - [CPL standard library](pages/cpllib-reference.md)
   - [Scopes](pages/scopes.md)
   - [Containers](pages/containers.md)
   - [Annotations](pages/annotations.md)
