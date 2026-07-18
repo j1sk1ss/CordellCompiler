@@ -54,6 +54,98 @@ function findTestsDirUpwards(startPath?: string): string | undefined {
   }
 }
 
+const ONLY_THIS_MARKER = ": ONLY_THIS :";
+const temporaryOnlyThisMarkers = new Map<string, number>();
+
+function findOutputBlockOffset(text: string): number {
+  const match = text.match(/^[ \t]*:\/[ \t]*OUTPUT\b/m);
+  return match?.index ?? -1;
+}
+
+function hasOnlyThisMarkerBeforeOutput(text: string): boolean {
+  const outputOffset = findOutputBlockOffset(text);
+  const searchable = outputOffset >= 0 ? text.slice(0, outputOffset) : text;
+  return searchable.split(/\r\n|\n|\r/).some((line) => line.trim() === ONLY_THIS_MARKER);
+}
+
+function preferredNewline(text: string): string {
+  return text.includes("\r\n") ? "\r\n" : "\n";
+}
+
+function insertOnlyThisMarker(text: string): string {
+  const newline = preferredNewline(text);
+  const outputOffset = findOutputBlockOffset(text);
+
+  if (outputOffset >= 0) {
+    const beforeOutput = text.slice(0, outputOffset).replace(/[ \t]*$/, "");
+    const outputAndAfter = text.slice(outputOffset);
+    const separator = beforeOutput.length === 0 || beforeOutput.endsWith(newline) ? "" : newline;
+    return `${beforeOutput}${separator}${ONLY_THIS_MARKER}${newline}${outputAndAfter}`;
+  }
+
+  return text.length === 0 ? `${ONLY_THIS_MARKER}${newline}` : `${ONLY_THIS_MARKER}${newline}${text}`;
+}
+
+function removeFirstOnlyThisMarkerBeforeOutput(text: string): string {
+  const outputOffset = findOutputBlockOffset(text);
+  const prefix = outputOffset >= 0 ? text.slice(0, outputOffset) : text;
+  const suffix = outputOffset >= 0 ? text.slice(outputOffset) : "";
+  const lines = prefix.match(/[^\r\n]*(?:\r\n|\n|\r|$)/g) ?? [];
+  let offset = 0;
+
+  for (const rawLine of lines) {
+    if (rawLine.length === 0 && offset >= prefix.length) break;
+
+    const withoutNewline = rawLine.replace(/\r?\n$|\r$/, "");
+    if (withoutNewline.trim() === ONLY_THIS_MARKER) {
+      return `${prefix.slice(0, offset)}${prefix.slice(offset + rawLine.length)}${suffix}`;
+    }
+
+    offset += rawLine.length;
+  }
+
+  return text;
+}
+
+async function addTemporaryOnlyThisMarker(uri: vscode.Uri): Promise<boolean> {
+  const filePath = uri.fsPath;
+  const activeMarkerCount = temporaryOnlyThisMarkers.get(filePath);
+  if (activeMarkerCount !== undefined) {
+    temporaryOnlyThisMarkers.set(filePath, activeMarkerCount + 1);
+    return true;
+  }
+
+  const document = await vscode.workspace.openTextDocument(uri);
+  if (document.isDirty && !(await document.save())) {
+    throw new Error("Could not save the CPL test file before adding ONLY_THIS.");
+  }
+
+  const text = fs.readFileSync(filePath, "utf8");
+  if (hasOnlyThisMarkerBeforeOutput(text)) return false;
+
+  fs.writeFileSync(filePath, insertOnlyThisMarker(text), "utf8");
+  temporaryOnlyThisMarkers.set(filePath, 1);
+  return true;
+}
+
+function removeTemporaryOnlyThisMarker(filePath: string): void {
+  const activeMarkerCount = temporaryOnlyThisMarkers.get(filePath);
+  if (activeMarkerCount === undefined) return;
+
+  if (activeMarkerCount > 1) {
+    temporaryOnlyThisMarkers.set(filePath, activeMarkerCount - 1);
+    return;
+  }
+
+  temporaryOnlyThisMarkers.delete(filePath);
+
+  try {
+    const text = fs.readFileSync(filePath, "utf8");
+    const cleaned = removeFirstOnlyThisMarkerBeforeOutput(text);
+    if (cleaned !== text) fs.writeFileSync(filePath, cleaned, "utf8");
+  } catch {}
+}
+
 async function runModuleTest(resource?: vscode.Uri): Promise<void> {
   const uri = resource ?? vscode.window.activeTextEditor?.document.uri;
   if (!uri || uri.scheme !== "file") {
@@ -69,6 +161,15 @@ async function runModuleTest(resource?: vscode.Uri): Promise<void> {
   const testsDir = findTestsDirUpwards(uri.fsPath);
   if (!testsDir) {
     void vscode.window.showErrorMessage("Could not find tests/module_testing.py above the selected file.");
+    return;
+  }
+
+  let insertedOnlyThis = false;
+  try {
+    insertedOnlyThis = await addTemporaryOnlyThisMarker(uri);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    void vscode.window.showErrorMessage(message);
     return;
   }
 
@@ -94,7 +195,310 @@ async function runModuleTest(resource?: vscode.Uri): Promise<void> {
     clear: true
   };
 
-  await vscode.tasks.executeTask(task);
+  let taskExecution: vscode.TaskExecution;
+  try {
+    taskExecution = await vscode.tasks.executeTask(task);
+  } catch (error) {
+    if (insertedOnlyThis) removeTemporaryOnlyThisMarker(uri.fsPath);
+    const message = error instanceof Error ? error.message : String(error);
+    void vscode.window.showErrorMessage(`Could not run CPL module test: ${message}`);
+    return;
+  }
+
+  if (insertedOnlyThis) {
+    const disposable = vscode.tasks.onDidEndTaskProcess((event) => {
+      if (event.execution !== taskExecution) return;
+      disposable.dispose();
+      removeTemporaryOnlyThisMarker(uri.fsPath);
+    });
+  }
+}
+
+type ContainerMethodPrototype = {
+  containerName: string;
+  methodName: string;
+  modifiers: string[];
+  params: string;
+  returnType: string;
+  key: string;
+};
+
+function maskCplCommentsAndStrings(text: string): string {
+  const chars = text.split("");
+
+  const blank = (start: number, end: number) => {
+    for (let i = start; i < end; i++) {
+      if (chars[i] !== "\n" && chars[i] !== "\r") chars[i] = " ";
+    }
+  };
+
+  for (let i = 0; i < text.length;) {
+    if (text.startsWith("::", i)) {
+      i += 2;
+      continue;
+    }
+
+    if (text.startsWith(":/", i)) {
+      const end = text.indexOf("/:", i + 2);
+      const stop = end >= 0 ? end + 2 : text.length;
+      blank(i, stop);
+      i = stop;
+      continue;
+    }
+
+    if (text[i] === ":") {
+      const end = text.indexOf(":", i + 1);
+      if (end >= 0) {
+        blank(i, end + 1);
+        i = end + 1;
+        continue;
+      }
+    }
+
+    if (text[i] === "\"" || text[i] === "'") {
+      const quote = text[i];
+      const start = i;
+      i++;
+      while (i < text.length) {
+        if (text[i] === "\\" && i + 1 < text.length) {
+          i += 2;
+          continue;
+        }
+        if (text[i] === quote) {
+          i++;
+          break;
+        }
+        if ((text[i] === "\n" || text[i] === "\r") && quote === "'") break;
+        i++;
+      }
+      blank(start, i);
+      continue;
+    }
+
+    i++;
+  }
+
+  return chars.join("");
+}
+
+function findMatchingBrace(text: string, openOffset: number): number {
+  let depth = 1;
+  for (let i = openOffset + 1; i < text.length; i++) {
+    if (text[i] === "{") depth++;
+    else if (text[i] === "}") {
+      depth--;
+      if (depth === 0) return i;
+    }
+  }
+
+  return -1;
+}
+
+function normalizeSignaturePart(text: string): string {
+  return text
+    .replace(/\s+/g, " ")
+    .replace(/\s*,\s*/g, ", ")
+    .trim();
+}
+
+function implementationKey(containerName: string, methodName: string, params: string): string {
+  return `${containerName}::${methodName}(${normalizeSignaturePart(params)})`;
+}
+
+function extractContainerMethodPrototypes(text: string): ContainerMethodPrototype[] {
+  const masked = maskCplCommentsAndStrings(text);
+  const prototypes: ContainerMethodPrototype[] = [];
+  const containerPattern = /\bcontainer\s+([A-Za-z_]\w*)\s*\{/g;
+  let containerMatch: RegExpExecArray | null;
+
+  while ((containerMatch = containerPattern.exec(masked)) !== null) {
+    const containerName = containerMatch[1];
+    const openOffset = masked.indexOf("{", containerMatch.index);
+    if (openOffset < 0) continue;
+
+    const closeOffset = findMatchingBrace(masked, openOffset);
+    if (closeOffset < 0) continue;
+
+    const body = masked.slice(openOffset + 1, closeOffset);
+    const methodPattern = /\b((?:(?:glob|ro|extern)\s+)*)function\s+([A-Za-z_]\w*)\s*\(([^)]*)\)\s*->\s*([^;{}]+);/g;
+    let methodMatch: RegExpExecArray | null;
+
+    while ((methodMatch = methodPattern.exec(body)) !== null) {
+      const rawModifiers = methodMatch[1].trim().split(/\s+/).filter(Boolean);
+      if (rawModifiers.includes("extern")) continue;
+
+      const methodName = methodMatch[2];
+      const modifiers = rawModifiers.filter((modifier) => modifier !== "extern");
+      const params = normalizeSignaturePart(methodMatch[3]);
+      const returnType = normalizeSignaturePart(methodMatch[4]);
+
+      prototypes.push({
+        containerName,
+        methodName,
+        modifiers,
+        params,
+        returnType,
+        key: implementationKey(containerName, methodName, params)
+      });
+    }
+
+    containerPattern.lastIndex = closeOffset + 1;
+  }
+
+  return prototypes;
+}
+
+function extractImplementedMethodKeys(text: string): Set<string> {
+  const masked = maskCplCommentsAndStrings(text);
+  const keys = new Set<string>();
+  const methodPattern = /\b(?:(?:glob|ro)\s+)*function\s+([A-Za-z_]\w*)::([A-Za-z_]\w*)\s*\(([^)]*)\)\s*->\s*([^{;]+)\{/g;
+  let match: RegExpExecArray | null;
+
+  while ((match = methodPattern.exec(masked)) !== null) {
+    keys.add(implementationKey(match[1], match[2], match[3]));
+  }
+
+  return keys;
+}
+
+function readWorkspaceText(filePath: string): string | undefined {
+  const openDocument = vscode.workspace.textDocuments.find(
+    (document) => document.uri.scheme === "file" && document.uri.fsPath === filePath
+  );
+  if (openDocument) return openDocument.getText();
+
+  try {
+    return fs.existsSync(filePath) ? fs.readFileSync(filePath, "utf8") : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function addHeaderCandidate(candidates: Map<string, string>, filePath: string): void {
+  const text = readWorkspaceText(filePath);
+  if (text !== undefined) candidates.set(filePath, text);
+}
+
+function findHeaderCandidatesForDocument(document: vscode.TextDocument): Map<string, string> {
+  const candidates = new Map<string, string>();
+  if (document.uri.scheme !== "file") return candidates;
+
+  const filePath = document.uri.fsPath;
+  const dir = path.dirname(filePath);
+  const baseName = path.basename(filePath);
+  const includePattern = /^[ \t]*#[ \t]*include[ \t]+"([^"]+)"/gm;
+  let includeMatch: RegExpExecArray | null;
+
+  while ((includeMatch = includePattern.exec(document.getText())) !== null) {
+    const includePath = path.resolve(dir, includeMatch[1]);
+    if (includePath.endsWith(".cpl")) addHeaderCandidate(candidates, includePath);
+  }
+
+  if (baseName.endsWith("_h.cpl")) {
+    candidates.set(filePath, document.getText());
+    return candidates;
+  }
+
+  if (baseName.endsWith(".cpl")) {
+    const stem = baseName.slice(0, -".cpl".length);
+    addHeaderCandidate(candidates, path.join(dir, `${stem}_h.cpl`));
+  }
+
+  return candidates;
+}
+
+function findMissingImplementations(
+  document: vscode.TextDocument,
+  containerName: string
+): ContainerMethodPrototype[] {
+  const existingKeys = extractImplementedMethodKeys(document.getText());
+  const prototypesByKey = new Map<string, ContainerMethodPrototype>();
+
+  for (const headerText of findHeaderCandidatesForDocument(document).values()) {
+    for (const prototype of extractContainerMethodPrototypes(headerText)) {
+      if (prototype.containerName !== containerName) continue;
+      if (existingKeys.has(prototype.key)) continue;
+      if (!prototypesByKey.has(prototype.key)) prototypesByKey.set(prototype.key, prototype);
+    }
+  }
+
+  return [...prototypesByKey.values()];
+}
+
+function buildMethodImplementation(prototype: ContainerMethodPrototype): string {
+  const modifierPrefix = prototype.modifiers.length ? `${prototype.modifiers.join(" ")} ` : "";
+  return `${modifierPrefix}function ${prototype.containerName}::${prototype.methodName}(${prototype.params}) -> ${prototype.returnType} {\n}`;
+}
+
+function buildMethodImplementations(prototypes: ContainerMethodPrototype[]): string {
+  return prototypes.map(buildMethodImplementation).join("\n\n");
+}
+
+function implementationCompletionRange(
+  document: vscode.TextDocument,
+  position: vscode.Position
+): { containerName: string; partialMethodName: string; range: vscode.Range } | undefined {
+  const line = document.lineAt(position.line);
+  const beforeCursor = line.text.slice(0, position.character);
+  const match = beforeCursor.match(/^(\s*)((?:(?:glob|ro)\s+)?function\s+)([A-Za-z_]\w*)::([A-Za-z_]\w*)?$/);
+  if (!match) return undefined;
+
+  const afterCursor = line.text.slice(position.character);
+  const rangeEnd = afterCursor.trim() === "" ? line.range.end : position;
+  return {
+    containerName: match[3],
+    partialMethodName: match[4] ?? "",
+    range: new vscode.Range(new vscode.Position(position.line, match[1].length), rangeEnd)
+  };
+}
+
+function createImplementationCompletionProvider(): vscode.Disposable {
+  return vscode.languages.registerCompletionItemProvider(
+    { language: "cpl", scheme: "file" },
+    {
+      provideCompletionItems(document, position) {
+        const completionContext = implementationCompletionRange(document, position);
+        if (!completionContext) return undefined;
+
+        const missing = findMissingImplementations(document, completionContext.containerName);
+        if (missing.length === 0) return undefined;
+
+        const items: vscode.CompletionItem[] = [];
+        const allItem = new vscode.CompletionItem(
+          `Generate all missing ${completionContext.containerName} methods`,
+          vscode.CompletionItemKind.Snippet
+        );
+        allItem.detail = `${missing.length} method${missing.length === 1 ? "" : "s"}`;
+        allItem.sortText = "0000";
+        allItem.textEdit = vscode.TextEdit.replace(
+          completionContext.range,
+          buildMethodImplementations(missing)
+        );
+        items.push(allItem);
+
+        for (const prototype of missing) {
+          if (
+            completionContext.partialMethodName &&
+            !prototype.methodName.startsWith(completionContext.partialMethodName)
+          ) {
+            continue;
+          }
+
+          const item = new vscode.CompletionItem(prototype.methodName, vscode.CompletionItemKind.Method);
+          item.detail = `${prototype.methodName}(${prototype.params}) -> ${prototype.returnType}`;
+          item.sortText = `1_${prototype.methodName}`;
+          item.textEdit = vscode.TextEdit.replace(
+            completionContext.range,
+            buildMethodImplementation(prototype)
+          );
+          items.push(item);
+        }
+
+        return new vscode.CompletionList(items, false);
+      }
+    },
+    ":"
+  );
 }
 
 function inferSysTypeForDocument(document: vscode.TextDocument): CplSysType {
@@ -190,6 +594,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   context.subscriptions.push(
     inactiveBranchDecoration,
+    createImplementationCompletionProvider(),
     vscode.commands.registerCommand("cpl.runModuleTest", runModuleTest),
     vscode.window.onDidChangeActiveTextEditor((editor) => updateInactiveBranches(editor)),
     vscode.window.onDidChangeVisibleTextEditors(() => updateVisibleInactiveBranches()),
