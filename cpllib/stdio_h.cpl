@@ -590,4 +590,307 @@ Returns the termination status of the associated process, otherwise -1:[i32]
 @[abi] extern function pclose(ptr FILE stream) -> i32;
 #endif
 
+:/ Owning buffered file wrapper around a C `FILE*`.
+- `body`:[ptr FILE] - Wrapped stream pointer, or a null pointer when closed.
+- `owned`:[i8] - Nonzero when `close` and `destroy` should call `fclose`.
+
+Streams opened through `file::open` are owned. Streams wrapped with `file::wrap`
+can be marked as borrowed; borrowed streams are detached by `close` and
+`destroy`, but not closed at the C runtime level. `standard_input`,
+`standard_output`, and `standard_error` wrap duplicated standard descriptors, so
+their wrappers are safe to destroy without closing the process-level standard
+descriptors.
+/:
+container file {
+    ptr FILE body;
+    i8       owned;
+
+    :/ Initializes an already allocated file wrapper.
+    - `self`:[ptr file] - Wrapper to initialize.
+    - `body`:[ptr FILE] - Stream pointer to store.
+    - `owned`:[i8] - Whether this wrapper should close the stream.
+
+    Returns nothing:[i0]
+    /:
+    @[self]
+    @[vname("__file_init")] @[abi]
+    glob function init(ptr file self, ptr FILE body, i8 owned) -> i0;
+
+    :/ Allocates a wrapper around an existing stream.
+    - `body`:[ptr FILE] - Existing stream pointer.
+    - `owned`:[i8] - Whether this wrapper should close the stream.
+
+    Returns a new wrapper, or a null pointer on allocation failure:[ptr file]
+    /:
+    @[vname("__file_wrap")] @[abi]
+    glob function wrap(ptr FILE body, i8 owned) -> ptr file;
+
+    :/ Opens a buffered file stream and returns an owning wrapper.
+    - `path`:[ptr i8] - Null-terminated path.
+    - `mode`:[ptr i8] - Null-terminated fopen mode string.
+
+    Returns a new file wrapper, or a null pointer on open/allocation failure:[ptr file]
+    /:
+    @[vname("__file_open")] @[abi]
+    glob function open(ptr i8 path, ptr i8 mode) -> ptr file;
+
+    :/ Opens a temporary binary file and returns an owning wrapper.
+
+    Returns a new file wrapper, or a null pointer on open/allocation failure:[ptr file]
+    /:
+    @[vname("__file_temporary")] @[abi]
+    glob function temporary() -> ptr file;
+
+    :/ Wraps a duplicate of standard input.
+
+    Returns a new owning wrapper, or a null pointer on failure:[ptr file]
+    /:
+    @[vname("__file_standard_input")] @[abi]
+    glob function standard_input() -> ptr file;
+
+    :/ Wraps a duplicate of standard output.
+
+    Returns a new owning wrapper, or a null pointer on failure:[ptr file]
+    /:
+    @[vname("__file_standard_output")] @[abi]
+    glob function standard_output() -> ptr file;
+
+    :/ Wraps a duplicate of standard error.
+
+    Returns a new owning wrapper, or a null pointer on failure:[ptr file]
+    /:
+    @[vname("__file_standard_error")] @[abi]
+    glob function standard_error() -> ptr file;
+
+    :/ Checks whether this wrapper currently has a stream.
+    - `self`:[ptr file] - Wrapper to inspect.
+
+    Returns one when the wrapper has a stream, otherwise zero:[i8]
+    /:
+    @[self]
+    @[vname("__file_is_open")] @[abi]
+    glob function is_open(ptr file self) -> i8;
+
+    :/ Returns the wrapped stream without changing ownership.
+    - `self`:[ptr file] - Wrapper to inspect.
+
+    Returns the wrapped stream, or a null pointer:[ptr FILE]
+    /:
+    @[self]
+    @[vname("__file_raw")] @[abi]
+    glob function raw(ptr file self) -> ptr FILE;
+
+    :/ Detaches and returns the wrapped stream.
+    - `self`:[ptr file] - Wrapper to detach.
+
+    The caller becomes responsible for the returned stream when it was owned.
+    Returns the previous stream, or a null pointer:[ptr FILE]
+    /:
+    @[self]
+    @[vname("__file_detach")] @[abi]
+    glob function detach(ptr file self) -> ptr FILE;
+
+    :/ Closes or detaches the wrapped stream.
+    - `self`:[ptr file] - Wrapper to close.
+
+    Owned wrappers call `fclose`; borrowed wrappers only clear `body`.
+    Returns zero on success, otherwise EOF:[i32]
+    /:
+    @[self]
+    @[vname("__file_close")] @[abi]
+    glob function close(ptr file self) -> i32;
+
+    :/ Closes the stream and frees the wrapper object.
+    - `self`:[ptr file] - Heap-allocated wrapper to destroy.
+
+    Safe to call with a null pointer.
+    Returns nothing:[i0]
+    /:
+    @[self]
+    @[vname("__file_destroy")] @[abi]
+    glob function destroy(ptr file self) -> i0;
+
+    :/ Reopens this wrapper with a new file path and mode.
+    - `self`:[ptr file] - Wrapper to replace.
+    - `path`:[ptr i8] - Null-terminated path.
+    - `mode`:[ptr i8] - Null-terminated fopen mode string.
+
+    Existing owned streams are closed first. The new stream is owned.
+    Returns one on success, otherwise zero:[i8]
+    /:
+    @[self]
+    @[vname("__file_reopen")] @[abi]
+    glob function reopen(ptr file self, ptr i8 path, ptr i8 mode) -> i8;
+
+    :/ Flushes pending output.
+    - `self`:[ptr file] - Wrapper to flush.
+
+    Returns zero on success, otherwise EOF:[i32]
+    /:
+    @[self]
+    @[vname("__file_flush")] @[abi]
+    glob function flush(ptr file self) -> i32;
+
+    :/ Reads bytes into a caller-provided buffer.
+    - `self`:[ptr file] - Input wrapper.
+    - `buffer`:[ptr i0] - Destination memory block.
+    - `size`:[u64] - Maximum number of bytes to read.
+
+    Returns the number of bytes read:[u64]
+    /:
+    @[self]
+    @[vname("__file_read")] @[abi]
+    glob function read(ptr file self, ptr i0 buffer, u64 size) -> u64;
+
+    :/ Writes bytes from a caller-provided buffer.
+    - `self`:[ptr file] - Output wrapper.
+    - `buffer`:[ptr i0] - Source memory block.
+    - `size`:[u64] - Number of bytes to write.
+
+    Returns the number of bytes written:[u64]
+    /:
+    @[self]
+    @[vname("__file_write")] @[abi]
+    glob function write(ptr file self, ptr i0 buffer, u64 size) -> u64;
+
+    :/ Reads fixed-size items into a caller-provided buffer.
+    - `self`:[ptr file] - Input wrapper.
+    - `buffer`:[ptr i0] - Destination memory block.
+    - `item_size`:[u64] - Size of one item in bytes.
+    - `count`:[u64] - Maximum number of items to read.
+
+    Returns the number of complete items read:[u64]
+    /:
+    @[self]
+    @[vname("__file_read_items")] @[abi]
+    glob function read_items(ptr file self, ptr i0 buffer, u64 item_size, u64 count) -> u64;
+
+    :/ Writes fixed-size items from a caller-provided buffer.
+    - `self`:[ptr file] - Output wrapper.
+    - `buffer`:[ptr i0] - Source memory block.
+    - `item_size`:[u64] - Size of one item in bytes.
+    - `count`:[u64] - Number of items to write.
+
+    Returns the number of complete items written:[u64]
+    /:
+    @[self]
+    @[vname("__file_write_items")] @[abi]
+    glob function write_items(ptr file self, ptr i0 buffer, u64 item_size, u64 count) -> u64;
+
+    :/ Reads one byte from the stream.
+    - `self`:[ptr file] - Input wrapper.
+
+    Returns the byte as an integer, or EOF:[i32]
+    /:
+    @[self]
+    @[vname("__file_read_char")] @[abi]
+    glob function read_char(ptr file self) -> i32;
+
+    :/ Writes one byte to the stream.
+    - `self`:[ptr file] - Output wrapper.
+    - `c`:[i32] - Byte value to write.
+
+    Returns the written byte as an integer, or EOF:[i32]
+    /:
+    @[self]
+    @[vname("__file_write_char")] @[abi]
+    glob function write_char(ptr file self, i32 c) -> i32;
+
+    :/ Reads a line into a caller-provided byte buffer.
+    - `self`:[ptr file] - Input wrapper.
+    - `buffer`:[ptr i8] - Destination byte buffer.
+    - `size`:[i32] - Buffer capacity including the terminator.
+
+    Returns `buffer` on success, otherwise a null pointer:[ptr i8]
+    /:
+    @[self]
+    @[vname("__file_read_line")] @[abi]
+    glob function read_line(ptr file self, ptr i8 buffer, i32 size) -> ptr i8;
+
+    :/ Writes a null-terminated byte string to the stream.
+    - `self`:[ptr file] - Output wrapper.
+    - `text`:[ptr i8] - Null-terminated bytes to write.
+
+    Returns a non-negative value on success, otherwise EOF:[i32]
+    /:
+    @[self]
+    @[vname("__file_write_string")] @[abi]
+    glob function write_string(ptr file self, ptr i8 text) -> i32;
+
+    :/ Moves the stream position.
+    - `self`:[ptr file] - Wrapper to seek.
+    - `offset`:[i64] - Offset relative to `whence`.
+    - `whence`:[i32] - One of `SEEK_SET`, `SEEK_CUR`, or `SEEK_END`.
+
+    Returns zero on success, otherwise a nonzero value:[i32]
+    /:
+    @[self]
+    @[vname("__file_seek")] @[abi]
+    glob function seek(ptr file self, i64 offset, i32 whence) -> i32;
+
+    :/ Returns the current stream position.
+    - `self`:[ptr file] - Wrapper to inspect.
+
+    Returns the byte offset, or -1 on failure:[i64]
+    /:
+    @[self]
+    @[vname("__file_tell")] @[abi]
+    glob function tell(ptr file self) -> i64;
+
+    :/ Moves the stream position to the beginning.
+    - `self`:[ptr file] - Wrapper to rewind.
+
+    Returns nothing:[i0]
+    /:
+    @[self]
+    @[vname("__file_rewind")] @[abi]
+    glob function rewind(ptr file self) -> i0;
+
+    :/ Computes the stream size without preserving failure details.
+    - `self`:[ptr file] - Seekable wrapper to inspect.
+
+    The original position is restored when it can be read.
+    Returns the size in bytes, or -1 on failure:[i64]
+    /:
+    @[self]
+    @[vname("__file_size")] @[abi]
+    glob function size(ptr file self) -> i64;
+
+    :/ Clears EOF and error indicators.
+    - `self`:[ptr file] - Wrapper to update.
+
+    Returns nothing:[i0]
+    /:
+    @[self]
+    @[vname("__file_clear_error")] @[abi]
+    glob function clear_error(ptr file self) -> i0;
+
+    :/ Checks whether EOF is set.
+    - `self`:[ptr file] - Wrapper to inspect.
+
+    Returns one when EOF is set, otherwise zero:[i8]
+    /:
+    @[self]
+    @[vname("__file_eof")] @[abi]
+    glob function eof(ptr file self) -> i8;
+
+    :/ Checks whether the error indicator is set.
+    - `self`:[ptr file] - Wrapper to inspect.
+
+    Returns one when an error is set, otherwise zero:[i8]
+    /:
+    @[self]
+    @[vname("__file_error")] @[abi]
+    glob function error(ptr file self) -> i8;
+
+    :/ Returns the underlying file descriptor.
+    - `self`:[ptr file] - Wrapper to inspect.
+
+    Returns the file descriptor, or -1 on failure:[i32]
+    /:
+    @[self]
+    @[vname("__file_fd")] @[abi]
+    glob function fd(ptr file self) -> i32;
+}
+
 #endif

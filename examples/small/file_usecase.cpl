@@ -1,0 +1,64 @@
+#include <stdio_h.cpl>
+#include <stdlib_h.cpl>
+#include <string_h.cpl>
+
+start() {
+    ptr i8 path = ref "cpl_file_usecase.tmp";
+    ptr i8 text = ref "file wrapper works\n";
+    u64 text_len = strlen(text);
+
+    ptr file out = file::open(path, ref "w+");
+    if not out; exit 1;
+
+    if out.write(text as ptr i0, text_len) != text_len; {
+        out.destroy();
+        remove(path);
+        exit 2;
+    }
+
+    if out.flush() != 0; {
+        out.destroy();
+        remove(path);
+        exit 3;
+    }
+
+    if out.size() != text_len as i64; {
+        out.destroy();
+        remove(path);
+        exit 4;
+    }
+
+    if out.seek(0 as i64, SEEK_SET as i32) != 0; {
+        out.destroy();
+        remove(path);
+        exit 5;
+    }
+
+    ptr i8 buffer = malloc(32) as ptr i8;
+    if not buffer; {
+        out.destroy();
+        remove(path);
+        exit 6;
+    }
+
+    u64 read_len = out.read(buffer as ptr i0, text_len);
+    if read_len != text_len; {
+        free(buffer as ptr i0);
+        out.destroy();
+        remove(path);
+        exit 7;
+    }
+
+    buffer[text_len] = 0 as i8;
+    if strcmp(buffer as ptr i8, text) != 0; {
+        free(buffer as ptr i0);
+        out.destroy();
+        remove(path);
+        exit 8;
+    }
+
+    free(buffer as ptr i0);
+    out.destroy();
+    remove(path);
+    exit 0;
+}
