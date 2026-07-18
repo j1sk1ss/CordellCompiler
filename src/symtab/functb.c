@@ -21,11 +21,9 @@ int FNTB_collect_info(string_t* fname, symbol_id_t s_id, list_t* out, functab_ct
                 fi->name->equals(fi->name, fname)
             ) list_add(out, fi);
         }
-
-        if (list_size(out)) break;
     }
 
-    print_warn("FNTB_collect_info -> %i!", list_size(out));
+    print_debug("FNTB_collect_info(%s) -> %i!\n", fname ? fname->body : "(null)", list_size(out));
     return 1;
 }
 
