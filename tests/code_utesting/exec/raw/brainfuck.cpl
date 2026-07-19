@@ -46,7 +46,7 @@ start(i32 argc, ptr ptr i8 argv) {
     i32 pc = 0;
     i32 pointer = 0;
     while pc < codelength; {
-        @[no_fall]
+        @[no_fall] @[straight]
         switch argv[1][pc]; {
             case '>'; {
                 pointer += 1;

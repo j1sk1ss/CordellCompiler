@@ -3,8 +3,12 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## De-ast-detectorization
+<div class="change-date">Date: 2026-07-19</div>
+Have removed several AST-level detectors. They didn't work properly given the fact that they don't have enought information about code.
+
 ## Overloads, generics and standart library
-<div class="change-date">Date: 2026-14-02</div>
+<div class="change-date">Date: 2026-07-14</div>
 At this point there is no valid way to properly handle the case like that:
 
 ```cpl

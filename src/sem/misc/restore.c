@@ -225,6 +225,19 @@ static int _rst_ln_puts(rst_ln_ctx_t* x, int line, const char* s) {
     return 1;
 }
 
+static int _rst_ln_puts_escaped(rst_ln_ctx_t* x, int line, const char* s) {
+    if (!s) return 0;
+    for (const char* p = s; *p; ++p) {
+        switch (*p) {
+            case '\n': _rst_ln_puts(x, line, "\\n"); break;
+            case '\r': _rst_ln_puts(x, line, "\\r"); break;
+            default:   _rst_ln_write(x, line, p, 1);  break;
+        }
+    }
+
+    return 1;
+}
+
 static int _rst_ln_printf(rst_ln_ctx_t* x, int line, const char* fmt, ...) {
     va_list ap;
     va_start(ap, fmt);
@@ -432,14 +445,14 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
         nd->t->t_type == STRING_VALUE_TOKEN
     ) {
         _rst_ln_puts(x, line, "\"");
-        _rst_ln_puts(x, line, nd->t->body->body);
+        _rst_ln_puts_escaped(x, line, nd->t->body->body);
         _rst_ln_puts(x, line, "\"");
     }
     else if (
         nd->t->t_type == CHAR_VALUE_TOKEN
     ) {
         _rst_ln_puts(x, line, "'");
-        _rst_ln_puts(x, line, nd->t->body->body);
+        _rst_ln_puts_escaped(x, line, nd->t->body->body);
         _rst_ln_puts(x, line, "'");
     }
     

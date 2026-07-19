@@ -110,6 +110,8 @@ static inline ast_node_t* _call_callee(ast_node_t* nd) {
     return nd->t && nd->t->t_type == CALLING_TOKEN ? nd->c : nd;
 }
 
+static token_t* _get_token_from_ast(ast_node_t* n, int* ptr, sym_table_t* smt);
+
 static int _has_parent_token(ast_node_t* nd, token_type_t t) {
     for (ast_node_t* p = nd ? nd->p : NULL; p; p = p->p) {
         if (p->t && p->t->t_type == t) return 1;
@@ -131,11 +133,13 @@ int ASTWLKR_rtype_assign(AST_VISITOR_ARGS) {
     if (!fi.rtype) return 1;
 
     int ptr = 0;
-    if (TKN_variable_bitness(fi.rtype->t, 1) != MAX(TKN_variable_bitness(_get_base_type_token(larg, &ptr), 1), (type_size_t)ptr)) {
+    token_t* ltype = _get_token_from_ast(larg, &ptr, smt);
+    if (!ltype) return 1;
+    if (TKN_variable_bitness(fi.rtype->t, 1) != MAX(TKN_variable_bitness(ltype, 1), (type_size_t)ptr)) {
         SEMANTIC_WARNING(
             " %s Function '%s' has the '%s' return type, and it doesn't match to the %s type '%s'!", 
             _format_location(&larg->t->finfo), fi.name->body,
-            RST_restore_type(fi.rtype->t), _fmt_tkn_op(nd->t->t_type), RST_restore_type(larg->t)
+            RST_restore_type(fi.rtype->t), _fmt_tkn_op(nd->t->t_type), RST_restore_type(ltype)
         );
 
         REBUILD_CODE_1TRG(nd, rarg);
@@ -174,6 +178,12 @@ int ASTWLKR_not_init(AST_VISITOR_ARGS) {
         if (annot->t == POPARG_ANNOTATION) return 1;
     }
 
+    variable_info_t vi;
+    if (
+        VRTB_get_info_id(larg->sinfo.v_id, &vi, &smt->v) && 
+        vi.vmi.reg != NO_SYMBOL_ID
+    ) return 1;
+
     ast_node_t* rarg = larg->siblings.n;
     if (!rarg) {
         SEMANTIC_WARNING(
@@ -199,6 +209,20 @@ static type_size_t _get_token_bitness(token_t* tkn) {
     }
 }
 
+static token_t* _get_token_from_type_id(symbol_id_t t_id, typetab_ctx_t* tctx) {
+    type_info_t ti;
+    if (t_id == NO_SYMBOL_ID || !TPTB_get_info_id(t_id, &ti, tctx)) return NULL;
+
+    static token_t tokens[32];
+    static int index = 0;
+    token_t* t = &tokens[index++ % 32];
+    str_memset(t, 0, sizeof(token_t));
+    t->t_type    = ti.tt;
+    t->body      = ti.name;
+    t->flags.ptr = ti.memory.ptr;
+    return t;
+}
+
 static token_t* _get_token_from_ast(ast_node_t* n, int* ptr, sym_table_t* smt) {
     if (!n || !n->t) return NULL;
     if (n->t->t_type == CALLING_TOKEN) {
@@ -211,6 +235,14 @@ static token_t* _get_token_from_ast(ast_node_t* n, int* ptr, sym_table_t* smt) {
 
         return NULL;
     }
+
+    if (
+        n->sinfo.t_id != NO_SYMBOL_ID &&
+        (
+            n->t->t_type == MEMBER_ACCESS_TOKEN ||
+            n->t->t_type == INDEXATION_TOKEN
+        )
+    ) return _get_token_from_type_id(n->sinfo.t_id, &smt->t);
 
     if (TKN_is_operand(n->t)) {
         int lptr = 0, rptr = 0;
@@ -232,7 +264,7 @@ static int _check_assign_types(const char* msg, ast_node_t* l, ast_node_t* r, sy
     if (
         !l || !r || 
         l->t->t_type == VAR_ARGUMENTS_TOKEN || r->t->t_type == VAR_ARGUMENTS_TOKEN
-    ) return 0;
+    ) return 1;
 
     int ltptr = 0, rtptr = 0;
     token_t* lt = _get_token_from_ast(l, &ltptr, smt);
@@ -358,33 +390,6 @@ _set_found_flag: {}
     return 1;
 }
 
-int ASTWLKR_no_return(AST_VISITOR_ARGS) {
-    AST_VISITOR_ARGS_USE;
-    func_info_t fi;
-    if (!FNTB_get_info_id(nd->c->sinfo.v_id, &fi, &smt->f)) {
-        SEMANTIC_ERROR(
-            " %s Function '%s' isn't registered for some reason! Check previous logs!",
-            _format_location(&nd->c->t->finfo), nd->c->t->body->body
-        );
-
-        return 0;
-    }
-
-    int has_ret = 0;
-    _search_term_node(nd->c, &has_ret, NULL); 
-    if (!has_ret && fi.rtype && (fi.rtype->t->t_type != I0_TYPE_TOKEN || fi.rtype->t->flags.ptr)) {
-        SEMANTIC_WARNING(
-            " %s Function '%s' doesn't have the 'return' keyword on all paths!", 
-            _format_location(&nd->t->finfo), nd->c->t->body->body
-        );
-
-        REBUILD_CODE_1TRG(nd, NULL);
-        return 0;
-    }
-
-    return 1;
-}
-
 int ASTWLKR_no_exit(AST_VISITOR_ARGS) {
     AST_VISITOR_ARGS_USE;
     int has_ret = 0;
@@ -404,19 +409,30 @@ int ASTWLKR_wrong_arg_type(AST_VISITOR_ARGS) {
     func_info_t fi;
     ast_node_t* callee = _call_callee(nd);
     if (!callee || !FNTB_get_info_id(callee->sinfo.v_id, &fi, &smt->f)) {
+        if (
+            !callee ||
+            !callee->t ||
+            (
+                callee->t->t_type != FUNC_NAME_TOKEN &&
+                callee->t->t_type != CALL_ADDR_TOKEN
+            )
+        ) return 1;
+
+        const char* callee_name = callee && callee->t && callee->t->body ? callee->t->body->body : "";
         SEMANTIC_ERROR(
             " %s Function '%s' isn't registered for some reason! Check previous logs!",
             _format_location((callee && callee->t) ? &callee->t->finfo : &nd->t->finfo),
-            callee && callee->t ? callee->t->body->body : ""
+            callee_name
         );
 
         return 0;
     }
+    if (!fi.args) return 1;
 
     ast_node_t* provided_arg = _call_args(nd);
     ast_node_t* expected_arg = fi.args->c;
     for (
-        ; provided_arg && expected_arg && expected_arg->t->t_type != SCOPE_TOKEN; 
+        ; provided_arg && expected_arg && expected_arg->t && expected_arg->t->t_type != SCOPE_TOKEN; 
         provided_arg = provided_arg->siblings.n, expected_arg = expected_arg->siblings.n
     ) {
         if (!_check_assign_types("Illegal argument", expected_arg, provided_arg, smt)) {
@@ -491,13 +507,12 @@ Params:
 Returns a formatted case type */
 static inline char* _format_name(int t) {
     switch (t) {
-        case 0: return "camelCase";
-        case 1: return "PascalCase";
-        case 2: return "Kebab-Case";
-        case 3: return "snake_case";
+        case 0:  return "camelCase";
+        case 1:  return "PascalCase";
+        case 2:  return "Kebab-Case";
+        case 3:  return "snake_case";
+        default: return "unknown";
     }
-
-    return "";
 }
 
 /* Check the string's case style.
@@ -510,8 +525,8 @@ Returns 1 if the input string is PascalCase;
 Returns 2 if the input string is kebab-case;
 Returns 3 if the input string is snake_case */
 static int _determine_string_style(const char* s) {
-    int has_upper = 0;
-    int has_hyphen = 0;
+    int has_upper      = 0;
+    int has_hyphen     = 0;
     int has_underscore = 0;
     if (!s || !*s) return -1;
 
@@ -532,10 +547,13 @@ static int _determine_string_style(const char* s) {
     }
 
     if ((!has_upper || has_underscore) && !has_hyphen) {
+        int at_start = 1;
         for (const char *p = s; *p; p++) {
-            if (*p != '_' && !str_islower((unsigned char)*p) && !str_isdigit((unsigned char)*p)) {
+            if (*p != '_' && !str_islower((unsigned char)*p) && !str_isdigit((unsigned char)*p) && !at_start) {
                 return -1;
             }
+
+            if (*p != '_' && str_islower((unsigned char)*p)) at_start = 0;
         }
 
         return 3;
@@ -697,20 +715,6 @@ int ASTWLKR_deadcode(AST_VISITOR_ARGS) {
     if (nd->siblings.n) {
         SEMANTIC_WARNING(" %s 'Dead Code' after the termination statement!", _format_location(&nd->t->finfo));
         REBUILD_CODE_1TRG(nd->p, nd->siblings.n);
-        return 0;
-    }
-
-    return 1;
-}
-
-int ASTWLKR_implict_convertion(AST_VISITOR_ARGS) {
-    AST_VISITOR_ARGS_USE;
-    ast_node_t* larg = nd->c;
-    if (!larg) return 1;
-    ast_node_t* rarg = larg->siblings.n;
-    if (!rarg) return 1;
-    if (!_check_assign_types("Implict convertion detected", larg, rarg, smt)) {
-        REBUILD_CODE_1TRG(nd, rarg);
         return 0;
     }
 

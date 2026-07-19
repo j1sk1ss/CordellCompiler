@@ -248,11 +248,22 @@ int HIRWLKR_visit_ifop2_instruction(HIR_VISITOR_ARGS) {
     
     trace_t trace;
     TRACE_init_trace(&trace);
-    if (!Z3_is_label_reachable(ctx->z3, bb->pfunc, b->sarg->id)) {
+    int then_reachable = bb->l
+        ? Z3_is_edge_feasible(ctx->z3, bb->pfunc, bb, bb->l)
+        : Z3_is_label_reachable(ctx->z3, bb->pfunc, b->sarg->id);
+    int else_reachable = bb->jmp
+        ? Z3_is_edge_feasible(ctx->z3, bb->pfunc, bb, bb->jmp)
+        : Z3_is_label_reachable(ctx->z3, bb->pfunc, b->targ->id);
+    if (!then_reachable && !else_reachable) {
+        then_reachable = 1;
+        else_reachable = 1;
+    }
+
+    if (!then_reachable) {
         TRACE_add_location(&trace, &ctx->curr_location, "Can't reach the 'then' branch! Consider to refactor the code.");
     }
     
-    if (!Z3_is_label_reachable(ctx->z3, bb->pfunc, b->targ->id)) {
+    if (!else_reachable) {
         TRACE_add_location(&trace, &ctx->curr_location, "Can't reach the 'else' branch! Consider to refactor the code.");
     }
 
@@ -350,7 +361,11 @@ static int _create_type_name(hir_subject_type_t t, int ptr, char* buffer, int bu
 
 static inline int _compare_expected_with_provided(ast_node_t* expected, hir_subject_t* provided, sym_table_t* smt) {
     if (expected->t->flags.ptr != provided->ptr) return 0;
-    if (expected->t->t_type != CUSTOM_TYPE_TOKEN) return HIR_get_tmptype_tkn(expected->t, 0) == HIR_get_tmp_type(provided->t);
+    if (expected->t->flags.ptr > 0) return 1;
+    if (expected->t->t_type != CUSTOM_TYPE_TOKEN) {
+        return HIR_get_type_size(HIR_get_tmptype_tkn(expected->t, 0)) == 
+               HIR_get_type_size(HIR_get_tmp_type(provided->t));
+    }
 
     variable_info_t pvi;
     if (
@@ -544,6 +559,7 @@ int HIRWLKR_unused_rtype(HIR_VISITOR_ARGS) {
 int HIRWLKR_noret_assign(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
 
+    if (b->op == HIR_SYSC || b->op == HIR_STORE_SYSC) return 1;
     func_info_t fi;
     if (
         b->sarg->t != HIR_FNAME || 

@@ -46,8 +46,8 @@ function omen_sum() -> i32 {
 function intro_flash() -> i0 {
     printf(ref "Camera flash");
     @[counter(3)]
-    loop putchar('.');
-    putchar('\n');
+    loop putchar('.' as i32);
+    putchar('\n' as i32);
 }
 
 @[inline(model)]

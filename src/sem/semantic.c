@@ -18,7 +18,6 @@ int SEM_perform_ast_check(ast_ctx_t* actx, sym_table_t* smt) {
             ASTWLK_register_visitor(DECLARATION_NODE, ASTWLKR_illegal_declaration, &walker, ATTENTION_MEDIUM_LEVEL);
             ASTWLK_register_visitor(FUNCTION_NODE, ASTWLKR_wrong_rtype, &walker, ATTENTION_MEDIUM_LEVEL);
             ASTWLK_register_visitor(TERM_NODE, ASTWLKR_deadcode, &walker, ATTENTION_MEDIUM_LEVEL);
-            ASTWLK_register_visitor(EXPRESSION_NODE, ASTWLKR_implict_convertion, &walker, ATTENTION_MEDIUM_LEVEL);
             ASTWLK_register_visitor(BREAK_NODE, ASTWLKR_break_without_statement, &walker, ATTENTION_MEDIUM_LEVEL);
             __attribute__((fallthrough));
         case 2:
@@ -26,7 +25,6 @@ int SEM_perform_ast_check(ast_ctx_t* actx, sym_table_t* smt) {
             __attribute__((fallthrough));
         case 3:
             ASTWLK_register_visitor(ASSIGN_NODE, ASTWLKR_ro_assign, &walker, ATTENTION_BLOCK_LEVEL);
-            ASTWLK_register_visitor(FUNCTION_NODE, ASTWLKR_no_return, &walker, ATTENTION_BLOCK_LEVEL);
             ASTWLK_register_visitor(START_NODE, ASTWLKR_no_exit, &walker, ATTENTION_BLOCK_LEVEL);
             ASTWLK_register_visitor(INDEX_NODE, ASTWLKR_illegal_array_access, &walker, ATTENTION_BLOCK_LEVEL);
             ASTWLK_register_visitor(START_NODE | FUNCTION_NODE, ASTWLKR_wrong_exit, &walker, ATTENTION_BLOCK_LEVEL);

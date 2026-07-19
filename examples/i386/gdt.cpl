@@ -35,22 +35,22 @@ function i386_gdt_load(ptr gdt_descriptor d, u16 cs, u16 ds) -> i0 {
 }
 
 glob function i386_gdt_initialize() -> i0 {
-    _gdt[0].set(0, 0, 0, 0);
-    _gdt[1].set(0, 0xFFFFF,
+    _gdt[0].set(0 as u32, 0 as u32, 0, 0);
+    _gdt[1].set(0 as u32, 0xFFFFF,
         (GDT_ACCESS_SEGMENT_PRESENT | GDT_ACCESS_RING0 | GDT_ACCESS_CODE_SEGMENT | GDT_ACCESS_CODE_READABLE) as u8,
         (GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_4K) as u8);
-    _gdt[2].set(0, 0xFFFFF,
+    _gdt[2].set(0 as u32, 0xFFFFF,
         (GDT_ACCESS_SEGMENT_PRESENT | GDT_ACCESS_RING0 | GDT_ACCESS_DATA_SEGMENT | GDT_ACCESS_DATA_WRITABLE) as u8,
         (GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_4K) as u8);
-    _gdt[3].set(0, 0xFFFFF,
+    _gdt[3].set(0 as u32, 0xFFFFF,
         (GDT_ACCESS_SEGMENT_PRESENT | GDT_ACCESS_RING3 | GDT_ACCESS_CODE_SEGMENT | GDT_ACCESS_CODE_READABLE) as u8,
         (GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_4K) as u8);
-    _gdt[4].set(0, 0xFFFFF,
+    _gdt[4].set(0 as u32, 0xFFFFF,
         (GDT_ACCESS_SEGMENT_PRESENT | GDT_ACCESS_RING3 | GDT_ACCESS_DATA_SEGMENT | GDT_ACCESS_DATA_WRITABLE) as u8,
         (GDT_FLAG_32BIT | GDT_FLAG_GRANULARITY_4K) as u8);
-    _gdt[5].set(0, 0, GDT_ACCESS_DISCRIPTOR_TSS, 0);
-    _descriptor.init(ref _gdt, sizeof(_gdt) - 1);
-    i386_gdt_load(ref _descriptor, i386_GDT_CODE_SEGMENT, i386_GDT_DATA_SEGMENT);
+    _gdt[5].set(0 as u32, 0 as u32, GDT_ACCESS_DISCRIPTOR_TSS, 0);
+    _descriptor.init((ref _gdt) as ptr ptr u8, (sizeof(_gdt) - 1) as u16);
+    i386_gdt_load(ref _descriptor, i386_GDT_CODE_SEGMENT as u16, i386_GDT_DATA_SEGMENT as u16);
 }
 
 glob function GDT_set_entry(i32 index, i32 base, i32 limit, u8 access, u8 flags) -> i0 {

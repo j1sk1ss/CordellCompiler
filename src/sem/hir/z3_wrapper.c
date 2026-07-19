@@ -612,13 +612,17 @@ static int _z3c_lower_instruction(z3_func_ctx_t* fctx, hir_block_t* h) {
         case HIR_ARRDECL:
         case HIR_STRDECL:
         case HIR_REF: case HIR_GDREF:
-        case HIR_STORE_UFCLL: case HIR_STORE_FCLL: case HIR_STORE_ECLL: case HIR_STORE_SYSC: {
+        case HIR_LDREF:
+        case HIR_UFCLL: case HIR_FCLL: case HIR_ECLL:
+        case HIR_STORE_UFCLL: case HIR_STORE_FCLL: case HIR_STORE_ECLL:
+        case HIR_SYSC: case HIR_STORE_SYSC: {
             if (h->farg && HIR_is_vartype(h->farg->t)) _z3c_var(fctx, h->farg);
             return 1;
         }
         case HIR_IFOP2:
         case HIR_JMP:
         case HIR_FRET:
+        case HIR_EXITOP:
         case HIR_FDCL:
         case HIR_FEND:
         case HIR_STRT:
@@ -747,6 +751,8 @@ static int _z3c_assert_path_preambles(z3_func_ctx_t* fctx, cfg_block_t* bb) {
 }
 
 static int _z3c_check_current(z3_func_ctx_t* fctx, Z3_ast extra) {
+    if (Z3_solver_check(fctx->ctx, fctx->solver) != Z3_L_TRUE) return 1;
+
     int pushed = 0;
     if (extra && !_z3c_ast_is_true(fctx->ctx, extra)) {
         Z3_solver_push(fctx->ctx, fctx->solver);
@@ -756,55 +762,108 @@ static int _z3c_check_current(z3_func_ctx_t* fctx, Z3_ast extra) {
 
     Z3_lbool check = Z3_solver_check(fctx->ctx, fctx->solver);
     if (pushed) Z3_solver_pop(fctx->ctx, fctx->solver, 1);
-    return check == Z3_L_TRUE;
+    return check != Z3_L_FALSE;
 }
 
-static int _z3c_any_path_to_block(z3_func_ctx_t* fctx, cfg_block_t* curr, cfg_block_t* target, Z3_ast extra, int depth, int max_depth) {
-    if (!curr || depth > max_depth) return 0;
+static int _z3c_any_path_to_block_rec(
+    z3_func_ctx_t* fctx,
+    cfg_block_t* curr,
+    cfg_block_t* target,
+    Z3_ast extra,
+    int depth,
+    int max_depth,
+    set_t* active
+) {
+    if (!curr) return 0;
+    if (depth > max_depth) return 1;
     if (curr == target) return _z3c_check_current(fctx, extra);
+    if (set_has(active, curr)) return 1;
+    set_add(active, curr);
 
     cfg_block_t* succs[] = { curr->l, curr->jmp };
     for (int i = 0; i < 2; ++i) {
         cfg_block_t* succ = succs[i];
         if (!succ) continue;
         Z3_ast cond = _z3c_edge_condition(fctx, curr, succ);
-        if (!cond) return 0;
+        if (!cond) {
+            set_remove(active, curr);
+            return 1;
+        }
         Z3_solver_push(fctx->ctx, fctx->solver);
         if (!_z3c_assert_path_preambles(fctx, curr)) {
             Z3_solver_pop(fctx->ctx, fctx->solver, 1);
-            return 0;
+            set_remove(active, curr);
+            return 1;
         }
         if (!_z3c_ast_is_true(fctx->ctx, cond)) Z3_solver_assert(fctx->ctx, fctx->solver, cond);
-        int found = _z3c_any_path_to_block(fctx, succ, target, extra, depth + 1, max_depth);
+        int found = _z3c_any_path_to_block_rec(fctx, succ, target, extra, depth + 1, max_depth, active);
         Z3_solver_pop(fctx->ctx, fctx->solver, 1);
-        if (found) return 1;
+        if (found) {
+            set_remove(active, curr);
+            return 1;
+        }
     }
 
+    set_remove(active, curr);
+    return 0;
+}
+
+static int _z3c_any_path_to_block(z3_func_ctx_t* fctx, cfg_block_t* curr, cfg_block_t* target, Z3_ast extra, int depth, int max_depth) {
+    set_t active;
+    set_init(&active, SET_NO_CMP);
+    int result = _z3c_any_path_to_block_rec(fctx, curr, target, extra, depth, max_depth, &active);
+    set_free(&active);
+    return result;
+}
+
+static int _z3c_any_terminal_path_rec(
+    z3_func_ctx_t* fctx,
+    cfg_block_t* curr,
+    Z3_ast extra,
+    int depth,
+    int max_depth,
+    set_t* active
+) {
+    if (!curr) return 0;
+    if (depth > max_depth) return 1;
+    if (!curr->l && !curr->jmp) return _z3c_check_current(fctx, extra);
+    if (set_has(active, curr)) return 1;
+    set_add(active, curr);
+
+    cfg_block_t* succs[] = { curr->l, curr->jmp };
+    for (int i = 0; i < 2; ++i) {
+        cfg_block_t* succ = succs[i];
+        if (!succ) continue;
+        Z3_ast cond = _z3c_edge_condition(fctx, curr, succ);
+        if (!cond) {
+            set_remove(active, curr);
+            return 1;
+        }
+        Z3_solver_push(fctx->ctx, fctx->solver);
+        if (!_z3c_assert_path_preambles(fctx, curr)) {
+            Z3_solver_pop(fctx->ctx, fctx->solver, 1);
+            set_remove(active, curr);
+            return 1;
+        }
+        if (!_z3c_ast_is_true(fctx->ctx, cond)) Z3_solver_assert(fctx->ctx, fctx->solver, cond);
+        int found = _z3c_any_terminal_path_rec(fctx, succ, extra, depth + 1, max_depth, active);
+        Z3_solver_pop(fctx->ctx, fctx->solver, 1);
+        if (found) {
+            set_remove(active, curr);
+            return 1;
+        }
+    }
+
+    set_remove(active, curr);
     return 0;
 }
 
 static int _z3c_any_terminal_path(z3_func_ctx_t* fctx, cfg_block_t* curr, Z3_ast extra, int depth, int max_depth) {
-    if (!curr || depth > max_depth) return 0;
-    if (!curr->l && !curr->jmp) return _z3c_check_current(fctx, extra);
-
-    cfg_block_t* succs[] = { curr->l, curr->jmp };
-    for (int i = 0; i < 2; ++i) {
-        cfg_block_t* succ = succs[i];
-        if (!succ) continue;
-        Z3_ast cond = _z3c_edge_condition(fctx, curr, succ);
-        if (!cond) return 0;
-        Z3_solver_push(fctx->ctx, fctx->solver);
-        if (!_z3c_assert_path_preambles(fctx, curr)) {
-            Z3_solver_pop(fctx->ctx, fctx->solver, 1);
-            return 0;
-        }
-        if (!_z3c_ast_is_true(fctx->ctx, cond)) Z3_solver_assert(fctx->ctx, fctx->solver, cond);
-        int found = _z3c_any_terminal_path(fctx, succ, extra, depth + 1, max_depth);
-        Z3_solver_pop(fctx->ctx, fctx->solver, 1);
-        if (found) return 1;
-    }
-
-    return 0;
+    set_t active;
+    set_init(&active, SET_NO_CMP);
+    int result = _z3c_any_terminal_path_rec(fctx, curr, extra, depth, max_depth, &active);
+    set_free(&active);
+    return result;
 }
 
 static int _z3c_predicate_state(z3_func_ctx_t* fctx, cfg_func_t* function, Z3_ast pred) {
@@ -1008,22 +1067,24 @@ int Z3_is_divisor_maybe_zero(z3_analyzer_t* analyzer, cfg_func_t* function, hir_
 int Z3_is_label_reachable(z3_analyzer_t* analyzer, cfg_func_t* function, long l_id) {
     int result = _z3c_can_reach_label(analyzer, function, l_id);
     if (result >= 0) return result;
-    return 0;
+    return 1;
 }
 
 int Z3_is_block_reachable(z3_analyzer_t* analyzer, cfg_func_t* function, cfg_block_t* block) {
     z3_func_ctx_t* fctx = _z3c_get_function(analyzer, function);
-    if (!fctx || !fctx->complete || !block) return 0;
+    if (!block) return 0;
+    if (!fctx || !fctx->complete) return 1;
     cfg_block_t* entry = (cfg_block_t*)list_get_head(&function->blocks);
     return _z3c_any_path_to_block(fctx, entry, block, NULL, 0, _z3c_max_depth(function));
 }
 
 int Z3_is_edge_feasible(z3_analyzer_t* analyzer, cfg_func_t* function, cfg_block_t* src, cfg_block_t* dst) {
     z3_func_ctx_t* fctx = _z3c_get_function(analyzer, function);
-    if (!fctx || !fctx->complete || !src || !dst) return 0;
+    if (!src || !dst) return 0;
+    if (!fctx || !fctx->complete) return 1;
     cfg_block_t* entry = (cfg_block_t*)list_get_head(&function->blocks);
     Z3_ast cond = _z3c_edge_condition(fctx, src, dst);
-    if (!cond) return 0;
+    if (!cond) return 1;
     return _z3c_any_path_to_block(fctx, entry, src, cond, 0, _z3c_max_depth(function));
 }
 #else
