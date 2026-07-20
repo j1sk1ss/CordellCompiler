@@ -1,6 +1,6 @@
 #include <sem/ast/ast_visitors.h>
 
-static inline char* _format_location(file_position_t* p) {
+static const inline char* _format_location(file_position_t* p) {
     static char buff[256] = { 0 };
     if (p->file) snprintf(buff, sizeof(buff), "[%s:%li:%li]", p->file->body, p->line, p->column);
     else snprintf(buff, sizeof(buff), "[%li:%li]", p->line, p->column);
@@ -9,6 +9,7 @@ static inline char* _format_location(file_position_t* p) {
 
 static const char* _fmt_tkn_op(token_type_t t) {
     switch (t) {
+        case CUSTOM_TYPE_TOKEN:
         case I0_TYPE_TOKEN:
         case F64_TYPE_TOKEN: case I64_TYPE_TOKEN: case U64_TYPE_TOKEN:
         case F32_TYPE_TOKEN: case I32_TYPE_TOKEN: case U32_TYPE_TOKEN:
@@ -298,9 +299,9 @@ int ASTWLKR_illegal_declaration(AST_VISITOR_ARGS) {
     AST_VISITOR_ARGS_USE;
     if (nd->t->t_type == ARRAY_TYPE_TOKEN) {
         ast_node_t* name = nd->c;
-        ast_node_t* size = name ? name->siblings.n : NULL;
-        ast_node_t* type = size ? size->siblings.n : NULL;
-        ast_node_t* init = type ? type->siblings.n : NULL;
+        ast_node_t* size = name->siblings.n;
+        ast_node_t* type = size->siblings.n;
+        ast_node_t* init = type->siblings.n;
         for (; init; init = init->siblings.n) {
             if (!_check_assign_types("Illegal declaration", type, init, smt)) {
                 REBUILD_CODE_1TRG(nd, init);
@@ -410,19 +411,17 @@ int ASTWLKR_wrong_arg_type(AST_VISITOR_ARGS) {
     ast_node_t* callee = _call_callee(nd);
     if (!callee || !FNTB_get_info_id(callee->sinfo.v_id, &fi, &smt->f)) {
         if (
-            !callee ||
-            !callee->t ||
+            !callee || !callee->t ||
             (
                 callee->t->t_type != FUNC_NAME_TOKEN &&
                 callee->t->t_type != CALL_ADDR_TOKEN
             )
         ) return 1;
 
-        const char* callee_name = callee && callee->t && callee->t->body ? callee->t->body->body : "";
         SEMANTIC_ERROR(
             " %s Function '%s' isn't registered for some reason! Check previous logs!",
             _format_location((callee && callee->t) ? &callee->t->finfo : &nd->t->finfo),
-            callee_name
+            (callee && callee->t && callee->t->body) ? callee->t->body->body : ""
         );
 
         return 0;

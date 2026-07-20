@@ -55,19 +55,16 @@ Returns an instruction type */
 static hir_instruction_type_t _get_instruction_type(hir_operation_t t) {
     switch (t) {
         case HIR_REF:         return REF_INST;
-        case HIR_SYSC:
-        case HIR_FCLL:
-        case HIR_ECLL:
+        case HIR_SYSC:        case HIR_FCLL:       case HIR_ECLL:
         case HIR_UFCLL:       return CALL_INST;
-        case HIR_STORE_SYSC:
-        case HIR_STORE_FCLL:
-        case HIR_STORE_ECLL:
+        case HIR_STORE_SYSC:  case HIR_STORE_FCLL: case HIR_STORE_ECLL:
         case HIR_STORE_UFCLL: return RET_CALL_INST;
         case HIR_PHI:         return PHI_INST;
         case HIR_IFOP2:       return IF_INST;
         case HIR_LDREF:       return LDREF_INST;
         case HIR_GDREF:       return GDREF_INST;
         case HIR_SETPOS:      return SETPOS_INST;
+        case HIR_VARDECL:     return DECL_INST;
         default: {
             if (HIR_is_writeop(t)) return STMT_INST;
             break;

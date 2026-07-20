@@ -20,7 +20,8 @@ typedef enum {
     CALL_INST     = 1 << 6,
     RET_CALL_INST = 1 << 7,
     STMT_INST     = 1 << 8,
-    UNKNOWN_INST  = 1 << 9,
+    DECL_INST     = 1 << 9,
+    UNKNOWN_INST  = 1 << 10,
 } hir_instruction_type_t;
 
 typedef struct {
