@@ -339,7 +339,7 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
                 }
                 case LIR_CVTSS2SD: case LIR_CVTSD2SS: case LIR_CVTTSS2SI: case LIR_CVTTSD2SI:
                 case LIR_CVTSI2SS: case LIR_CVTSI2SD:
-                case LIR_MOVSX:    case LIR_MOVZX:    case LIR_phiMOV:
+                case LIR_MOVSX:    case LIR_MOVZX:    case LIR_phiMOV:    case LIR_MOVSXD:
                 case LIR_iMOV:     case LIR_aMOV:     case LIR_fMOV: {
                     if (lh->farg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL) break;
                     lir_subject_t* tmp = x86_64_macho_nasm_create_tmp(R15, lh->sarg, smt, lh->farg->size);

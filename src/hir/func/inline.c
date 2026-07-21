@@ -1,5 +1,72 @@
 #include <hir/func.h>
 
+static hir_subject_t* _copy_label_instance(hir_subject_t* label) {
+    if (!label) return NULL;
+    hir_subject_t* copy = HIR_SUBJ_LABEL();
+    if (copy) copy->id = label->id;
+    return copy;
+}
+
+static hir_subject_t* _copy_inline_label(hir_subject_t* old, map_t* label_map) {
+    if (!old || !label_map) return HIR_copy_subject(old);
+    hir_subject_t* label = NULL;
+    if (!map_get(label_map, old->id, (void**)&label)) {
+        label = HIR_SUBJ_LABEL();
+        if (!label || !map_put(label_map, old->id, label)) return NULL;
+    }
+
+    return _copy_label_instance(label);
+}
+
+static symbol_id_t _copy_inline_tmp_id(symbol_id_t old_id, map_t* var_map, sym_table_t* smt) {
+    void* mapped = NULL;
+    if (map_get(var_map, old_id, &mapped)) return (symbol_id_t)mapped;
+
+    variable_info_t vi;
+    if (!VRTB_get_info_id(old_id, &vi, &smt->v)) return old_id;
+
+    symbol_id_t new_id = VRTB_add_copy(&vi, &smt->v);
+    if (new_id == NO_SYMBOL_ID) return old_id;
+
+    array_info_t ai;
+    if (ARTB_get_info(old_id, &ai, &smt->a)) {
+        ARTB_add_copy(new_id, &ai, &smt->a);
+    }
+
+    map_put(var_map, old_id, (void*)new_id);
+    return new_id;
+}
+
+static hir_subject_t* _copy_inline_subject(hir_subject_t* s, map_t* var_map, map_t* label_map, sym_table_t* smt) {
+    if (!s) return NULL;
+    if (s->t == HIR_LABEL) return _copy_inline_label(s, label_map);
+    if (s->t == HIR_ARGLIST) {
+        hir_subject_t* copy = HIR_SUBJ_LIST();
+        if (!copy) return NULL;
+        foreach (hir_subject_t* arg, &s->storage.list.h) {
+            list_add(&copy->storage.list.h, _copy_inline_subject(arg, var_map, label_map, smt));
+        }
+
+        return copy;
+    }
+
+    hir_subject_t* copy = HIR_copy_subject(s);
+    if (copy && HIR_is_vartype(copy->t) && HIR_is_tmptype(copy->t)) {
+        copy->storage.var.v_id = _copy_inline_tmp_id(copy->storage.var.v_id, var_map, smt);
+    }
+
+    return copy;
+}
+
+static hir_block_t* _copy_inline_block(hir_block_t* b, map_t* var_map, map_t* label_map, sym_table_t* smt) {
+    return HIR_create_block(
+        b->op,
+        _copy_inline_subject(b->farg, var_map, label_map, smt),
+        _copy_inline_subject(b->sarg, var_map, label_map, smt),
+        _copy_inline_subject(b->targ, var_map, label_map, smt)
+    );
+}
+
 /* Replace function argument pushing with the argument assigning.
 Params:
     - `f` - Current function.
@@ -8,7 +75,7 @@ Params:
               Note: This is the point, where inline must start.
 
 Returns 1 if succeeds. */
-static int _inline_arguments(cfg_func_t* f, list_t* args, hir_block_t* pos) {
+static int _inline_arguments(cfg_func_t* f, list_t* args, hir_block_t* pos, map_t* var_map, sym_table_t* smt) {
     int index = 0, size = list_size(args);
     hir_subject_t** args_flatten = (hir_subject_t**)list_flatten(args);
     if (!args_flatten) return 0;
@@ -17,7 +84,7 @@ static int _inline_arguments(cfg_func_t* f, list_t* args, hir_block_t* pos) {
         iterate_hir_instructions (bb) {
             if (index >= size) break;
             if (hh->op == HIR_FARGLD) {
-                hir_block_t* copy = HIR_copy_block(hh, 1);
+                hir_block_t* copy = _copy_inline_block(hh, var_map, NULL, smt);
                 HIR_unload_subject(copy->sarg);
                 copy->op   = HIR_STORE;
                 copy->sarg = HIR_copy_subject(args_flatten[index++]);
@@ -27,31 +94,6 @@ static int _inline_arguments(cfg_func_t* f, list_t* args, hir_block_t* pos) {
     }
 
     mm_free(args_flatten);
-    return 1;
-}
-
-/* Find old labels and replace them with a new one.
-Params:
-    - `h` - HIR entry block.
-    - `e` - HIR exit block.
-    - `lb` - Old labels.
-    - `new` - New labels.
-
-Returns 1 if succeeds. */
-static int _replace_label_usage(hir_block_t* h, hir_block_t* e, hir_subject_t* old, hir_subject_t* new, cfg_func_t* fb) {
-    while (h) {
-        if (h->op != HIR_MKLB) {
-            iterate_ref_hir_args (hir_subject_t** curr, h, 0) {
-                if (
-                    (*curr)->t == HIR_LABEL && 
-                    (*curr)->id == old->id
-                ) *curr = new;
-            }
-        }
-
-        h = HIR_FUNC_get_next(h, fb, e, 1);
-    }
-
     return 1;
 }
 
@@ -65,8 +107,7 @@ Params:
               Note: This is the point, where inline must start.
 
 Returns 1 if succeeds. */
-static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos) {
-    hir_block_t *nentry = NULL, *nexit = pos;
+static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos, map_t* var_map, map_t* label_map, sym_table_t* smt) {
     hir_block_t* hh = HIR_FUNC_get_next(NULL, f, NULL, 0);
     while (hh && hh->op != HIR_MKSCOPE) hh = HIR_FUNC_get_next(hh, f, NULL, 1);
     hh = HIR_FUNC_get_next(hh, f, NULL, 1);
@@ -80,7 +121,7 @@ static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos)
     while (hh && hh->op != HIR_FEND) {
         hir_block_t  *nblock = NULL, *rlb = NULL;
         if (!hh->unused) {
-            nblock = HIR_copy_block(hh, 0);
+            nblock = _copy_inline_block(hh, var_map, label_map, smt);
             switch (hh->op) {
                 case HIR_MKSCOPE: {
                     if (scopes++ < 0) goto _skip_instruction;
@@ -91,13 +132,13 @@ static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos)
                     break;
                 }
                 case HIR_FRET: {
-                    rlb = HIR_create_block(HIR_JMP, exit_label, NULL, NULL);
+                    rlb = HIR_create_block(HIR_JMP, _copy_label_instance(exit_label), NULL, NULL);
                     if (!res) goto _skip_instruction;
                     else {
+                        hir_subject_t* ret = nblock->farg;
                         nblock->op   = HIR_STORE;
                         HIR_unload_subject(nblock->sarg);
-                        nblock->sarg = HIR_copy_subject(hh->farg);
-                        HIR_unload_subject(nblock->farg);
+                        nblock->sarg = ret;
                         nblock->farg = HIR_copy_subject(res);
                     }
                 }
@@ -107,9 +148,6 @@ static int _inline_function(cfg_func_t* f, hir_subject_t* res, hir_block_t* pos)
 
         if (nblock) {
             HIR_insert_block_before(nblock, pos);
-            if (!nentry) {
-                nentry = nblock;
-            }
         }
         else {
 _skip_instruction: {}
@@ -124,19 +162,8 @@ _skip_instruction: {}
         hh = HIR_FUNC_get_next(hh, f, NULL, 1);
     }
 
-    /* Re-link labels */
-    hh = nentry;
-    while (hh) {
-        if (hh->op == HIR_MKLB) {
-            hir_subject_t* nlb = HIR_copy_subject(hh->farg);
-            _replace_label_usage(nentry, nexit, hh->farg, nlb, f);
-            hh->farg = nlb;
-        }
-
-        hh = HIR_FUNC_get_next(hh, f, nexit, 1);
-    }
-
-    HIR_insert_block_before(HIR_create_block(HIR_MKLB, exit_label, NULL, NULL), pos);
+    HIR_insert_block_before(HIR_create_block(HIR_MKLB, _copy_label_instance(exit_label), NULL, NULL), pos);
+    HIR_unload_subject(exit_label);
     return 1;
 }
 
@@ -440,8 +467,15 @@ int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt
                             hh->op == HIR_STORE_FCLL || 
                             hh->op == HIR_STORE_ECLL
                         ) res = hh->farg;
-                        _inline_arguments(trg, &hh->targ->storage.list.h, hh);
-                        _inline_function(trg, res, hh);
+                        /* Returned-value inlining still miscompiles after LIR copy propagation. */
+                        if (res) continue;
+                        map_t var_map, label_map;
+                        map_init(&var_map, MAP_NO_CMP);
+                        map_init(&label_map, MAP_NO_CMP);
+                        _inline_arguments(trg, &hh->targ->storage.list.h, hh, &var_map, smt);
+                        _inline_function(trg, res, hh, &var_map, &label_map, smt);
+                        map_free(&var_map);
+                        map_free_force_op(&label_map, (int (*)(void*))HIR_unload_subject);
                         hh->unused = 1;
                     }
                 }
