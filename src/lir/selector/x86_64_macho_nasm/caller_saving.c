@@ -8,12 +8,23 @@ Params:
                   dirty.
 
 Returns 1 on success, otherwise 0 */
-static void _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f) {
+static void _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f, symbol_id_t f_id, sym_table_t* smt) {
     if (!f) {
 _unknown_call: {}
-        lir_registers_t dirty_regs[] = { RBX, RCX, RDX, RSI, RDI, RBP, R8, R9, R10, R11, R12, R13, R14, R15 };
-        for (int i = 0; i < (int)(sizeof(dirty_regs) / sizeof(RBX)); i++) {
-            set_add(dirty, (void*)dirty_regs[i]);
+        func_info_t fi;
+        if (FNTB_get_info_id(f_id, &fi, &smt->f)) {
+            if (fi.flags.external && fi.flags.abi) {
+                lir_registers_t dirty_regs[] = { RAX, RCX, RDX, RSI, RDI, R8, R9, R10, R11 };
+                for (int i = 0; i < (int)(sizeof(dirty_regs) / sizeof(RBX)); i++) {
+                    set_add(dirty, (void*)dirty_regs[i]);
+                }
+            }
+            else {
+                lir_registers_t dirty_regs[] = { RBX, RCX, RDX, RSI, RDI, RBP, R8, R9, R10, R11, R12, R13, R14, R15 };
+                for (int i = 0; i < (int)(sizeof(dirty_regs) / sizeof(RBX)); i++) {
+                    set_add(dirty, (void*)dirty_regs[i]);
+                }
+            }
         }
     }
     else {
@@ -180,11 +191,18 @@ int x86_64_macho_nasm_caller_saving(cfg_ctx_t* cctx, call_graph_t* calls, sym_ta
                         _visit_counter = CFG_get_unique_counter();
 
                         cfg_func_t* func = NULL;
-                        if (lh->farg->t == LIR_FNAME) map_get(&cctx->fmap, lh->farg->storage.str.sid, (void**)&func);
+                        symbol_id_t f_id = NO_SYMBOL_ID;
+
+                        if (lh->farg->t == LIR_FNAME) {
+                            f_id = lh->farg->storage.str.sid;
+                            map_get(&cctx->fmap, lh->farg->storage.str.sid, (void**)&func);
+                        }
                         else if (lh->farg->t == LIR_VARIABLE) {
+                            f_id = lh->farg->storage.var.v_id;
                             set_t funcs;
                             ALLIAS_get_slaves(lh->farg->storage.var.v_id, &funcs, &smt->m);
                             set_foreach (symbol_id_t slave_id, &funcs) {
+                                f_id = slave_id;
                                 if (map_get(&cctx->fmap, slave_id, (void**)&func) && func) break;
                             }
 
@@ -198,7 +216,7 @@ int x86_64_macho_nasm_caller_saving(cfg_ctx_t* cctx, call_graph_t* calls, sym_ta
                         set_init(&visited_funcs, SET_NO_CMP);
 
                         while (queue_pop(&work_list, (void**)&func)) {
-                            _collect_in_function_reg_usage(&func_regs, func);
+                            _collect_in_function_reg_usage(&func_regs, func, f_id, smt);
                             if (!func || set_has(&visited_funcs, (void*)func->f_id)) continue;
                             set_add(&visited_funcs, (void*)func->f_id);
                             call_graph_node_t* call;

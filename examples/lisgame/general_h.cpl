@@ -11,8 +11,8 @@
 #define LIS_STORM_LIMIT   9
 #define LIS_WIN_SCORE     14
 
-glob ro i8 PROMPT = '>';
-glob arr storm_seed[LIS_SCENE_COUNT, i32] = { 1, 2, 2, 3 };
+glob ro i8 PROMPT                         = '>';
+glob arr STORM_SEED[LIS_SCENE_COUNT, i32] = { 1, 2, 2, 3 };
 
 container scene {
     ptr i8 title;
@@ -22,7 +22,11 @@ container scene {
     i32    danger;
 
     @[self]
-    function init(ptr scene self, ptr i8 title, ptr i8 clue, i32 focus, i32 empathy, i32 danger) -> i0;
+    function init(
+        ptr scene self, ptr i8 title, 
+        ptr i8 clue,    i32 focus, 
+        i32 empathy,    i32 danger
+    ) -> i0;
 }
 
 @[like_c]
@@ -49,18 +53,18 @@ container memory_note {
 }
 
 container lis_game {
-    arr scenes[LIS_SCENE_COUNT, scene];
-    arr scene_done[LIS_SCENE_COUNT, i8];
-    arr actions[LIS_ACTION_COUNT, ptr i0];
-    timeline now;
-    timeline saved;
-    memory_note photo_note;
-    memory_note friend_note;
-    memory_note storm_note;
+    arr             scenes[LIS_SCENE_COUNT, scene];
+    arr             scene_done[LIS_SCENE_COUNT, i8];
+    arr             actions[LIS_ACTION_COUNT, ptr i0];
+    timeline        now;
+    timeline        saved;
+    memory_note     photo_note;
+    memory_note     friend_note;
+    memory_note     storm_note;
     ptr memory_note journal;
-    ptr i8 mood;
-    i8 running;
-    i8 won;
+    ptr i8          mood;
+    i8              running;
+    i8              won;
 
     @[self] function new(ptr lis_game self) -> i0;
     @[self] function save(ptr lis_game self) -> i0;

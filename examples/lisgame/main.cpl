@@ -1,5 +1,4 @@
 :/ cplc main.cpl /:
-:/ TODO: BUG, -O3 produces a wrong exit score (garbadge / segfault instead of 15, reproduce: p -> p -> ... till the end) /:
 #include "general_h.cpl"
 
 function act_photo(ptr lis_game self) -> i0;
@@ -27,10 +26,10 @@ function route_name(i32 scene_id) -> ptr i8 {
     @[straight]
     switch scene_id; {
         case 0; { return ref "Blackwell bathroom"; }
-        case 1; { return ref "Parking lot"; }
-        case 2; { return ref "Dorm corridor"; }
-        case 3; { return ref "Lighthouse"; }
-        default { return ref "after the storm"; }
+        case 1; { return ref "Parking lot";        }
+        case 2; { return ref "Dorm corridor";      }
+        case 3; { return ref "Lighthouse";         }
+        default { return ref "after the storm";    }
     }
 }
 
@@ -171,10 +170,10 @@ function resolve_scene(ptr lis_game self, i32 focus_gain, i32 empathy_gain, i32 
 
 @[inline(model)]
 function lis_game::new(ptr lis_game self) -> i0 {
-    self.scenes[0].init(ref "A butterfly photo in the bathroom", ref "A torn photo points to the locked cabinet.", 2 as i32, 0 as i32, storm_seed[0]);
-    self.scenes[1].init(ref "A friend is cornered in the parking lot", ref "The blue keychain matters more than the threat.", 0 as i32, 2 as i32, storm_seed[1]);
-    self.scenes[2].init(ref "Missing posters in the dorm corridor", ref "The missing poster is a clue to the missing friend.", 1 as i32, 1 as i32, storm_seed[2]);
-    self.scenes[3].init(ref "The lighthouse before the storm", ref "The final photo only works if trust survives.", 2 as i32, 1 as i32, storm_seed[3]);
+    self.scenes[0].init(ref "A butterfly photo in the bathroom", ref "A torn photo points to the locked cabinet.", 2 as i32, 0 as i32, STORM_SEED[0]);
+    self.scenes[1].init(ref "A friend is cornered in the parking lot", ref "The blue keychain matters more than the threat.", 0 as i32, 2 as i32, STORM_SEED[1]);
+    self.scenes[2].init(ref "Missing posters in the dorm corridor", ref "The missing poster is a clue to the missing friend.", 1 as i32, 1 as i32, STORM_SEED[2]);
+    self.scenes[3].init(ref "The lighthouse before the storm", ref "The final photo only works if trust survives.", 2 as i32, 1 as i32, STORM_SEED[3]);
 
     self.scene_done[0]      = 0;
     self.scene_done[1]      = 0;
@@ -225,8 +224,8 @@ function lis_game::rewind(ptr lis_game self) -> i0 {
 
     copy_timeline(ref self.now, ref self.saved);
     self.now.rewinds -= 1;
-    self.now.danger += 1;
-    self.mood = ref "shaken";
+    self.now.danger  += 1;
+    self.mood        = ref "shaken";
     draw_line(ref "The hallway folds back into yesterday's light.");
 }
 
@@ -237,14 +236,14 @@ function lis_game::advance(ptr lis_game self, i32 delta) -> i0 {
 
 @[inline(model)]
 function lis_game::score(ptr lis_game self) -> i32 {
-    return self.now.focus + self.now.empathy + self.now.photos * 2 - self.now.danger;
+    self.now.focus + self.now.empathy + self.now.photos * 2 - self.now.danger
 }
 
 function lis_game::draw(ptr lis_game self) -> i0 {
-    i32 scene_no = self.now.scene + 1;
+    i32 scene_no  = self.now.scene + 1;
     i32 score_now = self.score();
-    ptr i8 place = route_name(self.now.scene);
-    ptr i8 route = route_name((self.now.rewinds < LIS_START_REWINDS) as i8);
+    ptr i8 place  = route_name(self.now.scene);
+    ptr i8 route  = route_name((self.now.rewinds < LIS_START_REWINDS) as i8);
 
     printf(ref "\n== Life is Strange / CPL Echoes ==\n");
     printf(ref "Scene %i/%i: %s\n", scene_no, LIS_SCENE_COUNT as i32, place);
@@ -355,7 +354,6 @@ function act_wait(ptr lis_game self) -> i0 {
     draw_line(ref "The sky answers first.");
 }
 
-:/ TODO: Implement send a flag to the builder /:
 function act_rewind(ptr lis_game self) -> i0 {
 #ifdef LIS_DEBUG_BREAKPOINTS
     printf(ref "_LIS_DEBUG_BREAKPOINTS_\n");

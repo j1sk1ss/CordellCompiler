@@ -8,11 +8,22 @@ Params:
                   dirty.
 
 Returns 1 on success, otherwise 0. */
-static int _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f) {
+static int _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f, symbol_id_t f_id, sym_table_t* smt) {
     if (!f) {
-        lir_registers_t dirty_regs[] = { EBX, ECX, EDX, ESI, EDI, EBP };
-        for (int i = 0; i < (int)(sizeof(dirty_regs) / sizeof(dirty_regs[0])); i++) {
-            set_add(dirty, (void*)dirty_regs[i]);
+        func_info_t fi;
+        if (FNTB_get_info_id(f_id, &fi, &smt->f)) {
+            if (fi.flags.external && fi.flags.abi) {
+                lir_registers_t dirty_regs[] = { EAX, ECX, EDX };
+                for (int i = 0; i < (int)(sizeof(dirty_regs) / sizeof(RBX)); i++) {
+                    set_add(dirty, (void*)dirty_regs[i]);
+                }
+            }
+            else {
+                lir_registers_t dirty_regs[] = { EBX, ECX, EDX, ESI, EDI, EBP };
+                for (int i = 0; i < (int)(sizeof(dirty_regs) / sizeof(dirty_regs[0])); i++) {
+                    set_add(dirty, (void*)dirty_regs[i]);
+                }
+            }
         }
 
         return 1;
@@ -120,11 +131,18 @@ int i386_gnu_nasm_caller_saving(cfg_ctx_t* cctx, call_graph_t* calls, sym_table_
                         _visit_counter = CFG_get_unique_counter();
 
                         cfg_func_t* func = NULL;
-                        if (lh->farg->t == LIR_FNAME) map_get(&cctx->fmap, lh->farg->storage.str.sid, (void**)&func);
+                        symbol_id_t f_id = NO_SYMBOL_ID;
+
+                        if (lh->farg->t == LIR_FNAME) {
+                            f_id = lh->farg->storage.str.sid;
+                            map_get(&cctx->fmap, lh->farg->storage.str.sid, (void**)&func);
+                        }
                         else if (lh->farg->t == LIR_VARIABLE) {
+                            f_id = lh->farg->storage.var.v_id;
                             set_t funcs;
                             ALLIAS_get_slaves(lh->farg->storage.var.v_id, &funcs, &smt->m);
                             set_foreach (symbol_id_t slave_id, &funcs) {
+                                f_id = slave_id;
                                 if (map_get(&cctx->fmap, slave_id, (void**)&func) && func) break;
                             }
 
@@ -136,7 +154,7 @@ int i386_gnu_nasm_caller_saving(cfg_ctx_t* cctx, call_graph_t* calls, sym_table_
                         queue_push(&work_list, func);
 
                         while (queue_pop(&work_list, (void**)&func)) {
-                            _collect_in_function_reg_usage(&func_regs, func);
+                            _collect_in_function_reg_usage(&func_regs, func, f_id, smt);
                             if (!func) continue;
                             call_graph_node_t* call;
                             if (map_get(&calls->verts, func->f_id, (void**)&call)) {
