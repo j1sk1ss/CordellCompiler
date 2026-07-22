@@ -95,19 +95,15 @@ glob function file::standard_error() -> ptr file {
 }
 
 glob function file::is_open(ptr file self) -> i8 {
-    if not self; return 0 as i8;
     if self.body; return 1 as i8;
     0 as i8
 }
 
 glob function file::raw(ptr file self) -> ptr FILE {
-    if not self; return 0 as ptr FILE;
     self.body
 }
 
 glob function file::detach(ptr file self) -> ptr FILE {
-    if not self; return 0 as ptr FILE;
-
     ptr FILE body = self.body;
     self.body     = 0 as ptr FILE;
     self.owned    = 0 as i8;
@@ -115,7 +111,6 @@ glob function file::detach(ptr file self) -> ptr FILE {
 }
 
 glob function file::close(ptr file self) -> i32 {
-    if not self; return EOF;
     if not self.body; return 0;
 
     ptr FILE body = self.body;
@@ -129,13 +124,11 @@ glob function file::close(ptr file self) -> i32 {
 }
 
 glob function file::destroy(ptr file self) -> i0 {
-    if not self; return;
     self.close();
     free(self as ptr i0);
 }
 
 glob function file::reopen(ptr file self, ptr i8 path, ptr i8 mode) -> i8 {
-    if not self; return 0 as i8;
     if not path; return 0 as i8;
     if not mode; return 0 as i8;
 
@@ -149,92 +142,91 @@ glob function file::reopen(ptr file self, ptr i8 path, ptr i8 mode) -> i8 {
 }
 
 glob function file::flush(ptr file self) -> i32 {
-    if not self; return EOF;
     if not self.body; return EOF;
     fflush(self.body)
 }
 
 glob function file::read(ptr file self, ptr i0 buffer, u64 size) -> u64 {
-    if not self; return 0;
-    if not self.body; return 0;
-    if not buffer; return 0;
-    if not size; return 0;
+    if 
+        not self.body || 
+        not buffer    || 
+        not size; 
+    return 0;
     fread(buffer, 1 as u64, size, self.body)
 }
 
 glob function file::write(ptr file self, ptr i0 buffer, u64 size) -> u64 {
-    if not self; return 0;
-    if not self.body; return 0;
-    if not buffer; return 0;
-    if not size; return 0;
+    if 
+        not self.body || 
+        not buffer    || 
+        not size; 
+    return 0;
     fwrite(buffer, 1 as u64, size, self.body)
 }
 
 glob function file::read_items(ptr file self, ptr i0 buffer, u64 item_size, u64 count) -> u64 {
-    if not self; return 0;
-    if not self.body; return 0;
-    if not buffer; return 0;
-    if not item_size; return 0;
-    if not count; return 0;
+    if 
+        not self.body ||
+        not buffer    ||
+        not item_size ||
+        not count; 
+    return 0;
     fread(buffer, item_size, count, self.body)
 }
 
 glob function file::write_items(ptr file self, ptr i0 buffer, u64 item_size, u64 count) -> u64 {
-    if not self; return 0;
-    if not self.body; return 0;
-    if not buffer; return 0;
-    if not item_size; return 0;
-    if not count; return 0;
+    if 
+        not self.body ||
+        not buffer    ||
+        not item_size ||
+        not count; 
+    return 0;
     fwrite(buffer, item_size, count, self.body)
 }
 
 glob function file::read_char(ptr file self) -> i32 {
-    if not self; return EOF;
     if not self.body; return EOF;
     fgetc(self.body)
 }
 
 glob function file::write_char(ptr file self, i32 c) -> i32 {
-    if not self; return EOF;
     if not self.body; return EOF;
     fputc(c, self.body)
 }
 
 glob function file::read_line(ptr file self, ptr i8 buffer, i32 size) -> ptr i8 {
-    if not self; return 0 as ptr i8;
-    if not self.body; return 0 as ptr i8;
-    if not buffer; return 0 as ptr i8;
-    if size <= 0; return 0 as ptr i8;
+    if 
+        not self.body ||
+        not buffer    ||
+        size <= 0; 
+    return 0 as ptr i8;
     fgets(buffer, size, self.body)
 }
 
 glob function file::write_string(ptr file self, ptr i8 text) -> i32 {
-    if not self; return EOF;
-    if not self.body; return EOF;
-    if not text; return EOF;
+    if 
+        not self.body ||
+        not text; 
+    return EOF;
     fputs(text, self.body)
 }
 
 glob function file::seek(ptr file self, i64 offset, i32 whence) -> i32 {
-    if not self; return -1;
     if not self.body; return -1;
     fseek(self.body, offset, whence)
 }
 
 glob function file::tell(ptr file self) -> i64 {
-    if not self; return -1 as i64;
     if not self.body; return -1 as i64;
     ftell(self.body)
 }
 
 glob function file::rewind(ptr file self) -> i0 {
-    if not self; return;
     if not self.body; return;
     rewind(self.body);
 }
 
 glob function file::size(ptr file self) -> i64 {
-    if not self; return -1 as i64;
     if not self.body; return -1 as i64;
 
     i64 position = self.tell();
@@ -248,25 +240,21 @@ glob function file::size(ptr file self) -> i64 {
 }
 
 glob function file::clear_error(ptr file self) -> i0 {
-    if not self; return;
     if not self.body; return;
     clearerr(self.body);
 }
 
 glob function file::eof(ptr file self) -> i8 {
-    if not self; return 0 as i8;
     if not self.body; return 0 as i8;
     (feof(self.body) != 0) as i8
 }
 
 glob function file::error(ptr file self) -> i8 {
-    if not self; return 0 as i8;
     if not self.body; return 0 as i8;
     (ferror(self.body) != 0) as i8
 }
 
 glob function file::fd(ptr file self) -> i32 {
-    if not self; return -1;
     if not self.body; return -1;
     fileno(self.body)
 }
