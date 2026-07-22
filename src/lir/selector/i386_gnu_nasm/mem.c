@@ -208,10 +208,10 @@ int i386_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t* 
                                 foreach (lir_subject_t* elem, &lh->targ->storage.list.h) {
                                     if (elem->t == LIR_VARIABLE) _update_subject_memory(elem, &smp, colors, smt);
 
-                                    long el_offset = 0, el_size = 0, __dummy = 0;
-                                    if (!TPTB_find_type_init_slot(vi.t_id, el_pos, 0, &__dummy, &el_offset, &el_size, &smt->t)) break;
+                                    type_init_info_t elem_info = { 0 };
+                                    if (!TPTB_find_type_init_slot(vi.t_id, el_pos, 0, &elem_info, &smt->t)) break;
                                     LIR_insert_block_before(
-                                        LIR_create_block(LIR_aMOV, LIR_SUBJ_OFF(EBP, arr_off - el_offset, el_size), elem, NULL), lh
+                                        LIR_create_block(LIR_aMOV, LIR_SUBJ_OFF(EBP, arr_off - elem_info.slot_off, elem_info.slot_size), elem, NULL), lh
                                     );
 
                                     el_pos++;

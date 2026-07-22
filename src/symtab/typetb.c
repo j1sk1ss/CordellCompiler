@@ -249,31 +249,35 @@ long TPTB_get_child_offset(symbol_id_t p_id, symbol_id_t tc_id, typetab_ctx_t* c
     return -1;
 }
 
-int TPTB_find_type_init_slot(
-    symbol_id_t t_id, long target_slot, long base_offset, long* current_slot, long* slot_offset, long* slot_size, typetab_ctx_t* ctx
-) {
+int TPTB_find_type_init_slot(symbol_id_t t_id, long target_slot, long base_offset, type_init_info_t* slot_info, typetab_ctx_t* ctx) {
     type_info_t ti;
     if (!TPTB_get_info_id(t_id, &ti, ctx)) return 0;
 
     long type_size = TPTB_get_memory_size_id(t_id, ctx);
     if (ti.memory.ptr || ti.t == TYPE_PRIMITIVE) {
-        if ((*current_slot)++ != target_slot) return 0;
-        *slot_offset = base_offset;
-        *slot_size   = type_size;
+        if (slot_info->curr_idx++ != target_slot) return 0;
+        slot_info->slot_off   = base_offset;
+        slot_info->slot_size  = type_size;
+        slot_info->slot_type  = t_id;
+        slot_info->slot_owner = t_id;
         return type_size > 0;
     }
 
-    foreach (symbol_id_t child_id, &ti.link.c) {
-        long child_offset = TPTB_get_child_offset(t_id, child_id, ctx);
+    symbol_id_t scan_id = ti.p != NO_SYMBOL_ID ? TPTB_resolve_parent(t_id, ctx) : t_id;
+    type_info_t scan_ti;
+    if (!TPTB_get_info_id(scan_id, &scan_ti, ctx)) return 0;
+
+    foreach (symbol_id_t child_id, &scan_ti.link.c) {
+        long child_offset = TPTB_get_child_offset(scan_id, child_id, ctx);
         long child_size   = TPTB_get_memory_size_id(child_id, ctx);
         if (child_offset < 0 || child_size <= 0) continue;
-        long repeats = ti.t == TYPE_ARRAY ? type_size / child_size : 1;
+        long repeats = scan_ti.t == TYPE_ARRAY ? type_size / child_size : 1;
         for (long repeat = 0; repeat < repeats; repeat++) {
             long nested_base = base_offset + child_offset + repeat * child_size;
-            if (TPTB_find_type_init_slot(
-                child_id, target_slot, nested_base, current_slot,
-                slot_offset, slot_size, ctx
-            )) return 1;
+            if (TPTB_find_type_init_slot(child_id, target_slot, nested_base, slot_info, ctx)) {
+                if (scan_ti.t == TYPE_ARRAY) slot_info->slot_owner = scan_id;
+                return 1;
+            }
         }
     }
 

@@ -223,10 +223,10 @@ Params:
     - `size` - Slot size in bytes.
     - `value` - Integer initializer value.
     - `output` - Output assembly stream. */
-static inline void _emit_typed_value(string_t* name, long size, long value, FILE* output) {
+static inline void _emit_typed_value(string_t* name, long size, long long value, FILE* output) {
     const char* op = size == 8 ? "dq" : size == 4 ? "dd" : size == 2 ? "dw" : "db";
-    if (name) EMIT_COMMAND("%s %s %ld", name->body, op, value);
-    else      EMIT_COMMAND("%s %ld", op, value);
+    if (name) EMIT_COMMAND("%s %s %lli", name->body, op, value);
+    else      EMIT_COMMAND("%s %lli", op, value);
 }
 
 /* Emit a typed aggregate initializer using type-layout slots and padding.
@@ -238,21 +238,77 @@ Params:
 
 Returns 1 if succeeds */
 static int _generate_typed_initializer(variable_info_t* vi, array_info_t* ai, sym_table_t* smt, FILE* output) {
-    long emitted_end = 0, value = 0, value_count = list_size(&ai->elems), reserve_size = _array_reserve_size(vi, ai, NULL, smt);
+    long emitted_end = 0, value_count = list_size(&ai->elems), reserve_size = _array_reserve_size(vi, ai, NULL, smt);
+    array_elem_info_t* elem = NULL;
+    long value_pos = 0, string_pos = 0;
+    symbol_id_t string_owner_id = NO_SYMBOL_ID;
+
     list_iter_t values;
     list_iter_hinit(&ai->elems, &values);
 
     EMIT_DATA_LABEL(vi->name->body);
     for (long slot = 0;; slot++) {
-        long slot_offset = 0, slot_size = 0, __dummy = 0;
-        if (!TPTB_find_type_init_slot(vi->t_id, slot, 0, &__dummy, &slot_offset, &slot_size, &smt->t)) break;
+        type_init_info_t slot_info = { 0 };
+        if (!TPTB_find_type_init_slot(vi->t_id, slot, 0, &slot_info, &smt->t)) break;
+        _emit_zero_bytes(NULL, slot_info.slot_off - emitted_end, output);
 
-        long padding = slot_offset - emitted_end;
-        _emit_zero_bytes(NULL, padding, output);
-        if (slot < value_count) list_iter_next(&values, (void**)&value);
+        type_info_t slot_ti;
+        int slot_is_string_byte = (
+            TPTB_get_info_id(slot_info.slot_type, &slot_ti, &smt->t)  &&
+            slot_ti.tt == I8_TYPE_TOKEN                     &&
+            !slot_ti.memory.ptr
+        );
+        int string_bytes = (
+            elem                                            &&
+            elem->t == ARRAY_ELEM_STRING_TYPE               &&
+            slot_is_string_byte                             &&
+            string_owner_id == slot_info.slot_owner
+        );
 
-        _emit_typed_value(NULL, slot_size, value, output);
-        emitted_end = slot_offset + slot_size;
+        if (!string_bytes && value_pos < value_count) {
+            array_elem_info_t* next_elem = NULL;
+            if (list_iter_next(&values, (void**)&next_elem)) {
+                elem            = next_elem;
+                string_pos      = 0;
+                string_owner_id = NO_SYMBOL_ID;
+                value_pos++;
+            }
+        }
+
+        if (!elem) goto _default_const_type;
+        switch (elem->t) {
+            case ARRAY_ELEM_STRING_TYPE: {
+                if (slot_is_string_byte && (string_owner_id == NO_SYMBOL_ID || string_owner_id == slot_info.slot_owner)) {
+                    str_info_t si;
+                    if (string_owner_id == NO_SYMBOL_ID) string_owner_id = slot_info.slot_owner;
+                    _emit_typed_value(
+                        NULL, slot_info.slot_size,
+                        STTB_get_info_id(elem->s.s_id, &si, &smt->s) && string_pos < si.value->len(si.value) ? si.value->body[string_pos] : 0,
+                        output
+                    );
+                    string_pos++;
+                }
+                else if (slot_is_string_byte) _emit_typed_value(NULL, slot_info.slot_size, 0, output);
+                else                          EMIT_COMMAND("dq _str_%li_", elem->s.s_id);
+                break;
+            }
+            case ARRAY_ELEM_ARRAY_TYPE: {
+                variable_info_t elem_vi;
+                if (
+                    elem &&
+                    VRTB_get_info_id(elem->s.v_id, &elem_vi, &smt->v)
+                ) EMIT_COMMAND("dq %s", elem_vi.name->body);
+                else _emit_typed_value(NULL, slot_info.slot_size, 0, output);
+                break;
+            }
+            default: {
+_default_const_type: {}
+                _emit_typed_value(NULL, slot_info.slot_size, elem ? elem->s.value : 0, output);
+                break;
+            }
+        }
+
+        emitted_end = slot_info.slot_off + slot_info.slot_size;
     }
 
     _emit_zero_bytes(NULL, reserve_size - emitted_end, output);
@@ -303,18 +359,38 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
                 default:                EMIT_PART_COMMAND("%s db ", vi.name->body); break;
             }
 
-            long el = 0;
-            int elcount = list_size(&ai.elems);
+            array_elem_info_t* el = NULL;
+            array_elem_info_t* last_elem = NULL;
+            int el_count = list_size(&ai.elems);
             foreach (el, &ai.elems) {
-                fprintf(output, "%li", el);
-                if (--elcount) fprintf(output, ",");
+                last_elem = el;
+                switch (el->t) {
+                    case ARRAY_ELEM_STRING_TYPE: fprintf(output, "_str_%li_", el->s.s_id); break;
+                    case ARRAY_ELEM_ARRAY_TYPE: {
+                        variable_info_t elem_vi;
+                        if (VRTB_get_info_id(el->s.v_id, &elem_vi, &smt->v)) fprintf(output, "%s", elem_vi.name->body);
+                        else fprintf(output, "0");
+                        break;
+                    }
+                    default: fprintf(output, "%lli", el->s.value); break;
+                }
+                if (--el_count) fprintf(output, ",");
             }
 
-            int last = ai.size - list_size(&ai.elems);
-            if (last > 0) fprintf(output, ",");
-            while (last-- > 0) {
-                fprintf(output, "%li", el);
-                if (last) fprintf(output, ",");
+            int last_el = ai.size - list_size(&ai.elems);
+            if (last_el > 0) fprintf(output, ",");
+            while (last_el-- > 0) {
+                switch (last_elem ? last_elem->t : ARRAY_ELEM_CONST_TYPE) {
+                    case ARRAY_ELEM_STRING_TYPE: fprintf(output, "_str_%li_", last_elem->s.s_id); break;
+                    case ARRAY_ELEM_ARRAY_TYPE: {
+                        variable_info_t elem_vi;
+                        if (last_elem && VRTB_get_info_id(last_elem->s.v_id, &elem_vi, &smt->v)) fprintf(output, "%s", elem_vi.name->body);
+                        else fprintf(output, "0");
+                        break;
+                    }
+                    default: fprintf(output, "%lli", last_elem ? last_elem->s.value : 0); break;
+                }
+                if (last_el) fprintf(output, ",");
             }
 
             fprintf(output, "\n");

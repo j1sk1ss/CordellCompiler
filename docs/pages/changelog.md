@@ -3,6 +3,21 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## String initialization
+<div class="change-date">Date: 2026-07-2</div>
+The compiler now allows to initialize a container with strings:
+
+```cpl
+container asd {
+    ptr i8 a;
+    arr    b[10, i8];
+}
+
+glob asd a = { "asd", "asd" };
+```
+
+It doesn't require the `ref` keyword due to the IR specifics.
+
 ## De-ast-detectorization
 <div class="change-date">Date: 2026-07-19</div>
 Have removed several AST-level detectors. They didn't work properly given the fact that they don't have enought information about code.

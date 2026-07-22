@@ -96,6 +96,27 @@ To store a string you can use the next example:
 arr msg[0, i8] = "Hello world!";
 ```
 
+Initializer lists handle string literals as static data references. This is different from ordinary stack/runtime expressions: when a function expects `ptr i8`, write `ref "..."`; inside a global array or container initializer, write the string literal without `ref`.
+
+```cpl
+container message {
+    ptr i8 text;
+    arr inline_text[8, i8];
+}
+
+glob message msg = { "Hello", "World!" };
+
+function print(ptr i8 text) -> i0;
+
+start() {
+    print(ref "Hello from stack");
+}
+```
+
+In the initializer above, `text` receives a pointer to the generated static string, while `inline_text` is filled byte-by-byte because its field type is `arr [N, i8]`.
+
+When indexing an array whose element type is itself an array or a container, the indexed expression is already a reference to that element storage. For example, if `items` is an array of containers, `items[0]` can be passed where `ptr item` is expected; `ref items[0]` is not needed.
+
 ## Containers
 
 Containers are user-defined value-layout types, similar in spirit to C structs. They can contain primitive fields, pointer fields, arrays, other containers, and functions. A container can also be marked with `@[union]`, in which case its fields share storage like a C union.

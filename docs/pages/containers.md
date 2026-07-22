@@ -111,6 +111,32 @@ start() {
 }
 ```
 
+The same reference rule applies to arrays whose element type is a container or another array. Indexing such an array returns a reference to the selected element storage, not a copied value. If `items` is `arr [N, item]`, then `items[0]` is already suitable for a `ptr item` parameter; writing `ref items[0]` is unnecessary.
+
+```cpl
+container item {
+    i32 value;
+}
+
+function use_item(ptr item it) -> i0;
+
+start() {
+    arr items[2, item];
+    use_item(items[0]);
+}
+```
+
+For global container initializers, string literals are written without `ref`. The initializer stores a static string reference for `ptr i8` fields and expands the bytes for inline `arr [N, i8]` fields.
+
+```cpl
+container text_pair {
+    ptr i8 title;
+    arr body[16, i8];
+}
+
+glob text_pair pair = { "Title", "Body" };
+```
+
 ## Pointer Fields
 
 Containers can reference values of their own type through pointers. This is useful for linked structures.
