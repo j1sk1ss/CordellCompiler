@@ -7,8 +7,12 @@ function act_search(ptr lis_game self) -> i0;
 function act_wait(ptr lis_game self) -> i0;
 function act_rewind(ptr lis_game self) -> i0;
 
+container person {
+    ptr i8 name;
+}
+
 @[inline] function draw_line(ptr i8 text) -> i0 { puts(text); }
-@[inline] function draw_line(ptr i8 who, ptr i8 text) -> i0 { printf(ref "%s: %s\n", who, text); }
+@[inline] function draw_line(ptr person who, ptr i8 text) -> i0 { printf(ref "%s: %s\n", who.name, text); }
 
 @[inline(model)]
 function clamp(i32 value, i32 low = 0 as i32, i32 high = 99 as i32) -> i32 {
@@ -318,34 +322,26 @@ function lis_game::destroy(ptr lis_game self) -> i0 {
     free(self.storm_note.text);
 }
 
-container person {
-    :/ 
-    TODO: Make this be possible:
-    ptr i8 name; / arr name[32, i8];
-
-    ...
-
-    person p = { ref "name" }; / person p = { "name" };
-     /:
-}
+glob person Max   = { "Max" }
+glob person Chloe = { "Chloe" }
 
 function act_photo(ptr lis_game self) -> i0 {
     self.now.photos += 1;
     self.mood = ref "focused";
     resolve_scene(self, 2 as i32, 0 as i32, 1 as i32);
-    draw_line(ref "Max", ref "One photo. One tiny proof that time blinked.");
+    draw_line(ref Max, ref "One photo. One tiny proof that time blinked.");
 }
 
 function act_talk(ptr lis_game self) -> i0 {
     self.mood = ref "kind";
     resolve_scene(self, 0 as i32, 3 as i32, 0 as i32);
-    draw_line(ref "Chloe", ref "Do not make this about destiny. Just stay with me.");
+    draw_line(ref Chloe, ref "Do not make this about destiny. Just stay with me.");
 }
 
 function act_search(ptr lis_game self) -> i0 {
     self.mood = ref "curious";
     resolve_scene(self, 1 as i32, 1 as i32, 0 as i32);
-    draw_line(ref "Max", ref "The clue was not hidden. I was looking from the wrong minute.");
+    draw_line(ref Max, ref "The clue was not hidden. I was looking from the wrong minute.");
 }
 
 function act_wait(ptr lis_game self) -> i0 {

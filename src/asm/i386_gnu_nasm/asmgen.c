@@ -252,52 +252,47 @@ static int _generate_typed_initializer(variable_info_t* vi, array_info_t* ai, sy
         _emit_zero_bytes(NULL, slot_info.slot_off - emitted_end, output);
 
         type_info_t slot_ti;
-        int slot_is_string_byte = (
+        int for_string = (
             TPTB_get_info_id(slot_info.slot_type, &slot_ti, &smt->t)  &&
             slot_ti.tt == I8_TYPE_TOKEN                               &&
             !slot_ti.memory.ptr
         );
-        int string_bytes = (
-            elem                                                      &&
-            elem->t == ARRAY_ELEM_STRING_TYPE                         &&
-            slot_is_string_byte                                       &&
-            string_owner_id == slot_info.slot_owner
-        );
 
-        if (!string_bytes && value_pos < value_count) {
-            array_elem_info_t* next_elem = NULL;
-            if (list_iter_next(&values, (void**)&next_elem)) {
-                elem            = next_elem;
-                string_pos      = 0;
-                string_owner_id = NO_SYMBOL_ID;
-                value_pos++;
-            }
+        if (
+            !(
+                elem && elem->t == ARRAY_ELEM_STRING_TYPE && 
+                for_string && string_owner_id == slot_info.slot_owner
+            ) && 
+            value_pos < value_count &&
+            list_iter_next(&values, (void**)&elem)
+        ) { /* restore info if this isn't a string */
+            string_pos      = 0;
+            string_owner_id = NO_SYMBOL_ID;
+            value_pos++;
         }
 
         if (!elem) goto _default_const_type;
         switch (elem->t) {
             case ARRAY_ELEM_STRING_TYPE: {
-                if (slot_is_string_byte && (string_owner_id == NO_SYMBOL_ID || string_owner_id == slot_info.slot_owner)) {
+                if (for_string) {
+                    if (!(string_owner_id == NO_SYMBOL_ID || string_owner_id == slot_info.slot_owner)) {
+                        _emit_typed_value(NULL, slot_info.slot_size, 0, output);
+                        break;
+                    }
+
                     str_info_t si;
                     if (string_owner_id == NO_SYMBOL_ID) string_owner_id = slot_info.slot_owner;
                     _emit_typed_value(
                         NULL, slot_info.slot_size,
-                        STTB_get_info_id(elem->s.s_id, &si, &smt->s) && string_pos < si.value->len(si.value) ? si.value->body[string_pos] : 0,
+                        (STTB_get_info_id(elem->s.s_id, &si, &smt->s) && string_pos < si.value->len(si.value)) 
+                            ? si.value->body[string_pos] 
+                            : 0,
                         output
                     );
                     string_pos++;
                 }
-                else if (slot_is_string_byte) _emit_typed_value(NULL, slot_info.slot_size, 0, output);
-                else                          EMIT_COMMAND("dd _str_%li_", elem->s.s_id);
-                break;
-            }
-            case ARRAY_ELEM_ARRAY_TYPE: {
-                variable_info_t elem_vi;
-                if (
-                    elem &&
-                    VRTB_get_info_id(elem->s.v_id, &elem_vi, &smt->v)
-                ) EMIT_COMMAND("dd %s", elem_vi.name->body);
-                else _emit_typed_value(NULL, slot_info.slot_size, 0, output);
+                /* Put a pointer instead of initialization */
+                else EMIT_COMMAND("dd _str_%li_", elem->s.s_id);
                 break;
             }
             default: {
@@ -365,14 +360,9 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
                 last_elem = el;
                 switch (el->t) {
                     case ARRAY_ELEM_STRING_TYPE: fprintf(output, "_str_%li_", el->s.s_id); break;
-                    case ARRAY_ELEM_ARRAY_TYPE: {
-                        variable_info_t elem_vi;
-                        if (VRTB_get_info_id(el->s.v_id, &elem_vi, &smt->v)) fprintf(output, "%s", elem_vi.name->body);
-                        else fprintf(output, "0");
-                        break;
-                    }
-                    default: fprintf(output, "%lli", el->s.value); break;
+                    default: fprintf(output, "%lli", el->s.value);                         break;
                 }
+
                 if (--el_count) fprintf(output, ",");
             }
 
@@ -381,14 +371,9 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
             while (last_el-- > 0) {
                 switch (last_elem ? last_elem->t : ARRAY_ELEM_CONST_TYPE) {
                     case ARRAY_ELEM_STRING_TYPE: fprintf(output, "_str_%li_", last_elem->s.s_id); break;
-                    case ARRAY_ELEM_ARRAY_TYPE: {
-                        variable_info_t elem_vi;
-                        if (last_elem && VRTB_get_info_id(last_elem->s.v_id, &elem_vi, &smt->v)) fprintf(output, "%s", elem_vi.name->body);
-                        else fprintf(output, "0");
-                        break;
-                    }
-                    default: fprintf(output, "%lli", last_elem ? last_elem->s.value : 0); break;
+                    default: fprintf(output, "%lli", last_elem ? last_elem->s.value : 0);         break;
                 }
+
                 if (last_el) fprintf(output, ",");
             }
 

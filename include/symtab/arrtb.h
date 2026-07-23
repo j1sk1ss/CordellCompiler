@@ -9,7 +9,6 @@
 
 typedef enum {
     ARRAY_ELEM_STRING_TYPE,
-    ARRAY_ELEM_ARRAY_TYPE,
     ARRAY_ELEM_CONST_TYPE
 } array_elem_type_t;
 

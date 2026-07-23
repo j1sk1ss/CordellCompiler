@@ -3,8 +3,17 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
-## String initialization
-<div class="change-date">Date: 2026-07-2</div>
+## String size cap
+<div class="change-date">Date: 2026-07-23</div>
+Strings now track the provided size. If a user provided the '0' size, it will allocate enougth space for the entire string. Otherwise it will cut the string:
+
+```cpl
+arr msg[0, i8] = "Hello world! This is a big string!";   :/ Hello world! This is a big string! /:
+arr msg[10, i8] = "Hello world! This is a big string!";  :/ Hello wor                          /:
+```
+
+## Strings initialization
+<div class="change-date">Date: 2026-07-22</div>
 The compiler now allows to initialize a container with strings:
 
 ```cpl
@@ -16,7 +25,7 @@ container asd {
 glob asd a = { "asd", "asd" };
 ```
 
-It doesn't require the `ref` keyword due to the IR specifics.
+It doesn't require the `ref` keyword due to the IR specifics. The reason why we can ignore the `ref` keyword here is 'cause the IR requires us to use only one instruction for initialization of a global variable. Considering the nature of strings (they're read-only) I've decided to allow this logic in the compiler.
 
 ## De-ast-detectorization
 <div class="change-date">Date: 2026-07-19</div>
