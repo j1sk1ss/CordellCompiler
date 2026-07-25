@@ -11,8 +11,8 @@ start() {
     {
         {
             asm() {
-            [raw, "mov rax, 1"]
-            [raw, "syscall"]
+                [raw, "mov rax, 1"]
+                [raw, "syscall"]
             }
         }
     }

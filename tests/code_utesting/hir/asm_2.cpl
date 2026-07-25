@@ -17,9 +17,9 @@ start() {
             i32t %1 = foo0();
             use i32t %1;
             asm(i8t %0, i32t %1) {
-            [raw, "mov rax, %0"]
-            [raw, "mov rbx, %1"]
-            [raw, "syscall"]
+                [raw, "mov rax, %0"]
+                [raw, "mov rbx, %1"]
+                [raw, "syscall"]
             }
         }
     }
