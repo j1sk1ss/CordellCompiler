@@ -5,8 +5,8 @@
 - C/POSIX-style headers such as `stdio_h.cpl`, `stdlib_h.cpl`, `string_h.cpl`,
   `unistd_h.cpl`, and `math_h.cpl`.
 - CPL convenience containers and wrappers implemented in `libcpl.a`, mainly
-  `string`, `file`, `linked_list`, `queue`, `stack`, and the static `std`
-  helper container from `io_h.cpl`.
+  `string`, `file`, `linked_list`, `queue`, `stack`, `town`, `http_server`, and
+  the static `std` helper container from `io_h.cpl`.
 
 The library is intentionally small. Most headers are thin ABI declarations for
 the host runtime, while the CPL containers are simple building blocks for
@@ -68,6 +68,8 @@ runtime path inside the package tree.
 | `cpllib/list.cpl` | Implementation for `linked_list` and `linked_list_block`. |
 | `cpllib/queue.cpl` | Implementation for `queue`. |
 | `cpllib/stack.cpl` | Implementation for `stack`. |
+| `cpllib/town.cpl` | Implementation for Oregon `town` lookup records. |
+| `cpllib/http.cpl` | Implementation for a tiny blocking HTTP server. |
 | `builds/<platform>/cpllib/libcpl.a` | Static archive produced by `make cpllib`. |
 
 ## The `io_h.cpl` convenience layer
@@ -311,6 +313,91 @@ start() {
 Stack operations: `new`, `init`, `push`, `pop`, `top`, `clear`, `destroy`,
 `size`, and `empty`.
 
+## `town`
+
+`town_h.cpl` declares a tiny Oregon town lookup container. Its records live as
+global objects in `town.cpl`, and `town::find` returns pointers to those globals.
+Population values are Census PEP Vintage 2025 estimates.
+
+```cpl
+#include <town_h.cpl>
+
+start() {
+    ptr town t = town::find(ref "Portland");
+    if not t; exit 1;
+    if t.population != 635109; exit 2;
+    if not town::contains(ref "Salem"); exit 3;
+    if town::count() != 40; exit 4;
+    exit 0;
+}
+```
+
+The lookup is exact and case-sensitive. Returned `town` pointers are borrowed
+static records and must not be freed.
+
+## `http_server`
+
+`http_h.cpl` declares a small blocking HTTP/1.1 server for simple local tools
+and demos. Register handlers with `get`, `post`, or `route`, then call
+`listen`. A handler receives `ptr http_request` and `ptr http_response`.
+
+```cpl
+#include <http_h.cpl>
+
+glob http_server server;
+
+function root(ptr http_request req, ptr http_response res) -> i0 {
+    res.html_file(ref "public/index.html");
+}
+
+function api(ptr http_request req, ptr http_response res) -> i0 {
+    res.header(ref "X-App", ref "demo");
+    res.text(200 as i32, ref "{\"ok\":true}\n");
+}
+
+start() {
+    server.init(ref "127.0.0.1", 8080);
+    server.get(ref "/", root);
+    server.get(ref "/api", api);
+    server.static(ref "/assets/", ref "public/assets/");
+    exit server.listen() as u8;
+}
+```
+
+`http_response` can send raw bytes with `write`, inline text/HTML with `text`
+and `html`, or file contents with `file` and `html_file`. Static routes reject
+paths containing `..` and infer common content types from file extensions.
+
+Main containers:
+
+| Container | Role |
+|---|---|
+| `http_request` | Parsed method, path, optional query, optional body pointer, and the raw request buffer. |
+| `http_response` | Per-client writer for status, headers, raw bytes, text, HTML, and file responses. |
+| `http_server` | Fixed-size route table, static route table, bind address, socket, and blocking accept loop. |
+
+Response order matters: set `status` before `header`, `write`, `text`, `html`,
+`file`, or `html_file`. Calling `header` starts the status line; body helpers
+finish headers automatically.
+
+The server is intentionally small. It handles one client at a time, closes each
+connection after one response, and does not implement keep-alive, TLS, chunked
+transfer, percent-decoding, or a complete HTTP parser.
+
+Example page server:
+
+```bash
+builds/darwin-x86_64/cplc --output /private/tmp/cpl_http_page_example examples/small/http_page.cpl
+/private/tmp/cpl_http_page_example
+```
+
+Then open `http://127.0.0.1:18083/`. The example also exposes
+`/assets/http_page_diagram.svg` through `http_server::static` and `/stop` for a
+clean test shutdown.
+
+Until integer-literal ABI lowering is fixed, cast numeric arguments that cross
+an ABI function boundary, for example `res.text(200 as i32, ref "ok\n")`.
+
 ## Header function map
 
 Use this table as a quick map. The detailed signatures are in the corresponding
@@ -322,6 +409,8 @@ Use this table as a quick map. The detailed signatures are in the corresponding
 | `stdio_h.cpl` | `remove`, `rename`, `tmpfile`, `tmpnam`, `fclose`, `fflush`, `fopen`, `freopen`, `setbuf`, `setvbuf`, `fprintf`, `fscanf`, `printf`, `scanf`, `snprintf`, `sprintf`, `sscanf`, `fgetc`, `fgets`, `fputc`, `fputs`, `getc`, `getchar`, `gets`, `putc`, `putchar`, `puts`, `ungetc`, `fread`, `fwrite`, `fgetpos`, `fseek`, `fsetpos`, `ftell`, `rewind`, `clearerr`, `feof`, `ferror`, `perror`, plus `stdin`, `stdout`, `stderr`, `EOF`, seek constants, and the CPL `file` container. |
 | `stdlib_h.cpl` | `malloc`, `calloc`, `realloc`, `aligned_alloc`, `posix_memalign`, `free`, `abort`, `_Exit`, `atexit`, `system`, `getenv`, `atoi`, `atol`, `atoll`, `strtol`, `strtoll`, `strtoul`, `strtoull`, `strtod`, `strtof`, `strtold`, `rand`, `srand`, `abs`, `labs`, `llabs`, `div`, `ldiv`, `lldiv`, `bsearch`, `qsort`, plus `EXIT_SUCCESS`, `EXIT_FAILURE`, `RAND_MAX`. |
 | `string_h.cpl` | `memcpy`, `memmove`, `memset`, `memcmp`, `memchr`, `strlen`, `strnlen`, `strcpy`, `strncpy`, `strcat`, `strncat`, `strcmp`, `strncmp`, `strchr`, `strrchr`, `strstr`, `strpbrk`, `strspn`, `strcspn`, `strcoll`, `strxfrm`, `strtok`, `strtok_r`, `strerror`, `strdup`, `strndup`, plus the CPL `string` container. |
+| `town_h.cpl` | `town`, `OREGON_TOWN_COUNT`, `OREGON_TOWN_POPULATION_YEAR`, `town::find`, `town::contains`, `town::count`. |
+| `http_h.cpl` | `http_request`, `http_response`, `http_server`, `http_server::init`, `route`, `get`, `post`, `static`, `listen`, `stop`, `close`, and response helpers `status`, `header`, `end_headers`, `write`, `text`, `html`, `file`, `html_file`, `not_found`. |
 | `ctype_h.cpl` | C-style aliases such as `char`, `int`, `long`, `double`; `isalnum`, `isalpha`, `isblank`, `iscntrl`, `isdigit`, `isgraph`, `islower`, `isprint`, `ispunct`, `isspace`, `isupper`, `isxdigit`, `tolower`, `toupper`. |
 | `math_h.cpl` | `f64` functions `acos`, `asin`, `atan`, `atan2`, `cos`, `sin`, `tan`, `cosh`, `sinh`, `tanh`, `exp`, `frexp`, `ldexp`, `log`, `log10`, `modf`, `pow`, `sqrt`, `ceil`, `fabs`, `floor`, `fmod`, `cbrt`, `copysign`, `exp2`, `hypot`, `log2`, `round`, `trunc`; `f32` variants ending in `f`; `HUGE_VAL`, `INFINITY`, `NAN`. |
 | `fcntl_h.cpl` | `open`, `creat`, `fcntl`, open flags such as `O_RDONLY`, `O_WRONLY`, `O_RDWR`, `O_CREAT`, `O_TRUNC`, `O_APPEND`, `O_CLOEXEC`, and permission bits. |
@@ -362,8 +451,9 @@ Small executable examples are kept in:
 
 | Example | Demonstrates |
 |---|---|
-| `examples/small/cplib.cpl` | `io_h.cpl` and `std::print`. |
-| `examples/small/file_usecase.cpl` | `file` stream creation, write/read, seeking, sizing, and cleanup. |
-| `examples/small/list_usecase.cpl` | `linked_list` insertion, access, popping, and destruction. |
-| `examples/small/queue_usecase.cpl` | FIFO `queue` behavior. |
-| `examples/small/stack_usecase.cpl` | LIFO `stack` behavior. |
+| `examples/small/cplib.cpl`         | `io_h.cpl` and `std::print`.                                      |
+| `examples/small/file_usecase.cpl`  | `file` stream creation, write/read, seeking, sizing, and cleanup. |
+| `examples/small/list_usecase.cpl`  | `linked_list` insertion, access, popping, and destruction.        |
+| `examples/small/queue_usecase.cpl` | FIFO `queue` behavior.                                            |
+| `examples/small/stack_usecase.cpl` | LIFO `stack` behavior.                                            |
+| `examples/small/http_page.cpl`     | `http_server` route handler serving an HTML file.                 |

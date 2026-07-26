@@ -1,0 +1,97 @@
+#include "town_h.cpl"
+
+glob town __oregon_town_portland      = { "Portland",      635109 };
+glob town __oregon_town_eugene        = { "Eugene",        178618 };
+glob town __oregon_town_salem         = { "Salem",         181779 };
+glob town __oregon_town_gresham       = { "Gresham",       111513 };
+glob town __oregon_town_hillsboro     = { "Hillsboro",     111126 };
+glob town __oregon_town_bend          = { "Bend",          107342 };
+glob town __oregon_town_beaverton     = { "Beaverton",      97842 };
+glob town __oregon_town_medford       = { "Medford",        86494 };
+glob town __oregon_town_springfield   = { "Springfield",    61431 };
+glob town __oregon_town_corvallis     = { "Corvallis",      61499 };
+glob town __oregon_town_albany        = { "Albany",         56894 };
+glob town __oregon_town_tigard        = { "Tigard",         57929 };
+glob town __oregon_town_lake_oswego   = { "Lake Oswego",    39722 };
+glob town __oregon_town_keizer        = { "Keizer",         39140 };
+glob town __oregon_town_grants_pass   = { "Grants Pass",    39239 };
+glob town __oregon_town_oregon_city   = { "Oregon City",    38175 };
+glob town __oregon_town_mcminnville   = { "McMinnville",    34647 };
+glob town __oregon_town_redmond       = { "Redmond",        38547 };
+glob town __oregon_town_tualatin      = { "Tualatin",       28139 };
+glob town __oregon_town_west_linn     = { "West Linn",      26567 };
+glob town __oregon_town_wilsonville   = { "Wilsonville",    27833 };
+glob town __oregon_town_forest_grove  = { "Forest Grove",   27252 };
+glob town __oregon_town_woodburn      = { "Woodburn",       31948 };
+glob town __oregon_town_newberg       = { "Newberg",        26896 };
+glob town __oregon_town_happy_valley  = { "Happy Valley",   28916 };
+glob town __oregon_town_roseburg      = { "Roseburg",       23693 };
+glob town __oregon_town_klamath_falls = { "Klamath Falls",  22111 };
+glob town __oregon_town_ashland       = { "Ashland",        20889 };
+glob town __oregon_town_milwaukie     = { "Milwaukie",      22114 };
+glob town __oregon_town_sherwood      = { "Sherwood",       20535 };
+glob town __oregon_town_hermiston     = { "Hermiston",      19906 };
+glob town __oregon_town_central_point = { "Central Point",  19139 };
+glob town __oregon_town_lebanon       = { "Lebanon",        20267 };
+glob town __oregon_town_canby         = { "Canby",          18004 };
+glob town __oregon_town_pendleton     = { "Pendleton",      16989 };
+glob town __oregon_town_dallas        = { "Dallas",         17890 };
+glob town __oregon_town_troutdale     = { "Troutdale",      15776 };
+glob town __oregon_town_the_dalles    = { "The Dalles",     15745 };
+glob town __oregon_town_coos_bay      = { "Coos Bay",       15686 };
+glob town __oregon_town_st_helens     = { "St. Helens",     14450 };
+
+glob function town::find(ptr i8 name) -> ptr town {
+    if not name; return 0 as ptr town;
+
+    if not strcmp(name, __oregon_town_portland.name);      return ref __oregon_town_portland;
+    if not strcmp(name, __oregon_town_eugene.name);        return ref __oregon_town_eugene;
+    if not strcmp(name, __oregon_town_salem.name);         return ref __oregon_town_salem;
+    if not strcmp(name, __oregon_town_gresham.name);       return ref __oregon_town_gresham;
+    if not strcmp(name, __oregon_town_hillsboro.name);     return ref __oregon_town_hillsboro;
+    if not strcmp(name, __oregon_town_bend.name);          return ref __oregon_town_bend;
+    if not strcmp(name, __oregon_town_beaverton.name);     return ref __oregon_town_beaverton;
+    if not strcmp(name, __oregon_town_medford.name);       return ref __oregon_town_medford;
+    if not strcmp(name, __oregon_town_springfield.name);   return ref __oregon_town_springfield;
+    if not strcmp(name, __oregon_town_corvallis.name);     return ref __oregon_town_corvallis;
+    if not strcmp(name, __oregon_town_albany.name);        return ref __oregon_town_albany;
+    if not strcmp(name, __oregon_town_tigard.name);        return ref __oregon_town_tigard;
+    if not strcmp(name, __oregon_town_lake_oswego.name);   return ref __oregon_town_lake_oswego;
+    if not strcmp(name, __oregon_town_keizer.name);        return ref __oregon_town_keizer;
+    if not strcmp(name, __oregon_town_grants_pass.name);   return ref __oregon_town_grants_pass;
+    if not strcmp(name, __oregon_town_oregon_city.name);   return ref __oregon_town_oregon_city;
+    if not strcmp(name, __oregon_town_mcminnville.name);   return ref __oregon_town_mcminnville;
+    if not strcmp(name, __oregon_town_redmond.name);       return ref __oregon_town_redmond;
+    if not strcmp(name, __oregon_town_tualatin.name);      return ref __oregon_town_tualatin;
+    if not strcmp(name, __oregon_town_west_linn.name);     return ref __oregon_town_west_linn;
+    if not strcmp(name, __oregon_town_wilsonville.name);   return ref __oregon_town_wilsonville;
+    if not strcmp(name, __oregon_town_forest_grove.name);  return ref __oregon_town_forest_grove;
+    if not strcmp(name, __oregon_town_woodburn.name);      return ref __oregon_town_woodburn;
+    if not strcmp(name, __oregon_town_newberg.name);       return ref __oregon_town_newberg;
+    if not strcmp(name, __oregon_town_happy_valley.name);  return ref __oregon_town_happy_valley;
+    if not strcmp(name, __oregon_town_roseburg.name);      return ref __oregon_town_roseburg;
+    if not strcmp(name, __oregon_town_klamath_falls.name); return ref __oregon_town_klamath_falls;
+    if not strcmp(name, __oregon_town_ashland.name);       return ref __oregon_town_ashland;
+    if not strcmp(name, __oregon_town_milwaukie.name);     return ref __oregon_town_milwaukie;
+    if not strcmp(name, __oregon_town_sherwood.name);      return ref __oregon_town_sherwood;
+    if not strcmp(name, __oregon_town_hermiston.name);     return ref __oregon_town_hermiston;
+    if not strcmp(name, __oregon_town_central_point.name); return ref __oregon_town_central_point;
+    if not strcmp(name, __oregon_town_lebanon.name);       return ref __oregon_town_lebanon;
+    if not strcmp(name, __oregon_town_canby.name);         return ref __oregon_town_canby;
+    if not strcmp(name, __oregon_town_pendleton.name);     return ref __oregon_town_pendleton;
+    if not strcmp(name, __oregon_town_dallas.name);        return ref __oregon_town_dallas;
+    if not strcmp(name, __oregon_town_troutdale.name);     return ref __oregon_town_troutdale;
+    if not strcmp(name, __oregon_town_the_dalles.name);    return ref __oregon_town_the_dalles;
+    if not strcmp(name, __oregon_town_coos_bay.name);      return ref __oregon_town_coos_bay;
+    if not strcmp(name, __oregon_town_st_helens.name);     return ref __oregon_town_st_helens;
+
+    0 as ptr town
+}
+
+glob function town::contains(ptr i8 name) -> i8 {
+    (town::find(name) != 0 as ptr town) as i8
+}
+
+glob function town::count() -> u64 {
+    OREGON_TOWN_COUNT as u64
+}

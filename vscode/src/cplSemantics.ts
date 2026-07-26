@@ -457,6 +457,22 @@ function expectedArityString(fn: FuncOverloadSym): string {
   return `${minArgs}..${maxArgs}`;
 }
 
+function instanceCallParams(fn: FuncOverloadSym): ParamSig[] {
+  return fn.params[0]?.name === "self" ? fn.params.slice(1) : fn.params;
+}
+
+function matchesInstanceArity(fn: FuncOverloadSym, argc: number): boolean {
+  const { minArgs, maxArgs } = arityBounds(instanceCallParams(fn));
+  return argc >= minArgs && argc <= maxArgs;
+}
+
+function expectedInstanceArityString(fn: FuncOverloadSym): string {
+  const { minArgs, maxArgs } = arityBounds(instanceCallParams(fn));
+  if (maxArgs === Infinity) return `${minArgs}+`;
+  if (minArgs === maxArgs) return `${minArgs}`;
+  return `${minArgs}..${maxArgs}`;
+}
+
 const EXCLUSIVE_MACRO_GROUPS: string[][] = [
   ["CCPL_MACHO64", "CCPL_GNU64", "CCPL_GNUI386", "CCPL_WINDOWS64"]
 ];
@@ -523,6 +539,7 @@ export class SemanticContext {
   private scope: Scope = new Scope();
   private pendingCalls: { name: string; argc: number; range: Range; filePath?: string; scope: Scope }[] = [];
   private pendingAssociatedCalls: { containerName: string; name: string; argc: number; range: Range; filePath?: string }[] = [];
+  private pendingInstanceCalls: { containerName: string; name: string; argc: number; range: Range; filePath?: string }[] = [];
 
   constructor(private readonly options: SemanticContextOptions = {}) {}
 
@@ -803,17 +820,21 @@ export class SemanticContext {
     }
   }
 
-  getContainerMemberType(baseType: TypeNode, memberName: string, range: Range): TypeNode {
+  getContainerMember(
+    baseType: TypeNode,
+    memberName: string,
+    range: Range
+  ): { type: TypeNode; containerName?: string; methodName?: string } {
     const containerName = this.containerNameFromType(baseType);
     if (!containerName) {
       if (baseType.kind !== "unknown") {
         this.issues.push({ message: `Type '${formatType(baseType)}' has no members`, range });
       }
-      return { kind: "unknown" };
+      return { type: { kind: "unknown" } };
     }
 
     const container = this.containers.get(containerName);
-    if (!container) return { kind: "unknown" };
+    if (!container) return { type: { kind: "unknown" } };
 
     const field = container.fields.get(memberName);
     if (field) {
@@ -827,21 +848,33 @@ export class SemanticContext {
         readonly: field.readonly,
         annotations: field.annotations?.length ? [...field.annotations] : undefined
       });
-      return field.type;
+      return { type: field.type };
     }
 
     const methods = container.methods.get(memberName) ?? [];
     if (methods.length === 1) {
       const fn = methods[0];
-      return this.functionTypeFromMethod(fn, this.isInstanceMethod(fn));
+      return {
+        type: this.functionTypeFromMethod(fn, this.isInstanceMethod(fn)),
+        containerName,
+        methodName: memberName
+      };
     }
 
     if (methods.length > 1) {
-      return { kind: "ptr", to: { kind: "prim", name: "i0" } };
+      return {
+        type: { kind: "ptr", to: { kind: "prim", name: "i0" } },
+        containerName,
+        methodName: memberName
+      };
     }
 
     this.issues.push({ message: `Unknown member '${containerName}.${memberName}'`, range });
-    return { kind: "unknown" };
+    return { type: { kind: "unknown" } };
+  }
+
+  getContainerMemberType(baseType: TypeNode, memberName: string, range: Range): TypeNode {
+    return this.getContainerMember(baseType, memberName, range).type;
   }
 
   getAssociatedMemberType(containerName: string, memberName: string, range: Range): TypeNode {
@@ -1226,6 +1259,32 @@ export class SemanticContext {
     return { status: "ambiguous", candidates: arityMatches };
   }
 
+  private resolveInstanceCall(containerName: string, name: string, argc: number): CallSite["resolution"] {
+    const container = this.containers.get(containerName);
+    if (!container) {
+      return { status: "unknown", candidates: [] };
+    }
+
+    const allMethods = container.methods.get(name) ?? [];
+    const overloads = allMethods.filter((fn) => this.isInstanceMethod(fn));
+    if (overloads.length === 0) {
+      return allMethods.length > 0
+        ? { status: "no_match", candidates: allMethods }
+        : { status: "unknown", candidates: [] };
+    }
+
+    const arityMatches = overloads.filter((fn) => matchesInstanceArity(fn, argc));
+    if (arityMatches.length === 0) {
+      return { status: "no_match", candidates: overloads };
+    }
+
+    if (arityMatches.length === 1) {
+      return { status: "resolved", candidates: arityMatches, selected: arityMatches[0] };
+    }
+
+    return { status: "ambiguous", candidates: arityMatches };
+  }
+
   callFunc(name: string, argc: number, range: Range) {
     if (name === "syscall") return;
     this.pendingCalls.push({ name, argc, range, filePath: this.currentFilePath, scope: this.scope });
@@ -1267,6 +1326,13 @@ export class SemanticContext {
     const qualifiedName = this.qualifiedMethodName(containerName, name);
     const resolution = this.resolveAssociatedCall(containerName, name, argc);
     this.pendingAssociatedCalls.push({ containerName, name, argc, range, filePath: this.currentFilePath });
+    this.upsertCallSite(qualifiedName, argc, range, resolution);
+  }
+
+  callInstanceMethod(containerName: string, name: string, argc: number, range: Range) {
+    const qualifiedName = this.qualifiedMethodName(containerName, name);
+    const resolution = this.resolveInstanceCall(containerName, name, argc);
+    this.pendingInstanceCalls.push({ containerName, name, argc, range, filePath: this.currentFilePath });
     this.upsertCallSite(qualifiedName, argc, range, resolution);
   }
 
@@ -1343,6 +1409,48 @@ export class SemanticContext {
       }
     }
 
+    for (const c of this.pendingInstanceCalls) {
+      const qualifiedName = this.qualifiedMethodName(c.containerName, c.name);
+      const resolution = this.resolveInstanceCall(c.containerName, c.name, c.argc);
+      if (resolution == undefined) continue;
+      this.upsertCallSite(qualifiedName, c.argc, c.range, resolution, c.filePath);
+
+      if (resolution.status === "unknown") {
+        const container = this.containers.get(c.containerName);
+        this.issues.push({
+          message: container
+            ? `Unknown instance method '${c.containerName}.${c.name}'`
+            : `Unknown container '${c.containerName}'`,
+          range: c.range
+        });
+        continue;
+      }
+
+      if (resolution.status === "no_match") {
+        const onlyAssociated = resolution.candidates.length > 0
+          && resolution.candidates.every((fn) => this.isAssociatedMethod(fn));
+
+        if (onlyAssociated) {
+          this.issues.push({
+            message: `Instance call '${c.containerName}.${c.name}' refers to an associated method; use '::' on the container type`,
+            range: c.range
+          });
+          continue;
+        }
+
+        const expected = resolution.candidates
+          .map(expectedInstanceArityString)
+          .filter((v, i, a) => a.indexOf(v) === i)
+          .join(" | ");
+
+        this.issues.push({
+          message: `Call '${c.containerName}.${c.name}': no matching overload for ${c.argc} args (available: ${expected || "none"})`,
+          range: c.range
+        });
+        continue;
+      }
+    }
+
     for (const c of this.pendingCalls) {
       const resolution = this.resolveCall(c.name, c.argc, c.scope);
       if (resolution == undefined) continue;
@@ -1369,6 +1477,7 @@ export class SemanticContext {
     }
 
     this.pendingAssociatedCalls = [];
+    this.pendingInstanceCalls = [];
     this.pendingCalls = [];
   }
 }

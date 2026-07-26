@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>CordellCompiler HTTP example</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17202a;
+      --muted: #5c6674;
+      --line: #d6dde5;
+      --panel: #ffffff;
+      --soft: #eef4f8;
+      --accent: #0f766e;
+      --accent-2: #b45309;
+      --code: #111827;
+      --button: #0f766e;
+      --button-hover: #115e59;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      color: var(--ink);
+      background: #f7f9fb;
+    }
+
+    main {
+      width: min(920px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 40px 0;
+    }
+
+    header {
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: 34px;
+      line-height: 1.1;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin: 0 0 12px;
+      font-size: 19px;
+      letter-spacing: 0;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+    }
+
+    section {
+      margin-top: 24px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      min-height: 156px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
+
+    .pipeline {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .step {
+      min-height: 64px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--soft);
+      font-size: 14px;
+      text-align: center;
+      color: var(--ink);
+    }
+
+    .step strong {
+      display: block;
+      margin-bottom: 2px;
+      color: var(--accent);
+      font-size: 15px;
+    }
+
+    code {
+      display: block;
+      overflow-x: auto;
+      margin-top: 14px;
+      padding: 14px;
+      border-radius: 8px;
+      background: var(--code);
+      color: #e5e7eb;
+      font-family: "SFMono-Regular", Consolas, monospace;
+      font-size: 14px;
+      white-space: pre;
+    }
+
+    .accent {
+      color: var(--accent-2);
+      font-weight: 650;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 16px;
+    }
+
+    button {
+      min-height: 40px;
+      padding: 0 14px;
+      border: 0;
+      border-radius: 8px;
+      color: #ffffff;
+      background: var(--button);
+      font: inherit;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    button:hover,
+    button:focus-visible {
+      background: var(--button-hover);
+      outline: none;
+    }
+
+    figure {
+      display: none;
+      margin: 18px 0 0;
+      padding: 0;
+    }
+
+    figure.is-visible {
+      display: block;
+    }
+
+    img {
+      display: block;
+      width: min(100%, 760px);
+      height: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+    }
+
+    @media (max-width: 700px) {
+      main {
+        width: min(100% - 24px, 920px);
+        padding: 28px 0;
+      }
+
+      h1 {
+        font-size: 28px;
+      }
+
+      .grid,
+      .pipeline {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>CordellCompiler</h1>
+      <p>A tiny page served by <span class="accent">cpllib/http</span>. It verifies that a CPL program can start a localhost server and return HTML from a file.</p>
+    </header>
+
+    <section class="grid" aria-label="Overview">
+      <article class="card">
+        <h2>Compiler</h2>
+        <p>CordellCompiler lowers CPL source through intermediate representations into assembly and a native binary. This example is a regular CPL program without an external web framework.</p>
+      </article>
+
+      <article class="card">
+        <h2>Library</h2>
+        <p><span class="accent">cpllib</span> provides thin C/POSIX declarations and compact containers. The new http_server registers route handlers, accepts a TCP connection, and writes an HTTP response.</p>
+      </article>
+    </section>
+
+    <section>
+      <h2>Build Path</h2>
+      <div class="pipeline" aria-label="Pipeline">
+        <div class="step"><strong>CPL</strong>source</div>
+        <div class="step"><strong>HIR</strong>analysis</div>
+        <div class="step"><strong>LIR</strong>selection</div>
+        <div class="step"><strong>ASM</strong>nasm</div>
+        <div class="step"><strong>BIN</strong>clang/link</div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Minimal Handler</h2>
+      <code>function index(ptr http_request req, ptr http_response res) -> i0 {
+    res.html_file(ref "examples/small/http_page.html");
+}</code>
+    </section>
+
+    <section>
+      <h2>Visual Check</h2>
+      <p>The image is served by the same CPL HTTP server through a static route.</p>
+      <div class="actions">
+        <button type="button" id="show-diagram">Show image</button>
+      </div>
+      <figure id="diagram">
+        <img id="diagram-image" data-src="/assets/http_page_diagram.svg" alt="CordellCompiler and cpllib HTTP flow">
+      </figure>
+    </section>
+  </main>
+
+  <script>
+    const button = document.getElementById("show-diagram");
+    const diagram = document.getElementById("diagram");
+    const diagramImage = document.getElementById("diagram-image");
+
+    button.addEventListener("click", () => {
+      const visible = diagram.classList.toggle("is-visible");
+      if (visible && !diagramImage.getAttribute("src")) {
+        diagramImage.setAttribute("src", diagramImage.dataset.src);
+      }
+      button.textContent = visible ? "Hide image" : "Show image";
+    });
+  </script>
+</body>
+</html>

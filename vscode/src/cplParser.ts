@@ -170,6 +170,8 @@ type ExprInfo = {
   isTypeName?: boolean;
   associatedContainerName?: string;
   associatedMethodName?: string;
+  instanceContainerName?: string;
+  instanceMethodName?: string;
   start?: number;
   end?: number;
 };
@@ -2355,6 +2357,8 @@ class Parser {
         if (expr.isSyscall) {
         } else if (expr.associatedContainerName && expr.associatedMethodName) {
           this.sem?.callAssociatedMethod(expr.associatedContainerName, expr.associatedMethodName, argc, callRange);
+        } else if (expr.instanceContainerName && expr.instanceMethodName) {
+          this.sem?.callInstanceMethod(expr.instanceContainerName, expr.instanceMethodName, argc, callRange);
         } else if (expr.identName && !expr.isTypeName) {
           this.sem?.noteCallSite(expr.identName, callRange);
           this.sem?.callNamedOrValue(expr.identName, argc, callRange);
@@ -2404,8 +2408,15 @@ class Parser {
           this.sem?.useVar(expr.identName, rangeOf(this.lines, expr.start ?? 0, expr.end ?? (expr.start ?? 0)));
         }
 
-        const memberType = this.sem?.getContainerMemberType(expr.type, memberName, memberRange) ?? { kind: "unknown" };
-        expr = { type: memberType, start: expr.start, end: memberTok.end };
+        const member: { type: TypeNode; containerName?: string; methodName?: string } =
+          this.sem?.getContainerMember(expr.type, memberName, memberRange) ?? { type: { kind: "unknown" } };
+        expr = {
+          type: member.type,
+          start: expr.start,
+          end: memberTok.end,
+          instanceContainerName: member.containerName,
+          instanceMethodName: member.methodName
+        };
         continue;
       }
 
@@ -2435,7 +2446,7 @@ class Parser {
       break;
     }
 
-    if (expr.identName && !wasCall && !expr.isSyscall && !expr.isTypeName && !expr.associatedContainerName) {
+    if (expr.identName && !wasCall && !expr.isSyscall && !expr.isTypeName && !expr.associatedContainerName && !expr.instanceContainerName) {
       this.sem?.useVar(expr.identName, rangeOf(this.lines, expr.start ?? 0, expr.end ?? (expr.start ?? 0)));
     }
 

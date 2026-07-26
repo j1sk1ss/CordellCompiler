@@ -146,3 +146,46 @@ function print(ptr i8 s) -> i0 {
     syscall(0x2000004, 1, s, strlen(s));
 }
 ```
+
+## HTTP HTML page
+
+`examples/small/http_page.cpl` starts a small localhost HTTP server with
+`cpllib/http`, serves `examples/small/http_page.html` from `/`, and exposes the
+diagram image through a static route.
+
+```cpl
+#include <http_h.cpl>
+
+glob http_server server;
+
+function index(ptr http_request req, ptr http_response res) -> i0 {
+    res.html_file(ref "examples/small/http_page.html");
+}
+
+function stop(ptr http_request req, ptr http_response res) -> i0 {
+    res.text(200 as i32, ref "stopped\n");
+    server.stop();
+}
+
+start() {
+    server.init(ref "127.0.0.1", 18083);
+    if not server.get(ref "/", index); exit 1;
+    if not server.get(ref "/stop", stop); exit 2;
+    if not server.static(ref "/assets/", ref "examples/small/"); exit 3;
+    exit server.listen() as u8;
+}
+```
+
+Build and run:
+
+```bash
+builds/darwin-x86_64/cplc --output /private/tmp/cpl_http_page_example examples/small/http_page.cpl
+/private/tmp/cpl_http_page_example
+```
+
+Open `http://127.0.0.1:18083/`. The page button loads
+`/assets/http_page_diagram.svg` from the same CPL server. Stop the example with:
+
+```bash
+curl http://127.0.0.1:18083/stop
+```

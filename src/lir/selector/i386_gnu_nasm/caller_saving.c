@@ -12,18 +12,18 @@ static int _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f, symbol_id
     if (!f) {
         func_info_t fi;
         if (FNTB_get_info_id(f_id, &fi, &smt->f)) {
-            if (fi.flags.external && fi.flags.abi) {
-                lir_registers_t dirty_regs[] = { EAX, ECX, EDX };
-                for (int i = 0; i < (int)(sizeof(dirty_regs) / sizeof(RBX)); i++) {
-                    set_add(dirty, (void*)dirty_regs[i]);
-                }
-            }
-            else {
+            // if (fi.flags.external && fi.flags.abi) {
+            //     lir_registers_t dirty_regs[] = { EAX, ECX, EDX };
+            //     for (int i = 0; i < (int)(sizeof(dirty_regs) / sizeof(RBX)); i++) {
+            //         set_add(dirty, (void*)dirty_regs[i]);
+            //     }
+            // } TODO
+            // else {
                 lir_registers_t dirty_regs[] = { EBX, ECX, EDX, ESI, EDI, EBP };
                 for (int i = 0; i < (int)(sizeof(dirty_regs) / sizeof(dirty_regs[0])); i++) {
                     set_add(dirty, (void*)dirty_regs[i]);
                 }
-            }
+            // }
         }
 
         return 1;
