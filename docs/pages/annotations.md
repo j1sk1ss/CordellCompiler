@@ -34,7 +34,7 @@ The parser accepts `@[name]`, `@[name(value)]`, and the two-argument form used b
 | `@[like_c]` | container | use C-like field layout handling instead of the requested CPL alignment value |
 | `@[no_fall]` | `switch` | make switch cases behave as if they end with `break` |
 | `@[straight]` | `switch` | force linear switch selection |
-| `@[counter(N)]` | `loop` | generate a counted loop |
+| `@[counter(N, STP)]` | `loop` | generate a counted loop where 'STP' is optional |
 | `@[hot]` | `if` | make the false branch cold for layout |
 | `@[cold]` | `if` or switch `case` | make the true branch, or the annotated case, cold for layout |
 | `@[not_lazy]` | logical expression | evaluate both sides of `&&` or `\|\|` |
@@ -193,13 +193,13 @@ On `if`, `@[hot]` makes the false branch cold; `@[cold]` makes the true branch c
 ## Counted loop
 
 ```cpl
-@[counter(10)]
-loop {
-    putc('x');
-}
-```
+@[counter(10)] loop putc('x');
+@[counter(10, 1)] loop putc('x');
 
-The counter value must be constant.
+i32 a = 10;
+i32 b = 0;
+@[counter(a, b)] loop putc('x');
+```
 
 ## Logical evaluation
 

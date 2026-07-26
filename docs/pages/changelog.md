@@ -3,6 +3,17 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## For-like loops via annotations
+<div class="change-date">Date: 2026-07-26</div>
+Now loops accept a start variable, step variable (as an alternative for integers) in the counter annotation:
+
+```cpl
+@[counter(10, 1)] loop {}
+
+i32 a; i32 b;
+@[counter(a, b)] loop {}
+```
+
 ## String size cap
 <div class="change-date">Date: 2026-07-23</div>
 Strings now track the provided size. If a user provided the '0' size, it will allocate enougth space for the entire string. Otherwise it will cut the string:

@@ -4,6 +4,7 @@
 #include <std/mm.h>
 #include <std/str.h>
 #include <std/stack.h>
+#include <symtab/symtab_id.h>
 
 #define ENTRY_ANNOTATION_COMMAND "entry"
 #define ALIGN_ANNOTATION_COMMAND "align"
@@ -36,36 +37,61 @@
 #define SOFT_YES_INLINE          3
 #define MODEL_INLINE             4
 
+typedef enum {
+    ANNOTATION_VALUE_PARAM,
+    ANNOTATION_VARIABLE_PARAM
+} annotation_param_type_t;
+
 typedef struct {
-    string_t* string;
-    long      value;
+    string_t*               string;
+    union {
+        long                value;
+        symbol_id_t         v_id;
+    };
+    annotation_param_type_t t;
+    char                    filled : 1;
 } annotation_param_t;
 
 typedef struct {
-    string_t* section;
-    int       salign;    /* Section's align */
-    string_t* fname;
-    int       do_inline; /* 1 - strongly yes, 2 - strongly no, 3 - increase inline chance */
-    int       align;
-    long      address;
-    long      counter;
-    short     reg;
-    char      is_vname    : 1;
-    char      is_nosec    : 1;
-    char      is_naked    : 1;
-    char      is_entry    : 1;
-    char      is_nofall   : 1;
-    char      is_notlazy  : 1;
-    char      is_straight : 1;
-    char      is_hot      : 1;
-    char      is_cold     : 1;
-    char      is_argpop   : 1;
-    char      is_self     : 1;
-    char      is_like_c   : 1;
-    char      is_union    : 1;
-    char      is_weak     : 1;
-    char      is_abi      : 1;
-    char      is_onlybody : 1;
+    union {
+        long                value;
+        symbol_id_t         v_id;
+    } index;
+    annotation_param_type_t idx_t;
+    union {
+        long                value;
+        symbol_id_t         v_id;
+    } step;
+    annotation_param_type_t stp_t;
+    char                    has_index : 1;
+    char                    has_step  : 1;
+} annotation_counter_t;
+
+typedef struct {
+    string_t*            section;
+    int                  salign;    /* Section's align */
+    string_t*            fname;
+    int                  do_inline; /* 1 - strongly yes, 2 - strongly no, 3 - increase inline chance */
+    int                  align;
+    long                 address;
+    annotation_counter_t counter;
+    short                reg;
+    char                 is_vname    : 1;
+    char                 is_nosec    : 1;
+    char                 is_naked    : 1;
+    char                 is_entry    : 1;
+    char                 is_nofall   : 1;
+    char                 is_notlazy  : 1;
+    char                 is_straight : 1;
+    char                 is_hot      : 1;
+    char                 is_cold     : 1;
+    char                 is_argpop   : 1;
+    char                 is_self     : 1;
+    char                 is_like_c   : 1;
+    char                 is_union    : 1;
+    char                 is_weak     : 1;
+    char                 is_abi      : 1;
+    char                 is_onlybody : 1;
 } annotations_summary_t;
 
 typedef enum {
@@ -95,18 +121,18 @@ typedef enum {
 } annotation_type_t;
 
 typedef struct {
-    annotation_type_t t;
+    annotation_type_t        t;
     union {
-        int           align;      /* ALIGN_ANNOTATION     */
-        string_t*     fname;      /* ENTRY_ANNOTATION     */
+        int                  align;      /* ALIGN_ANNOTATION     */
+        string_t*            fname;      /* ENTRY_ANNOTATION     */
         struct {
-            string_t* section;
-            int       align;
-        } section;                /* SECTION_ANNOTATION   */
-        string_t*     inline_opt; /* INLINE_ANNOTATION    */
-        long          address;    /* ADDRESS_ANNOTATION   */
-        long          counter;    /* COUNTER_ANNOTATION   */
-        short         regval;     /* REGISTER_ANNOTATION  */
+            string_t*        section;
+            int              align;
+        } section;                       /* SECTION_ANNOTATION   */
+        string_t*            inline_opt; /* INLINE_ANNOTATION    */
+        long                 address;    /* ADDRESS_ANNOTATION   */
+        annotation_counter_t counter;    /* COUNTER_ANNOTATION   */
+        short                regval;     /* REGISTER_ANNOTATION  */
     } data;
 } annotation_t;
 

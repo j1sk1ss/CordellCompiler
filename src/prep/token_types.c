@@ -262,6 +262,7 @@ int TKN_is_variable(token_t* token) {
     if (!token) return 0;
     switch (token->t_type) {
         case GENERIC_VARIABLE_TOKEN:
+        case CUSTOM_VARIABLE_TOKEN:
         case VARIABLE_TOKEN:
         case ARR_VARIABLE_TOKEN:
         case F64_VARIABLE_TOKEN:

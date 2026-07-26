@@ -7,15 +7,38 @@ annotation_t* ANNOT_create_annotation(annotation_type_t t, annotation_param_t* f
     annot->t = t;
     switch (t) {
         case ADDRESS_ANNOTATION:   annot->data.address = fp->value;                                       break;
-        case COUNTER_ANNOTATION:   annot->data.counter = fp->value;                                       break;
         case ALIGN_ANNOTATION:     annot->data.align = (int)fp->value;                                    break;
         case REGISTER_ANNOTATION:  annot->data.regval = (short)fp->value;                                 break;
         case VNAME_ANNOTATION:
         case ENTRY_ANNOTATION:     if (fp->string) annot->data.fname = fp->string->copy(fp->string);      break;
         case INLINE_ANNOTATION:    if (fp->string) annot->data.inline_opt = fp->string->copy(fp->string); break;
+        case COUNTER_ANNOTATION: {
+            if (fp && fp->filled) {
+                annot->data.counter.has_index = 1;
+                annot->data.counter.idx_t     = fp->t;
+                switch (fp->t) {
+                    case ANNOTATION_VARIABLE_PARAM: annot->data.counter.index.v_id  = fp->v_id;  break;
+                    case ANNOTATION_VALUE_PARAM:    annot->data.counter.index.value = fp->value; break;
+                    default: break;
+                }
+            }
+
+            if (sp && sp->filled) {
+                annot->data.counter.has_step = 1;
+                annot->data.counter.stp_t    = sp->t;
+                switch (sp->t) {
+                    case ANNOTATION_VARIABLE_PARAM: annot->data.counter.step.v_id  = sp->v_id;  break;
+                    case ANNOTATION_VALUE_PARAM:    annot->data.counter.step.value = sp->value; break;
+                    default: break;
+                }
+            }
+
+            break;
+        }
         case SECTION_ANNOTATION: {
-            annot->data.section.section = fp->string->copy(fp->string);
-            annot->data.section.align   = (int)sp->value;
+            annot->data.section.align = FIELD_NO_CHANGE;
+            if (fp->filled) annot->data.section.section = fp->string->copy(fp->string);
+            if (sp->filled) annot->data.section.align   = (int)sp->value;
             break;
         }
         default: break;
@@ -68,8 +91,8 @@ _set_vname: {}
             case ABI_ANNOTATION:       summary->is_abi      = 1;                   break;
             case ONLYBODY_ANNOTATION:  summary->is_onlybody = 1;                   break;
             case REGISTER_ANNOTATION:  summary->reg         = annot->data.regval;  break;
-            case COUNTER_ANNOTATION:   summary->counter     = annot->data.counter; break;
             case ADDRESS_ANNOTATION:   summary->address     = annot->data.address; break;
+            case COUNTER_ANNOTATION:   summary->counter     = annot->data.counter; break;
             default: break;
         }
 

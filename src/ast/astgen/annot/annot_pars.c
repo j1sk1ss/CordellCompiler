@@ -19,22 +19,50 @@ static int _extract_params_from_brackets(list_iter_t* it, token_t** first, token
     return 1;
 }
 
-#define PACK_PARAM(t, box) \
-    (box)->string = t ? t->body : NULL; \
-    (box)->value  = t ? t->body->to_llong(t->body) : FIELD_NO_CHANGE;
-#define ADD_ANNOTATION_HANDLER(n, t)               \
-    if (raw_annot->requals(raw_annot, n)) {        \
-        return ANNOT_create_annotation(t, &a, &b); \
+static void _pack_param(token_t* tkn, ast_ctx_t* ctx, sym_table_t* smt, int allow_variable, annotation_param_t* box) {
+    str_memset(box, 0, sizeof(annotation_param_t));
+    box->value = FIELD_NO_CHANGE;
+    box->t     = ANNOTATION_VALUE_PARAM;
+    if (!tkn) return;
+
+    box->filled = 1;
+    if (allow_variable) {
+        token_t* lookup_tkn = TKN_copy_token(tkn);
+        ast_node_t tmp;
+        str_memset(&tmp, 0, sizeof(ast_node_t));
+
+        tmp.t          = lookup_tkn;
+        tmp.sinfo.s_id = NO_SYMBOL_ID;
+        tmp.sinfo.v_id = NO_SYMBOL_ID;
+        tmp.sinfo.t_id = NO_SYMBOL_ID;
+
+        if (var_lookup(&tmp, ctx, smt) && TKN_is_variable(lookup_tkn) && tmp.sinfo.v_id != NO_SYMBOL_ID) {
+            box->t    = ANNOTATION_VARIABLE_PARAM;
+            box->v_id = tmp.sinfo.v_id;
+            TKN_unload_token(lookup_tkn);
+            return;
+        }
+
+        TKN_unload_token(lookup_tkn);
     }
-static annotation_t* _parse_annotation_content(list_iter_t* it) {
+
+    box->string = tkn->body;
+    box->value  = tkn->body ? tkn->body->to_llong(tkn->body) : FIELD_NO_CHANGE;
+}
+
+#define ADD_ANNOTATION_HANDLER(n, t)                                                \
+    if (raw_annot->requals(raw_annot, n)) {                                         \
+        return ANNOT_create_annotation(t, &a, &b);                                  \
+    }
+static annotation_t* _parse_annotation_content(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     token_t *fp = NULL, *sp = NULL;
     string_t* raw_annot = CURRENT_TOKEN->body;
-
     _extract_params_from_brackets(it, &fp, &sp);
 
     annotation_param_t a, b;
-    PACK_PARAM(fp, &a);
-    PACK_PARAM(sp, &b);
+    int allow_variable = raw_annot->requals(raw_annot, COUNT_ANNOTATION_COMMAND);
+    _pack_param(fp, ctx, smt, allow_variable, &a);
+    _pack_param(sp, ctx, smt, allow_variable, &b);
     
     ADD_ANNOTATION_HANDLER(SECTN_ANNOTATION_COMMAND, SECTION_ANNOTATION);
     ADD_ANNOTATION_HANDLER(NOSEC_ANNOTATION_COMMAND, NOSECTION_ANNOTATION);
@@ -58,10 +86,9 @@ static annotation_t* _parse_annotation_content(list_iter_t* it) {
     ADD_ANNOTATION_HANDLER(ABICC_ANNOTATION_COMMAND, ABI_ANNOTATION);
     ADD_ANNOTATION_HANDLER(BODYO_ANNOTATION_COMMAND, ONLYBODY_ANNOTATION);
     ADD_ANNOTATION_HANDLER(VNAME_ANNOTATION_COMMAND, VNAME_ANNOTATION);
-    return ANNOT_create_annotation(UNKNOWN_ANNOTATION, NULL, FIELD_NO_CHANGE);
+    return ANNOT_create_annotation(UNKNOWN_ANNOTATION, NULL, NULL);
 }
 #undef ADD_ANNOTATION_HANDLER
-#undef PACK_PARAM
 
 ast_node_t* cpl_parse_annot(PARSER_ARGS) {
     PARSER_ARGS_USE;
@@ -79,7 +106,7 @@ ast_node_t* cpl_parse_annot(PARSER_ARGS) {
         return NULL;
     }
 
-    annotation_t* annot = _parse_annotation_content(it);
+    annotation_t* annot = _parse_annotation_content(it, ctx, smt);
     if (annot) stack_push(&ctx->annots, annot);
     else {
         PARSE_ERROR("Annotation parse error!");
