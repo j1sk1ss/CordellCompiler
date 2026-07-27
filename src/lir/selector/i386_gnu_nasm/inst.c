@@ -309,7 +309,7 @@ int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
         func_info_t fi;
         if (!FNTB_get_info_id(fb->f_id, &fi, &smt->f)) continue;
 
-        lir_translate_ctx_t ctx;
+        lir_translate_ctx_t ctx = { 0 };
         queue_t dirty_regs;
         queue_init(&dirty_regs);
 
