@@ -1,12 +1,5 @@
 #include <lir/selector/i386_gnu_nasm.h>
 
-static inline void _collect_default_call_reg_usage(set_t* dirty) {
-    lir_registers_t dirty_regs[] = { EBX, ECX, EDX, ESI, EDI, EBP };
-    for (int i = 0; i < (int)(sizeof(dirty_regs) / sizeof(RBX)); i++) {
-        set_add(dirty, (void*)dirty_regs[i]);
-    }
-}
-
 /* Collect used registers in the provided function.
 Params:
     - `dirty` - Output set of used registers.
@@ -17,7 +10,6 @@ Params:
 Returns 1 on success, otherwise 0. */
 static void _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f, symbol_id_t f_id, sym_table_t* smt) {
     if (!f) {
-_unknown_call: {}
         func_info_t fi;
         if (FNTB_get_info_id(f_id, &fi, &smt->f)) {
             // if (fi.flags.external && fi.flags.abi) {
@@ -27,10 +19,14 @@ _unknown_call: {}
             //     }
             // } TODO
             // else {
-                _collect_default_call_reg_usage(dirty);
+_unknown_call: {}
+                lir_registers_t dirty_regs[] = { EBX, ECX, EDX, ESI, EDI, EBP };
+                for (int i = 0; i < (int)(sizeof(dirty_regs) / sizeof(RBX)); i++) {
+                    set_add(dirty, (void*)dirty_regs[i]);
+                }
             // }
         }
-        else _collect_default_call_reg_usage(dirty);
+        else goto _unknown_call;
     }
     else {
         foreach (cfg_block_t* bb, &f->blocks) {
