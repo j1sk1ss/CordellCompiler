@@ -67,13 +67,13 @@ container http_sockaddr_in {
 @[vname("_inet_addr")] @[abi] extern function c_inet_addr(ptr i8 cp) -> u32;
 #endif
 #ifndef CCPL_MACHO64
-@[abi] extern function c_socket(i32 domain, i32 type, i32 protocol) -> i32;
-@[abi] extern function c_bind(i32 fd, ptr i0 addr, i32 addr_len) -> i32;
-@[abi] extern function c_listen(i32 fd, i32 backlog) -> i32;
-@[abi] extern function c_accept(i32 fd, ptr i0 addr, ptr i0 addr_len) -> i32;
-@[abi] extern function c_setsockopt(i32 fd, i32 level, i32 optname, ptr i0 optval, u32 optlen) -> i32;
-@[abi] extern function c_htons(u16 value) -> u16;
-@[abi] extern function c_inet_addr(ptr i8 cp) -> u32;
+@[vname("socket")] @[abi] extern function c_socket(i32 domain, i32 type, i32 protocol) -> i32;
+@[vname("bind")] @[abi] extern function c_bind(i32 fd, ptr i0 addr, i32 addr_len) -> i32;
+@[vname("listen")] @[abi] extern function c_listen(i32 fd, i32 backlog) -> i32;
+@[vname("accept")] @[abi] extern function c_accept(i32 fd, ptr i0 addr, ptr i0 addr_len) -> i32;
+@[vname("setsockopt")] @[abi] extern function c_setsockopt(i32 fd, i32 level, i32 optname, ptr i0 optval, u32 optlen) -> i32;
+@[vname("htons")] @[abi] extern function c_htons(u16 value) -> u16;
+@[vname("inet_addr")] @[abi] extern function c_inet_addr(ptr i8 cp) -> u32;
 #endif
 
 :/ Parsed HTTP request data.
