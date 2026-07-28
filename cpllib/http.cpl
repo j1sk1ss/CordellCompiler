@@ -38,6 +38,7 @@ function _http_content_type(ptr i8 path) -> ptr i8 {
     if not strcmp(dot, ref ".css");  return ref "text/css; charset=utf-8";
     if not strcmp(dot, ref ".js");   return ref "application/javascript; charset=utf-8";
     if not strcmp(dot, ref ".json"); return ref "application/json; charset=utf-8";
+    if not strcmp(dot, ref ".md");   return ref "text/markdown; charset=utf-8";
     if not strcmp(dot, ref ".txt");  return ref "text/plain; charset=utf-8";
     if not strcmp(dot, ref ".svg");  return ref "image/svg+xml";
     if not strcmp(dot, ref ".png");  return ref "image/png";

@@ -33,6 +33,8 @@ package-lock.json
 
 # Documentation
 /docs/gifs/
+/docs/back/.build/
+/docs/back/cpl_docs_backend
 
 # LaTeX auxiliary files
 *.aux

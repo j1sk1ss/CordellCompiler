@@ -1,36 +1,49 @@
-CC ?= gcc
-AR ?= ar
-PYTHON ?= python3
-RM ?= rm -f
-MKDIR_P ?= mkdir -p
-INSTALL ?= install
+CC 						?= gcc
+AR 						?= ar
+PYTHON 					?= python3
+RM 						?= rm -f
+MKDIR_P 				?= mkdir -p
+INSTALL 				?= install
 
-PREFIX ?= /usr/local
-DESTDIR ?=
-BINDIR ?= $(PREFIX)/bin
-LIBDIR ?= $(PREFIX)/lib
-DATADIR ?= $(PREFIX)/share
-CPLLIBDIR ?= $(DATADIR)/cpl/include
-CPLRUNTIMEDIR ?= $(LIBDIR)/cpl
-DOCDIR ?= $(DATADIR)/doc/cpl
-VERSION ?= 3.6_X
+PREFIX 					?= /usr/local
+DESTDIR 				?=
+BINDIR 					?= $(PREFIX)/bin
+LIBDIR 					?= $(PREFIX)/lib
+DATADIR 				?= $(PREFIX)/share
+CPLLIBDIR 				?= $(DATADIR)/cpl/include
+CPLRUNTIMEDIR 			?= $(LIBDIR)/cpl
+DOCDIR 					?= $(DATADIR)/doc/cpl
+VERSION 				?= 3.6_X
 
-BUILD ?= debug
-AVAILABLE_MEMORY ?= 67108864
-LOGS ?=
-PRINT_PARSE ?= 1
-ENABLE_Z3 ?= auto
-INPUT ?= examples/print.cpl
-UTEST ?= code_utesting
-STD_UTEST ?= std_utesting
-VSCODE_DOCKER_IMAGE ?= cpl-extension
-VSCODE_OUTPUT_DIR ?= $(CURDIR)/vscode/output
+BUILD 					?= debug
+AVAILABLE_MEMORY 		?= 67108864
+LOGS 					?=
+PRINT_PARSE 			?= 1
+ENABLE_Z3 				?= auto
+INPUT 					?= examples/print.cpl
+UTEST 					?= code_utesting
+STD_UTEST 				?= std_utesting
+VSCODE_DOCKER_IMAGE 	?= cpl-extension
+VSCODE_OUTPUT_DIR 		?= $(CURDIR)/vscode/output
+DOCS_BACKEND_BUILD_DIR 	?= docs/back/.build
+DOCS_BACKEND_PLATFORM 	?= ../$(DOCS_BACKEND_BUILD_DIR)
+DOCS_BACKEND_COMPILER 	?= $(DOCS_BACKEND_BUILD_DIR)/cplc
+DOCS_BACKEND_OUTPUT 	?= docs/back/cpl_docs_backend
 
 UNAME_S ?= $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
-RUN_ARGS ?= --arch x86_64 --sys-type macho64 --asm-format macho64 --linker clang
+	RUN_ARGS ?= 				\
+		--arch x86_64 			\
+		--sys-type macho64 		\
+		--asm-format macho64 	\
+		--linker clang
 else
-RUN_ARGS ?= --arch x86_64 --sys-type linux64 --asm-format elf64 --linker gcc --linker-no-pie
+	RUN_ARGS ?= 				\
+		--arch x86_64 			\
+		--sys-type linux64 		\
+		--asm-format elf64 		\
+		--linker gcc 			\
+		--linker-no-pie 
 endif
 
 Z3_AVAILABLE := $(shell pkg-config --exists z3 2>/dev/null && echo 1 || echo 0)
@@ -53,18 +66,18 @@ endif
 
 PLATFORM ?= $(shell uname -s | tr '[:upper:]' '[:lower:]')-$(shell uname -m | tr '[:upper:]' '[:lower:]')
 
-SOURCES := $(sort $(shell find src std -type f -name '*.c'))
-OUTPUT = builds/$(PLATFORM)/cplc
-CPLLIB_IMPLS := $(sort $(shell find cpllib -type f -name '*.cpl' ! -name '*_h.cpl'))
+SOURCES 		:= $(sort $(shell find src std -type f -name '*.c'))
+OUTPUT 			= builds/$(PLATFORM)/cplc
+CPLLIB_IMPLS 	:= $(sort $(shell find cpllib -type f -name '*.cpl' ! -name '*_h.cpl'))
 CPLLIB_BUILDDIR := builds/$(PLATFORM)/cpllib
-CPLLIB_OBJDIR := $(CPLLIB_BUILDDIR)/obj
-CPLLIB_OBJS := $(patsubst cpllib/%.cpl,$(CPLLIB_OBJDIR)/%.o,$(CPLLIB_IMPLS))
-CPLLIB_ARCHIVE := $(CPLLIB_BUILDDIR)/libcpl.a
+CPLLIB_OBJDIR   := $(CPLLIB_BUILDDIR)/obj
+CPLLIB_OBJS     := $(patsubst cpllib/%.cpl,$(CPLLIB_OBJDIR)/%.o,$(CPLLIB_IMPLS))
+CPLLIB_ARCHIVE  := $(CPLLIB_BUILDDIR)/libcpl.a
 
-CPPFLAGS += -Iinclude -DALLOC_BUFFER_SIZE=$(AVAILABLE_MEMORY) -DCPL_DEFAULT_INCLUDE_DIR=\"$(CPLLIBDIR)\" -DCPL_DEFAULT_RUNTIME_LIB=\"$(CPLRUNTIMEDIR)/libcpl.a\"
-CFLAGS += -Wall -Wno-int-conversion
-LDFLAGS +=
-LDLIBS +=
+CPPFLAGS 		+= -Iinclude -DALLOC_BUFFER_SIZE=$(AVAILABLE_MEMORY) -DCPL_DEFAULT_INCLUDE_DIR=\"$(CPLLIBDIR)\" -DCPL_DEFAULT_RUNTIME_LIB=\"$(CPLRUNTIMEDIR)/libcpl.a\"
+CFLAGS   		+= -Wall -Wno-int-conversion
+LDFLAGS  		+=
+LDLIBS   		+=
 
 ifeq ($(BUILD),debug)
 	CFLAGS += -g -O0
@@ -131,6 +144,13 @@ $(CPLLIB_ARCHIVE): $(CPLLIB_OBJS)
 	$(AR) rcs $@ $^
 
 cpllib: $(CPLLIB_ARCHIVE) ## Build the CPL runtime static library.
+
+docs-backend: ## Build the CPL HTTP backend for the docs Playground.
+	$(MAKE) PLATFORM=$(DOCS_BACKEND_PLATFORM) BUILD=$(BUILD) PRINT_PARSE=$(PRINT_PARSE) ENABLE_Z3=$(ENABLE_Z3) all cpllib
+	$(DOCS_BACKEND_COMPILER) $(RUN_ARGS) docs/back/main.cpl --output $(DOCS_BACKEND_OUTPUT)
+
+docs-backend-run: docs-backend ## Build and run the CPL docs backend on 127.0.0.1:8000.
+	./$(DOCS_BACKEND_OUTPUT)
 
 debug: ## Build a debug compiler.
 	$(MAKE) BUILD=debug all
