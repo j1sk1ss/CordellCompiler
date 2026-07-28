@@ -130,6 +130,7 @@ int HIRWLK_walk(cfg_ctx_t* cctx, hir_walker_t* ctx) {
     if (!ctx) return 0;
     ctx->vctx.z3 = Z3A_create(cctx, ctx->smt);
     int result   = _cfg_walk(cctx, ctx);
+    HIR_CFG_cleanup_navigation(cctx);
     Z3A_unload(ctx->vctx.z3);
     ctx->vctx.z3 = NULL;
     return result;

@@ -12,16 +12,11 @@
 #define CPL_RUNNER_PATH_LIMIT     256
 #define CPL_RUNNER_CODE_LIMIT     7000
 
-@[section(".bss")]
-glob http_server server;
-@[section(".bss")]
-glob arr runner_output[CPL_RUNNER_OUTPUT_LIMIT, i8];
-@[section(".bss")]
-glob arr runner_command[CPL_RUNNER_COMMAND_LIMIT, i8];
-@[section(".bss")]
-glob arr runner_source_path[CPL_RUNNER_PATH_LIMIT, i8];
-@[section(".bss")]
-glob arr runner_binary_path[CPL_RUNNER_PATH_LIMIT, i8];
+@[section(".bss")] glob http_server server;
+@[section(".bss")] glob arr runner_output[CPL_RUNNER_OUTPUT_LIMIT, i8];
+@[section(".bss")] glob arr runner_command[CPL_RUNNER_COMMAND_LIMIT, i8];
+@[section(".bss")] glob arr runner_source_path[CPL_RUNNER_PATH_LIMIT, i8];
+@[section(".bss")] glob arr runner_binary_path[CPL_RUNNER_PATH_LIMIT, i8];
 
 function response_write_str(ptr http_response res, ptr i8 text) -> i0 {
     if not text; return;
@@ -33,25 +28,17 @@ function response_write_json_string(ptr http_response res, ptr i8 text) -> i0 {
 
     if text; {
         while dref text; {
-            if dref text == '"' as i8; {
-                response_write_str(res, ref "\\\"");
+            @[straight] @[no_fall]
+            switch dref text; {
+                case '"';  { response_write_str(res, ref "\\\""); }
+                case '\\'; { response_write_str(res, ref "\\\\"); }
+                case '\n'; { response_write_str(res, ref "\\n");  }
+                case '\r'; { response_write_str(res, ref "\\r");  }
+                case '\t'; { response_write_str(res, ref "\\t");  }
+                default    { res.write(text as ptr i0, 1 as u64); }
             }
-            else if dref text == '\\' as i8; {
-                response_write_str(res, ref "\\\\");
-            }
-            else if dref text == '\n' as i8; {
-                response_write_str(res, ref "\\n");
-            }
-            else if dref text == '\r' as i8; {
-                response_write_str(res, ref "\\r");
-            }
-            else if dref text == '\t' as i8; {
-                response_write_str(res, ref "\\t");
-            }
-            else {
-                res.write(text as ptr i0, 1 as u64);
-            }
-            text += 1 as ptr i8;
+            
+            text += 1;
         }
     }
 
