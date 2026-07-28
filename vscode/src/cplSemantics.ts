@@ -2,6 +2,7 @@ import { Range } from "vscode-languageserver/node";
 
 export type MacroValue =
   | { kind: "string"; value: string }
+  | { kind: "char"; value: string }
   | { kind: "number"; value: number }
   | { kind: "raw"; text: string };
 

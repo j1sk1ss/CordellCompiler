@@ -31,6 +31,7 @@ function unescapeCStyle(s: string): string {
     .replace(/\\r/g, "\r")
     .replace(/\\0/g, "\0")
     .replace(/\\"/g, "\"")
+    .replace(/\\'/g, "'")
     .replace(/\\\\/g, "\\");
 }
 
@@ -39,6 +40,9 @@ function parseMacroValue(raw: string): MacroValue {
 
   if (t.length >= 2 && t.startsWith('"') && t.endsWith('"')) {
     return { kind: "string", value: unescapeCStyle(t.slice(1, -1)) };
+  }
+  if (t.length >= 2 && t.startsWith("'") && t.endsWith("'")) {
+    return { kind: "char", value: unescapeCStyle(t.slice(1, -1)) };
   }
   if (/^-?0x[0-9a-fA-F]+$/.test(t)) return { kind: "number", value: Number.parseInt(t, 16) };
   if (/^-?\d+$/.test(t)) return { kind: "number", value: Number.parseInt(t, 10) };
@@ -184,9 +188,7 @@ const KEYWORDS = new Set([
   "if","else","while","loop","switch","case","default",
   "glob","ro","dref","ref","ptr","lis","break","extern","from","import","syscall","asm","as",
   "f64","f32","i64","i32","i16","i8","u64","u32","u16","u8","i0","str","arr","not","neg","poparg","sizeof",
-  "section","align",
-  // preprocessor
-  "line","include","define","undef","ifdef","ifndef","endif"
+  "section","align"
 ]);
 
 const TYPE_KW = new Set([
@@ -925,10 +927,10 @@ class Parser {
     }
 
     const name = this.cur();
-    const isKw = name.kind === "kw";
-    const dir = isKw ? name.text : "";
+    const isDirectiveName = name.kind === "kw" || name.kind === "ident";
+    const dir = isDirectiveName ? name.text : "";
 
-    if (!isKw) {
+    if (!isDirectiveName) {
       this.issues.push({
         message: "pp_directive: expected directive name",
         range: rangeOf(this.lines, name.start, name.end)
@@ -1077,7 +1079,7 @@ class Parser {
         const dirIndex = this.nextRawNonEolIndex(j + 1);
         const dirTok = this.t[dirIndex];
 
-        if (dirTok?.kind === "kw") {
+        if (dirTok?.kind === "kw" || dirTok?.kind === "ident") {
           if (dirTok.text === "ifdef" || dirTok.text === "ifndef") {
             depth++;
           } else if (dirTok.text === "endif") {
@@ -2184,6 +2186,15 @@ class Parser {
     if (this.match("float")) return;
     if (this.match("str")) return;
     if (this.match("char")) return;
+    if (this.at("ident")) {
+      const tok = this.cur();
+      const macro = this.sem?.macros.get(tok.text);
+      if (macro && macro.value.kind !== "raw") {
+        this.sem?.useMacro(tok.text, rangeOf(this.lines, tok.start, tok.end));
+        this.i++;
+        return;
+      }
+    }
 
     const c = this.cur();
     this.issues.push({ message: `Expected literal, got '${c.text}'`, range: rangeOf(this.lines, c.start, c.end) });

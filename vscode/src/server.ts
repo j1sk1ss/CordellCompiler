@@ -265,6 +265,16 @@ function inRange(pos: Position, r: { start: Position; end: Position }) {
   return true;
 }
 
+function quoteCplChar(value: string): string {
+  return `'${value
+    .replace(/\\/g, "\\\\")
+    .replace(/'/g, "\\'")
+    .replace(/\n/g, "\\n")
+    .replace(/\t/g, "\\t")
+    .replace(/\r/g, "\\r")
+    .replace(/\0/g, "\\0")}'`;
+}
+
 function sameFsPath(a?: string, b?: string): boolean {
   if (!a || !b) return false;
   return path.normalize(a) === path.normalize(b);
@@ -680,6 +690,7 @@ sizeof(${formatType(sz.targetType)}) = ${computed}
     if (ms) {
       const v =
         ms.value.kind === "string" ? JSON.stringify(ms.value.value) :
+        ms.value.kind === "char" ? quoteCplChar(ms.value.value) :
         ms.value.kind === "number" ? String(ms.value.value) :
         ms.value.text;
 
