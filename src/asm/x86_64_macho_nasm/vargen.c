@@ -112,7 +112,9 @@ const char* x86_64_macho_nasm_format_lir_subject(lir_subject_t* v, sym_table_t* 
             variable_info_t vi;
             if (VRTB_get_info_id(v->storage.var.v_id, &vi, &smt->v)) {
                 if (vi.vfs.glob) {
-                    snprintf(buffer, sizeof(_buffers[0]), "%s[rel %s]", _get_mem_modifier(v->size), vi.name->body);
+                    const char* extern_modifier = "";
+                    if (vi.vfs.ext) extern_modifier = " wrt ..gotpcrel";
+                    snprintf(buffer, sizeof(_buffers[0]), "%s[rel %s%s]", _get_mem_modifier(v->size), vi.name->body, extern_modifier);
                     return buffer;
                 }
 
