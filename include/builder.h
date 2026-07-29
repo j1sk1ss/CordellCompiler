@@ -1,7 +1,7 @@
 #ifndef BUILDER_H_
 #define BUILDER_H_
 
-/* Base libs for STDIO with CLI and files */
+/* Base libs for STDIO with CLI and files        */
 #include <errno.h>
 #include <sys/wait.h>
 #include <stdio.h>
@@ -10,15 +10,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-/* basics */
+/* basics                                        */
 #include <std/list.h>
 
-/* Pre-processor part and tokenization part */
+/* Pre-processor part and tokenization part      */
 #include <preproc/pp.h>
 #include <prep/token.h>
 #include <prep/markup.h>
 
-/* Semantic (Static analyzer) setup */
+/* Semantic (Static analyzer) setup              */
 #include <sem/semantic.h>
 
 /* AST generation part and AST optimization part */
@@ -26,30 +26,30 @@
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
 
-/* HIR generation part and CFG generation part */
+/* HIR generation part and CFG generation part   */
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
 #include <hir/cfg.h>
 
-/* SSA + constant fold / propagation + TRE + inline + LICM */
+/* SSA + const fold / prop + TRE + inline + LICM */
 #include <hir/ssa.h>
 #include <hir/dag.h>
 #include <hir/constfold.h>
 #include <hir/func.h>
 #include <hir/loop.h>
 
-/* HLIR generation */
+/* HLIR generation                               */
 #include <lir/lirgen.h>
 #include <lir/lirgens/lirgens.h>
 #include <lir/dump.h>
 
-/* HLIR copy prop */
+/* HLIR copy prop                                */
 #include <lir/copyprop.h>
 
-/* HLIR constfold part */
+/* HLIR constfold part                           */
 #include <lir/constfold.h>
 
-/* From HLIR to LLIR (now we're arch dependent) */
+/* From HLIR to LLIR (now we're arch dependent)  */
 #include <lir/selector/instsel.h>
 #include <lir/selector/memsel.h>
 #include <lir/selector/savereg.h>
@@ -57,22 +57,22 @@
 #include <lir/selector/i386_gnu_nasm.h>
 #include <lir/selector/x86_64_macho_nasm.h>
 
-/* Instruction scheduling */
+/* Instruction scheduling                        */
 #include <lir/instplan/targinfo.h>
 #include <lir/instplan/instplan.h>
 
-/* Liveness analysis + Register allocation */
+/* Liveness analysis + Register allocation       */
 #include <lir/dfg.h>
 #include <lir/regalloc/ra.h>
 #include <lir/regalloc/i386_gnu_precolor.h>
 #include <lir/regalloc/x86_64_gnu_precolor.h>
 #include <lir/regalloc/regalloc.h>
 
-/* Peephole optimization */
+/* Peephole optimization                         */
 #include <lir/peephole/peephole.h>
 #include <lir/peephole/x86_64_gnu_nasm.h>
 
-/* Codegen */
+/* Codegen                                       */
 #include <asm/asmgen.h>
 #include <asm/x86_64_gnu_nasm_asmgen.h>
 #include <asm/i386_gnu_nasm_asmgen.h>
@@ -82,15 +82,15 @@
 #define CCPL_VERSION                 "3.6.10:2907.26" // major.minor<.sub> (old version style):ddmm.yy (new version style)
 
 #ifndef CPL_DEFAULT_INCLUDE_DIR
-    #define CPL_DEFAULT_INCLUDE_DIR "/usr/local/share/cpl/include"
+    #define CPL_DEFAULT_INCLUDE_DIR  "/usr/local/share/cpl/include"
 #endif
 
 #ifndef CPL_DEFAULT_RUNTIME_LIB
-    #define CPL_DEFAULT_RUNTIME_LIB "/usr/local/lib/cpl/libcpl.a"
+    #define CPL_DEFAULT_RUNTIME_LIB  "/usr/local/lib/cpl/libcpl.a"
 #endif
 
 #ifndef PATH_MAX
-    #define PATH_MAX 4096
+    #define PATH_MAX                 4096
 #endif
 
 #define OPTION_HELP_SHORT            "-h"
