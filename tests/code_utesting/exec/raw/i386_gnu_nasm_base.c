@@ -59,7 +59,7 @@ int main(int argc, char* argv[]) {
             .e_bytness = 1
         }
     };
-    CONF_set_config(&cfg);
+    CONF_set_config(cfg);
 
     int fd = open(argv[1], O_RDONLY);
     if (fd < 0) {

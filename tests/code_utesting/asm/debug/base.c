@@ -47,8 +47,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    config_t config = { .compilation_flags.debug = 1 };
-    CONF_set_config(&config);
+    CONF_set_config((config_t){ .compilation_flags.debug = 1 });
 
     finder_ctx_t finctx = { .bpath = argv[2] };
     pp_ctx_t ppctx;

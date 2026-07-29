@@ -21,7 +21,7 @@
 
 int main(int argc, char* argv[]) {
     config_t cfg = { .system.arch_timings = "/Users/nikolaj/Documents/Repositories/CordellCompiler/src/lir/instplan/Ivy_Bridge.trgcpl" };
-    CONF_set_config(&cfg);
+    CONF_set_config(cfg);
 
     if (argc != 3) {
         fprintf(stderr, "Not enough arguments! Expected 3, got %i!\n", argc);

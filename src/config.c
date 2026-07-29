@@ -2,9 +2,8 @@
 
 static config_t _config = { 0 };
 
-int CONF_set_config(config_t* conf) {
-    str_memcpy(&_config, conf, sizeof(config_t));
-    return 1;
+void CONF_set_config(config_t conf) {
+    _config = conf;
 }
 
 config_string_field_t CONF_get_entry_name() {

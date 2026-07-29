@@ -831,11 +831,7 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
     }
 
-    config_t conf = _make_config(&options);
-    if (!CONF_set_config(&conf)) {
-        fprintf(stderr, "Can't initialize compilation config\n");
-        return EXIT_FAILURE;
-    }
+    CONF_set_config(_make_config(&options));
 
     char** object_files = mm_malloc((size_t)options.locations.files_count * sizeof(*object_files));
     if (!object_files && options.locations.files_count > 0) {

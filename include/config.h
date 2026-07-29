@@ -11,9 +11,9 @@ typedef enum {
     WINDOWS64
 } arch_type_t;
 
-typedef const char* config_string_field_t;
-typedef const long  config_int_field_t;
-typedef const char  config_flag_field_t;
+typedef char* config_string_field_t;
+typedef long  config_int_field_t;
+typedef char  config_flag_field_t;
 
 typedef struct {
     struct {
@@ -48,7 +48,7 @@ typedef struct {
     } compilation_flags;
 } config_t;
 
-int                   CONF_set_config(config_t* conf);
+void                  CONF_set_config(config_t conf);
 config_string_field_t CONF_get_entry_name();
 config_string_field_t CONF_get_ro_section();
 config_string_field_t CONF_get_glob_section();

@@ -79,7 +79,7 @@
 #include <asm/x86_64_macho_nasm_asmgen.h>
 
 #include <gem_data.h>
-#define CCPL_VERSION                 "3.6.10:2907.26" // major.minor<.sub> (old version style):ddmm.yy (new version style)
+#define CCPL_VERSION                 "3.6.11:2907.26" // major.minor<.patch> (old version style):ddmm.yy (new version style)
 
 #ifndef CPL_DEFAULT_INCLUDE_DIR
     #define CPL_DEFAULT_INCLUDE_DIR  "/usr/local/share/cpl/include"
@@ -171,10 +171,10 @@ typedef enum {
 typedef struct {
     build_mode_t     build_mode;
     struct {
-        const char*  include;
-        const char*  stdlib;
-        const char*  runtime;
-        const char** files;
+        char*        include;
+        char*        stdlib;
+        char*        runtime;
+        char**       files;
         int          files_count;
         list_t       defines;
         char*        output;
@@ -184,19 +184,19 @@ typedef struct {
         char*        asm_output;
     } locations;
     struct {
-        const char*  asm_compiler;
-        const char*  asm_format;
-        const char*  linker;
+        char*        asm_compiler;
+        char*        asm_format;
+        char*        linker;
         list_t       linker_args;
         int          linker_use_c_driver;
         int          linker_no_pie;
         int          linker_m32;
     } tools;
     struct {
-        const char*  entry_name;
-        const char*  ro_section;
-        const char*  glob_section;
-        const char*  code_section;
+        char*        entry_name;
+        char*        ro_section;
+        char*        glob_section;
+        char*        code_section;
         long         full_bytness;
         long         half_bytness;
         long         quart_bytness;
