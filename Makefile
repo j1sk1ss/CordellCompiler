@@ -23,8 +23,11 @@ ENABLE_Z3 				?= auto
 INPUT 					?= examples/print.cpl
 UTEST 					?= code_utesting
 STD_UTEST 				?= std_utesting
+CPLLIB_SRC_DIR 		?= cpllib
+VSCODE_DIR 				?= vscode
 VSCODE_DOCKER_IMAGE 	?= cpl-extension
-VSCODE_OUTPUT_DIR 		?= $(CURDIR)/vscode/output
+VSCODE_ABS_DIR 		:= $(abspath $(VSCODE_DIR))
+VSCODE_OUTPUT_DIR 		?= $(VSCODE_ABS_DIR)/output
 DOCS_BACKEND_BUILD_DIR 	?= docs/back/.build
 DOCS_BACKEND_PLATFORM 	?= ../$(DOCS_BACKEND_BUILD_DIR)
 DOCS_BACKEND_COMPILER 	?= $(DOCS_BACKEND_BUILD_DIR)/cplc
@@ -68,10 +71,11 @@ PLATFORM ?= $(shell uname -s | tr '[:upper:]' '[:lower:]')-$(shell uname -m | tr
 
 SOURCES 		:= $(sort $(shell find src std -type f -name '*.c'))
 OUTPUT 			= builds/$(PLATFORM)/cplc
-CPLLIB_IMPLS 	:= $(sort $(shell find cpllib -type f -name '*.cpl' ! -name '*_h.cpl'))
+CPLLIB_SOURCES  := $(sort $(shell if [ -d "$(CPLLIB_SRC_DIR)" ]; then find "$(CPLLIB_SRC_DIR)" -maxdepth 1 -type f -name '*.cpl'; fi))
+CPLLIB_IMPLS 	:= $(sort $(shell if [ -d "$(CPLLIB_SRC_DIR)" ]; then find "$(CPLLIB_SRC_DIR)" -type f -name '*.cpl' ! -name '*_h.cpl'; fi))
 CPLLIB_BUILDDIR := builds/$(PLATFORM)/cpllib
 CPLLIB_OBJDIR   := $(CPLLIB_BUILDDIR)/obj
-CPLLIB_OBJS     := $(patsubst cpllib/%.cpl,$(CPLLIB_OBJDIR)/%.o,$(CPLLIB_IMPLS))
+CPLLIB_OBJS     := $(patsubst $(CPLLIB_SRC_DIR)/%.cpl,$(CPLLIB_OBJDIR)/%.o,$(CPLLIB_IMPLS))
 CPLLIB_ARCHIVE  := $(CPLLIB_BUILDDIR)/libcpl.a
 
 CPPFLAGS 		+= -Iinclude -DALLOC_BUFFER_SIZE=$(AVAILABLE_MEMORY) -DCPL_DEFAULT_INCLUDE_DIR=\"$(CPLLIBDIR)\" -DCPL_DEFAULT_RUNTIME_LIB=\"$(CPLRUNTIMEDIR)/libcpl.a\"
@@ -130,15 +134,29 @@ endif
 
 all: $(OUTPUT) ## Build the compiler with the current configuration.
 
+check-cpllib-src:
+	@if [ ! -d "$(CPLLIB_SRC_DIR)" ] || [ -z "$$(find "$(CPLLIB_SRC_DIR)" -maxdepth 1 -type f -name '*.cpl' -print -quit 2>/dev/null)" ]; then \
+		echo "error: CPL library source directory '$(CPLLIB_SRC_DIR)' is missing or empty."; \
+		echo "       If it is a submodule, run: git submodule update --init --recursive $(CPLLIB_SRC_DIR)"; \
+		exit 1; \
+	fi
+
+check-vscode-src:
+	@if [ ! -f "$(VSCODE_DIR)/package.json" ] || [ ! -f "$(VSCODE_DIR)/Dockerfile" ]; then \
+		echo "error: VS Code extension directory '$(VSCODE_DIR)' is missing or incomplete."; \
+		echo "       If it is a submodule, run: git submodule update --init --recursive $(VSCODE_DIR)"; \
+		exit 1; \
+	fi
+
 $(OUTPUT): $(SOURCES)
 	@$(MKDIR_P) $(dir $@)
 	$(CC) $(CPPFLAGS) $(CFLAGS) $(SOURCES) -o $@ $(LDFLAGS) $(LDLIBS)
 
-$(CPLLIB_OBJDIR)/%.o: cpllib/%.cpl $(OUTPUT)
+$(CPLLIB_OBJDIR)/%.o: $(CPLLIB_SRC_DIR)/%.cpl $(OUTPUT) | check-cpllib-src
 	@$(MKDIR_P) $(dir $@)
 	$(OUTPUT) $(RUN_ARGS) -c --output $@ $<
 
-$(CPLLIB_ARCHIVE): $(CPLLIB_OBJS)
+$(CPLLIB_ARCHIVE): $(CPLLIB_OBJS) | check-cpllib-src
 	@$(MKDIR_P) $(dir $@)
 	$(RM) $@
 	$(AR) rcs $@ $^
@@ -146,7 +164,7 @@ $(CPLLIB_ARCHIVE): $(CPLLIB_OBJS)
 cpllib: $(CPLLIB_ARCHIVE) ## Build the CPL runtime static library.
 
 docs-backend: ## Build the CPL HTTP backend for the docs Playground.
-	$(MAKE) PLATFORM=$(DOCS_BACKEND_PLATFORM) BUILD=$(BUILD) PRINT_PARSE=$(PRINT_PARSE) ENABLE_Z3=$(ENABLE_Z3) all cpllib
+	$(MAKE) PLATFORM=$(DOCS_BACKEND_PLATFORM) BUILD=$(BUILD) PRINT_PARSE=$(PRINT_PARSE) ENABLE_Z3=$(ENABLE_Z3) CPLLIB_SRC_DIR=$(CPLLIB_SRC_DIR) all cpllib
 	$(DOCS_BACKEND_COMPILER) $(RUN_ARGS) docs/back/main.cpl --output $(DOCS_BACKEND_OUTPUT)
 
 docs-backend-run: docs-backend ## Build and run the CPL docs backend on 127.0.0.1:8000.
@@ -158,19 +176,19 @@ debug: ## Build a debug compiler.
 release: ## Build an optimized compiler.
 	$(MAKE) BUILD=release PRINT_PARSE=0 all
 
-install: $(OUTPUT) $(CPLLIB_ARCHIVE) ## Install the compiler and CPL standard library under PREFIX.
+install: $(OUTPUT) $(CPLLIB_ARCHIVE) | check-cpllib-src ## Install the compiler and CPL standard library under PREFIX.
 	$(INSTALL) -d $(DESTDIR)$(BINDIR) $(DESTDIR)$(CPLLIBDIR) $(DESTDIR)$(CPLRUNTIMEDIR) $(DESTDIR)$(DOCDIR)
 	$(INSTALL) -m 0755 $(OUTPUT) $(DESTDIR)$(BINDIR)/cplc
-	$(INSTALL) -m 0644 cpllib/*.cpl $(DESTDIR)$(CPLLIBDIR)/
+	$(INSTALL) -m 0644 $(CPLLIB_SOURCES) $(DESTDIR)$(CPLLIBDIR)/
 	$(INSTALL) -m 0644 $(CPLLIB_ARCHIVE) $(DESTDIR)$(CPLRUNTIMEDIR)/libcpl.a
 	$(INSTALL) -m 0644 LICENSE $(DESTDIR)$(DOCDIR)/
 
-package: ## Build a relocatable binary tarball with the standard library.
-	$(MAKE) BUILD=release PRINT_PARSE=0 -B all cpllib
+package: | check-cpllib-src ## Build a relocatable binary tarball with the standard library.
+	$(MAKE) BUILD=release PRINT_PARSE=0 CPLLIB_SRC_DIR=$(CPLLIB_SRC_DIR) -B all cpllib
 	$(RM) -r builds/package/cpl-$(VERSION)
 	$(INSTALL) -d builds/package/cpl-$(VERSION)/bin builds/package/cpl-$(VERSION)/lib/cpl builds/package/cpl-$(VERSION)/share/cpl/include builds/package/cpl-$(VERSION)/share/doc/cpl
 	$(INSTALL) -m 0755 $(OUTPUT) builds/package/cpl-$(VERSION)/bin/cplc
-	$(INSTALL) -m 0644 cpllib/*.cpl builds/package/cpl-$(VERSION)/share/cpl/include/
+	$(INSTALL) -m 0644 $(CPLLIB_SOURCES) builds/package/cpl-$(VERSION)/share/cpl/include/
 	$(INSTALL) -m 0644 $(CPLLIB_ARCHIVE) builds/package/cpl-$(VERSION)/lib/cpl/libcpl.a
 	$(INSTALL) -m 0644 LICENSE builds/package/cpl-$(VERSION)/share/doc/cpl/
 	tar -C builds/package -czf builds/cpl-$(VERSION)-$(PLATFORM).tar.gz cpl-$(VERSION)
@@ -199,11 +217,14 @@ std-test: ## Run std library tests, e.g. make std-test or make std-test STD_UTES
 		cd tests && $(PYTHON) std_testing.py --path $(STD_UTEST) --compiler $(CC) --output-dir bin --base ../; \
 	fi
 
-vscode-docker-build: ## Build the VS Code extension Docker image.
-	docker build -t $(VSCODE_DOCKER_IMAGE) vscode
+vscode-docker-build: | check-vscode-src ## Build the VS Code extension Docker image.
+	docker build -t $(VSCODE_DOCKER_IMAGE) $(VSCODE_ABS_DIR)
 
-vscode-docker-package: vscode-docker-build ## Build and package the VS Code extension in Docker.
-	docker run --rm -v $(CURDIR)/vscode:/app -v $(VSCODE_OUTPUT_DIR):/output $(VSCODE_DOCKER_IMAGE)
+vscode-docker-package: vscode-docker-build | check-vscode-src ## Build and package the VS Code extension in Docker.
+	docker run --rm -v $(VSCODE_ABS_DIR):/app -v $(VSCODE_OUTPUT_DIR):/output $(VSCODE_DOCKER_IMAGE)
+
+submodules: ## Initialize repository submodules.
+	git submodule update --init --recursive
 
 clean: ## Remove compiler build outputs.
 	$(RM) -r builds
@@ -224,7 +245,9 @@ print-config:
 	@echo "PREFIX=$(PREFIX)"
 	@echo "LIBDIR=$(LIBDIR)"
 	@echo "CPLLIBDIR=$(CPLLIBDIR)"
+	@echo "CPLLIB_SRC_DIR=$(CPLLIB_SRC_DIR)"
 	@echo "CPLRUNTIMEDIR=$(CPLRUNTIMEDIR)"
+	@echo "CPLLIB_SOURCES=$(CPLLIB_SOURCES)"
 	@echo "CPLLIB_IMPLS=$(CPLLIB_IMPLS)"
 	@echo "CPLLIB_ARCHIVE=$(CPLLIB_ARCHIVE)"
 	@echo "CPPFLAGS=$(CPPFLAGS)"
@@ -239,6 +262,7 @@ print-config:
 	@echo "LOGS=$(LOGS)"
 	@echo "INPUT=$(INPUT)"
 	@echo "RUN_ARGS=$(RUN_ARGS)"
+	@echo "VSCODE_DIR=$(VSCODE_DIR)"
 	@echo "VSCODE_DOCKER_IMAGE=$(VSCODE_DOCKER_IMAGE)"
 	@echo "VSCODE_OUTPUT_DIR=$(VSCODE_OUTPUT_DIR)"
 
@@ -246,4 +270,4 @@ help:
 	@awk 'BEGIN {FS = ":.*## "; printf "Usage: make <target> [VAR=value]\n\nTargets:\n"} /^[a-zA-Z0-9_.-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 .DELETE_ON_ERROR:
-.PHONY: all cpllib debug release install package run test unit-test rewrite-test std-test vscode-docker-build vscode-docker-package clean clean-tests distclean print-sources print-config help
+.PHONY: all check-cpllib-src check-vscode-src cpllib debug release install package run test unit-test rewrite-test std-test vscode-docker-build vscode-docker-package submodules clean clean-tests distclean print-sources print-config help

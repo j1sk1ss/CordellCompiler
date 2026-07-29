@@ -9,8 +9,21 @@ make release
 ./builds/$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m)/cplc --version
 ```
 
-The development binary automatically finds the `cpllib` directory in the
-repository.
+The development binary automatically finds the `cpllib` submodule directory in
+the repository.
+
+Clone with submodules, or initialize them after cloning:
+
+```bash
+git clone --recurse-submodules https://github.com/j1sk1ss/CordellCompiler.git
+git submodule update --init --recursive
+```
+
+The root `Makefile` also exposes this as:
+
+```bash
+make submodules
+```
 
 ## Build the standard library from the Makefile
 
@@ -20,8 +33,8 @@ The root `Makefile` has a separate target for the CPL runtime library:
 make cpllib
 ```
 
-This builds the compiler if needed, compiles the implementation files from
-`cpllib/*.cpl` that are not headers, and writes the static archive here:
+This builds the compiler if needed, compiles the implementation files from the
+standard-library source directory, and writes the static archive here:
 
 ```text
 builds/<platform>/cpllib/libcpl.a
@@ -38,9 +51,18 @@ make BUILD=release PRINT_PARSE=0 cpllib
 
 ```text
 CPLLIBDIR
+CPLLIB_SRC_DIR
 CPLRUNTIMEDIR
+CPLLIB_SOURCES
 CPLLIB_IMPLS
 CPLLIB_ARCHIVE
+```
+
+`CPLLIB_SRC_DIR` defaults to the `cpllib` submodule. Sibling checkouts can still
+be selected explicitly:
+
+```bash
+make CPLLIB_SRC_DIR=../cpllib cpllib
 ```
 
 ## Install
@@ -80,6 +102,19 @@ CPL_INCLUDE_PATH=/opt/cpl/include cplc program.cpl
 cplc -I project/include program.cpl
 cplc --print-stdlib-path
 ```
+
+## Build the VS Code extension package
+
+The Docker targets use `VSCODE_DIR`, which defaults to `vscode`:
+
+```bash
+make vscode-docker-package
+make VSCODE_DIR=../cordell-vscode vscode-docker-package
+```
+
+When `vscode` is a submodule and has not been initialized, the Makefile prints
+the matching `git submodule update` command instead of failing later inside
+Docker.
 
 ## Create a relocatable package
 

@@ -54,6 +54,13 @@ make cpllib
 make BUILD=release PRINT_PARSE=0 cpllib
 ```
 
+The source directory defaults to `cpllib`. For a checkout where the standard
+library is provided from another location, pass `CPLLIB_SRC_DIR`:
+
+```bash
+make CPLLIB_SRC_DIR=../cpllib cpllib
+```
+
 The archive is written to `builds/<platform>/cpllib/libcpl.a`. Installed
 compilers use the compiled-in runtime path, and package builds use the adjacent
 runtime path inside the package tree.
