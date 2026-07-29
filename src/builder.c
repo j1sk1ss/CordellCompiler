@@ -71,6 +71,8 @@ static int _print_help_message() {
     static const cli_help_option_t linker_options[] = {
         { OPTION_LINKER, "<linker>", "Set linker (ld, gcc, clang, ...)" },
         { OPTION_LINKER_MODE, "<mode>", "Set linker mode (c, driver, raw, ld)" },
+        { "-L<dir>, -l<name>, -Wl,<arg>", NULL, "Pass library search paths, libraries, and driver linker options to the linker" },
+        { OPTION_LINKER_ARG_SHORT ", " OPTION_LINKER_ARG, "<arg>", "Pass one raw argument to the linker command" },
         { OPTION_COMPILE_ONLY_SHORT ", " OPTION_COMPILE_ONLY, NULL, "Build an object file and skip linking" },
         { OPTION_LINKER_NO_PIE, NULL, "Disable PIE" },
         { OPTION_LINKER_PIE, NULL, "Enable PIE" },
@@ -278,9 +280,10 @@ static inline int _compile_asm_to_object(const options_t* options, const char* a
 }
 
 static int _link_objects(const options_t* options, char* const objects[], int objects_count) {
-    int extra         = (options->tools.linker_use_c_driver ? 1 : 0) + (options->tools.linker_no_pie ? 1 : 0) + (options->tools.linker_m32 ? 1 : 0);
-    int runtime_count = options->locations.runtime ? 1 : 0;
-    int cmd_size      = objects_count + runtime_count + 5 + extra;
+    int extra            = (options->tools.linker_use_c_driver ? 1 : 0) + (options->tools.linker_no_pie ? 1 : 0) + (options->tools.linker_m32 ? 1 : 0);
+    int runtime_count    = options->locations.runtime ? 1 : 0;
+    int linker_arg_count = list_size((list_t*)&options->tools.linker_args);
+    int cmd_size         = objects_count + runtime_count + linker_arg_count + 5 + extra;
     char** cmd   = (char**)mm_malloc((size_t)cmd_size * sizeof(*cmd));
     if (!cmd) return 0;
 
@@ -298,6 +301,10 @@ static int _link_objects(const options_t* options, char* const objects[], int ob
     }
     if (options->locations.runtime) {
         cmd[j++] = (char*)options->locations.runtime;
+    }
+    char* linker_arg = NULL;
+    foreach (linker_arg, (list_t*)&options->tools.linker_args) {
+        cmd[j++] = linker_arg;
     }
 
     cmd[j] = NULL;
@@ -513,6 +520,23 @@ static int _add_define_arg(options_t* out, const char* arg) {
     return 1;
 }
 
+static int _unload_linker_arg(void* data) {
+    if (data) mm_free(data);
+    return 1;
+}
+
+static int _add_linker_arg(options_t* out, const char* arg) {
+    if (!out || !arg || !arg[0]) return 0;
+    char* copy = _copy_slice(arg, strlen(arg));
+    if (!copy) return 0;
+    if (!list_push_back(&out->tools.linker_args, copy)) {
+        mm_free(copy);
+        return 0;
+    }
+
+    return 1;
+}
+
 static inline void _apply_cli_defines(pp_ctx_t* ppctx, list_t* defines) {
     if (!ppctx || !defines) return;
     cli_define_t* define = NULL;
@@ -524,6 +548,7 @@ static inline void _apply_cli_defines(pp_ctx_t* ppctx, list_t* defines) {
 static void _set_default_options(options_t* out) {
     memset(out, 0, sizeof(*out));
     list_init(&out->locations.defines);
+    list_init(&out->tools.linker_args);
     out->build_mode                = BUILD_MODE_EXECUTABLE;
     out->tools.asm_compiler        = "nasm";
 #if defined(__linux__)
@@ -609,6 +634,22 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
             if (!strcmp(mode, "c") || !strcmp(mode, "driver"))    out->tools.linker_use_c_driver    = 1;
             else if (!strcmp(mode, "raw") || !strcmp(mode, "ld")) out->tools.linker_use_c_driver    = 0;
             else goto _fail;
+        }
+        else if (!strcmp(argv[i], OPTION_LINKER_ARG_SHORT) || !strcmp(argv[i], OPTION_LINKER_ARG)) {
+            if (i + 1 >= argc || !_add_linker_arg(out, argv[i + 1])) goto _fail;
+            i++;
+        }
+        else if (
+            !strncmp(argv[i], "-l", 2) ||
+            !strncmp(argv[i], "-L", 2) ||
+            !strncmp(argv[i], "-Wl,", 4)
+        ) {
+            if (!_add_linker_arg(out, argv[i])) goto _fail;
+            if (!strcmp(argv[i], "-l") || !strcmp(argv[i], "-L")) {
+                if (i + 1 >= argc) goto _fail;
+                if (!_add_linker_arg(out, argv[i + 1])) goto _fail;
+                i++;
+            }
         }
         else if (
             !strcmp(argv[i], OPTION_COMPILE_ONLY_SHORT) ||
@@ -711,6 +752,7 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
 
 _fail: {}
     list_free_force_op(&out->locations.defines, _unload_cli_define);
+    list_free_force_op(&out->tools.linker_args, _unload_linker_arg);
     mm_free((void*)out->locations.files);
     out->locations.files = NULL;
     return 0;
@@ -741,6 +783,7 @@ int main(int argc, char* argv[]) {
     if (options.flags.show_help) {
         _print_help_message();
         list_free_force_op(&options.locations.defines, _unload_cli_define);
+        list_free_force_op(&options.tools.linker_args, _unload_linker_arg);
         mm_free((void*)options.locations.files);
         return EXIT_SUCCESS;
     }
@@ -748,6 +791,7 @@ int main(int argc, char* argv[]) {
     if (options.flags.show_something) {
         _print_gem(stdout);
         list_free_force_op(&options.locations.defines, _unload_cli_define);
+        list_free_force_op(&options.tools.linker_args, _unload_linker_arg);
         mm_free((void*)options.locations.files);
         return EXIT_SUCCESS;
     }
@@ -755,6 +799,7 @@ int main(int argc, char* argv[]) {
     if (options.flags.show_version) {
         _print_version(stdout);
         list_free_force_op(&options.locations.defines, _unload_cli_define);
+        list_free_force_op(&options.tools.linker_args, _unload_linker_arg);
         mm_free((void*)options.locations.files);
         return EXIT_SUCCESS;
     }
@@ -767,11 +812,13 @@ int main(int argc, char* argv[]) {
         if (options.locations.stdlib) {
             puts(options.locations.stdlib);
             list_free_force_op(&options.locations.defines, _unload_cli_define);
+            list_free_force_op(&options.tools.linker_args, _unload_linker_arg);
             mm_free((void*)options.locations.files);
             return EXIT_SUCCESS;
         }
         fprintf(stderr, "CPL standard library isn't found\n");
         list_free_force_op(&options.locations.defines, _unload_cli_define);
+        list_free_force_op(&options.tools.linker_args, _unload_linker_arg);
         mm_free((void*)options.locations.files);
         return EXIT_FAILURE;
     }
@@ -779,6 +826,7 @@ int main(int argc, char* argv[]) {
     if (!options.locations.files_count) {
         fprintf(stderr, "No input files\n");
         list_free_force_op(&options.locations.defines, _unload_cli_define);
+        list_free_force_op(&options.tools.linker_args, _unload_linker_arg);
         mm_free((void*)options.locations.files);
         return EXIT_FAILURE;
     }
@@ -1171,6 +1219,7 @@ int main(int argc, char* argv[]) {
     mm_free(object_files);
     mm_free(token_lists);
     list_free_force_op(&options.locations.defines, _unload_cli_define);
+    list_free_force_op(&options.tools.linker_args, _unload_linker_arg);
     mm_free((void*)options.locations.files);
     return EXIT_SUCCESS;
 }

@@ -5,6 +5,7 @@
 # Local inputs and scratch files
 /input.txt
 /test/
+/.local/
 
 # Build outputs
 /bin/

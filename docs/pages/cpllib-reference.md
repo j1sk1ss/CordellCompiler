@@ -3,7 +3,7 @@
 `cpllib` is the standard library shipped with the compiler. It has two layers:
 
 - C/POSIX-style headers such as `stdio_h.cpl`, `stdlib_h.cpl`, `string_h.cpl`,
-  `unistd_h.cpl`, and `math_h.cpl`.
+  `unistd_h.cpl`, `math_h.cpl`, and `raylib_h.cpl`.
 - CPL convenience containers and wrappers implemented in `libcpl.a`, mainly
   `string`, `file`, `linked_list`, `queue`, `stack`, `town`, `http_server`, and
   the static `std` helper container from `io_h.cpl`.
@@ -63,6 +63,7 @@ runtime path inside the package tree.
 | File | Role |
 |---|---|
 | `cpllib/*_h.cpl` | Public headers. These define constants, type aliases, containers, extern declarations, and inline wrappers. |
+| `cpllib/raylib_h.cpl` | Header-only raylib 6.0 bindings. Link against the native raylib library when using it. |
 | `cpllib/stdio.cpl` | Implementation for the CPL `file` helper container. |
 | `cpllib/string.cpl` | Implementation for the CPL `string` helper container. |
 | `cpllib/list.cpl` | Implementation for `linked_list` and `linked_list_block`. |
@@ -398,6 +399,38 @@ clean test shutdown.
 Until integer-literal ABI lowering is fixed, cast numeric arguments that cross
 an ABI function boundary, for example `res.text(200 as i32, ref "ok\n")`.
 
+## `raylib`
+
+`raylib_h.cpl` is a thin ABI binding for raylib 6.0. It declares raylib value
+types as C-compatible containers, enum values as preprocessor constants, and
+the public `RLAPI` functions as `extern @[abi]` declarations. `Color` is exposed
+as a packed `u32` matching raylib's 4-byte `{ r, g, b, a }` ABI layout. The
+header also provides small value constructors such as `ray_color`,
+`ray_vector2`, `ray_vector3`, `ray_rectangle`, and the standard raylib color
+constants such as `RAYWHITE`, `MAROON`, and `BLACK`.
+
+The binding is header-only; `libcpl.a` does not contain raylib itself. Pass the
+native raylib library to the linker:
+
+```bash
+RAYLIB_PREFIX=$PWD/.local/raylib-6.0
+builds/linux-x86_64/cplc -I cpllib --output /tmp/raylib_window examples/small/raylib_window.cpl \
+    -L"$RAYLIB_PREFIX/lib" -Wl,-rpath,"$RAYLIB_PREFIX/lib" -lraylib
+```
+
+If `pkg-config` is not available for raylib on your machine, use the platform
+flags from your raylib install. On many Linux installs that is equivalent to
+`-lraylib -lm -ldl -lpthread`.
+
+For non-`Color` container values returned by helpers, assign them to a local
+variable before passing them to an ABI function:
+
+```cpl
+Color background;
+background = RAYWHITE;
+ClearBackground(background);
+```
+
 ## Header function map
 
 Use this table as a quick map. The detailed signatures are in the corresponding
@@ -411,6 +444,7 @@ Use this table as a quick map. The detailed signatures are in the corresponding
 | `string_h.cpl` | `memcpy`, `memmove`, `memset`, `memcmp`, `memchr`, `strlen`, `strnlen`, `strcpy`, `strncpy`, `strcat`, `strncat`, `strcmp`, `strncmp`, `strchr`, `strrchr`, `strstr`, `strpbrk`, `strspn`, `strcspn`, `strcoll`, `strxfrm`, `strtok`, `strtok_r`, `strerror`, `strdup`, `strndup`, plus the CPL `string` container. |
 | `town_h.cpl` | `town`, `OREGON_TOWN_COUNT`, `OREGON_TOWN_POPULATION_YEAR`, `town::find`, `town::contains`, `town::count`. |
 | `http_h.cpl` | `http_request`, `http_response`, `http_server`, `http_server::init`, `route`, `get`, `post`, `static`, `listen`, `stop`, `close`, and response helpers `status`, `header`, `end_headers`, `write`, `text`, `html`, `file`, `html_file`, `not_found`. |
+| `raylib_h.cpl` | raylib 6.0 constants, structs, enums, callbacks, colors, and public functions for windows, drawing, textures, images, text, cameras, models, shaders, input, audio, files, and automation events. |
 | `ctype_h.cpl` | C-style aliases such as `char`, `int`, `long`, `double`; `isalnum`, `isalpha`, `isblank`, `iscntrl`, `isdigit`, `isgraph`, `islower`, `isprint`, `ispunct`, `isspace`, `isupper`, `isxdigit`, `tolower`, `toupper`. |
 | `math_h.cpl` | `f64` functions `acos`, `asin`, `atan`, `atan2`, `cos`, `sin`, `tan`, `cosh`, `sinh`, `tanh`, `exp`, `frexp`, `ldexp`, `log`, `log10`, `modf`, `pow`, `sqrt`, `ceil`, `fabs`, `floor`, `fmod`, `cbrt`, `copysign`, `exp2`, `hypot`, `log2`, `round`, `trunc`; `f32` variants ending in `f`; `HUGE_VAL`, `INFINITY`, `NAN`. |
 | `fcntl_h.cpl` | `open`, `creat`, `fcntl`, open flags such as `O_RDONLY`, `O_WRONLY`, `O_RDWR`, `O_CREAT`, `O_TRUNC`, `O_APPEND`, `O_CLOEXEC`, and permission bits. |
@@ -457,3 +491,4 @@ Small executable examples are kept in:
 | `examples/small/queue_usecase.cpl` | FIFO `queue` behavior.                                            |
 | `examples/small/stack_usecase.cpl` | LIFO `stack` behavior.                                            |
 | `examples/small/http_page.cpl`     | `http_server` route handler serving an HTML file.                 |
+| `examples/small/raylib_window.cpl` | A small interactive raylib window with buttons, mouse input, text, and animation. |

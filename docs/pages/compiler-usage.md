@@ -155,7 +155,14 @@ Linker-related switches:
 ```bash
 --linker-pie / --linker-no-pie
 --linker-m32 / --linker-no-m32
+-L<dir> / -L <dir>
+-l<name> / -l <name>
+-Wl,<arg>
+-Xlinker <arg> / --linker-arg <arg>
 ```
+
+Library and raw linker arguments are appended to the final linker command after
+the generated object files and `libcpl.a`.
 
 ## Analysis flags
 

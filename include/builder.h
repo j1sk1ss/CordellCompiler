@@ -79,7 +79,7 @@
 #include <asm/x86_64_macho_nasm_asmgen.h>
 
 #include <gem_data.h>
-#define CCPL_VERSION                 "3.6.9:2407.26" // major.minor<.sub> (old version style):ddmm.yy (new version style)
+#define CCPL_VERSION                 "3.6.10:2907.26" // major.minor<.sub> (old version style):ddmm.yy (new version style)
 
 #ifndef CPL_DEFAULT_INCLUDE_DIR
     #define CPL_DEFAULT_INCLUDE_DIR "/usr/local/share/cpl/include"
@@ -118,6 +118,8 @@
 #define OPTION_ASM_FORMAT            "--asm-format"
 #define OPTION_LINKER                "--linker"
 #define OPTION_LINKER_MODE           "--linker-mode"
+#define OPTION_LINKER_ARG_SHORT      "-Xlinker"
+#define OPTION_LINKER_ARG            "--linker-arg"
 #define OPTION_COMPILE_ONLY_SHORT    "-c"
 #define OPTION_COMPILE_ONLY          "--compile-only"
 #define OPTION_LINKER_NO_PIE         "--linker-no-pie"
@@ -185,6 +187,7 @@ typedef struct {
         const char*  asm_compiler;
         const char*  asm_format;
         const char*  linker;
+        list_t       linker_args;
         int          linker_use_c_driver;
         int          linker_no_pie;
         int          linker_m32;
