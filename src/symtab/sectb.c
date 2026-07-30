@@ -5,7 +5,7 @@ static inline set_t* _get_set_target(section_elem_type_t t, section_info_t* sect
         case SECTION_ELEMENT_VARIABLE: return &section->vars;
         case SECTION_ELEMENT_FUNCTION: return &section->func;
         case SECTION_ELEMENT_STRING:   return &section->strs;
-        default: return NULL;
+        default:                       return NULL;
     }
 }
 
@@ -14,18 +14,23 @@ static inline list_t* _get_list_target(section_elem_type_t t, section_info_t* se
         case SECTION_ELEMENT_VARIABLE: return &section->sorted.vars;
         case SECTION_ELEMENT_FUNCTION: return &section->sorted.func;
         case SECTION_ELEMENT_STRING:   return &section->sorted.strs;
-        default: return NULL;
+        default:                       return NULL;
     }
 }
 
 static section_info_t* _create_section(string_t* name, int align) {
     section_info_t* s = (section_info_t*)mm_malloc(sizeof(section_info_t));
     if (!s) return NULL;
-    if (name) s->name = name->copy(name);
+    if (name) {
+        s->name = name->copy(name);
+    }
+
     set_init(&s->vars, SET_NO_CMP);
     set_init(&s->func, SET_NO_CMP);
     set_init(&s->strs, SET_NO_CMP);
+    
     s->align = align;
+    
     list_init(&s->sorted.vars);
     list_init(&s->sorted.func);
     list_init(&s->sorted.strs);

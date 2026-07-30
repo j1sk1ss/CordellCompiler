@@ -180,12 +180,12 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     
     long array_size  = _get_array_field_size(const_length, type, ctx, smt);
     name->sinfo.v_id = VRTB_add_info(name->t->body, ARRAY_TYPE_TOKEN, name->sinfo.s_id, base->t->flags, &smt->v); /* register as a variable                   */ 
-    base->sinfo.t_id = TPTB_add_info_from_token(name->sinfo.s_id, base->t, name->sinfo.v_id, &smt->t);             /* register as a type                       */
-    ARTB_add_info(name->sinfo.v_id, const_length, base->t->flags.vla, type->t->t_type, &type->t->flags, &smt->a);  /* register as an array                     */
-    TPTB_set_memory_size_id(base->sinfo.t_id, array_size, &smt->t);                                                /* select the type of the array             */
-    TPTB_link_child(base->sinfo.t_id, type->sinfo.t_id, &smt->t);                                                  /*                                          */
-    VRTB_update_type(name->sinfo.v_id, FIELD_NO_CHANGE, base->sinfo.t_id, &smt->v);                                /* link type to the variable's id           */
-    TPTB_add_as_child(ctx->t_id, base->sinfo.t_id, name->t->body, array_size, &smt->t);                            /* ling array to a container (if it exists) */
+    base->sinfo.t_id = TPTB_add_info_from_token(name->sinfo.s_id, base->t, name->sinfo.v_id, &smt->t);            /* register as a type                       */
+    ARTB_add_info(name->sinfo.v_id, const_length, base->t->flags.vla, type->t->t_type, type->t->flags, &smt->a);  /* register as an array                     */
+    TPTB_set_memory_size_id(base->sinfo.t_id, array_size, &smt->t);                                               /* select the type of the array             */
+    TPTB_link_child(base->sinfo.t_id, type->sinfo.t_id, &smt->t);                                                 /*                                          */
+    VRTB_update_type(name->sinfo.v_id, FIELD_NO_CHANGE, base->sinfo.t_id, &smt->v);                               /* link type to the variable's id           */
+    TPTB_add_as_child(ctx->t_id, base->sinfo.t_id, name->t->body, array_size, &smt->t);                           /* ling array to a container (if it exists) */
 
     VRTB_update_memory(name->sinfo.v_id, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, annots.align, &smt->v);
     if (!TKN_in_stack(base->t)) {

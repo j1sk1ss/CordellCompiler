@@ -54,7 +54,7 @@ static int _register_functions(call_graph_t* ctx, sym_table_t* smt) {
     list_init(&ctx->entries);
     map_foreach (func_info_t* fi, &smt->f.functb) {
         if (
-            fi->flags.entry || fi->flags.global
+            fi->flags.entry || (fi->flags.global && fi->flags.external != FNTB_SHALLOW_EXTERN)
         ) list_add(&ctx->entries, (void*)fi->id);
         _register_func(fi->id, ctx);
     }
@@ -114,7 +114,7 @@ int HIR_CG_perform_dfe(call_graph_t* ctx, sym_table_t* smt) {
         map_foreach (call_graph_node_t* nd, &ctx->verts) {
             func_info_t fi;
             if (!FNTB_get_info_id(nd->f_id, &fi, &smt->f)) continue;
-            FNTB_update_func(nd->f_id, FNTB_ONLY_FLAGS(FNTB_SET_USED(fi.flags.global ? 1 : nd->flag)), &smt->f);
+            FNTB_update_func(nd->f_id, FNTB_ONLY_FLAGS(FNTB_SET_USED((fi.flags.global && fi.flags.external != FNTB_SHALLOW_EXTERN) ? 1 : nd->flag)), &smt->f);
         }
     }
 

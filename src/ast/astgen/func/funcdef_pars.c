@@ -227,7 +227,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         ctx->t_id = preserved_tid;
         list_free(&generic_types);
 
-        FNTB_update_func(name->sinfo.v_id, FNTB_ONLY_FLAGS(FNTB_SET_EXTERNAL(2)), &smt->f);
+        FNTB_update_func(name->sinfo.v_id, FNTB_ONLY_FLAGS(FNTB_SET_EXTERNAL(FNTB_SHALLOW_EXTERN)), &smt->f);
         return base;
     }
 
@@ -254,6 +254,6 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     list_free(&generic_types);
     stack_pop(&ctx->scopes.stack, NULL);
 
-    FNTB_update_func(name->sinfo.v_id, FNTB_ONLY_FLAGS(FNTB_SET_EXTERNAL(0)), &smt->f);
+    FNTB_update_func(name->sinfo.v_id, FNTB_ONLY_FLAGS(FNTB_SET_EXTERNAL(FNTB_NO_EXTERN)), &smt->f);
     return base;
 }

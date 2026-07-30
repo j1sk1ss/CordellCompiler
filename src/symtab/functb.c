@@ -136,7 +136,7 @@ int FNTB_add_local(symbol_id_t f_id, symbol_id_t l_id, functab_ctx_t* ctx) {
 int FNTB_update_func(
     symbol_id_t id, string_t* name, func_info_flags_t flags, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
 ) {
-    print_log("FNTB_update_func(id=%llu, name=%s)", id, name->body);
+    print_log("FNTB_update_func(id=%li, name=%s)", id, name->body);
     func_info_t* fi;
     if (map_get(&ctx->functb, id, (void**)&fi)) {
         if (name) {

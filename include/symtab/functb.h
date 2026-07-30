@@ -159,6 +159,9 @@ Returns 1 on success, otherwise 0.
 int FNTB_add_local(symbol_id_t f_id, symbol_id_t l_id, functab_ctx_t* ctx);
 
 #define FNTB_ONLY_FLAGS(flags) NULL, flags, NULL, NULL
+#define FNTB_SHALLOW_EXTERN  2
+#define FNTB_EXPLICIT_EXTERN 1
+#define FNTB_NO_EXTERN       0
 #define FNTB_SET_EXTERNAL(n) ((func_info_flags_t){ .global=-1, .abi=-1, .weak=-1, .external=n, .entry=-1, .used=-1, \
     .local=-1, .vargs=-1, .generic=-1, .self=-1, .naked=-1, .inln=-1 })
 #define FNTB_SET_NAKED(n)    ((func_info_flags_t){ .global=-1, .abi=-1, .weak=-1, .external=-1, .entry=-1, .used=-1, \

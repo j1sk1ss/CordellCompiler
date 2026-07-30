@@ -19,7 +19,10 @@ int VRTB_update_memory(symbol_id_t id, long offset, long size, char reg, short a
         if (size   != FIELD_NO_CHANGE) vi->vmi.size   = size;
         if (reg    != FIELD_NO_CHANGE) vi->vmi.reg    = reg;
         if (align  != FIELD_NO_CHANGE) vi->vmi.align  = align;
-        if (reg >= 0 || offset >= 0) vi->vmi.allocated = 1;
+        if (
+            reg    >= 0 || 
+            offset >= 0
+        ) vi->vmi.allocated = 1;
         return 1;
     }
 

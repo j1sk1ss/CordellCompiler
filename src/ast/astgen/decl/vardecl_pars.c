@@ -42,7 +42,7 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
     if (
         base->t->t_type == CUSTOM_TYPE_TOKEN && 
         TPTB_get_info_id(carry, &ti, &smt->t)
-    ) ARTB_add_info(name->sinfo.v_id, ti.memory.size, 0, U8_TYPE_TOKEN, &base->t->flags, &smt->a);
+    ) ARTB_add_info(name->sinfo.v_id, ti.memory.size, 0, U8_TYPE_TOKEN, base->t->flags, &smt->a);
 
     /* Update variable's memory flags according to the provided annotations
        and move it to a corresponding section. */
