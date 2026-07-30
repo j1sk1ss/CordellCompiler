@@ -24,7 +24,7 @@ Params:
     - `s` - HIR subjects.
 
 Returns 1 if the subject is a child of the block. */
-static int _check_home(hir_block_t* h, hir_subject_t* s) {
+static inline int _check_home(hir_block_t* h, hir_subject_t* s) {
     iterate_hir_args (hir_subject_t* arg, h, 0) {
         if (arg == s) return 1;
     }

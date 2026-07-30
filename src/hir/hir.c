@@ -100,10 +100,11 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strv
         case HIR_GLBVARARR: case HIR_GLBVARF64: case HIR_GLBVARU64:
         case HIR_GLBVARI64: case HIR_GLBVARF32: case HIR_GLBVARU32: case HIR_GLBVARI32:
         case HIR_GLBVARU16: case HIR_GLBVARI16: case HIR_GLBVARU8:  case HIR_GLBVARI8:
-        case HIR_GLBVARI0:
+        case HIR_GLBVARI0: {
             subj->storage.var.v_id = v_id;
-            subj->ptr = intval;
-        break;
+            subj->ptr              = intval;
+            break;
+        }
         case HIR_F64NUMBER: case HIR_F32NUMBER:
         case HIR_I64NUMBER: case HIR_I32NUMBER: case HIR_I16NUMBER: case HIR_I8NUMBER:
         case HIR_U64NUMBER: case HIR_U32NUMBER: case HIR_U16NUMBER: case HIR_U8NUMBER:
@@ -168,7 +169,7 @@ int HIR_block_shallow_equals(hir_block_t* a, hir_block_t* b) {
         if (!aa[i] && !bb[i]) continue;
         if (
             !aa[i] || !bb[i] ||
-            !HIR_subject_shallow_equals(aa[i], bb[i]) ||
+            !HIR_subject_shallow_equals(aa[i], bb[i])      ||
             HIR_is_sign(aa[i]->t) != HIR_is_sign(bb[i]->t) ||
             HIR_get_type_size(aa[i]->t) < HIR_get_type_size(bb[i]->t)
         ) return 0;
@@ -206,9 +207,10 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
         case HIR_F64NUMBER: case HIR_F32NUMBER:
         case HIR_I64NUMBER: case HIR_I32NUMBER: case HIR_I16NUMBER: case HIR_I8NUMBER:
         case HIR_U64NUMBER: case HIR_U32NUMBER: case HIR_U16NUMBER: case HIR_U8NUMBER:
-        case HIR_NUMBER:
+        case HIR_NUMBER: {
             ns->storage.num.value = s->storage.num.value->copy(s->storage.num.value);
-        break;
+            break;
+        }
         case HIR_TMPVARARR: case HIR_TMPVARF64: case HIR_TMPVARU64:
         case HIR_TMPVARI64: case HIR_TMPVARF32: case HIR_TMPVARU32: case HIR_TMPVARI32:
         case HIR_TMPVARU16: case HIR_TMPVARI16: case HIR_TMPVARU8:  case HIR_TMPVARI8:
@@ -226,9 +228,10 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
         case HIR_U32CONSTVAL: case HIR_I32CONSTVAL:
         case HIR_U64CONSTVAL: case HIR_I64CONSTVAL:
         case HIR_FNAME:       case HIR_RAWASM:
-        case HIR_STRING:      case HIR_FPOS:
+        case HIR_STRING:      case HIR_FPOS: {
             str_memcpy(&ns->storage, &s->storage, sizeof(s->storage));
-        break;
+            break;
+        }
         default: break;
     }
 

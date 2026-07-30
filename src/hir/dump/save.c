@@ -20,7 +20,6 @@ static char* _dump_appendf(char* dst, char* end, const char* fmt, ...) {
 
 static char* _dump_append_escaped_string(char* dst, char* end, const char* value) {
     if (!value) return dst;
-
     for (const unsigned char* c = (const unsigned char*)value; *c; c++) {
         switch (*c) {
             case '\\': dst = _dump_appendf(dst, end, "\\\\"); break;

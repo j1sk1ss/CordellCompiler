@@ -29,7 +29,7 @@ Returns 1 if succeeds. */
 static int _get_loop_blocks(cfg_block_t* entry, cfg_block_t* exit, set_t* b, set_t* visited) {
     if (
         !set_add(b, entry) || 
-        entry == exit || 
+        entry == exit      || 
         !set_add(visited, entry)
     ) return 0;
 

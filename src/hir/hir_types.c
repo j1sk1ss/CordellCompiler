@@ -165,7 +165,7 @@ hir_subject_type_t HIR_get_tmptype_tkn(token_t* token, int ptr) {
 static hir_subject_type_t _get_glbtype(int bitness, int isfloat, int issigned) {
     if (!isfloat) {
         switch (bitness) {
-            case TYPE_EIGHTH_SIZE:  return issigned ? HIR_GLBVARI8 : HIR_GLBVARU8;
+            case TYPE_EIGHTH_SIZE:  return issigned ? HIR_GLBVARI8  : HIR_GLBVARU8;
             case TYPE_QUARTER_SIZE: return issigned ? HIR_GLBVARI16 : HIR_GLBVARU16;
             case TYPE_HALF_SIZE:    return issigned ? HIR_GLBVARI32 : HIR_GLBVARU32;
             default:                return issigned ? HIR_GLBVARI64 : HIR_GLBVARU64;
@@ -200,7 +200,7 @@ hir_subject_type_t HIR_get_stktype(variable_info_t* vi) {
     if (isarr) return HIR_STKVARARR;
     if (!isfloat) {
         switch (bitness) {
-            case TYPE_EIGHTH_SIZE:  return issigned ? HIR_STKVARI8 : HIR_STKVARU8;
+            case TYPE_EIGHTH_SIZE:  return issigned ? HIR_STKVARI8  : HIR_STKVARU8;
             case TYPE_QUARTER_SIZE: return issigned ? HIR_STKVARI16 : HIR_STKVARU16;
             case TYPE_HALF_SIZE:    return issigned ? HIR_STKVARI32 : HIR_STKVARU32;
             default: return issigned ? HIR_STKVARI64 : HIR_STKVARU64;
@@ -289,12 +289,8 @@ int HIR_is_sideeffect_op(hir_operation_t op) {
 
 int HIR_is_conv(hir_operation_t op) {
     switch (op) {
-        case HIR_TF64:
-        case HIR_TF32:
-        case HIR_TI64:
-        case HIR_TI32:
-        case HIR_TI16:
-        case HIR_TI8:
+        case HIR_TF64: case HIR_TF32:
+        case HIR_TI64: case HIR_TI32: case HIR_TI16: case HIR_TI8:
         case HIR_TPTR: return 1;
         default: return 0;
     }
