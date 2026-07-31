@@ -16,7 +16,6 @@
 #define SECTN_ANNOTATION_COMMAND "section"
 #define NOSEC_ANNOTATION_COMMAND "nosection"
 #define BODYO_ANNOTATION_COMMAND "only_body"
-#define ADDRS_ANNOTATION_COMMAND "address"
 #define NOFAL_ANNOTATION_COMMAND "no_fall"
 #define NTLAZ_ANNOTATION_COMMAND "not_lazy"
 #define STRGH_ANNOTATION_COMMAND "straight"
@@ -73,7 +72,6 @@ typedef struct {
     string_t*            fname;
     int                  do_inline; /* 1 - strongly yes, 2 - strongly no, 3 - increase inline chance */
     int                  align;
-    long                 address;
     annotation_counter_t counter;
     short                reg;
     char                 is_vname    : 1;
@@ -100,7 +98,6 @@ typedef enum {
     SECTION_ANNOTATION,   /* Put a declration or function to a section      */
     NOSECTION_ANNOTATION, /* Put a declaration or function out a sec        */
     NAKED_ANNOTATION,     /* Don't unpack START, FDECL                      */
-    ADDRESS_ANNOTATION,   /* Where place the object?                        */
     ENTRY_ANNOTATION,     /* Is this an entry function?                     */
     NOFALL_ANNOTATION,    /* switch with a break as a default command       */
     NOTLAZY_ANNOTATION,   /* && and || with full evaluation                 */
@@ -130,7 +127,6 @@ typedef struct {
             int              align;
         } section;                       /* SECTION_ANNOTATION   */
         string_t*            inline_opt; /* INLINE_ANNOTATION    */
-        long                 address;    /* ADDRESS_ANNOTATION   */
         annotation_counter_t counter;    /* COUNTER_ANNOTATION   */
         short                regval;     /* REGISTER_ANNOTATION  */
     } data;

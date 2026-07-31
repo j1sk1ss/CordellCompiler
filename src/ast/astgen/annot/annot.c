@@ -6,7 +6,6 @@ annotation_t* ANNOT_create_annotation(annotation_type_t t, annotation_param_t* f
     str_memset(annot, 0, sizeof(annotation_t));
     annot->t = t;
     switch (t) {
-        case ADDRESS_ANNOTATION:   annot->data.address = fp->value;                                       break;
         case ALIGN_ANNOTATION:     annot->data.align = (int)fp->value;                                    break;
         case REGISTER_ANNOTATION:  annot->data.regval = (short)fp->value;                                 break;
         case VNAME_ANNOTATION:
@@ -91,7 +90,6 @@ _set_vname: {}
             case ABI_ANNOTATION:       summary->is_abi      = 1;                   break;
             case ONLYBODY_ANNOTATION:  summary->is_onlybody = 1;                   break;
             case REGISTER_ANNOTATION:  summary->reg         = annot->data.regval;  break;
-            case ADDRESS_ANNOTATION:   summary->address     = annot->data.address; break;
             case COUNTER_ANNOTATION:   summary->counter     = annot->data.counter; break;
             default: break;
         }
