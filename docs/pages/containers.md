@@ -10,12 +10,8 @@ container storage {
 }
 
 start() {
-    storage s;
-    s.count = 10;
-    s.tag = 5;
-    s.total = 11;
-
-    exit (s.count + s.tag + s.total) as u8;
+    storage s = { 10, 5, 11 };
+    exit (s.count + s.tag + s.total) as u8; :/ 26 /:
 }
 ```
 
@@ -78,16 +74,16 @@ container point {
 container rect {
     point left;
     point right;
-    arr color[4, i8];
+    arr   color[4, i8];
 }
 
 start() {
     rect r;
 
-    r.left.x = 3;
-    r.left.y = 5;
-    r.right.x = 7;
-    r.right.y = 11;
+    r.left.x   = 3;
+    r.left.y   = 5;
+    r.right.x  = 7;
+    r.right.y  = 11;
     r.color[0] = 255 as i8;
 
     exit (r.left.x + r.left.y + r.right.x + r.right.y) as u8;
@@ -131,7 +127,7 @@ For global container initializers, string literals are written without `ref`. Th
 ```cpl
 container text_pair {
     ptr i8 title;
-    arr body[16, i8];
+    arr    body[16, i8];
 }
 
 glob text_pair pair = { "Title", "Body" };
@@ -144,7 +140,7 @@ Containers can reference values of their own type through pointers. This is usef
 ```cpl
 container node {
     ptr node next;
-    i32 value;
+    i32      value;
 }
 
 start() {
@@ -153,8 +149,8 @@ start() {
 
     a.value = 4;
     b.value = 8;
-    a.next = ref b;
-    b.next = 0;
+    a.next  = ref b;
+    b.next  = 0;
 
     exit (a.value + a.next.value) as u8;
 }
@@ -174,8 +170,7 @@ container math_box {
 }
 
 start() {
-    math_box box;
-    exit box.add(20, 22) as u8;
+    exit math_box::add(20, 22) as u8;
 }
 ```
 
@@ -191,8 +186,7 @@ function math_box::add(i32 a, i32 b) -> i32 {
 }
 
 start() {
-    math_box box;
-    exit box.add(20, 22) as u8;
+    exit math_box::add(20, 22) as u8;
 }
 ```
 
@@ -206,8 +200,7 @@ container caster {
 }
 
 start() {
-    caster c;
-    exit c.pick<u8>(42) as u8;
+    exit caster::pick<u8>(42) as u8;
 }
 ```
 
@@ -224,10 +217,8 @@ container slot {
 }
 
 start() {
-    slot s;
-    s.total = 10;
+    slot s = { 10 };
     s.add<i8>(5);
-
     exit s.total as u8;
 }
 ```
@@ -249,10 +240,8 @@ function counter::add(ptr counter self, i32 delta) -> i0 {
 }
 
 start() {
-    counter c;
-    c.value = 10;
+    counter c = { 10 };
     c.add(7);
-
     exit c.value as u8;
 }
 ```

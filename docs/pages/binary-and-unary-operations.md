@@ -53,10 +53,3 @@ For an 8-bit value, `neg 0x10` produces `0xEF`, so the example clears bit `0x10`
 
 Do not confuse CPL `neg` with the x86 `neg` instruction. On x86 targets CPL `neg` is lowered to the machine `not` instruction, because the language operation is bitwise inversion, not arithmetic two's-complement negation.
 
-## Lazy and non-lazy logic
-
-`&&` and `||` are lazy by default. Use `@[not_lazy]` when both sides must be evaluated before the logical operation:
-
-```cpl
-@[not_lazy] (left() && right());
-```
