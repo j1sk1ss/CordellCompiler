@@ -36,7 +36,20 @@ hir_subject_t* HIR_generate_ref(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* s
     if (
         node->c && node->c->t && 
         node->c->t->t_type == MEMBER_ACCESS_TOKEN
-    ) return HIR_point_to_field(node->c, ctx, NULL, smt);
+    ) {
+        type_info_t ti = { 0 };
+        hir_subject_t* head = HIR_point_to_field(node->c, ctx, &ti, smt);
+        array_info_t ai;
+        if (
+            ti.t == TYPE_ARRAY &&
+            ARTB_get_info(ti.link.v_id, &ai, &smt->a)
+        ) return HIR_load_array_field_head(head, &ai, ctx, smt);
+        return head;
+    }
+    if (
+        node->c && node->c->t &&
+        node->c->t->t_type == INDEXATION_TOKEN
+    ) return HIR_generate_ref_indexation(node->c, ctx, smt);
     hir_subject_t* src = HIR_generate_elem(node->c, ctx, smt);
     hir_subject_t* ref = HIR_reference_subject(src, smt, 1);
     HIR_BLOCK2(ctx, HIR_REF, ref, src);
