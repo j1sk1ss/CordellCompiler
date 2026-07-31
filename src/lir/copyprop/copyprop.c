@@ -435,6 +435,11 @@ static int _collect_address_taken_variables(cfg_func_t* fb, set_t* addr_taken) {
     foreach (cfg_block_t* bb, &fb->blocks) {
         iterate_lir_instructions (bb) {
             if (
+                !lh->unused &&
+                lh->op == LIR_REF && lh->sarg && lh->sarg->t == LIR_VARIABLE
+            ) set_add(addr_taken, (void*)lh->sarg->storage.var.v_id);
+
+            if (
                 !lh->unused && 
                 lh->op == LIR_aMOV && lh->farg && lh->farg->t == LIR_VARIABLE
             ) set_add(addr_taken, (void*)lh->farg->storage.var.v_id);

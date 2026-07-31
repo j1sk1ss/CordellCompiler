@@ -3,21 +3,13 @@
 Build the compiler from the repository root:
 
 ```bash
-make
+make install && make cpllib
+cplc -v
 ```
-
-The default target creates a platform-specific compiler binary:
-
-```bash
-./builds/<platform>/cplc [options] <input files>
-```
-
-For example, Linux x86-64 builds normally produce `builds/linux-x86_64/cplc`; macOS builds normally produce `builds/darwin-<arch>/cplc`.
 
 ## Toolchain requirements
 
-The compiler emits NASM assembly, assembles it to object files, and links those objects into the final executable.
-
+The compiler emits NASM assembly, assembles it to object files, and links those objects into the final executable. </br> 
 Default tools and target are selected at compile time:
 
 | Host build | Assembler format | Linker | Entry symbol | System type | Sections |
@@ -25,23 +17,25 @@ Default tools and target are selected at compile time:
 | Linux | `elf64` | `gcc` with `--linker-no-pie` defaulted on | `main` | `linux64` | `.rodata`, `.data`, `.text` |
 | non-Linux default path | `macho64` | `clang` | `_main` | `macho64` | `__TEXT,__const`, `__DATA,__data`, `__TEXT,__text` |
 
-For Linux x86-64, pass Linux-specific options explicitly:
+The explcit build command is next:
 
 ```bash
-./builds/linux-x86_64/cplc \
-  --arch x86_64 \
+cplc                 \
+  --arch x86_64      \
   --sys-type linux64 \
   --asm-format elf64 \
-  --linker gcc \
-  --linker-no-pie \
-  --output hello \
+  --linker gcc       \
+  --linker-no-pie    \
+  --output hello     \
   hello.cpl
+./hello
 ```
 
-For macOS x86-64, the defaults are already close to the expected target:
+The implicit command is:
 
 ```bash
-./builds/darwin-x86_64/cplc --output hello hello.cpl
+cplc hello.cpl
+./a.out
 ```
 
 ## Include paths
@@ -105,7 +99,7 @@ Profiles:
 | Flag | Current behavior |
 |---|---|
 | `-O0` | disables optimization flags |
-| `-O1` | currently the same as `-O0` |
+| `-O1` | *currently the same as `-O0`* |
 | `-O2` | enables LICM, constant propagation/folding, and peephole optimization |
 | `-O3` | enables `-O2` plus copy propagation, tail recursion elimination, and function inlining |
 
@@ -119,8 +113,6 @@ Individual flags:
 --copyprop / --no-copyprop
 --peephole / --no-peephole
 ```
-
-Function inlining is also controlled by `@[inline]`, `@[inline(always)]`, `@[inline(never)]`, and `@[inline(model)]` annotations on functions. The command-line flag decides whether the inlining pass runs; the annotations influence per-function decisions.
 
 ## Target and section options
 

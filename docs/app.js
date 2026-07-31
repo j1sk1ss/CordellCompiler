@@ -875,11 +875,11 @@ window.$docsify = {
         const titlebar = document.createElement('div');
         titlebar.className = 'win95-monkey-titlebar';
         titlebar.innerHTML = `
-          <div class="win95-window-title">monkey.gif</div>
+          <div class="win95-window-title">user.gif</div>
           <div class="win95-window-controls">
-            <button class="win95-window-button minimize" type="button" data-window-action="minimize" aria-label="Minimize monkey.gif"></button>
-            <button class="win95-window-button maximize" type="button" data-window-action="maximize" aria-label="Maximize monkey.gif"></button>
-            <button class="win95-window-button close" type="button" data-window-action="close" aria-label="Close monkey.gif"></button>
+            <button class="win95-window-button minimize" type="button" data-window-action="minimize" aria-label="Minimize user.gif"></button>
+            <button class="win95-window-button maximize" type="button" data-window-action="maximize" aria-label="Maximize user.gif"></button>
+            <button class="win95-window-button close" type="button" data-window-action="close" aria-label="Close user.gif"></button>
           </div>
         `;
         monkey.insertBefore(titlebar, monkey.firstChild);
@@ -1084,9 +1084,9 @@ window.$docsify = {
             <img src="${folderIcon}" alt="" />
             <span>Explorer Home</span>
           </a>
-          <a class="win95-start-link" href="#/" data-window-open="monkey">
+          <a class="win95-start-link" href="#/" data-window-open="user">
             <img src="${docIcon}" alt="" />
-            <span>monkey.gif</span>
+            <span>user.gif</span>
           </a>
           ${sections.map(section => `
             <div class="win95-start-section">${escapeHtml(section.title)}</div>
@@ -1148,7 +1148,7 @@ window.$docsify = {
           ${homeActive && !windowState.monkey.closed ? `
             <button class="win95-task-button ${windowState.monkey.minimized ? '' : 'is-active'}" type="button" data-window-toggle="monkey">
               <img src="${docIcon}" alt="" />
-              <span>monkey.gif</span>
+              <span>user.gif</span>
             </button>
           ` : ''}
           ${homeActive ? docButtons : ''}

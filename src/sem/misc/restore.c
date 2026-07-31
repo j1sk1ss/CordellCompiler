@@ -275,7 +275,6 @@ static int _restore_annotation(rst_ln_ctx_t* x, int line, annotation_t* annot) {
 
     switch (annot->t) {
         case ALIGN_ANNOTATION:    _rst_ln_printf(x, line, "%s(%i)", ALIGN_ANNOTATION_COMMAND, annot->data.align);                  break;
-        case ADDRESS_ANNOTATION:  _rst_ln_printf(x, line, "%s(%ld)", ADDRS_ANNOTATION_COMMAND, annot->data.address);               break;
         case COUNTER_ANNOTATION:  _rst_ln_printf(x, line, "%s(%ld)", COUNT_ANNOTATION_COMMAND, annot->data.counter);               break;
         case REGISTER_ANNOTATION: _rst_ln_printf(x, line, "%s(%i)", REGST_ANNOTATION_COMMAND, (int)annot->data.regval);            break;
         case ENTRY_ANNOTATION: {

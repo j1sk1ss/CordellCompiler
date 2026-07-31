@@ -109,8 +109,6 @@ Mean runtime in seconds over ten runs. Lower is better.
 | Pointer string scan | 0.142074 | 0.030128 | 0.000196 | 0.191890 | 0.094678 | 0.106399 |
 | Fibonacci recurrence | 0.002809 | 0.000456 | 0.000479 | 0.002066 | 0.002117 | 0.002140 |
 
-The empty counted loop is the closest optimized result on both architectures: CPL, GCC, and Clang are all around 0.26 seconds. The arithmetic, branch, call, table, and string examples show the expected gap between this experimental backend and mature C optimizers. i386 particularly stresses CPL's register allocation and 64-bit arithmetic lowering.
-
 ## Empty Counted Loop
 
 Source: `tests/code_utesting/exec/prod/02_count_to_billion.cpl`

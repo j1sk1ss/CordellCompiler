@@ -1581,7 +1581,7 @@ body::before,
 }
 
 .cpl-home-route .cpl-home-hero > .cpl-scroll-monkey::before {
-  content: "monkey.gif";
+  content: "user.gif";
   position: absolute;
   top: 2px;
   left: 2px;
