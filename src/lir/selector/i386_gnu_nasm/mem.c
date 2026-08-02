@@ -343,7 +343,14 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
                     break;
                 }
                 case LIR_GDREF: {
-                    if (lh->farg->t == LIR_REGISTER && lh->sarg->t != LIR_MEMORY) break;
+                    if (
+                        lh->farg->t == LIR_REGISTER && 
+                        (
+                            lh->sarg->t != LIR_MEMORY     && 
+                            lh->sarg->t != LIR_GLVARIABLE &&
+                            lh->sarg->t != LIR_VARIABLE
+                        )
+                    ) break;
                     lir_subject_t* src = i386_gnu_nasm_create_tmp(ECX, lh->sarg, smt, lh->sarg->size);
                     list_add(&fixes, LIR_create_block(LIR_iMOV, src, lh->sarg, NULL));
                     lir_subject_t* tmp = i386_gnu_nasm_create_tmp(ECX, lh->farg, smt, lh->farg->size);

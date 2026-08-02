@@ -365,7 +365,14 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
                     break;
                 }
                 case LIR_GDREF: {
-                    if (lh->farg->t == LIR_REGISTER && lh->sarg->t != LIR_MEMORY) break;
+                    if (
+                        lh->farg->t == LIR_REGISTER && 
+                        (
+                            lh->sarg->t != LIR_MEMORY     && 
+                            lh->sarg->t != LIR_GLVARIABLE &&
+                            lh->sarg->t != LIR_VARIABLE
+                        )
+                    ) break;
                     lir_subject_t* src = x86_64_macho_nasm_create_tmp(R15, lh->sarg, smt, lh->sarg->size);
                     list_add(&fixes, LIR_create_block(LIR_iMOV, src, lh->sarg, NULL));
                     lir_subject_t* tmp = x86_64_macho_nasm_create_tmp(R15, lh->farg, smt, lh->farg->size);
@@ -528,9 +535,7 @@ static cfg_dfs_action_t _validate_stack_alignment(
 int x86_64_macho_nasm_memory_validation(cfg_ctx_t* cctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         func_info_t fi;
-        if (!FNTB_get_info_id(fb->f_id, &fi, &smt->f)) {
-            continue;
-        }
+        if (!FNTB_get_info_id(fb->f_id, &fi, &smt->f)) continue;
         foreach (cfg_block_t* bb, &fb->blocks) {
             _validate_selected_instuction(bb, smt);
             _validate_size_movs(bb, smt);

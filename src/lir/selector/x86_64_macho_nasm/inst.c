@@ -23,6 +23,99 @@ static inline void _insert_instruction_after(cfg_block_t* bb, lir_block_t* b, li
     LIR_insert_block_after(b, pos);
 }
 
+static inline int _is_external_global(lir_subject_t* s, variable_info_t* out, sym_table_t* smt) {
+    variable_info_t vi;
+    if (
+        !s || (s->t != LIR_VARIABLE && s->t != LIR_GLVARIABLE) ||
+        !VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)   ||
+        !vi.vfs.ext || !vi.vfs.glob
+    ) return 0;
+    if (out) str_memcpy(out, &vi, sizeof(vi));
+    return 1;
+}
+
+static inline int _external_value_size(lir_subject_t* s, variable_info_t* vi) {
+    if (s && s->size > 0)       return s->size;
+    if (vi && vi->vmi.size > 0) return vi->vmi.size;
+    return CONF_get_full_bytness();
+}
+
+static inline lir_subject_t* _create_tmp_var(token_type_t type, basic_object_info_t flags, int size, int dsize, sym_table_t* smt) {
+    lir_subject_t* res = LIR_SUBJ_VAR(VRTB_add_info(NULL, type, NO_SYMBOL_ID, flags, &smt->v), size);
+    res->dsize = dsize;
+    return res;
+}
+
+static lir_subject_t* _external_global_addr(cfg_block_t* bb, lir_block_t* pos, lir_subject_t* s, sym_table_t* smt) {
+    variable_info_t vi;
+    if (!_is_external_global(s, &vi, smt)) return s;
+    lir_subject_t* addr = _create_tmp_var(TMP_U64_TYPE_TOKEN, (basic_object_info_t){ .ptr = 1 }, 8, _external_value_size(s, &vi), smt);
+    _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, addr, s, NULL), pos);
+    return addr;
+}
+
+static lir_subject_t* _external_global_value(cfg_block_t* bb, lir_block_t* pos, lir_subject_t* s, sym_table_t* smt) {
+    variable_info_t vi;
+    if (!_is_external_global(s, &vi, smt)) return s;
+    int size = _external_value_size(s, &vi);
+    lir_subject_t* addr = _external_global_addr(bb, pos, s, smt);
+    lir_subject_t* val  = _create_tmp_var(vi.type, (basic_object_info_t){ .ptr = vi.vfs.ptr }, size, s->dsize, smt);
+    _insert_instruction_before(bb, LIR_create_block(LIR_GDREF, val, addr, NULL), pos);
+    return val;
+}
+
+static inline int _materialize_external_read(cfg_block_t* bb, lir_block_t* lh, lir_subject_t** s, sym_table_t* smt) {
+    if (!s) return 0;
+    if (!_is_external_global(*s, NULL, smt)) return 0;
+    *s = _external_global_value(bb, lh, *s, smt);
+    return 1;
+}
+
+static inline int _materialize_external_addr(cfg_block_t* bb, lir_block_t* lh, lir_subject_t** s, sym_table_t* smt) {
+    if (!s || !_is_external_global(*s, NULL, smt)) return 0;
+    *s = _external_global_addr(bb, lh, *s, smt);
+    return 1;
+}
+
+static void _materialize_external_globals(cfg_block_t* bb, lir_block_t* lh, sym_table_t* smt) {
+    if (lh->op == LIR_REF) {
+        if (_materialize_external_addr(bb, lh, &lh->sarg, smt)) lh->op = LIR_iMOV;
+        return;
+    }
+
+    if (lh->op == LIR_REF_GDREF && _materialize_external_read(bb, lh, &lh->sarg, smt)) {
+        lh->op = LIR_iMOV;
+        return;
+    }
+
+    if (lh->op == LIR_STSARG || lh->op == LIR_STFARG) {
+        _materialize_external_read(bb, lh, &lh->farg, smt);
+        return;
+    }
+
+    variable_info_t vi;
+    if (
+        (
+            lh->op == LIR_iMOV   || lh->op == LIR_aMOV || 
+            lh->op == LIR_phiMOV || lh->op == LIR_fMOV || 
+            lh->op == LIR_fMVf
+        ) && _is_external_global(lh->farg, &vi, smt)
+    ) {
+        _materialize_external_read(bb, lh, &lh->sarg, smt);
+        int size = _external_value_size(lh->farg, &vi);
+        lh->farg = _external_global_addr(bb, lh, lh->farg, smt);
+        lh->farg->dsize = size;
+        lh->op = LIR_LDREF;
+        return;
+    }
+
+    if (lh->op != LIR_VRUSE && LIR_is_readop(lh->op)) {
+        iterate_ref_lir_args (lir_subject_t** s, lh, LIR_is_writeop(lh->op)) {
+            _materialize_external_read(bb, lh, s, smt);
+        }
+    }
+}
+
 typedef struct {
     lir_registers_t reg;
     int             off;
@@ -117,6 +210,7 @@ static cfg_dfs_action_t _instruction_selection_block(
 ) {
     (void)pred;
     iterate_lir_instructions (bb) {
+        _materialize_external_globals(bb, lh, smt);
         switch (lh->op) {
             case LIR_STSARG: {
                 int sys_regs[] = { RAX, RDI, RSI, RDX, R10, R8, R9 };

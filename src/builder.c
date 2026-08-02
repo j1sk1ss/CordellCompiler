@@ -211,7 +211,12 @@ static int _run_tool(const char* tool, char* const argv[]) {
     }
 
     int status = 0;
-    if (waitpid(pid, &status, 0) < 0) {
+    pid_t waited = 0;
+    do {
+        waited = waitpid(pid, &status, 0);
+    } while (waited < 0 && errno == EINTR);
+
+    if (waited < 0) {
         perror("waitpid");
         return 0;
     }
