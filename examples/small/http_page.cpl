@@ -1,13 +1,12 @@
 #include <http_h.cpl>
 
-@[section(".bss")]
-glob http_server server;
+@[section(".bss")] glob http_server server;
 
 function example_file_exists(ptr i8 path) -> i8 {
     i32 fd = open(path, O_RDONLY as i32);
-    if fd < 0; return 0 as i8;
+    if fd < 0; return 0;
     close(fd);
-    1 as i8
+    1
 }
 
 function index(ptr http_request req, ptr http_response res) -> i0 {
