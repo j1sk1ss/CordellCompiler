@@ -17,14 +17,12 @@ int HIR_generate_if_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     HAS_ANNOTATION(HOT_ANNOTATION, node, { is_false_cold = 1; });
     HAS_ANNOTATION(COLD_ANNOTATION, node, { is_true_cold = 1; });
 
-    if (lbranch) {
-        ctx->is_cold = is_true_cold;
-        HIR_BLOCK1(ctx, HIR_MKLB, true_lb);
-        HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
-        HIR_generate_block(lbranch->c, ctx, smt);
-        HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
-        HIR_BLOCK1(ctx, HIR_JMP, end_lb);
-    }
+    ctx->is_cold = is_true_cold;
+    HIR_BLOCK1(ctx, HIR_MKLB, true_lb);
+    HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
+    HIR_generate_block(lbranch->c, ctx, smt);
+    HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
+    HIR_BLOCK1(ctx, HIR_JMP, end_lb);
 
     if (!rbranch) HIR_unload_subject(false_lb);
     else {

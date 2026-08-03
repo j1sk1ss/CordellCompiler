@@ -78,8 +78,10 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         forward_token(it, 1);
     }
     
-    name->t->t_type = FUNC_NAME_TOKEN;
-    if (name) AST_add_node(base, name);
+    if (name) {
+        name->t->t_type = FUNC_NAME_TOKEN;
+        AST_add_node(base, name);
+    }
     else {
         PARSE_ERROR("Can't create a base for the function's name!");
         AST_unload(base);

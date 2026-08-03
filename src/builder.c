@@ -850,7 +850,7 @@ int main(int argc, char* argv[]) {
     memset(object_files, 0, (size_t)options.locations.files_count * sizeof(*object_files));
 
     list_t* token_lists = mm_malloc((size_t)options.locations.files_count * sizeof(*token_lists));
-    if (!token_lists && options.locations.files_count > 0) {
+    if (!token_lists) {
         fprintf(stderr, "Can't allocate token lists array\n");
         return EXIT_FAILURE;
     }
