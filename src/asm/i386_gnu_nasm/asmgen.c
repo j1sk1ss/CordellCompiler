@@ -319,16 +319,16 @@ Returns 1 on success, otherwise 0. */
 static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
     variable_info_t vi;
     if (!VRTB_get_info_id(id, &vi, &smt->v) || vi.vfs.ext || !vi.vmi.used) return 0;
-    token_t tmptkn = { .t_type = vi.type, .flags = { .ptr = vi.vfs.ptr, .ro = vi.vfs.ro } };
+    token_t fst_tmptkn = { .t_type = vi.type, .flags = { .ptr = vi.vfs.ptr, .ro = vi.vfs.ro } };
 
-    if (!TKN_is_one_slot(&tmptkn)) {
+    if (!TKN_is_one_slot(&fst_tmptkn)) {
         array_info_t ai;
         if (!ARTB_get_info(vi.v_id, &ai, &smt->a)) return 0;
-        token_t tmptkn = { .t_type = ai.elements_info.el_type, .flags = { .ptr = ai.elements_info.el_flags.ptr } };
+        token_t sec_tmptkn = { .t_type = ai.elements_info.el_type, .flags = { .ptr = ai.elements_info.el_flags.ptr } };
         /* Simple reservation with the unitialized data */
         if (!list_size(&ai.elems)) {
-            long reserve_size = _array_reserve_size(&vi, &ai, &tmptkn, smt);
-            switch (TKN_variable_bitness(&tmptkn, 1)) {
+            long reserve_size = _array_reserve_size(&vi, &ai, &sec_tmptkn, smt);
+            switch (TKN_variable_bitness(&sec_tmptkn, 1)) {
                 case TYPE_FULL_SIZE:
                 case TYPE_HALF_SIZE:    EMIT_COMMAND("%s resd %ld", vi.name->body, reserve_size / 4); break;
                 case TYPE_QUARTER_SIZE: EMIT_COMMAND("%s resw %ld", vi.name->body, reserve_size / 2); break;
@@ -346,7 +346,7 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
                 ))
             ) return _generate_typed_initializer(&vi, &ai, smt, output);
 
-            switch (TKN_variable_bitness(&tmptkn, 1)) {
+            switch (TKN_variable_bitness(&sec_tmptkn, 1)) {
                 case TYPE_FULL_SIZE:
                 case TYPE_HALF_SIZE:    EMIT_PART_COMMAND("%s dd ", vi.name->body); break;
                 case TYPE_QUARTER_SIZE: EMIT_PART_COMMAND("%s dw ", vi.name->body); break;
@@ -366,7 +366,7 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
                 if (--el_count) fprintf(output, ",");
             }
 
-            int last_el = ai.size - list_size(&ai.elems);
+            long last_el = ai.size - list_size(&ai.elems);
             if (last_el > 0) fprintf(output, ",");
             while (last_el-- > 0) {
                 switch (last_elem ? last_elem->t : ARRAY_ELEM_CONST_TYPE) {
@@ -383,7 +383,7 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
         return 1;
     }
 
-    switch (TKN_variable_bitness(&tmptkn, 1)) {
+    switch (TKN_variable_bitness(&fst_tmptkn, 1)) {
         case TYPE_FULL_SIZE:
         case TYPE_HALF_SIZE:    EMIT_COMMAND("%s dd %li", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
         case TYPE_QUARTER_SIZE: EMIT_COMMAND("%s dw %li", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;

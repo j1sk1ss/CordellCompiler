@@ -1,5 +1,6 @@
 # Editor and OS files
 /.vscode/
+/.idea/
 .DS_Store
 
 # Local inputs and scratch files

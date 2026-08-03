@@ -8,6 +8,10 @@ class BuildCompiler(Enum):
     GCC14 = "gcc14"
     GCC = "gcc"
 
+    @classmethod
+    def _missing_(cls, _):
+        return BuildCompiler.GCC
+
 @dataclass
 class CCBuilderConfig:
     include: str
