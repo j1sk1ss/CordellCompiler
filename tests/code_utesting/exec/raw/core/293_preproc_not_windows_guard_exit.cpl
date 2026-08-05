@@ -1,0 +1,22 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+#define VALUE 0
+
+#ifdef CCPL_WINDOWS64
+    #undef VALUE
+    #define VALUE 1
+#endif
+
+#ifndef CCPL_WINDOWS64
+    #undef VALUE
+    #define VALUE 42
+#endif
+
+start() {
+    exit VALUE;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:
