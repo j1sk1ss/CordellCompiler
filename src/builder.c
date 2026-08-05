@@ -90,6 +90,7 @@ static int _print_help_message() {
         { OPTION_AST_OUTPUT, "<file>", "Set AST dump output path" },
         { OPTION_EMIT_IR, NULL, "Emit HIR dump" },
         { OPTION_IR_OUTPUT, "<file>", "Set HIR dump output path" },
+        { OPTION_EMIT_HIR_CFG, "<name>", "Emit HIR CFG dump for function" },
         { OPTION_EMIT_LIR, NULL, "Emit LIR dump" },
         { OPTION_LIR_OUTPUT, "<file>", "Set LIR dump output path" },
         { OPTION_EMIT_ASM, NULL, "Emit produced assembly code" },
@@ -732,6 +733,11 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
             out->locations.ir_output = argv[++i];
             out->config.emit_ir = 1;
         }
+        else if (!strcmp(argv[i], OPTION_EMIT_HIR_CFG)) {
+            if (i + 1 >= argc) goto _fail;
+            out->locations.hir_cfg_name = argv[++i];
+            out->config.emit_hir_cfg = 1;
+        }
         else if (!strcmp(argv[i], OPTION_EMIT_LIR))             out->config.emit_lir     = 1;
         else if (!strcmp(argv[i], OPTION_LIR_OUTPUT)) {
             if (i + 1 >= argc) goto _fail;
@@ -1034,6 +1040,17 @@ int main(int argc, char* argv[]) {
             }
             DUMP_format_hirctx(&hirctx, &smt, 0, 0, ir_file);
             fclose(ir_file);
+        }
+
+        if (options.config.emit_hir_cfg) {
+            const char* hir_cfg_output = _output_path_or_default(options.locations.ir_output, "output.dot");
+            FILE* hir_cfg_file = fopen(hir_cfg_output, "w");
+            if (!hir_cfg_file) {
+                fprintf(stderr, "Can't open HIR CFG output file %s: %s\n", hir_cfg_output, strerror(errno));
+                return 1;
+            }
+            DUMP_format_hir_cfg(&cfgctx, &smt, options.locations.hir_cfg_name, hir_cfg_file);
+            fclose(hir_cfg_file);
         }
 
         if (options.build_mode == BUILD_MODE_ANALYSIS) {

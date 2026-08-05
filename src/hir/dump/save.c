@@ -1,5 +1,4 @@
 #include <hir/dump.h>
-#include <stdarg.h>
 
 #define HIR_DUMP_SUBJECT_BUFFER 4096
 #define HIR_DUMP_LINE_BUFFER    (HIR_DUMP_SUBJECT_BUFFER * 3 + 256)
@@ -39,10 +38,8 @@ static int _dump_always_show_scope(hir_operation_t op) {
         case HIR_MKSCOPE:
         case HIR_ENDSCOPE:
         case HIR_STASM:
-        case HIR_ENDASM:
-            return 1;
-        default:
-            return 0;
+        case HIR_ENDASM: return 1;
+        default:         return 0;
     }
 }
 
@@ -342,6 +339,53 @@ int DUMP_format_hirctx(hir_ctx_t* ctx, sym_table_t* smt, int pos, int unused, FI
         curr_tab = _get_formatted_block(line, sizeof(line), hh, smt, pos, unused, curr_tab);
         fprintf(output, "%s", line);
         hh = hh->next;
+    }
+
+    return 1;
+}
+
+static int _print_hir_cfg_function(cfg_func_t* fb, func_info_t* fi, sym_table_t* smt, FILE* output) {
+    fprintf(output, "digraph %s {\n", fi->virt->body);
+    fprintf(output, "  rankdir=TB;\n");
+    fprintf(output,
+            "  node ["
+            "shape=box, "
+            "fontname=\"DejaVu Sans Mono\", "
+            "fontsize=9, "
+            "margin=\"0.10,0.06\", "
+            "fixedsize=false"
+            "];\n");
+
+    foreach (cfg_block_t* cb, &fb->blocks) {
+        fprintf(output, "  B%ld [ label=\"", cb->id);
+        iterate_hir_instructions (cb) {
+            if (
+                hh->op == HIR_FDCL         || 
+                hh->op == HIR_FEND         || 
+                hh->op == HIR_PHI_PREAMBLE || 
+                hh->op == HIR_MKSCOPE      ||
+                hh->op == HIR_ENDSCOPE
+            ) continue; 
+            char line[HIR_DUMP_LINE_BUFFER] = { 0 };
+            _get_formatted_block(line, sizeof(line), hh, smt, 0, 0, 0);
+            fprintf(output, "%.*s\\l\n", (int)(strlen(line) - 2), line);
+        }
+
+        fprintf(output, "\"];\n");
+        if (cb->l)   fprintf(output, "  B%ld -> B%ld [label=\"fall\"];\n", cb->id, cb->l->id);
+        if (cb->jmp) fprintf(output, "  B%ld -> B%ld [label=\"jump\"];\n", cb->id, cb->jmp->id);
+    }
+    
+    fprintf(output, "}\n");
+    return 1;
+}
+
+int DUMP_format_hir_cfg(cfg_ctx_t* cctx, sym_table_t* smt, const char* name, FILE* output) {
+    foreach (cfg_func_t* fb, &cctx->funcs) {
+        func_info_t fi;
+        if (FNTB_get_info_id(fb->f_id, &fi, &smt->f) && fi.name->requals(fi.name, name)) {
+            _print_hir_cfg_function(fb, &fi, smt, output);
+        }
     }
 
     return 1;

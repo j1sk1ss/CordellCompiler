@@ -10,7 +10,7 @@ container table {
 }
 
 function table::get(ptr table self, i32 index) -> ptr cell {
-    return self.cells[index]; :/ TODO: ref self.cells[index] is a correct way to return a reference to an array element /:
+    return ref self.cells[index];
 }
 
 start() {
