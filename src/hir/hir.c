@@ -77,7 +77,7 @@ long HIR_hash_subject(hir_subject_t* s) {
    from each other */
 static unsigned long _curr_id = 0;
 
-hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strval, long intval) {
+hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strval, unsigned long intval) {
     hir_subject_t* subj = mm_malloc(sizeof(hir_subject_t));
     if (!subj) return NULL;
     str_memset(subj, 0, sizeof(hir_subject_t));
@@ -298,13 +298,13 @@ int HIR_insert_block_after(hir_block_t* block, hir_block_t* pos) {
 }
 
 int HIR_append_block(hir_block_t* block, hir_ctx_t* ctx) {
+    if (!ctx || !block) return 0;
     if (ctx->is_hidden) block->unused = 1;
     if (ctx->cold.is_sup && ctx->is_cold) {
         list_add(&ctx->cold.blocks, block);
         return 1;
     }
 
-    if (!ctx || !block) return 0;
     if (!ctx->hot.h) ctx->hot.h = ctx->hot.t = block;
     else {
         block->prev      = ctx->hot.t;

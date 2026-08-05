@@ -338,28 +338,32 @@ static int _parse_sys_type(const char* s, options_t* out) {
         out->config.sys_type = UNKNOWN;
         return 1;
     }
-    else if (!strcmp(s, "macho64")) {
+
+    if (!strcmp(s, "macho64")) {
         out->config.sys_type     = MACHO64;
         out->config.ro_section   = "__TEXT,__const";
         out->config.glob_section = "__DATA,__data";
         out->config.code_section = "__TEXT,__text";
         return 1;
     }
-    else if (!strcmp(s, "linux64")) {
+
+    if (!strcmp(s, "linux64")) {
         out->config.sys_type     = LINUX64;
         out->config.ro_section   = ".rodata";
         out->config.glob_section = ".data";
         out->config.code_section = ".text";
         return 1;
     }
-    else if (!strcmp(s, "i386")) {
+
+    if (!strcmp(s, "i386")) {
         out->config.sys_type     = I386;
         out->config.ro_section   = ".rodata";
         out->config.glob_section = ".data";
         out->config.code_section = ".text";
         return 1;
     }
-    else if (!strcmp(s, "windows64")) {
+
+    if (!strcmp(s, "windows64")) {
         out->config.sys_type     = WINDOWS64;
         return 1;
     }
@@ -500,7 +504,7 @@ static cli_define_t* _make_define_arg(const char* arg) {
     if (!_valid_define_name(arg, name_len)) return NULL;
 
     const char* value = eq ? eq + 1 : "1";
-    cli_define_t* define = (cli_define_t*)mm_malloc(sizeof(*define));
+    cli_define_t* define = (cli_define_t*)mm_malloc(sizeof(cli_define_t));
     if (!define) return NULL;
 
     define->name  = _copy_slice(arg, name_len);
@@ -551,7 +555,7 @@ static inline void _apply_cli_defines(pp_ctx_t* ppctx, list_t* defines) {
 }
 
 static void _set_default_options(options_t* out) {
-    memset(out, 0, sizeof(*out));
+    memset(out, 0, sizeof(options_t));
     list_init(&out->locations.defines);
     list_init(&out->tools.linker_args);
     out->build_mode                = BUILD_MODE_EXECUTABLE;
@@ -846,7 +850,7 @@ int main(int argc, char* argv[]) {
     memset(object_files, 0, (size_t)options.locations.files_count * sizeof(*object_files));
 
     list_t* token_lists = mm_malloc((size_t)options.locations.files_count * sizeof(*token_lists));
-    if (!token_lists && options.locations.files_count > 0) {
+    if (!token_lists) {
         fprintf(stderr, "Can't allocate token lists array\n");
         return EXIT_FAILURE;
     }

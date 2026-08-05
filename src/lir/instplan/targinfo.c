@@ -10,6 +10,7 @@ int TRGINF_load(target_info_t* s) {
     fread(s, sizeof(s->name) + sizeof(int), 1, f);
     for (int i = 0; i < s->op_count; i++) {
         op_info_t* info = (op_info_t*)mm_malloc(sizeof(op_info_t));
+        if (!info) continue;
         fread(info, sizeof(op_info_t), 1, f);
         map_put(&s->info, info->op, info);
         print_debug(

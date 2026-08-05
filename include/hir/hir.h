@@ -97,7 +97,7 @@ Return `i64`:hash.
 */
 long HIR_hash_subject(hir_subject_t* s);
 
-hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strval, long intval);
+hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strval, unsigned long intval);
 int HIR_subject_shallow_equals(hir_subject_t* a, hir_subject_t* b);
 hir_subject_t* HIR_copy_subject(hir_subject_t* s);
 hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject_t* sa, hir_subject_t* ta);

@@ -5,7 +5,7 @@ Params:
     - `val` - Counter initial value.
 
 Returns the HIR stack variable type for the counter */
-static inline hir_subject_type_t _get_valid_sizes(long val) {
+static inline hir_subject_type_t _get_valid_sizes(unsigned long val) {
     if (val <= CHAR_MAX)       return HIR_STKVARI8;
     else if (val <= UCHAR_MAX) return HIR_STKVARU8;
     else if (val <= SHRT_MAX)  return HIR_STKVARI16;

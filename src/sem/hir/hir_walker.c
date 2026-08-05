@@ -14,35 +14,22 @@ static hir_sem_handler_t* _create_sem_handler(hir_visitor_t* v, attention_level_
     return h;
 }
 
-/* Unload the semantic handler.
-Params:
-    - `h` - Semantic handler.
-
-Returns 1 if succeeds */
-static int _unload_sem_handler(hir_sem_handler_t* h) {
-    HIRVIS_unload_visitor(h->w);
-    return mm_free(h);
-}
-
 int HIRWLK_register_visitor(unsigned int trg, int (*perform)(HIR_VISITOR_ARGS), hir_walker_t* ctx, attention_level_t l) {
     hir_visitor_t* v = HIRVIS_create_visitor(trg, perform);
     if (!v) return 0;
     hir_sem_handler_t* w = _create_sem_handler(v, l);
-    if (!w) {
-        _unload_sem_handler(w);
-        return 0;
-    }
-
+    if (!w) return 0;
     return list_add(&ctx->visitors, w);
 }
 
 int HIRWLK_init_ctx(hir_walker_t* ctx, dag_ctx_t* dctx, hir_ctx_t* hctx, sym_table_t* smt) {
     str_memset(ctx, 0, sizeof(hir_walker_t));
+    ctx->vctx.dump = tmpfile();
+    if (!ctx->vctx.dump) return 0;
     map_init(&ctx->vctx.definitions, MAP_NO_CMP);
     ctx->smt       = smt;
     ctx->vctx.dctx = dctx;
     ctx->vctx.z3   = NULL;
-    ctx->vctx.dump = tmpfile();
     DUMP_format_hirctx(hctx, smt, 0, 0, ctx->vctx.dump);
     return list_init(&ctx->visitors);
 }
@@ -139,6 +126,16 @@ int HIRWLK_walk(cfg_ctx_t* cctx, hir_walker_t* ctx) {
 static int _free_definitions_entry(list_t* l) {
     list_free(l);
     return mm_free(l);
+}
+
+/* Unload the semantic handler.
+Params:
+    - `h` - Semantic handler.
+
+Returns 1 if succeeds */
+static int _unload_sem_handler(hir_sem_handler_t* h) {
+    HIRVIS_unload_visitor(h->w);
+    return mm_free(h);
 }
 
 int HIRWLK_unload_ctx(hir_walker_t* ctx) {

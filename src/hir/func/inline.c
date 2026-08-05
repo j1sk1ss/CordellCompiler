@@ -467,8 +467,6 @@ int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt
                             hh->op == HIR_STORE_FCLL || 
                             hh->op == HIR_STORE_ECLL
                         ) res = hh->farg;
-                        /* Returned-value inlining still miscompiles after LIR copy propagation. */
-                        if (res) continue;
                         map_t var_map, label_map;
                         map_init(&var_map, MAP_NO_CMP);
                         map_init(&label_map, MAP_NO_CMP);

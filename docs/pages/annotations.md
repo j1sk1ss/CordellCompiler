@@ -13,32 +13,32 @@ The parser accepts `@[name]`, `@[name(value / variable)]` and `@[name(value / va
 
 ## Available annotations
 
-| Annotation | Applies to | Meaning |
-|---|---|---|
-| `@[entry]`, `@[entry("name")]` | function or `start` | mark the function as the program entry; without `name`, the configured entry symbol is used |
-| `@[naked]` | function or `start` | suppress normal entry/exit routines |
-| `@[section("name")]`, `@[section("name", N)]` | global or read-only variable, global array, function, or `start` | place the symbol into a named section; optional `N` sets section alignment |
-| `@[nosection]` | global function | place the function into the configured no-section bucket |
-| `@[align(N)]` | variable, array, or container | request memory/container alignment |
-| `@[register(N)]` | variable declaration | bind the variable to a target register index |
-| `@[poparg]` | variable declaration in a variadic context | read the next variadic argument into this declaration |
-| `@[inline]` | function | increase the inliner preference |
-| `@[inline(always)]` | function | force the inline decision toward always inline |
-| `@[inline(never)]` | function | force the inline decision toward never inline |
-| `@[inline(model)]` | function | use the model-based inline mode |
-| `@[only_body]` | function | emit only the function body, without the normal label/export wrapper |
-| `@[self]` | container function | mark the function as an explicit-self method for container call rewriting |
-| `@[abi]` | function | mark the function as ABI-compatible |
-| `@[weak]` | function | mark the function as a weak symbol |
-| `@[vname("symbol")]` | function | use an explicit backend/linker-visible symbol name without marking the function as the entry point |
-| `@[like_c]` | container | use C-like field layout handling instead of the requested CPL alignment value |
-| `@[no_fall]` | `switch` | make switch cases behave as if they end with `break` |
-| `@[straight]` | `switch` | force linear switch selection |
-| `@[counter(N, STP)]` | `loop` | generate a counted loop where 'STP' is optional |
-| `@[hot]` | `if` | make the false branch cold for layout |
-| `@[cold]` | `if` or switch `case` | make the true branch, or the annotated case, cold for layout |
-| `@[not_lazy]` | logical expression | evaluate both sides of `&&` or `\|\|` |
-| `@[union]` | container | lay out all fields at offset zero and allocate enough memory for the largest field |
+| Annotation                                    | Applies to                                                       | Meaning                                                                                            |
+|-----------------------------------------------|------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
+| `@[entry]`, `@[entry("name")]`                | function or `start`                                              | mark the function as the program entry; without `name`, the configured entry symbol is used        |
+| `@[naked]`                                    | function or `start`                                              | suppress normal entry/exit routines                                                                |
+| `@[section("name")]`, `@[section("name", N)]` | global or read-only variable, global array, function, or `start` | place the symbol into a named section; optional `N` sets section alignment                         |
+| `@[nosection]`                                | global function                                                  | place the function into the configured no-section bucket                                           |
+| `@[align(N)]`                                 | variable, array, or container                                    | request memory/container alignment                                                                 |
+| `@[register(N)]`                              | variable declaration                                             | bind the variable to a target register index                                                       |
+| `@[poparg]`                                   | variable declaration in a variadic context                       | read the next variadic argument into this declaration                                              |
+| `@[inline]`                                   | function                                                         | increase the inliner preference                                                                    |
+| `@[inline(always)]`                           | function                                                         | force the inline decision toward always inline                                                     |
+| `@[inline(never)]`                            | function                                                         | force the inline decision toward never inline                                                      |
+| `@[inline(model)]`                            | function                                                         | use the model-based inline mode                                                                    |
+| `@[only_body]`                                | function                                                         | emit only the function body, without the normal label/export wrapper                               |
+| `@[self]`                                     | container function                                               | mark the function as an explicit-self method for container call rewriting                          |
+| `@[abi]`                                      | function                                                         | mark the function as ABI-compatible                                                                |
+| `@[weak]`                                     | function                                                         | mark the function as a weak symbol                                                                 |
+| `@[vname("symbol")]`                          | function                                                         | use an explicit backend/linker-visible symbol name without marking the function as the entry point |
+| `@[like_c]`                                   | container                                                        | use C-like field layout handling instead of the requested CPL alignment value                      |
+| `@[no_fall]`                                  | `switch`                                                         | make switch cases behave as if they end with `break`                                               |
+| `@[straight]`                                 | `switch`                                                         | force linear switch selection                                                                      |
+| `@[counter(N, STP)]`                          | `loop`                                                           | generate a counted loop where 'STP' is optional                                                    |
+| `@[hot]`                                      | `if`                                                             | make the false branch cold for layout                                                              |
+| `@[cold]`                                     | `if` or switch `case`                                            | make the true branch, or the annotated case, cold for layout                                       |
+| `@[not_lazy]`                                 | logical expression                                               | evaluate both sides of `&&` or `\|\|`                                                              |
+| `@[union]`                                    | container                                                        | lay out all fields at offset zero and allocate enough memory for the largest field                 |
 
 ## Entry, naked, sections
 

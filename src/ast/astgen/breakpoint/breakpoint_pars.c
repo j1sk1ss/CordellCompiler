@@ -13,7 +13,7 @@ ast_node_t* cpl_parse_breakpoint(PARSER_ARGS) {
 
     if (consume_token(it, STRING_VALUE_TOKEN)) {
         ast_node_t* info = AST_create_node(CURRENT_TOKEN);
-        if (!node) {
+        if (!info) {
             PARSE_ERROR("Can't create a base for a 'lis' message!");
             AST_unload(node);
             RESTORE_TOKEN_POINT;

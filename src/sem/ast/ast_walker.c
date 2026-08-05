@@ -14,24 +14,11 @@ static ast_sem_handler_t* _create_sem_handler(ast_visitor_t* v, attention_level_
     return h;
 }
 
-/* Unload the semantic handler.
-Params:
-    - `h` - Semantic handler.
-
-Returns 1 if succeeds */
-static int _unload_sem_handler(ast_sem_handler_t* h) {
-    ASTVIS_unload_visitor(h->w);
-    return mm_free(h);
-}
-
 int ASTWLK_register_visitor(unsigned int trg, int (*perform)(AST_VISITOR_ARGS), ast_walker_t* ctx, attention_level_t l) {
     ast_visitor_t* v = ASTVIS_create_visitor(trg, perform);
     if (!v) return 0;
     ast_sem_handler_t* w = _create_sem_handler(v, l);
-    if (!w) {
-        _unload_sem_handler(w);
-        return 0;
-    }
+    if (!w) return 0;
 
     return list_add(&ctx->visitors, w);
 }
@@ -192,6 +179,16 @@ static int _ast_walk(ast_node_t* nd, ast_walker_t* ctx) {
 
 int ASTWLK_walk(ast_ctx_t* actx, ast_walker_t* ctx) {
     return _ast_walk(actx->r, ctx);
+}
+
+/* Unload the semantic handler.
+Params:
+    - `h` - Semantic handler.
+
+Returns 1 if succeeds */
+static int _unload_sem_handler(ast_sem_handler_t* h) {
+    ASTVIS_unload_visitor(h->w);
+    return mm_free(h);
 }
 
 int ASTWLK_unload_ctx(ast_walker_t* ctx) {
