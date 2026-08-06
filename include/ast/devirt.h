@@ -18,6 +18,11 @@ typedef struct {
     set_t   impl;      /* FuncId that are implemented                         */
 } devirt_ctx_t;
 
+typedef struct {
+    string_t*   prefix;
+    ast_node_t* func;
+} method_t;
+
 int AST_DVRT_init_ctx(devirt_ctx_t* ctx);
 int AST_DVRT_register_template(symbol_id_t f_id, ast_node_t* root, devirt_ctx_t* ctx);
 int AST_DVRT_register_implementation(symbol_id_t f_id, symbol_id_t src_id, devirt_ctx_t* ctx);

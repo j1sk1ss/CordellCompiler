@@ -53,9 +53,20 @@ int AST_finalize_parse(ast_ctx_t* ctx, sym_table_t* smt) {
     queue_init(&methods);
     AST_DVRT_move_container_functions(ctx->r, &methods);
     
-    ast_node_t* method;
+    method_t* method;
     while (queue_pop(&methods, (void**)&method)) {
-        AST_insert_node(ctx->r, method);
+        AST_insert_node(ctx->r, method->func);
+
+        func_info_t fi;
+        if (FNTB_get_info_id(method->func->c->sinfo.v_id, &fi, &smt->f)) {
+            string_t* vname = fi.virt->copy(fi.virt);
+            vname->rcat(vname, "__");
+            vname->cat(vname, method->prefix);
+            FNTB_update_virt_name(fi.id, vname, &smt->f);
+            destroy_string(vname);
+        }
+
+        mm_free(method);
     }
 
     queue_free(&methods);

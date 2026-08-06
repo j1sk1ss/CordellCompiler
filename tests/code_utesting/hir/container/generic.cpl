@@ -11,7 +11,7 @@ container storage {
 start() {
     storage s;
     s.init<i32>();
-    s.sum<i8, u8>(1, 2);
+    storage::sum<i8, u8>(1, 2);
 }
 
 :/ OUTPUT
