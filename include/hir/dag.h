@@ -24,6 +24,7 @@ typedef struct dag_node {
     /* Connection with HIR */
     hir_subject_t*  src;
     set_t           link;
+    long            memory_version;
 
     /* Connection with other nodes */
     set_t           args;
@@ -32,6 +33,7 @@ typedef struct dag_node {
 
 typedef struct {
     long  curr_id;
+    long  memory_version;
     map_t dag;
     map_t groups;
 } dag_ctx_t;
