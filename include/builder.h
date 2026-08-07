@@ -152,6 +152,7 @@
 #define OPTION_EMIT_IR               "--emit-ir"
 #define OPTION_EMIT_HIR_CFG          "--emit-hir-cfg"
 #define OPTION_EMIT_LIR              "--emit-lir"
+#define OPTION_EMIT_LIR_CFG          "--emit-lir-cfg"
 #define OPTION_EMIT_ASM              "--emit-asm"
 #define OPTION_AST_OUTPUT            "--ast-output"
 #define OPTION_IR_OUTPUT             "--ir-output"
@@ -184,6 +185,7 @@ typedef struct {
         char*        ir_output;
         char*        hir_cfg_name;
         char*        lir_output;
+        char*        lir_cfg_name;
         char*        asm_output;
     } locations;
     struct {
@@ -216,6 +218,7 @@ typedef struct {
         int          emit_ir              : 1;
         int          emit_hir_cfg         : 1;
         int          emit_lir             : 1;
+        int          emit_lir_cfg         : 1;
         int          emit_asm             : 1;
     } config;
     struct {

@@ -33,13 +33,10 @@ static char* _dump_append_escaped_string(char* dst, char* end, const char* value
     return dst;
 }
 
-static int _dump_always_show_scope(hir_operation_t op) {
+static inline int _dump_always_show_scope(hir_operation_t op) {
     switch (op) {
-        case HIR_MKSCOPE:
-        case HIR_ENDSCOPE:
-        case HIR_STASM:
-        case HIR_ENDASM: return 1;
-        default:         return 0;
+        case HIR_MKSCOPE: case HIR_ENDSCOPE: case HIR_STASM: case HIR_ENDASM: return 1;
+        default:                                                              return 0;
     }
 }
 
@@ -50,77 +47,75 @@ Params:
 Returns a format string for the operation. */
 static const char* _get_operation_template(hir_operation_t op) {
     switch(op) {
-        case HIR_STARGLD:      return "%s = load_starg();\n";
-        case HIR_FARGLD:       return "%s = load_arg();\n";
-        case HIR_TF64:         return "%s = %s as f64;\n";
-        case HIR_TF32:         return "%s = %s as f32;\n";
-        case HIR_TI64:         return "%s = %s as i64;\n";
-        case HIR_TI32:         return "%s = %s as i32;\n";
-        case HIR_TI16:         return "%s = %s as i16;\n";
-        case HIR_TI8:          return "%s = %s as i8;\n";
-        case HIR_TU64:         return "%s = %s as u64;\n";
-        case HIR_TU32:         return "%s = %s as u32;\n";
-        case HIR_TU16:         return "%s = %s as u16;\n";
-        case HIR_TU8:          return "%s = %s as u8;\n";
-        case HIR_TPTR:         return "%s = %s as *ptr;\n";
-        case HIR_BREAKPOINT:   return "breakpoint(%s);\n";
+        case HIR_STARGLD:      return "%s = load_starg();";
+        case HIR_FARGLD:       return "%s = load_arg();";
+        case HIR_TF64:         return "%s = %s as f64;";
+        case HIR_TF32:         return "%s = %s as f32;";
+        case HIR_TI64:         return "%s = %s as i64;";
+        case HIR_TI32:         return "%s = %s as i32;";
+        case HIR_TI16:         return "%s = %s as i16;";
+        case HIR_TI8:          return "%s = %s as i8;";
+        case HIR_TU64:         return "%s = %s as u64;";
+        case HIR_TU32:         return "%s = %s as u32;";
+        case HIR_TU16:         return "%s = %s as u16;";
+        case HIR_TU8:          return "%s = %s as u8;";
+        case HIR_TPTR:         return "%s = %s as *ptr;";
+        case HIR_BREAKPOINT:   return "breakpoint(%s);";
         case HIR_UFCLL:
-        case HIR_FCLL:         return "%s%s(%s);\n";
+        case HIR_FCLL:         return "%s%s(%s);";
         case HIR_STORE_UFCLL:
-        case HIR_STORE_FCLL:   return "%s = %s(%s);\n";
-        case HIR_ECLL:         return "%s%s(%s);\n";
-        case HIR_STORE_ECLL:   return "%s = %s(%s);\n";
-        case HIR_SYSC:         return "syscall(%s%s%s);\n";
-        case HIR_STORE_SYSC:   return "%s = syscall(%s%s);\n";
-        case HIR_FRET:         return "return %s;\n";
-        case HIR_MKLB:         return "%s:\n";
+        case HIR_STORE_FCLL:   return "%s = %s(%s);";
+        case HIR_ECLL:         return "%s%s(%s);";
+        case HIR_STORE_ECLL:   return "%s = %s(%s);";
+        case HIR_SYSC:         return "syscall(%s%s%s);";
+        case HIR_STORE_SYSC:   return "%s = syscall(%s%s);";
+        case HIR_FRET:         return "return %s;";
+        case HIR_MKLB:         return "%s:";
         case HIR_STRT:
-        case HIR_FDCL:         return "fn %s\n";
-        case HIR_STEND:
-        case HIR_FEND:         return "\n";
-        case HIR_FEXT:         return "(fun) extern(%s);\n";
-        case HIR_OEXT:         return "(var) extern(%s);\n";
-        case HIR_BREAK:        return "// break;\n";
-        case HIR_JMP:          return "goto %s;\n";
-        case HIR_iADD:         return "%s = %s + %s;\n";
-        case HIR_iSUB:         return "%s = %s - %s;\n";
-        case HIR_iMUL:         return "%s = %s * %s;\n";
-        case HIR_iDIV:         return "%s = %s / %s;\n";
-        case HIR_iMOD:         return "%s = %s %% %s;\n";
-        case HIR_iLRG:         return "%s = %s > %s;\n";
-        case HIR_iLGE:         return "%s = %s >= %s;\n";
-        case HIR_iLWR:         return "%s = %s < %s;\n";
-        case HIR_iLRE:         return "%s = %s <= %s;\n";
-        case HIR_iCMP:         return "%s = %s == %s;\n";
-        case HIR_iNMP:         return "%s = %s != %s;\n";
-        case HIR_iAND:         return "%s = %s && %s;\n";
-        case HIR_iOR:          return "%s = %s || %s;\n";
-        case HIR_iBLFT:        return "%s = %s << %s;\n";
-        case HIR_iBRHT:        return "%s = %s >> %s;\n";
-        case HIR_bAND:         return "%s = %s & %s;\n";
-        case HIR_bOR:          return "%s = %s | %s;\n";
-        case HIR_bXOR:         return "%s = %s ^ %s;\n";
-        case HIR_RAW:          return "[raw, \"%s\"]\n";
-        case HIR_IFOP2:        return "if %s, goto %s, else goto %s;\n";
-        case HIR_NEG:          return "%s = neg %s;\n";
-        case HIR_NOT:          return "%s = not %s;\n";
-        case HIR_STORE:        return "%s = %s;\n";
-        case HIR_VRUSE:        return "use %s;\n";
-        case HIR_REF_ARGS:     return "%s = &(*)\n";
-        case HIR_ARRDECL:      return "%s = arr_alloc(%s);\n";
-        case HIR_STRDECL:      return "%s = str_alloc(%s);\n";
-        case HIR_VARDECL:      return "%s = alloc;\n";
-        case HIR_STASM:        return "asm(%s%s%s) {\n";
-        case HIR_ENDASM:       return "}\n";
-        case HIR_GDREF:        return "%s = *(%s);\n";
-        case HIR_LDREF:        return "*(%s) = %s;\n";
-        case HIR_REF:          return "%s = &(%s);\n";
-        case HIR_EXITOP:       return "exit %s;\n";
-        case HIR_PHI:          return "[base: %s] %s = phi(%s);\n";
-        case HIR_MKSCOPE:      return "{\n";
-        case HIR_ENDSCOPE:     return "}\n";
-        case HIR_PHI_PREAMBLE: return "[SSA] future: %s <<== previous: %s;\n";
-        default:               return "\n";
+        case HIR_FDCL:         return "fn %s";
+        case HIR_FEXT:         return "(fun) extern(%s);";
+        case HIR_OEXT:         return "(var) extern(%s);";
+        case HIR_BREAK:        return "// break;";
+        case HIR_JMP:          return "goto %s;";
+        case HIR_iADD:         return "%s = %s + %s;";
+        case HIR_iSUB:         return "%s = %s - %s;";
+        case HIR_iMUL:         return "%s = %s * %s;";
+        case HIR_iDIV:         return "%s = %s / %s;";
+        case HIR_iMOD:         return "%s = %s %% %s;";
+        case HIR_iLRG:         return "%s = %s > %s;";
+        case HIR_iLGE:         return "%s = %s >= %s;";
+        case HIR_iLWR:         return "%s = %s < %s;";
+        case HIR_iLRE:         return "%s = %s <= %s;";
+        case HIR_iCMP:         return "%s = %s == %s;";
+        case HIR_iNMP:         return "%s = %s != %s;";
+        case HIR_iAND:         return "%s = %s && %s;";
+        case HIR_iOR:          return "%s = %s || %s;";
+        case HIR_iBLFT:        return "%s = %s << %s;";
+        case HIR_iBRHT:        return "%s = %s >> %s;";
+        case HIR_bAND:         return "%s = %s & %s;";
+        case HIR_bOR:          return "%s = %s | %s;";
+        case HIR_bXOR:         return "%s = %s ^ %s;";
+        case HIR_RAW:          return "[raw, \"%s\"]";
+        case HIR_IFOP2:        return "if %s, goto %s, else goto %s;";
+        case HIR_NEG:          return "%s = neg %s;";
+        case HIR_NOT:          return "%s = not %s;";
+        case HIR_STORE:        return "%s = %s;";
+        case HIR_VRUSE:        return "use %s;";
+        case HIR_REF_ARGS:     return "%s = &(*)";
+        case HIR_ARRDECL:      return "%s = arr_alloc(%s);";
+        case HIR_STRDECL:      return "%s = str_alloc(%s);";
+        case HIR_VARDECL:      return "%s = alloc;";
+        case HIR_STASM:        return "asm(%s%s%s) {";
+        case HIR_ENDASM:       return "}";
+        case HIR_GDREF:        return "%s = *(%s);";
+        case HIR_LDREF:        return "*(%s) = %s;";
+        case HIR_REF:          return "%s = &(%s);";
+        case HIR_EXITOP:       return "exit %s;";
+        case HIR_PHI:          return "[base: %s] %s = phi(%s);";
+        case HIR_MKSCOPE:      return "{";
+        case HIR_ENDSCOPE:     return "}";
+        case HIR_PHI_PREAMBLE: return "[SSA] future: %s <<== previous: %s;";
+        default:               return "";
     }
 }
 
@@ -337,7 +332,7 @@ int DUMP_format_hirctx(hir_ctx_t* ctx, sym_table_t* smt, int pos, int unused, FI
     while (hh) {
         char line[HIR_DUMP_LINE_BUFFER] = { 0 };
         curr_tab = _get_formatted_block(line, sizeof(line), hh, smt, pos, unused, curr_tab);
-        fprintf(output, "%s", line);
+        fprintf(output, "%s\n", line);
         hh = hh->next;
     }
 
@@ -368,7 +363,7 @@ static int _print_hir_cfg_function(cfg_func_t* fb, func_info_t* fi, sym_table_t*
             ) continue; 
             char line[HIR_DUMP_LINE_BUFFER] = { 0 };
             _get_formatted_block(line, sizeof(line), hh, smt, 0, 0, 0);
-            fprintf(output, "%.*s\\l\n", (int)(strlen(line) - 2), line);
+            fprintf(output, "%s\\l", line);
         }
 
         fprintf(output, "\"];\n");

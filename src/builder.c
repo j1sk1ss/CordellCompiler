@@ -92,6 +92,7 @@ static int _print_help_message() {
         { OPTION_IR_OUTPUT, "<file>", "Set HIR dump output path" },
         { OPTION_EMIT_HIR_CFG, "<name>", "Emit HIR CFG dump for function" },
         { OPTION_EMIT_LIR, NULL, "Emit LIR dump" },
+        { OPTION_EMIT_LIR_CFG, "<name>", "Emit LIR CFG dump for function" },
         { OPTION_LIR_OUTPUT, "<file>", "Set LIR dump output path" },
         { OPTION_EMIT_ASM, NULL, "Emit produced assembly code" },
         { OPTION_ASM_OUTPUT, "<file>", "Set assembly output path" },
@@ -739,6 +740,11 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
             out->config.emit_hir_cfg = 1;
         }
         else if (!strcmp(argv[i], OPTION_EMIT_LIR))             out->config.emit_lir     = 1;
+        else if (!strcmp(argv[i], OPTION_EMIT_LIR_CFG)) {
+            if (i + 1 >= argc) goto _fail;
+            out->locations.lir_cfg_name = argv[++i];
+            out->config.emit_lir_cfg = 1;
+        }
         else if (!strcmp(argv[i], OPTION_LIR_OUTPUT)) {
             if (i + 1 >= argc) goto _fail;
             out->locations.lir_output = argv[++i];
@@ -761,7 +767,7 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
     }
 
     if (out->flags.preprocess_only && out->build_mode != BUILD_MODE_EXECUTABLE) goto _fail;
-    if (out->build_mode == BUILD_MODE_ANALYSIS && (out->config.emit_lir || out->config.emit_asm)) goto _fail;
+    if (out->build_mode == BUILD_MODE_ANALYSIS && (out->config.emit_lir || out->config.emit_lir_cfg || out->config.emit_asm)) goto _fail;
 
     return 1;
 
@@ -947,6 +953,7 @@ int main(int argc, char* argv[]) {
                 fprintf(stderr, "Can't open AST output file %s: %s\n", ast_output, strerror(errno));
                 return 1;
             }
+
             DUMP_format_astctx(&sctx, ast_file);
             fclose(ast_file);
         }
@@ -1014,6 +1021,7 @@ int main(int argc, char* argv[]) {
         if (options.config.constant || needs_hir_analysis) {
             HIR_DAG_generate(&cfgctx, &dagctx, &smt);
         }
+
         if (options.config.constant) {
             HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);
             int folded = 0;
@@ -1038,6 +1046,7 @@ int main(int argc, char* argv[]) {
                 fprintf(stderr, "Can't open HIR output file %s: %s\n", ir_output, strerror(errno));
                 return 1;
             }
+
             DUMP_format_hirctx(&hirctx, &smt, 0, 0, ir_file);
             fclose(ir_file);
         }
@@ -1049,6 +1058,7 @@ int main(int argc, char* argv[]) {
                 fprintf(stderr, "Can't open HIR CFG output file %s: %s\n", hir_cfg_output, strerror(errno));
                 return 1;
             }
+
             DUMP_format_hir_cfg(&cfgctx, &smt, options.locations.hir_cfg_name, hir_cfg_file);
             fclose(hir_cfg_file);
         }
@@ -1124,8 +1134,21 @@ int main(int argc, char* argv[]) {
                 fprintf(stderr, "Can't open LIR output file %s: %s\n", lir_output, strerror(errno));
                 return 1;
             }
+
             DUMP_format_lirctx(&lirctx, &smt, 0, 0, lir_file);
             fclose(lir_file);
+        }
+
+        if (options.config.emit_lir_cfg) {
+            const char* lir_cfg_output = _output_path_or_default(options.locations.lir_output, "output.dot");
+            FILE* lir_cfg_file = fopen(lir_cfg_output, "w");
+            if (!lir_cfg_file) {
+                fprintf(stderr, "Can't open LIR CFG output file %s: %s\n", lir_cfg_output, strerror(errno));
+                return 1;
+            }
+
+            DUMP_format_lir_cfg(&cfgctx, &smt, options.locations.lir_cfg_name, lir_cfg_file);
+            fclose(lir_cfg_file);
         }
 
         map_t colors;
@@ -1179,6 +1202,7 @@ int main(int argc, char* argv[]) {
                 fprintf(stderr, "Can't open ASM output file %s: %s\n", asm_output, strerror(errno));
                 return 1;
             }
+
             ASM_generate(&cfgctx, &smt, &asmgen, asm_emit);
             fclose(asm_emit);
         }
