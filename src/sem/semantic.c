@@ -48,6 +48,7 @@ int SEM_perform_hir_check(cfg_ctx_t* ctx, dag_ctx_t* dctx, hir_ctx_t* hctx, sym_
             HIRWLK_register_visitor(CALL_INST | RET_CALL_INST, HIRWLKR_wrong_arg_type, &walker, ATTENTION_LOW_LEVEL);
             HIRWLK_register_visitor(CALL_INST, HIRWLKR_unused_rtype, &walker, ATTENTION_LOW_LEVEL);
             HIRWLK_register_visitor(REF_INST, HIRWLKR_ref_to_expression, &walker, ATTENTION_LOW_LEVEL);
+            HIRWLK_register_visitor(STMT_INST, HIRWLKR_division_by_one, &walker, ATTENTION_LOW_LEVEL);
             __attribute__((fallthrough));
         case 1:
             HIRWLK_register_visitor(CALL_INST | RET_CALL_INST, HIRWLKR_visit_syscall_instruction, &walker, ATTENTION_MEDIUM_LEVEL);

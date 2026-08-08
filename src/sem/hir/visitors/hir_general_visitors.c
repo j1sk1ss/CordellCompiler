@@ -580,15 +580,6 @@ int HIRWLKR_ref_to_expression(HIR_VISITOR_ARGS) {
     return 1;
 }
 
-// TODO: check for plus operaions, and if there is an aligned with an array variable, and the second one is larger than the array - fire
-int HIRWLKR_illegal_indexing(HIR_VISITOR_ARGS) {
-    HIR_VISITOR_ARGS_USE;
-    trace_t trace;
-    TRACE_init_trace(&trace);
-    TRACE_print_and_free_trace(&trace);
-    return 1;
-}
-
 int HIRWLKR_division_by_zero(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
     if (b->op != HIR_iDIV && b->op != HIR_iMOD) return 1;
@@ -596,9 +587,28 @@ int HIRWLKR_division_by_zero(HIR_VISITOR_ARGS) {
         return 0;
     }
 
-    if (!HIR_SEM_check_subject_value_and_provide_trace(b, bb, b->sarg, smt, ctx, 0, "Division of zero! This expression will return 0.")) {
-        return 1;
+    if (!HIR_SEM_check_subject_value_and_provide_trace(
+            b, bb, b->sarg, smt, ctx, 0, "Division of zero! This expression will return 0."
+    )) return 0;
+
+    if (Z3_is_subject_maybe_zero(ctx->z3, bb->pfunc, b->targ)) {
+        trace_t trace;
+        TRACE_init_trace(&trace);
+        TRACE_add_location(
+            &trace, &ctx->curr_location, "Possible division by zero here! %s can be zero!", 
+            HIR_is_vartype(b->targ->t) ? _resolve_variable_name(b->targ->storage.var.v_id, smt) : "Value"
+        );
+        TRACE_print_and_free_trace(&trace);
     }
 
+    return 1;
+}
+
+int HIRWLKR_division_by_one(HIR_VISITOR_ARGS) {
+    HIR_VISITOR_ARGS_USE;
+    if (b->op != HIR_iDIV && b->op != HIR_iMOD) return 1;
+    if (!HIR_SEM_check_subject_value_and_provide_trace(
+        b, bb, b->targ, smt, ctx, 1, "Division by one! This expression won't change anything!"
+    )) return 0;
     return 1;
 }

@@ -44,6 +44,7 @@ int HIRWLKR_unused_rtype(HIR_VISITOR_ARGS);
 int HIRWLKR_noret_assign(HIR_VISITOR_ARGS);
 int HIRWLKR_ref_to_expression(HIR_VISITOR_ARGS);
 int HIRWLKR_division_by_zero(HIR_VISITOR_ARGS);
+int HIRWLKR_division_by_one(HIR_VISITOR_ARGS);
 
 /* glibc */
 int HIRWLKR_glibc_arg_checkers(HIR_VISITOR_ARGS);
