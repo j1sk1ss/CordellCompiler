@@ -16,9 +16,9 @@ int main() {
     void* data = NULL;
 
     list_init(&l);
-    assert(list_push_back(&l, (void*)9) == 0, "Push back into empty list failed!");
+    assert(list_push_back(&l, (void*)9), "Push back into empty list failed!");
     assert(list_pop_front(&l) == (void*)9, "Single element pop failed!");
-    assert(list_insert(&l, (void*)8, (void*)9) == 0, "Insert into empty list failed!");
+    assert(list_insert(&l, (void*)8, (void*)9), "Insert into empty list failed!");
     assert(list_size(&l) == 1 && list_get_head(&l) == (void*)8, "Empty insert result failed!");
     list_free(&l);
 
@@ -30,17 +30,17 @@ int main() {
     assert(!list_remove(&l, (void*)1), "Remove from empty list succeeded!");
     assert(!list_replace(&l, (void*)1, (void*)2), "Replace in empty list succeeded!");
 
-    assert(list_push_front(&l, (void*)2) == 0, "Push front failed!");
-    assert(list_push_back(&l, (void*)3) == 0, "Push back failed!");
-    assert(list_insert(&l, (void*)1, (void*)2) == 0, "Insert before head failed!");
-    assert(list_insert(&l, (void*)4, (void*)99) == 0, "Insert missing target append failed!");
+    assert(list_push_front(&l, (void*)2), "Push front failed!");
+    assert(list_push_back(&l, (void*)3), "Push back failed!");
+    assert(list_insert(&l, (void*)1, (void*)2), "Insert before head failed!");
+    assert(list_insert(&l, (void*)4, (void*)99), "Insert missing target append failed!");
     assert(list_size(&l) == 4, "List size after inserts failed!");
     assert(list_get_head(&l) == (void*)1, "List head failed!");
     assert(list_get_tail(&l) == (void*)4, "List tail failed!");
     assert(list_replace(&l, (void*)3, (void*)33), "List replace failed!");
     assert(!list_replace(&l, (void*)99, (void*)5), "Missing replace succeeded!");
     assert(list_remove(&l, (void*)4), "Tail remove failed!");
-    assert(list_push_back(&l, (void*)4) == 0, "Tail restore failed!");
+    assert(list_push_back(&l, (void*)4), "Tail restore failed!");
 
     assert(list_iter_hinit(&l, &it), "Head iterator init failed!");
     assert(list_iter_current(&it) == (void*)1, "Iterator current failed!");
@@ -76,7 +76,7 @@ int main() {
     list_free(&copy);
     list_free(&l);
 
-    assert(list_insert(NULL, (void*)1, (void*)2) == -1, "NULL insert accepted!");
+    assert(!list_insert(NULL, (void*)1, (void*)2), "NULL insert accepted!");
 
     list_init(&l);
     for (int i = 0; i < 3; i++) {
