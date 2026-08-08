@@ -101,7 +101,10 @@ const char* i386_gnu_nasm_format_lir_subject(lir_subject_t* v, sym_table_t* smt,
             variable_info_t vi;
             if (VRTB_get_info_id(v->storage.var.v_id, &vi, &smt->v)) {
                 if (vi.vfs.glob) {
-                    snprintf(buffer, sizeof(_buffers[0]), "%s[rel %s]", _get_mem_modifier(v->size), vi.name->body);
+                    snprintf(
+                        buffer, sizeof(_buffers[0]), vi.s_id == 1 ? "%s[rel %s]" : "%s[rel %s__%li]", 
+                        _get_mem_modifier(v->size), vi.name->body, VRTB_resolve_parent(vi.v_id, &smt->v)
+                    );
                     return buffer;
                 }
 

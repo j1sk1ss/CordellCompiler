@@ -76,6 +76,16 @@ int VRTB_update_type(symbol_id_t id, int t, symbol_id_t t_id, vartab_ctx_t* ctx)
     return 0;    
 }
 
+symbol_id_t VRTB_resolve_parent(symbol_id_t id, vartab_ctx_t* ctx) {
+    variable_info_t* vi;
+    while (map_get(&ctx->vartb, id, (void**)&vi)) {
+        if (vi->p_id != NO_SYMBOL_ID) id = vi->p_id;
+        else break;
+    }
+
+    return id;
+}
+
 int VRTB_get_info_id(symbol_id_t id, variable_info_t* info, vartab_ctx_t* ctx) {
     variable_info_t* vi;
     if (map_get(&ctx->vartb, id, (void**)&vi)) {

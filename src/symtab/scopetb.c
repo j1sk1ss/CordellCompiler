@@ -35,6 +35,5 @@ int SCPTB_is_visible(symbol_id_t target, symbol_id_t from, scopetab_ctx_t* ctx) 
 int SCPTB_unload(scopetab_ctx_t* ctx) {
     if (!ctx) return 0;
     map_free(&ctx->parents);
-    ctx->curr_id = 0;
     return 1;
 }

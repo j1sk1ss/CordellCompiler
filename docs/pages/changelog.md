@@ -3,6 +3,24 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Local and Global globals
+<div class="change-date">Date: 2026-08-08</div>
+Local `glob`s now act like a static variable from C. For instance, you can create multiple local globals in differenct functions:
+
+```cpl
+function foo() { glob i32 a = 1; }
+function bar() { glob i32 a = 1; }
+```
+
+Hovewer, there is no way to create multiple global globals with the same name:
+
+```cpl
+glob i32 a = 1;
+glob i32 a = 1;
+```
+
+At the end, local globs act the same with other variables with one difference - they're living in a section, not on the stack. That means you can use them if you don't want to waste your stack on something big and etc.
+
 ## For-like loops via annotations
 <div class="change-date">Date: 2026-07-26</div>
 Now loops accept a start variable, step variable (as an alternative for integers) in the counter annotation:

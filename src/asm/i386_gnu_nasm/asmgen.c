@@ -321,6 +321,9 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
     if (!VRTB_get_info_id(id, &vi, &smt->v) || vi.vfs.ext || !vi.vmi.used) return 0;
     token_t fst_tmptkn = { .t_type = vi.type, .flags = { .ptr = vi.vfs.ptr, .ro = vi.vfs.ro } };
 
+    char name[256] = { 0 };
+    snprintf(name, sizeof(name), vi.s_id == 1 ? "%s" : "%s__%li", vi.name->body, vi.v_id);
+
     if (!TKN_is_one_slot(&fst_tmptkn)) {
         array_info_t ai;
         if (!ARTB_get_info(vi.v_id, &ai, &smt->a)) return 0;
@@ -330,9 +333,9 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
             long reserve_size = _array_reserve_size(&vi, &ai, &sec_tmptkn, smt);
             switch (TKN_variable_bitness(&sec_tmptkn, 1)) {
                 case TYPE_FULL_SIZE:
-                case TYPE_HALF_SIZE:    EMIT_COMMAND("%s resd %ld", vi.name->body, reserve_size / 4); break;
-                case TYPE_QUARTER_SIZE: EMIT_COMMAND("%s resw %ld", vi.name->body, reserve_size / 2); break;
-                default:                EMIT_COMMAND("%s resb %ld", vi.name->body, reserve_size);     break;
+                case TYPE_HALF_SIZE:    EMIT_COMMAND("%s resd %ld", name, reserve_size / 4); break;
+                case TYPE_QUARTER_SIZE: EMIT_COMMAND("%s resw %ld", name, reserve_size / 2); break;
+                default:                EMIT_COMMAND("%s resb %ld", name, reserve_size);     break;
             }
         }
         /* Reservation with the initialized data */
@@ -348,9 +351,9 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
 
             switch (TKN_variable_bitness(&sec_tmptkn, 1)) {
                 case TYPE_FULL_SIZE:
-                case TYPE_HALF_SIZE:    EMIT_PART_COMMAND("%s dd ", vi.name->body); break;
-                case TYPE_QUARTER_SIZE: EMIT_PART_COMMAND("%s dw ", vi.name->body); break;
-                default:                EMIT_PART_COMMAND("%s db ", vi.name->body); break;
+                case TYPE_HALF_SIZE:    EMIT_PART_COMMAND("%s dd ", name); break;
+                case TYPE_QUARTER_SIZE: EMIT_PART_COMMAND("%s dw ", name); break;
+                default:                EMIT_PART_COMMAND("%s db ", name); break;
             }
 
             array_elem_info_t* el = NULL;
@@ -385,9 +388,9 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
 
     switch (TKN_variable_bitness(&fst_tmptkn, 1)) {
         case TYPE_FULL_SIZE:
-        case TYPE_HALF_SIZE:    EMIT_COMMAND("%s dd %li", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
-        case TYPE_QUARTER_SIZE: EMIT_COMMAND("%s dw %li", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
-        default:                EMIT_COMMAND("%s db %li", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
+        case TYPE_HALF_SIZE:    EMIT_COMMAND("%s dd %li", name, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
+        case TYPE_QUARTER_SIZE: EMIT_COMMAND("%s dw %li", name, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
+        default:                EMIT_COMMAND("%s db %li", name, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
     }
 
     return 1;
