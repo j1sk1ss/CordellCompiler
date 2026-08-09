@@ -1,3 +1,4 @@
+: ASM_ARCH=x86_64_nasm_macho,x86_64_nasm_gnu :
 : BLOCK_TEST :
 : RUN_ASM :
 
