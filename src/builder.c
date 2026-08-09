@@ -258,8 +258,10 @@ static int _copy_file_path(const char* src, const char* dst) {
                 ok = 0;
                 break;
             }
+
             offset += written;
         }
+
         if (!ok) break;
     }
 
@@ -271,8 +273,10 @@ static int _copy_file_path(const char* src, const char* dst) {
 
 static int _move_file_path(const char* src, const char* dst) {
     if (rename(src, dst) == 0) return 1;
-    if (errno != EXDEV) return 0;
-    if (!_copy_file_path(src, dst)) return 0;
+    if (
+        errno != EXDEV ||
+        !_copy_file_path(src, dst)
+    ) return 0;
     return unlink(src) == 0;
 }
 
@@ -290,8 +294,7 @@ static int _link_objects(const options_t* options, char* const objects[], int ob
     int extra            = (options->tools.linker_use_c_driver ? 1 : 0) + (options->tools.linker_no_pie ? 1 : 0) + (options->tools.linker_m32 ? 1 : 0);
     int runtime_count    = options->locations.runtime ? 1 : 0;
     int linker_arg_count = list_size((list_t*)&options->tools.linker_args);
-    int cmd_size         = objects_count + runtime_count + linker_arg_count + 5 + extra;
-    char** cmd   = (char**)mm_malloc((size_t)cmd_size * sizeof(*cmd));
+    char** cmd           = (char**)mm_malloc((objects_count + runtime_count + linker_arg_count + 5 + extra) * sizeof(char*));
     if (!cmd) return 0;
 
     int j = 0;
@@ -306,9 +309,11 @@ static int _link_objects(const options_t* options, char* const objects[], int ob
     for (int i = 0; i < objects_count; i++) {
         cmd[j++] = objects[i];
     }
+
     if (options->locations.runtime) {
         cmd[j++] = (char*)options->locations.runtime;
     }
+    
     char* linker_arg = NULL;
     foreach (linker_arg, (list_t*)&options->tools.linker_args) {
         cmd[j++] = linker_arg;
@@ -324,7 +329,7 @@ static inline const char* _output_path_or_default(const char* path, const char* 
     return path ? path : fallback;
 }
 
-static int _parse_long_arg(const char* s, long* out) {
+static inline int _parse_long_arg(const char* s, long* out) {
     if (!s || !out) return 0;
     char* end = NULL;
     errno = 0;
@@ -481,7 +486,7 @@ static int _valid_define_name(const char* name, size_t name_len) {
         int ok =
             (c >= 'a' && c <= 'z') ||
             (c >= 'A' && c <= 'Z') ||
-            c == '_' ||
+            c == '_'               ||
             (i > 0 && c >= '0' && c <= '9');
         if (!ok) return 0;
     }
@@ -489,8 +494,7 @@ static int _valid_define_name(const char* name, size_t name_len) {
     return 1;
 }
 
-static int _unload_cli_define(void* data) {
-    cli_define_t* define = (cli_define_t*)data;
+static int _unload_cli_define(cli_define_t* define) {
     if (!define) return 1;
     mm_free(define->name);
     mm_free(define->value);
@@ -528,11 +532,6 @@ static int _add_define_arg(options_t* out, const char* arg) {
         return 0;
     }
 
-    return 1;
-}
-
-static int _unload_linker_arg(void* data) {
-    if (data) mm_free(data);
     return 1;
 }
 
@@ -594,7 +593,7 @@ static void _set_default_options(options_t* out) {
 static int _parse_input_args(char* argv[], int argc, options_t* out) {
     if (!argv || argc <= 0 || !out) return 0;
     _set_default_options(out);
-    out->locations.files = mm_malloc((size_t)argc * sizeof(*out->locations.files));
+    out->locations.files = (char**)mm_malloc(argc * sizeof(char*));
     if (!out->locations.files) return 0;
 
     for (int i = 1; i < argc; i++) {
@@ -642,8 +641,8 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
         else if (!strcmp(argv[i], OPTION_LINKER_MODE)) {
             if (i + 1 >= argc) goto _fail;
             const char* mode = argv[++i];
-            if (!strcmp(mode, "c") || !strcmp(mode, "driver"))    out->tools.linker_use_c_driver    = 1;
-            else if (!strcmp(mode, "raw") || !strcmp(mode, "ld")) out->tools.linker_use_c_driver    = 0;
+            if (!strcmp(mode, "c") || !strcmp(mode, "driver"))    out->tools.linker_use_c_driver = 1;
+            else if (!strcmp(mode, "raw") || !strcmp(mode, "ld")) out->tools.linker_use_c_driver = 0;
             else goto _fail;
         }
         else if (!strcmp(argv[i], OPTION_LINKER_ARG_SHORT) || !strcmp(argv[i], OPTION_LINKER_ARG)) {
@@ -668,10 +667,10 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
         ) {
             if (!_set_build_mode(out, BUILD_MODE_OBJECT)) goto _fail;
         }
-        else if (!strcmp(argv[i], OPTION_LINKER_NO_PIE))        out->tools.linker_no_pie   = 1;
-        else if (!strcmp(argv[i], OPTION_LINKER_PIE))           out->tools.linker_no_pie   = 0;
-        else if (!strcmp(argv[i], OPTION_LINKER_M32))           out->tools.linker_m32      = 1;
-        else if (!strcmp(argv[i], OPTION_LINKER_NO_M32))        out->tools.linker_m32      = 0;
+        else if (!strcmp(argv[i], OPTION_LINKER_NO_PIE)) out->tools.linker_no_pie = 1;
+        else if (!strcmp(argv[i], OPTION_LINKER_PIE))    out->tools.linker_no_pie = 0;
+        else if (!strcmp(argv[i], OPTION_LINKER_M32))    out->tools.linker_m32    = 1;
+        else if (!strcmp(argv[i], OPTION_LINKER_NO_M32)) out->tools.linker_m32    = 0;
         else if (!strcmp(argv[i], OPTION_ENTRY_NAME)) {
             if (i + 1 >= argc) goto _fail;
             out->config.entry_name = argv[++i];
@@ -728,7 +727,7 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
             out->locations.ast_output = argv[++i];
             out->config.emit_ast = 1;
         }
-        else if (!strcmp(argv[i], OPTION_EMIT_IR))              out->config.emit_ir      = 1;
+        else if (!strcmp(argv[i], OPTION_EMIT_IR))              out->config.emit_ir     = 1;
         else if (!strcmp(argv[i], OPTION_IR_OUTPUT)) {
             if (i + 1 >= argc) goto _fail;
             out->locations.ir_output = argv[++i];
@@ -739,7 +738,7 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
             out->locations.hir_cfg_name = argv[++i];
             out->config.emit_hir_cfg = 1;
         }
-        else if (!strcmp(argv[i], OPTION_EMIT_LIR))             out->config.emit_lir     = 1;
+        else if (!strcmp(argv[i], OPTION_EMIT_LIR))             out->config.emit_lir    = 1;
         else if (!strcmp(argv[i], OPTION_EMIT_LIR_CFG)) {
             if (i + 1 >= argc) goto _fail;
             out->locations.lir_cfg_name = argv[++i];
@@ -750,7 +749,7 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
             out->locations.lir_output = argv[++i];
             out->config.emit_lir = 1;
         }
-        else if (!strcmp(argv[i], OPTION_EMIT_ASM))             out->config.emit_asm     = 1;
+        else if (!strcmp(argv[i], OPTION_EMIT_ASM))             out->config.emit_asm    = 1;
         else if (!strcmp(argv[i], OPTION_ASM_OUTPUT)) {
             if (i + 1 >= argc) goto _fail;
             out->locations.asm_output = argv[++i];
@@ -767,13 +766,16 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
     }
 
     if (out->flags.preprocess_only && out->build_mode != BUILD_MODE_EXECUTABLE) goto _fail;
-    if (out->build_mode == BUILD_MODE_ANALYSIS && (out->config.emit_lir || out->config.emit_lir_cfg || out->config.emit_asm)) goto _fail;
+    if (
+        out->build_mode == BUILD_MODE_ANALYSIS && 
+        (out->config.emit_lir || out->config.emit_lir_cfg || out->config.emit_asm
+    )) goto _fail;
 
     return 1;
 
 _fail: {}
-    list_free_force_op(&out->locations.defines, _unload_cli_define);
-    list_free_force_op(&out->tools.linker_args, _unload_linker_arg);
+    list_free_force_op(&out->locations.defines, (int (*)(void*))_unload_cli_define);
+    list_free_force(&out->tools.linker_args);
     mm_free((void*)out->locations.files);
     out->locations.files = NULL;
     return 0;
@@ -803,24 +805,24 @@ int main(int argc, char* argv[]) {
 
     if (options.flags.show_help) {
         _print_help_message();
-        list_free_force_op(&options.locations.defines, _unload_cli_define);
-        list_free_force_op(&options.tools.linker_args, _unload_linker_arg);
+        list_free_force_op(&options.locations.defines, (int (*)(void*))_unload_cli_define);
+        list_free_force(&options.tools.linker_args);
         mm_free((void*)options.locations.files);
         return EXIT_SUCCESS;
     }
 
     if (options.flags.show_something) {
         _print_gem(stdout);
-        list_free_force_op(&options.locations.defines, _unload_cli_define);
-        list_free_force_op(&options.tools.linker_args, _unload_linker_arg);
+        list_free_force_op(&options.locations.defines, (int (*)(void*))_unload_cli_define);
+        list_free_force(&options.tools.linker_args);
         mm_free((void*)options.locations.files);
         return EXIT_SUCCESS;
     }
 
     if (options.flags.show_version) {
         _print_version(stdout);
-        list_free_force_op(&options.locations.defines, _unload_cli_define);
-        list_free_force_op(&options.tools.linker_args, _unload_linker_arg);
+        list_free_force_op(&options.locations.defines, (int (*)(void*))_unload_cli_define);
+        list_free_force(&options.tools.linker_args);
         mm_free((void*)options.locations.files);
         return EXIT_SUCCESS;
     }
@@ -832,41 +834,43 @@ int main(int argc, char* argv[]) {
     if (options.flags.print_stdlib) {
         if (options.locations.stdlib) {
             puts(options.locations.stdlib);
-            list_free_force_op(&options.locations.defines, _unload_cli_define);
-            list_free_force_op(&options.tools.linker_args, _unload_linker_arg);
+            list_free_force_op(&options.locations.defines, (int (*)(void*))_unload_cli_define);
+            list_free_force(&options.tools.linker_args);
             mm_free((void*)options.locations.files);
             return EXIT_SUCCESS;
         }
+
         fprintf(stderr, "CPL standard library isn't found\n");
-        list_free_force_op(&options.locations.defines, _unload_cli_define);
-        list_free_force_op(&options.tools.linker_args, _unload_linker_arg);
+        list_free_force_op(&options.locations.defines, (int (*)(void*))_unload_cli_define);
+        list_free_force(&options.tools.linker_args);
         mm_free((void*)options.locations.files);
         return EXIT_FAILURE;
     }
 
     if (!options.locations.files_count) {
         fprintf(stderr, "No input files\n");
-        list_free_force_op(&options.locations.defines, _unload_cli_define);
-        list_free_force_op(&options.tools.linker_args, _unload_linker_arg);
+        list_free_force_op(&options.locations.defines, (int (*)(void*))_unload_cli_define);
+        list_free_force(&options.tools.linker_args);
         mm_free((void*)options.locations.files);
         return EXIT_FAILURE;
     }
 
     CONF_set_config(_make_config(&options));
 
-    char** object_files = mm_malloc((size_t)options.locations.files_count * sizeof(*object_files));
+    char** object_files = (char**)mm_malloc(options.locations.files_count * sizeof(char*));
     if (!object_files && options.locations.files_count > 0) {
         fprintf(stderr, "Can't allocate object files array\n");
         return EXIT_FAILURE;
     }
-    memset(object_files, 0, (size_t)options.locations.files_count * sizeof(*object_files));
+    memset(object_files, 0, options.locations.files_count * sizeof(char*));
 
-    list_t* token_lists = mm_malloc((size_t)options.locations.files_count * sizeof(*token_lists));
+    list_t* token_lists = mm_malloc(options.locations.files_count * sizeof(list_t));
     if (!token_lists) {
         fprintf(stderr, "Can't allocate token lists array\n");
         return EXIT_FAILURE;
     }
-    memset(token_lists, 0, (size_t)options.locations.files_count * sizeof(*token_lists));
+
+    memset(token_lists, 0, options.locations.files_count * sizeof(list_t));
     int token_lists_count = 0;
 
     sym_table_t smt;
@@ -1246,7 +1250,7 @@ int main(int argc, char* argv[]) {
 
     if (
         options.build_mode == BUILD_MODE_EXECUTABLE &&
-        !options.flags.preprocess_only &&
+        !options.flags.preprocess_only              &&
         options.locations.files_count > 0
     ) {
         if (!_link_objects(&options, object_files, 1)) {
@@ -1264,8 +1268,8 @@ int main(int argc, char* argv[]) {
 
     mm_free(object_files);
     mm_free(token_lists);
-    list_free_force_op(&options.locations.defines, _unload_cli_define);
-    list_free_force_op(&options.tools.linker_args, _unload_linker_arg);
+    list_free_force_op(&options.locations.defines, (int (*)(void*))_unload_cli_define);
+    list_free_force(&options.tools.linker_args);
     mm_free((void*)options.locations.files);
     return EXIT_SUCCESS;
 }
