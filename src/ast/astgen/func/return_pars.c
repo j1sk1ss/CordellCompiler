@@ -6,7 +6,7 @@ ast_node_t* cpl_parse_return(PARSER_ARGS) {
 
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
     if (!base) {
-        PARSE_ERROR("Can't create the base for the '%s' statement!", RETURN_COMMAND);
+        PARSE_ERROR("Can't create a base for a 'return' statement!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }
@@ -20,7 +20,7 @@ ast_node_t* cpl_parse_return(PARSER_ARGS) {
     ast_node_t* value = cpl_parse_expression(it, ctx, smt, 1);
     if (value) AST_add_node(base, value);
     else {
-        PARSE_ERROR("Error during the return statement! return <stmt>!");
+        PARSE_ERROR("Error during the return statement parsing!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;

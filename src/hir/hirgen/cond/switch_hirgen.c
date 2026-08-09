@@ -25,14 +25,14 @@ static int _generate_case_binary_jump(
     hir_subject_t* equals        = HIR_SUBJ_LABEL();
     hir_subject_t* value         = HIR_generate_implconv(ctx, 0, HIR_TMPVARI64, HIR_SUBJ_CONST(val), smt);
 
-    hir_subject_t* is_lwr = HIR_SUBJ_TMPVAR(HIR_TMPVARI8, VRTB_add_info(NULL, TMP_I8_TYPE_TOKEN, NO_SYMBOL_ID, NULL, &smt->v));
+    hir_subject_t* is_lwr = HIR_SUBJ_TMPVAR(HIR_TMPVARI8, VRTB_add_info(NULL, TMP_I8_TYPE_TOKEN, NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v));
     HIR_BLOCK3(ctx, HIR_iLWR, is_lwr, HIR_generate_implconv(ctx, 0, HIR_TMPVARI64, cond, smt), value);
     HIR_BLOCK3(ctx, HIR_IFOP2, is_lwr, lower, eq_or_greater);
     HIR_BLOCK1(ctx, HIR_MKLB, lower);
     _generate_case_binary_jump(values, cond, left, mid - 1, def, end, ctx, smt);
 
     HIR_BLOCK1(ctx, HIR_MKLB, eq_or_greater);
-    hir_subject_t* is_grt = HIR_SUBJ_TMPVAR(HIR_TMPVARI8, VRTB_add_info(NULL, TMP_I8_TYPE_TOKEN, NO_SYMBOL_ID, NULL, &smt->v));
+    hir_subject_t* is_grt = HIR_SUBJ_TMPVAR(HIR_TMPVARI8, VRTB_add_info(NULL, TMP_I8_TYPE_TOKEN, NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v));
     HIR_BLOCK3(ctx, HIR_iLRG, is_grt, HIR_generate_implconv(ctx, 0, HIR_TMPVARI64, cond, smt), value);
     HIR_BLOCK3(ctx, HIR_IFOP2, is_grt, greater, equals);
     HIR_BLOCK1(ctx, HIR_MKLB, greater);
@@ -52,7 +52,7 @@ static int _generate_sequent_jump(
 ) {
     for (int i = 0; i < values_count; i++) {
         hir_subject_t* nl     = HIR_SUBJ_LABEL();
-        hir_subject_t* equals = HIR_SUBJ_TMPVAR(HIR_TMPVARI8, VRTB_add_info(NULL, TMP_I8_TYPE_TOKEN, NO_SYMBOL_ID, NULL, &smt->v));
+        hir_subject_t* equals = HIR_SUBJ_TMPVAR(HIR_TMPVARI8, VRTB_add_info(NULL, TMP_I8_TYPE_TOKEN, NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v));
         hir_subject_t* value  = HIR_generate_implconv(ctx, 0, HIR_TMPVARI64, HIR_SUBJ_CONST(values[i].v), smt);
         HIR_BLOCK3(ctx, HIR_iCMP, equals, HIR_generate_implconv(ctx, 0, HIR_TMPVARI64, cond, smt), value);
         HIR_BLOCK3(ctx, HIR_IFOP2, equals, values[i].l, nl);

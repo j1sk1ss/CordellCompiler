@@ -1,13 +1,17 @@
 #include <builder.h>
 
+static inline void _print_gem(FILE* stream) {
+    fwrite(gem_data, 1, gem_data_len, stream);
+}
+
 static inline void _print_version(FILE* stream) {
-    fprintf(stream, "ccpl %s\n", CCPL_VERSION);
+    fprintf(stream, "cplc %s\n", CCPL_VERSION);
 }
 
 static inline void _print_help_row(FILE* stream, const cli_help_option_t* row) {
-    char label[64];
+    char label[64] = { 0 };
     if (row->argument && row->argument[0]) snprintf(label, sizeof(label), "%s %s", row->option, row->argument);
-    else snprintf(label, sizeof(label), "%s", row->option);
+    else                                   snprintf(label, sizeof(label), "%s", row->option);
     fprintf(stream, "  %-28s %s\n", label, row->description);
 }
 
@@ -22,12 +26,15 @@ static int _print_help_message() {
     static const cli_help_option_t general_options[] = {
         { OPTION_HELP_SHORT ", " OPTION_HELP, NULL, "Show this help message" },
         { OPTION_VERSION_SHORT ", " OPTION_VERSION, NULL, "Show compiler version" },
+        { OPTION_SOMETHING_SHORT ", " OPTION_SOMETHING, NULL, "Show something" },
         { OPTION_PREPROCESS_ONLY, NULL, "Run preprocessor only" },
-        { OPTION_WITHOUT_COMPILATION, NULL, "Build AST and HIR, then stop without compilation" },
         { OPTION_INLUCDE, "<dir>", "Add include directory" },
+        { OPTION_DEFINE, "<name=value>", "Define preprocessor variable" },
+        { OPTION_PRINT_STDLIB, NULL, "Print the standard library directory" },
         { OPTION_OUTPUT, "<file>", "Set output file" },
         { OPTION_ENABLE_AST_ANALYSIS, NULL, "Enable AST analysis" },
         { OPTION_ENABLE_IR_ANALYSIS, NULL, "Enable IR analysis" },
+        { OPTION_ANALYSIS_ONLY, NULL, "Run AST and HIR analysis, then stop before code generation" },
         { OPTION_DEBUG, NULL, "Enable debug mode" },
         { OPTION_NO_DEBUG, NULL, "Disable debug mode" },
     };
@@ -64,8 +71,9 @@ static int _print_help_message() {
     static const cli_help_option_t linker_options[] = {
         { OPTION_LINKER, "<linker>", "Set linker (ld, gcc, clang, ...)" },
         { OPTION_LINKER_MODE, "<mode>", "Set linker mode (c, driver, raw, ld)" },
-        { OPTION_NO_COMPILE, NULL, "Stop after assembly generation" },
-        { OPTION_NO_OBJECT_BUILD, NULL, "Stop after assembly generation without building an object file" },
+        { "-L<dir>, -l<name>, -Wl,<arg>", NULL, "Pass library search paths, libraries, and driver linker options to the linker" },
+        { OPTION_LINKER_ARG_SHORT ", " OPTION_LINKER_ARG, "<arg>", "Pass one raw argument to the linker command" },
+        { OPTION_COMPILE_ONLY_SHORT ", " OPTION_COMPILE_ONLY, NULL, "Build an object file and skip linking" },
         { OPTION_LINKER_NO_PIE, NULL, "Disable PIE" },
         { OPTION_LINKER_PIE, NULL, "Enable PIE" },
         { OPTION_LINKER_M32, NULL, "Enable m32 mode" },
@@ -82,14 +90,16 @@ static int _print_help_message() {
         { OPTION_AST_OUTPUT, "<file>", "Set AST dump output path" },
         { OPTION_EMIT_IR, NULL, "Emit HIR dump" },
         { OPTION_IR_OUTPUT, "<file>", "Set HIR dump output path" },
+        { OPTION_EMIT_HIR_CFG, "<name>", "Emit HIR CFG dump for function" },
         { OPTION_EMIT_LIR, NULL, "Emit LIR dump" },
+        { OPTION_EMIT_LIR_CFG, "<name>", "Emit LIR CFG dump for function" },
         { OPTION_LIR_OUTPUT, "<file>", "Set LIR dump output path" },
         { OPTION_EMIT_ASM, NULL, "Emit produced assembly code" },
         { OPTION_ASM_OUTPUT, "<file>", "Set assembly output path" },
     };
 
     _print_version(stdout);
-    fprintf(stdout, "Usage: ccpl [options] <input files>\n");
+    fprintf(stdout, "Usage: cplc [options] <input files>\n");
     _print_help_section(stdout, "General options",      general_options, sizeof(general_options) / sizeof(general_options[0]));
     _print_help_section(stdout, "Optimization options", optimization_options, sizeof(optimization_options) / sizeof(optimization_options[0]));
     _print_help_section(stdout, "Target options",       target_options, sizeof(target_options) / sizeof(target_options[0]));
@@ -100,13 +110,85 @@ static int _print_help_message() {
     return 0;
 }
 
-static char* _dup_string(const char* s) {
-    if (!s) return NULL;
-    size_t n = strlen(s) + 1;
-    char* out = mm_malloc(n);
-    if (!out) return NULL;
-    memcpy(out, s, n);
-    return out;
+static inline int _readable_directory(const char* path) {
+    return path && path[0] && !access(path, R_OK | X_OK);
+}
+
+static inline int _readable_file(const char* path) {
+    return path && path[0] && !access(path, R_OK);
+}
+
+static int _path_from_executable(const char* argv0, const char* suffix, char* out, size_t out_size) {
+    if (!argv0 || !suffix || !out || !out_size) return 0;
+    char executable[PATH_MAX] = { 0 };
+#ifdef __linux__
+    ssize_t nread = readlink("/proc/self/exe", executable, sizeof(executable) - 1);
+    if (nread > 0) executable[nread] = 0;
+    else
+#endif
+    {
+        if (!realpath(argv0, executable)) return 0;
+    }
+
+    char* slash = strrchr(executable, '/');
+    if (!slash) return 0;
+    *slash = 0;
+
+    char candidate[PATH_MAX] = { 0 };
+    int written = snprintf(candidate, sizeof(candidate), "%s/%s", executable, suffix);
+    if (written <= 0 || (size_t)written >= sizeof(candidate)) return 0;
+
+    char resolved[PATH_MAX] = { 0 };
+    if (!realpath(candidate, resolved) || !_readable_directory(resolved)) return 0;
+    if (strlen(resolved) + 1 > out_size) return 0;
+    strcpy(out, resolved);
+    return 1;
+}
+
+static int _file_from_executable(const char* argv0, const char* suffix, char* out, size_t out_size) {
+    if (!argv0 || !suffix || !out || !out_size) return 0;
+    char executable[PATH_MAX] = { 0 };
+#ifdef __linux__
+    ssize_t nread = readlink("/proc/self/exe", executable, sizeof(executable) - 1);
+    if (nread > 0) executable[nread] = 0;
+    else
+#endif
+    {
+        if (!realpath(argv0, executable)) return 0;
+    }
+
+    char* slash = strrchr(executable, '/');
+    if (!slash) return 0;
+    *slash = 0;
+
+    char candidate[PATH_MAX] = { 0 };
+    int written = snprintf(candidate, sizeof(candidate), "%s/%s", executable, suffix);
+    if (written <= 0 || (size_t)written >= sizeof(candidate)) return 0;
+
+    char resolved[PATH_MAX] = { 0 };
+    if (!realpath(candidate, resolved) || !_readable_file(resolved)) return 0;
+    if (strlen(resolved) + 1 > out_size) return 0;
+    strcpy(out, resolved);
+    return 1;
+}
+
+static inline char* _find_stdlib(const char* argv0, char* out, size_t out_size) {
+    char* env = getenv("CPL_INCLUDE_PATH");
+    if (_readable_directory(env))                                            return env;
+    if (_path_from_executable(argv0, "../share/cpl/include", out, out_size)) return out;
+    if (_path_from_executable(argv0, "../../cpllib", out, out_size))         return out;
+    if (_readable_directory(CPL_DEFAULT_INCLUDE_DIR))                        return CPL_DEFAULT_INCLUDE_DIR;
+    if (realpath("cpllib", out) && _readable_directory(out))                 return out;
+    return NULL;
+}
+
+static inline char* _find_runtime_library(const char* argv0, char* out, size_t out_size) {
+    char* env = getenv("CPL_RUNTIME_LIB");
+    if (_readable_file(env))                                                return env;
+    if (_file_from_executable(argv0, "../lib/cpl/libcpl.a", out, out_size)) return out;
+    if (_file_from_executable(argv0, "cpllib/libcpl.a", out, out_size))     return out;
+    if (_readable_file(CPL_DEFAULT_RUNTIME_LIB))                            return CPL_DEFAULT_RUNTIME_LIB;
+    return NULL;
 }
 
 static char* _make_temp_path(void) {
@@ -114,7 +196,7 @@ static char* _make_temp_path(void) {
     int fd = mkstemp(template);
     if (fd < 0) return NULL;
     close(fd);
-    return _dup_string(template);
+    return strdup(template);
 }
 
 static int _run_tool(const char* tool, char* const argv[]) {
@@ -131,7 +213,12 @@ static int _run_tool(const char* tool, char* const argv[]) {
     }
 
     int status = 0;
-    if (waitpid(pid, &status, 0) < 0) {
+    pid_t waited = 0;
+    do {
+        waited = waitpid(pid, &status, 0);
+    } while (waited < 0 && errno == EINTR);
+
+    if (waited < 0) {
         perror("waitpid");
         return 0;
     }
@@ -150,7 +237,50 @@ static int _copy_fd_to_stream(int fd, FILE* stream) {
     return !nread && !ferror(stream);
 }
 
-static int _compile_asm_to_object(const options_t* options, const char* asm_path, const char* obj_path) {
+static int _copy_file_path(const char* src, const char* dst) {
+    int src_fd = open(src, O_RDONLY);
+    if (src_fd < 0) return 0;
+
+    int dst_fd = open(dst, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+    if (dst_fd < 0) {
+        close(src_fd);
+        return 0;
+    }
+
+    int ok = 1;
+    char buffer[4096] = { 0 };
+    ssize_t nread = 0;
+    while ((nread = read(src_fd, buffer, sizeof(buffer))) > 0) {
+        ssize_t offset = 0;
+        while (offset < nread) {
+            ssize_t written = write(dst_fd, buffer + offset, (size_t)(nread - offset));
+            if (written < 0) {
+                ok = 0;
+                break;
+            }
+
+            offset += written;
+        }
+
+        if (!ok) break;
+    }
+
+    if (nread < 0) ok = 0;
+    if (close(dst_fd) < 0) ok = 0;
+    close(src_fd);
+    return ok;
+}
+
+static int _move_file_path(const char* src, const char* dst) {
+    if (rename(src, dst) == 0) return 1;
+    if (
+        errno != EXDEV ||
+        !_copy_file_path(src, dst)
+    ) return 0;
+    return unlink(src) == 0;
+}
+
+static inline int _compile_asm_to_object(const options_t* options, const char* asm_path, const char* obj_path) {
     char* const cmd[] = {
         (char*)options->tools.asm_compiler, "-f",
         (char*)options->tools.asm_format, (char*)asm_path, "-o",
@@ -161,22 +291,32 @@ static int _compile_asm_to_object(const options_t* options, const char* asm_path
 }
 
 static int _link_objects(const options_t* options, char* const objects[], int objects_count) {
-    int extra    = (options->tools.linker_use_c_driver ? 1 : 0) + (options->tools.linker_no_pie ? 1 : 0) + (options->tools.linker_m32 ? 1 : 0);
-    int cmd_size = objects_count + 5 + extra;
-    char** cmd   = (char**)mm_malloc((size_t)cmd_size * sizeof(*cmd));
+    int extra            = (options->tools.linker_use_c_driver ? 1 : 0) + (options->tools.linker_no_pie ? 1 : 0) + (options->tools.linker_m32 ? 1 : 0);
+    int runtime_count    = options->locations.runtime ? 1 : 0;
+    int linker_arg_count = list_size((list_t*)&options->tools.linker_args);
+    char** cmd           = (char**)mm_malloc((objects_count + runtime_count + linker_arg_count + 5 + extra) * sizeof(char*));
     if (!cmd) return 0;
 
     int j = 0;
     cmd[j++] = (char*)options->tools.linker;
     if (options->tools.linker_use_c_driver) {
         if (options->tools.linker_no_pie) cmd[j++] = "-no-pie";
-        if (options->tools.linker_m32) cmd[j++] = "-m32";
+        if (options->tools.linker_m32)    cmd[j++] = "-m32";
     }
     
     cmd[j++] = "-o";
     cmd[j++] = options->locations.output ? options->locations.output : "a.out";
     for (int i = 0; i < objects_count; i++) {
         cmd[j++] = objects[i];
+    }
+
+    if (options->locations.runtime) {
+        cmd[j++] = (char*)options->locations.runtime;
+    }
+    
+    char* linker_arg = NULL;
+    foreach (linker_arg, (list_t*)&options->tools.linker_args) {
+        cmd[j++] = linker_arg;
     }
 
     cmd[j] = NULL;
@@ -189,7 +329,7 @@ static inline const char* _output_path_or_default(const char* path, const char* 
     return path ? path : fallback;
 }
 
-static int _parse_long_arg(const char* s, long* out) {
+static inline int _parse_long_arg(const char* s, long* out) {
     if (!s || !out) return 0;
     char* end = NULL;
     errno = 0;
@@ -205,29 +345,33 @@ static int _parse_sys_type(const char* s, options_t* out) {
         out->config.sys_type = UNKNOWN;
         return 1;
     }
-    else if (!strcmp(s, "macho64")) {
+
+    if (!strcmp(s, "macho64")) {
         out->config.sys_type     = MACHO64;
         out->config.ro_section   = "__TEXT,__const";
         out->config.glob_section = "__DATA,__data";
         out->config.code_section = "__TEXT,__text";
         return 1;
     }
-    else if (!strcmp(s, "linux64")) {
+
+    if (!strcmp(s, "linux64")) {
         out->config.sys_type     = LINUX64;
         out->config.ro_section   = ".rodata";
         out->config.glob_section = ".data";
         out->config.code_section = ".text";
         return 1;
     }
-    else if (!strcmp(s, "i386")) {
+
+    if (!strcmp(s, "i386")) {
         out->config.sys_type     = I386;
         out->config.ro_section   = ".rodata";
         out->config.glob_section = ".data";
         out->config.code_section = ".text";
         return 1;
     }
-    else if (!strcmp(s, "windows64")) {
-        out->config.sys_type = WINDOWS64;
+
+    if (!strcmp(s, "windows64")) {
+        out->config.sys_type     = WINDOWS64;
         return 1;
     }
 
@@ -236,12 +380,12 @@ static int _parse_sys_type(const char* s, options_t* out) {
 
 static void _set_optimization_profile(options_t* out, int level) {
     if (!out) return;
-    out->config.tre       = 0;
-    out->config.finline   = 0;
-    out->config.licm      = 0;
-    out->config.constant  = 0;
-    out->config.peephole  = 0;
-    out->config.copy_prop = 0;
+    out->config.tre           = 0;
+    out->config.finline       = 0;
+    out->config.licm          = 0;
+    out->config.constant      = 0;
+    out->config.peephole      = 0;
+    out->config.copy_prop     = 0;
 
     if (level >= 2) {
         out->config.licm      = 1;
@@ -270,10 +414,8 @@ static void _set_arch_profile(options_t* out, const char* arch) {
         out->config.sys_type      = I386;
         out->tools.asm_format     = "elf32";
         out->tools.linker_m32     = 1;
-        return;
     }
-
-    if (
+    else if (
         !strcmp(arch, "x86_64") || 
         !strcmp(arch, "amd64")
     ) {
@@ -284,6 +426,13 @@ static void _set_arch_profile(options_t* out, const char* arch) {
         out->tools.asm_format     = "elf64";
         out->tools.linker_m32     = 0;
     }
+}
+
+static inline int _set_build_mode(options_t* out, build_mode_t mode) {
+    if (!out) return 0;
+    if (out->build_mode != BUILD_MODE_EXECUTABLE && out->build_mode != mode) return 0;
+    out->build_mode = mode;
+    return 1;
 }
 
 static config_t _make_config(const options_t* options) {
@@ -316,23 +465,127 @@ static config_t _make_config(const options_t* options) {
     return conf;
 }
 
+typedef struct {
+    char* name;
+    char* value;
+} cli_define_t;
+
+static char* _copy_slice(const char* begin, size_t len) {
+    if (!begin) return NULL;
+    char* out = (char*)mm_malloc(len + 1);
+    if (!out) return NULL;
+    memcpy(out, begin, len);
+    out[len] = 0;
+    return out;
+}
+
+static int _valid_define_name(const char* name, size_t name_len) {
+    if (!name || !name_len) return 0;
+    for (size_t i = 0; i < name_len; i++) {
+        char c = name[i];
+        int ok =
+            (c >= 'a' && c <= 'z') ||
+            (c >= 'A' && c <= 'Z') ||
+            c == '_'               ||
+            (i > 0 && c >= '0' && c <= '9');
+        if (!ok) return 0;
+    }
+
+    return 1;
+}
+
+static int _unload_cli_define(cli_define_t* define) {
+    if (!define) return 1;
+    mm_free(define->name);
+    mm_free(define->value);
+    mm_free(define);
+    return 1;
+}
+
+static cli_define_t* _make_define_arg(const char* arg) {
+    if (!arg || !arg[0]) return NULL;
+
+    const char* eq  = strchr(arg, '=');
+    size_t name_len = eq ? (size_t)(eq - arg) : strlen(arg);
+    if (!_valid_define_name(arg, name_len)) return NULL;
+
+    const char* value = eq ? eq + 1 : "1";
+    cli_define_t* define = (cli_define_t*)mm_malloc(sizeof(cli_define_t));
+    if (!define) return NULL;
+
+    define->name  = _copy_slice(arg, name_len);
+    define->value = _copy_slice(value, strlen(value));
+    if (!define->name || !define->value) {
+        _unload_cli_define(define);
+        return NULL;
+    }
+
+    return define;
+}
+
+static int _add_define_arg(options_t* out, const char* arg) {
+    if (!out) return 0;
+    cli_define_t* define = _make_define_arg(arg);
+    if (!define) return 0;
+    if (!list_push_back(&out->locations.defines, define)) {
+        _unload_cli_define(define);
+        return 0;
+    }
+
+    return 1;
+}
+
+static int _add_linker_arg(options_t* out, const char* arg) {
+    if (!out || !arg || !arg[0]) return 0;
+    char* copy = _copy_slice(arg, strlen(arg));
+    if (!copy) return 0;
+    if (!list_push_back(&out->tools.linker_args, copy)) {
+        mm_free(copy);
+        return 0;
+    }
+
+    return 1;
+}
+
+static inline void _apply_cli_defines(pp_ctx_t* ppctx, list_t* defines) {
+    if (!ppctx || !defines) return;
+    cli_define_t* define = NULL;
+    foreach (define, defines) {
+        MCTB_put_define(define->name, define->value, &ppctx->defines);
+    }
+}
+
 static void _set_default_options(options_t* out) {
-    memset(out, 0, sizeof(*out));
+    memset(out, 0, sizeof(options_t));
+    list_init(&out->locations.defines);
+    list_init(&out->tools.linker_args);
+    out->build_mode                = BUILD_MODE_EXECUTABLE;
     out->tools.asm_compiler        = "nasm";
+#if defined(__linux__)
+    out->tools.asm_format          = "elf64";
+    out->tools.linker              = "gcc";
+    out->tools.linker_no_pie       = 1;
+    out->config.entry_name         = "main";
+    out->config.ro_section         = ".rodata";
+    out->config.glob_section       = ".data";
+    out->config.code_section       = ".text";
+    out->config.sys_type           = LINUX64;
+#else
     out->tools.asm_format          = "macho64";
     out->tools.linker              = "clang";
-    out->tools.linker_use_c_driver = 1;
     out->tools.linker_no_pie       = 0;
-    out->tools.linker_m32          = 0;
     out->config.entry_name         = "_main";
     out->config.ro_section         = "__TEXT,__const";
     out->config.glob_section       = "__DATA,__data";
     out->config.code_section       = "__TEXT,__text";
+    out->config.sys_type           = MACHO64;
+#endif
+    out->tools.linker_use_c_driver = 1;
+    out->tools.linker_m32          = 0;
     out->config.full_bytness       = 8;
     out->config.half_bytness       = 4;
     out->config.quart_bytness      = 2;
     out->config.eight_bytness      = 1;
-    out->config.sys_type           = MACHO64;
     out->config.debug              = 0;
     _set_optimization_profile(out, 0);
 }
@@ -340,14 +593,19 @@ static void _set_default_options(options_t* out) {
 static int _parse_input_args(char* argv[], int argc, options_t* out) {
     if (!argv || argc <= 0 || !out) return 0;
     _set_default_options(out);
-    out->locations.files = mm_malloc((size_t)argc * sizeof(*out->locations.files));
+    out->locations.files = (char**)mm_malloc(argc * sizeof(char*));
     if (!out->locations.files) return 0;
 
     for (int i = 1; i < argc; i++) {
-        if (!strcmp(argv[i], OPTION_HELP_SHORT) || !strcmp(argv[i], OPTION_HELP))            out->flags.show_help           = 1;
-        else if (!strcmp(argv[i], OPTION_VERSION_SHORT) || !strcmp(argv[i], OPTION_VERSION)) out->flags.show_version        = 1;
-        else if (!strcmp(argv[i], OPTION_PREPROCESS_ONLY))                                   out->flags.preprocess_only     = 1;
-        else if (!strcmp(argv[i], OPTION_WITHOUT_COMPILATION))                               out->flags.without_compilation = 1;
+        if (!strcmp(argv[i], OPTION_HELP_SHORT) || !strcmp(argv[i], OPTION_HELP))                out->flags.show_help           = 1;
+        else if (!strcmp(argv[i], OPTION_VERSION_SHORT) || !strcmp(argv[i], OPTION_VERSION))     out->flags.show_version        = 1;
+        else if (!strcmp(argv[i], OPTION_SOMETHING_SHORT) || !strcmp(argv[i], OPTION_SOMETHING)) out->flags.show_something      = 1;
+        else if (!strcmp(argv[i], OPTION_PREPROCESS_ONLY))                                       out->flags.preprocess_only     = 1;
+        else if (!strcmp(argv[i], OPTION_ANALYSIS_ONLY)) {
+            if (!_set_build_mode(out, BUILD_MODE_ANALYSIS)) goto _fail;
+            out->flags.ast_analysis = 1;
+            out->flags.hir_analysis = 1;
+        }
         else if (!strcmp(argv[i], OPTION_OUTPUT)) {
             if (i + 1 >= argc) goto _fail;
             out->locations.output = argv[++i];
@@ -356,6 +614,14 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
             if (i + 1 >= argc) goto _fail;
             out->locations.include = argv[++i];
         }
+        else if (!strcmp(argv[i], OPTION_DEFINE)) {
+            if (i + 1 >= argc || !_add_define_arg(out, argv[i + 1])) goto _fail;
+            i++;
+        }
+        else if (!strncmp(argv[i], OPTION_DEFINE, strlen(OPTION_DEFINE))) {
+            if (!_add_define_arg(out, argv[i] + strlen(OPTION_DEFINE))) goto _fail;
+        }
+        else if (!strcmp(argv[i], OPTION_PRINT_STDLIB)) out->flags.print_stdlib = 1;
         else if (!strcmp(argv[i], OPTION_ARCH)) {
             if (i + 1 >= argc) goto _fail;
             _set_arch_profile(out, argv[++i]);
@@ -375,16 +641,36 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
         else if (!strcmp(argv[i], OPTION_LINKER_MODE)) {
             if (i + 1 >= argc) goto _fail;
             const char* mode = argv[++i];
-            if (!strcmp(mode, "c") || !strcmp(mode, "driver"))    out->tools.linker_use_c_driver    = 1;
-            else if (!strcmp(mode, "raw") || !strcmp(mode, "ld")) out->tools.linker_use_c_driver    = 0;
+            if (!strcmp(mode, "c") || !strcmp(mode, "driver"))    out->tools.linker_use_c_driver = 1;
+            else if (!strcmp(mode, "raw") || !strcmp(mode, "ld")) out->tools.linker_use_c_driver = 0;
             else goto _fail;
         }
-        else if (!strcmp(argv[i], OPTION_NO_COMPILE))      out->flags.no_compile      = 1;
-        else if (!strcmp(argv[i], OPTION_NO_OBJECT_BUILD)) out->flags.no_object_build = 1;
-        else if (!strcmp(argv[i], OPTION_LINKER_NO_PIE))   out->tools.linker_no_pie   = 1;
-        else if (!strcmp(argv[i], OPTION_LINKER_PIE))      out->tools.linker_no_pie   = 0;
-        else if (!strcmp(argv[i], OPTION_LINKER_M32))      out->tools.linker_m32      = 1;
-        else if (!strcmp(argv[i], OPTION_LINKER_NO_M32))   out->tools.linker_m32      = 0;
+        else if (!strcmp(argv[i], OPTION_LINKER_ARG_SHORT) || !strcmp(argv[i], OPTION_LINKER_ARG)) {
+            if (i + 1 >= argc || !_add_linker_arg(out, argv[i + 1])) goto _fail;
+            i++;
+        }
+        else if (
+            !strncmp(argv[i], "-l", 2) ||
+            !strncmp(argv[i], "-L", 2) ||
+            !strncmp(argv[i], "-Wl,", 4)
+        ) {
+            if (!_add_linker_arg(out, argv[i])) goto _fail;
+            if (!strcmp(argv[i], "-l") || !strcmp(argv[i], "-L")) {
+                if (i + 1 >= argc) goto _fail;
+                if (!_add_linker_arg(out, argv[i + 1])) goto _fail;
+                i++;
+            }
+        }
+        else if (
+            !strcmp(argv[i], OPTION_COMPILE_ONLY_SHORT) ||
+            !strcmp(argv[i], OPTION_COMPILE_ONLY)
+        ) {
+            if (!_set_build_mode(out, BUILD_MODE_OBJECT)) goto _fail;
+        }
+        else if (!strcmp(argv[i], OPTION_LINKER_NO_PIE)) out->tools.linker_no_pie = 1;
+        else if (!strcmp(argv[i], OPTION_LINKER_PIE))    out->tools.linker_no_pie = 0;
+        else if (!strcmp(argv[i], OPTION_LINKER_M32))    out->tools.linker_m32    = 1;
+        else if (!strcmp(argv[i], OPTION_LINKER_NO_M32)) out->tools.linker_m32    = 0;
         else if (!strcmp(argv[i], OPTION_ENTRY_NAME)) {
             if (i + 1 >= argc) goto _fail;
             out->config.entry_name = argv[++i];
@@ -441,19 +727,29 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
             out->locations.ast_output = argv[++i];
             out->config.emit_ast = 1;
         }
-        else if (!strcmp(argv[i], OPTION_EMIT_IR))              out->config.emit_ir      = 1;
+        else if (!strcmp(argv[i], OPTION_EMIT_IR))              out->config.emit_ir     = 1;
         else if (!strcmp(argv[i], OPTION_IR_OUTPUT)) {
             if (i + 1 >= argc) goto _fail;
             out->locations.ir_output = argv[++i];
             out->config.emit_ir = 1;
         }
-        else if (!strcmp(argv[i], OPTION_EMIT_LIR))             out->config.emit_lir     = 1;
+        else if (!strcmp(argv[i], OPTION_EMIT_HIR_CFG)) {
+            if (i + 1 >= argc) goto _fail;
+            out->locations.hir_cfg_name = argv[++i];
+            out->config.emit_hir_cfg = 1;
+        }
+        else if (!strcmp(argv[i], OPTION_EMIT_LIR))             out->config.emit_lir    = 1;
+        else if (!strcmp(argv[i], OPTION_EMIT_LIR_CFG)) {
+            if (i + 1 >= argc) goto _fail;
+            out->locations.lir_cfg_name = argv[++i];
+            out->config.emit_lir_cfg = 1;
+        }
         else if (!strcmp(argv[i], OPTION_LIR_OUTPUT)) {
             if (i + 1 >= argc) goto _fail;
             out->locations.lir_output = argv[++i];
             out->config.emit_lir = 1;
         }
-        else if (!strcmp(argv[i], OPTION_EMIT_ASM))             out->config.emit_asm     = 1;
+        else if (!strcmp(argv[i], OPTION_EMIT_ASM))             out->config.emit_asm    = 1;
         else if (!strcmp(argv[i], OPTION_ASM_OUTPUT)) {
             if (i + 1 >= argc) goto _fail;
             out->locations.asm_output = argv[++i];
@@ -469,13 +765,17 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
         else out->locations.files[out->locations.files_count++] = argv[i];
     }
 
-    if (out->flags.no_compile || out->flags.no_object_build) {
-        out->config.emit_asm = 1;
-    }
+    if (out->flags.preprocess_only && out->build_mode != BUILD_MODE_EXECUTABLE) goto _fail;
+    if (
+        out->build_mode == BUILD_MODE_ANALYSIS && 
+        (out->config.emit_lir || out->config.emit_lir_cfg || out->config.emit_asm
+    )) goto _fail;
 
     return 1;
 
 _fail: {}
+    list_free_force_op(&out->locations.defines, (int (*)(void*))_unload_cli_define);
+    list_free_force(&out->tools.linker_args);
     mm_free((void*)out->locations.files);
     out->locations.files = NULL;
     return 0;
@@ -505,41 +805,72 @@ int main(int argc, char* argv[]) {
 
     if (options.flags.show_help) {
         _print_help_message();
+        list_free_force_op(&options.locations.defines, (int (*)(void*))_unload_cli_define);
+        list_free_force(&options.tools.linker_args);
+        mm_free((void*)options.locations.files);
+        return EXIT_SUCCESS;
+    }
+
+    if (options.flags.show_something) {
+        _print_gem(stdout);
+        list_free_force_op(&options.locations.defines, (int (*)(void*))_unload_cli_define);
+        list_free_force(&options.tools.linker_args);
         mm_free((void*)options.locations.files);
         return EXIT_SUCCESS;
     }
 
     if (options.flags.show_version) {
         _print_version(stdout);
+        list_free_force_op(&options.locations.defines, (int (*)(void*))_unload_cli_define);
+        list_free_force(&options.tools.linker_args);
         mm_free((void*)options.locations.files);
         return EXIT_SUCCESS;
     }
 
-    if (options.locations.files_count == 0) {
-        fprintf(stderr, "No input files\n");
+    char stdlib_path[PATH_MAX] = { 0 };
+    options.locations.stdlib = _find_stdlib(argv[0], stdlib_path, sizeof(stdlib_path));
+    char runtime_path[PATH_MAX] = { 0 };
+    options.locations.runtime = _find_runtime_library(argv[0], runtime_path, sizeof(runtime_path));
+    if (options.flags.print_stdlib) {
+        if (options.locations.stdlib) {
+            puts(options.locations.stdlib);
+            list_free_force_op(&options.locations.defines, (int (*)(void*))_unload_cli_define);
+            list_free_force(&options.tools.linker_args);
+            mm_free((void*)options.locations.files);
+            return EXIT_SUCCESS;
+        }
+
+        fprintf(stderr, "CPL standard library isn't found\n");
+        list_free_force_op(&options.locations.defines, (int (*)(void*))_unload_cli_define);
+        list_free_force(&options.tools.linker_args);
         mm_free((void*)options.locations.files);
         return EXIT_FAILURE;
     }
 
-    config_t conf = _make_config(&options);
-    if (!CONF_set_config(&conf)) {
-        fprintf(stderr, "Can't initialize compilation config\n");
+    if (!options.locations.files_count) {
+        fprintf(stderr, "No input files\n");
+        list_free_force_op(&options.locations.defines, (int (*)(void*))_unload_cli_define);
+        list_free_force(&options.tools.linker_args);
+        mm_free((void*)options.locations.files);
         return EXIT_FAILURE;
     }
 
-    char** object_files = mm_malloc((size_t)options.locations.files_count * sizeof(*object_files));
+    CONF_set_config(_make_config(&options));
+
+    char** object_files = (char**)mm_malloc(options.locations.files_count * sizeof(char*));
     if (!object_files && options.locations.files_count > 0) {
         fprintf(stderr, "Can't allocate object files array\n");
         return EXIT_FAILURE;
     }
-    memset(object_files, 0, (size_t)options.locations.files_count * sizeof(*object_files));
+    memset(object_files, 0, options.locations.files_count * sizeof(char*));
 
-    list_t* token_lists = mm_malloc((size_t)options.locations.files_count * sizeof(*token_lists));
-    if (!token_lists && options.locations.files_count > 0) {
+    list_t* token_lists = mm_malloc(options.locations.files_count * sizeof(list_t));
+    if (!token_lists) {
         fprintf(stderr, "Can't allocate token lists array\n");
         return EXIT_FAILURE;
     }
-    memset(token_lists, 0, (size_t)options.locations.files_count * sizeof(*token_lists));
+
+    memset(token_lists, 0, options.locations.files_count * sizeof(list_t));
     int token_lists_count = 0;
 
     sym_table_t smt;
@@ -555,10 +886,18 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        finder_ctx_t finctx = { .bpath = options.locations.include };
-        fd = PP_perform(fd, &finctx);
+        finder_ctx_t finctx = {
+            .bpath = options.locations.include,
+            .spath = options.locations.stdlib
+        };
+
+        pp_ctx_t ppctx;
+        PP_init_pp_ctx(&ppctx);
+        _apply_cli_defines(&ppctx, &options.locations.defines);
+
+        fd = PP_perform(fd, &finctx, &ppctx);
         if (fd < 0) {
-            fprintf(stderr, "Processed file %s isn't found!\n", options.locations.files[i]);
+            fprintf(stderr, "Failed to preprocess %s\n", options.locations.files[i]);
             return 1;
         }
 
@@ -618,6 +957,7 @@ int main(int argc, char* argv[]) {
                 fprintf(stderr, "Can't open AST output file %s: %s\n", ast_output, strerror(errno));
                 return 1;
             }
+
             DUMP_format_astctx(&sctx, ast_file);
             fclose(ast_file);
         }
@@ -629,36 +969,13 @@ int main(int argc, char* argv[]) {
         hir_ctx_t hirctx = { 0 };
         HIR_generate(&sctx, &hirctx, &smt);
 
-        if (options.flags.without_compilation && options.config.emit_ir) {
-            const char* ir_output = _output_path_or_default(options.locations.ir_output, "output.ir");
-            FILE* ir_file = fopen(ir_output, "w");
-            if (!ir_file) {
-                fprintf(stderr, "Can't open HIR output file %s: %s\n", ir_output, strerror(errno));
-                return 1;
-            }
-            DUMP_format_hirctx(&hirctx, &smt, 0, 0, ir_file);
-            fclose(ir_file);
-        }
-
-        if (options.flags.without_compilation) {
-            HIR_unload_blocks(hirctx.hot.h);
-            for (int j = 0; j < token_lists_count; j++) {
-                list_free_force_op(&token_lists[j], (int (*)(void *))TKN_unload_token);
-            }
-            AST_unload_ctx(&sctx);
-
-            SMT_unload(&smt);
-            close(fd);
-            continue;
-        }
-
         cfg_ctx_t cfgctx = { .cid = 0 };
         HIR_CFG_build(&hirctx, &cfgctx, &smt);
         
         call_graph_t callctx;
         HIR_CG_build(&cfgctx, &callctx, &smt);
 
-        HIR_FUNC_delete_duplicated_functions(&cfgctx);
+        HIR_FUNC_set_unused_duplicated_functions(&cfgctx);
         HIR_FUNC_set_last_return(&cfgctx);
 
         if (options.config.tre) {
@@ -684,6 +1001,8 @@ int main(int argc, char* argv[]) {
         }
 
         HIR_LTREE_canonicalization(&cfgctx, &lctx);
+        HIR_LOOP_perform_dle(&lctx);
+
         HIR_CFG_unload_domdata(&cfgctx);
         HIR_CFG_finilize_before_dom(&cfgctx);
         HIR_CFG_create_domdata(&cfgctx);
@@ -702,15 +1021,25 @@ int main(int argc, char* argv[]) {
         HIR_CFG_make_allias(&cfgctx, &smt);
         dag_ctx_t dagctx = { .curr_id = 0 };
         HIR_DAG_init(&dagctx);
-        if (options.config.constant) {
+        int needs_hir_analysis = options.flags.hir_analysis || options.build_mode == BUILD_MODE_ANALYSIS;
+        if (options.config.constant || needs_hir_analysis) {
             HIR_DAG_generate(&cfgctx, &dagctx, &smt);
+        }
+
+        if (options.config.constant) {
             HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);
-            HIR_sparse_const_propagation(&dagctx, &smt);
+            int folded = 0;
+            do {
+                folded = 0;
+                HIR_sparse_const_propagation(&dagctx, &smt);
+                folded = HIR_sparse_const_funcall_propagation(&cfgctx, &smt) || folded;
+                folded = HIR_sparce_const_fret_propagation(&cfgctx, &smt)    || folded;
+            } while (folded);
         }
 
         HIR_CFG_squeeze_blocks(&cfgctx);
 
-        if (options.flags.hir_analysis) {
+        if (needs_hir_analysis) {
             SEM_perform_hir_check(&cfgctx, &dagctx, &hirctx, &smt);
         }
 
@@ -721,23 +1050,40 @@ int main(int argc, char* argv[]) {
                 fprintf(stderr, "Can't open HIR output file %s: %s\n", ir_output, strerror(errno));
                 return 1;
             }
+
             DUMP_format_hirctx(&hirctx, &smt, 0, 0, ir_file);
             fclose(ir_file);
         }
 
-        lir_ctx_t lirctx = { 0 };
-        LIR_generate(&cfgctx, &lirctx, &smt);
-
-        if (options.config.emit_lir) {
-            const char* lir_output = _output_path_or_default(options.locations.lir_output, "output.lir");
-            FILE* lir_file = fopen(lir_output, "w");
-            if (!lir_file) {
-                fprintf(stderr, "Can't open LIR output file %s: %s\n", lir_output, strerror(errno));
+        if (options.config.emit_hir_cfg) {
+            const char* hir_cfg_output = _output_path_or_default(options.locations.ir_output, "output.dot");
+            FILE* hir_cfg_file = fopen(hir_cfg_output, "w");
+            if (!hir_cfg_file) {
+                fprintf(stderr, "Can't open HIR CFG output file %s: %s\n", hir_cfg_output, strerror(errno));
                 return 1;
             }
-            DUMP_format_lirctx(&lirctx, &smt, 0, 0, lir_file);
-            fclose(lir_file);
+
+            DUMP_format_hir_cfg(&cfgctx, &smt, options.locations.hir_cfg_name, hir_cfg_file);
+            fclose(hir_cfg_file);
         }
+
+        if (options.build_mode == BUILD_MODE_ANALYSIS) {
+            HIR_DAG_unload(&dagctx);
+            HIR_LTREE_unload_ctx(&lctx);
+            HIR_CG_unload(&callctx);
+            HIR_CFG_unload(&cfgctx);
+            HIR_unload_blocks(hirctx.hot.h);
+            for (int j = 0; j < token_lists_count; j++) {
+                list_free_force_op(&token_lists[j], (int (*)(void *))TKN_unload_token);
+            }
+            AST_unload_ctx(&sctx);
+            SMT_unload(&smt);
+            close(fd);
+            continue;
+        }
+
+        lir_ctx_t lirctx = { 0 };
+        LIR_generate(&cfgctx, &lirctx, &smt);
 
         if (options.config.copy_prop) {
             LIR_variable_copy_propagation(&cfgctx, &smt);
@@ -785,6 +1131,30 @@ int main(int argc, char* argv[]) {
         LIR_DFG_compute_inout(&cfgctx);
         LIR_DFG_create_deall(&cfgctx, &smt);
 
+        if (options.config.emit_lir) {
+            const char* lir_output = _output_path_or_default(options.locations.lir_output, "output.lir");
+            FILE* lir_file = fopen(lir_output, "w");
+            if (!lir_file) {
+                fprintf(stderr, "Can't open LIR output file %s: %s\n", lir_output, strerror(errno));
+                return 1;
+            }
+
+            DUMP_format_lirctx(&lirctx, &smt, 0, 0, lir_file);
+            fclose(lir_file);
+        }
+
+        if (options.config.emit_lir_cfg) {
+            const char* lir_cfg_output = _output_path_or_default(options.locations.lir_output, "output.dot");
+            FILE* lir_cfg_file = fopen(lir_cfg_output, "w");
+            if (!lir_cfg_file) {
+                fprintf(stderr, "Can't open LIR CFG output file %s: %s\n", lir_cfg_output, strerror(errno));
+                return 1;
+            }
+
+            DUMP_format_lir_cfg(&cfgctx, &smt, options.locations.lir_cfg_name, lir_cfg_file);
+            fclose(lir_cfg_file);
+        }
+
         map_t colors;
         map_init(&colors, MAP_NO_CMP);
         LIR_RA_init_colors(&colors, &smt, precolor);
@@ -792,6 +1162,11 @@ int main(int argc, char* argv[]) {
         LIR_regalloc(&cfgctx, &smt, &colors);
         LIR_RA_sort_phi_movs(&cfgctx, &colors);
         LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel);
+        
+        if (options.config.copy_prop) {
+            LIR_register_copy_propagation(&cfgctx);
+        }
+
         LIR_destroy_ssa(&cfgctx);
         LIR_save_registers(&cfgctx, &callctx, &smt, &reg_save);
 
@@ -800,6 +1175,7 @@ int main(int argc, char* argv[]) {
         }
         
         LIR_validate_memory(&cfgctx, &smt, &mem_sel);
+        LIR_clear_global_variables(&cfgctx, &smt);
 
         char* asm_path = _make_temp_path();
         char* obj_path = _make_temp_path();
@@ -830,30 +1206,35 @@ int main(int argc, char* argv[]) {
                 fprintf(stderr, "Can't open ASM output file %s: %s\n", asm_output, strerror(errno));
                 return 1;
             }
+
             ASM_generate(&cfgctx, &smt, &asmgen, asm_emit);
             fclose(asm_emit);
         }
 
         fclose(asm_file);
 
-        if (options.flags.no_compile || options.flags.no_object_build) {
-            unlink(asm_path);
-            mm_free(asm_path);
-            mm_free(obj_path);
+        if (!_compile_asm_to_object(&options, asm_path, obj_path)) {
+            fprintf(stderr, "ASM compilation failed for %s\n", options.locations.files[i]);
+            return 1;
         }
+
+        unlink(asm_path);
+        mm_free(asm_path);
+        if (options.build_mode != BUILD_MODE_OBJECT) object_files[0] = obj_path;
         else {
-            if (!_compile_asm_to_object(&options, asm_path, obj_path)) {
-                fprintf(stderr, "ASM compilation failed for %s\n", options.locations.files[i]);
+            const char* object_output = _output_path_or_default(options.locations.output, "output.o");
+            if (!_move_file_path(obj_path, object_output)) {
+                fprintf(stderr, "Can't write object file %s: %s\n", object_output, strerror(errno));
+                mm_free(obj_path);
                 return 1;
             }
 
-            unlink(asm_path);
-            mm_free(asm_path);
-            object_files[0] = obj_path;
+            mm_free(obj_path);
         }
 
         map_free(&colors);
         LIR_unload_blocks(lirctx.h);
+        HIR_DAG_unload(&dagctx);
         HIR_LTREE_unload_ctx(&lctx);
         HIR_CG_unload(&callctx);
         HIR_CFG_unload(&cfgctx);
@@ -868,10 +1249,8 @@ int main(int argc, char* argv[]) {
     }
 
     if (
-        !options.flags.no_compile &&
-        !options.flags.no_object_build &&
-        !options.flags.preprocess_only &&
-        !options.flags.without_compilation &&
+        options.build_mode == BUILD_MODE_EXECUTABLE &&
+        !options.flags.preprocess_only              &&
         options.locations.files_count > 0
     ) {
         if (!_link_objects(&options, object_files, 1)) {
@@ -889,6 +1268,8 @@ int main(int argc, char* argv[]) {
 
     mm_free(object_files);
     mm_free(token_lists);
+    list_free_force_op(&options.locations.defines, (int (*)(void*))_unload_cli_define);
+    list_free_force(&options.tools.linker_args);
     mm_free((void*)options.locations.files);
     return EXIT_SUCCESS;
 }

@@ -23,15 +23,15 @@ static const syscall_t _syscalls[] = {
     [24] = SYSCALL0(24, ARG(HIR_TMPVARI32, 0, "", ""), "getuid", "macOS system call getuid", 1),
     [25] = SYSCALL0(25, ARG(HIR_TMPVARI32, 0, "", ""), "geteuid", "macOS system call geteuid", 1),
     [26] = SYSCALL4(26, ARG(HIR_TMPVARI32, 0, "", ""), "ptrace", "macOS system call ptrace", 4, ARG(HIR_TMPVARI32, 0, "req", "scalar argument req"), ARG(HIR_TMPVARI32, 0, "pid", "process id"), PTR(HIR_TMPVARI0, 0, "addr", "pointer argument addr"), ARG(HIR_TMPVARI32, 0, "data", "scalar argument data")),
-    #if SOCKETS
+#if SOCKETS
     [27] = SYSCALL3(27, ARG(HIR_TMPVARI32, 0, "", ""), "recvmsg", "macOS system call recvmsg", 3, ARG(HIR_TMPVARI32, 0, "s", "scalar argument s"), PTR(HIR_TMPVARI0, 0, "msg", "input pointer for msg"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags")),
     [28] = SYSCALL3(28, ARG(HIR_TMPVARI32, 0, "", ""), "sendmsg", "macOS system call sendmsg", 3, ARG(HIR_TMPVARI32, 0, "s", "scalar argument s"), PTR(HIR_TMPVARI0, 0, "msg", "input pointer for msg"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags")),
     [29] = SYSCALL6(29, ARG(HIR_TMPVARI32, 0, "", ""), "recvfrom", "macOS system call recvfrom", 3, ARG(HIR_TMPVARI32, 0, "s", "scalar argument s"), PTR(HIR_TMPVARI0, 0, "buf", "buffer"), ARG(HIR_TMPVARU64, 0, "len", "buffer length"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags"), PTR(HIR_TMPVARI0, 1, "from", "input pointer for from"), PTR(HIR_TMPVARI0, 0, "fromlenaddr", "output pointer for fromlenaddr")),
     [30] = SYSCALL3(30, ARG(HIR_TMPVARI32, 0, "", ""), "accept", "macOS system call accept", 3, ARG(HIR_TMPVARI32, 0, "s", "scalar argument s"), PTR(HIR_TMPVARI0, 0, "name", "sysctl MIB array or generic name pointer"), PTR(HIR_TMPVARI0, 0, "anamelen", "output pointer for anamelen")),
     [31] = SYSCALL3(31, ARG(HIR_TMPVARI32, 0, "", ""), "getpeername", "macOS system call getpeername", 3, ARG(HIR_TMPVARI32, 0, "fdes", "scalar argument fdes"), PTR(HIR_TMPVARI0, 0, "asa", "pointer argument asa"), PTR(HIR_TMPVARI0, 0, "alen", "output pointer for alen")),
     [32] = SYSCALL3(32, ARG(HIR_TMPVARI32, 0, "", ""), "getsockname", "macOS system call getsockname", 3, ARG(HIR_TMPVARI32, 0, "fdes", "scalar argument fdes"), PTR(HIR_TMPVARI0, 0, "asa", "pointer argument asa"), PTR(HIR_TMPVARI0, 0, "alen", "output pointer for alen")),
-    #else
-    #endif /* SOCKETS */
+#else
+#endif /* SOCKETS */
     [33] = SYSCALL2(33, ARG(HIR_TMPVARI32, 0, "", ""), "access", "macOS system call access", 1, PTR(HIR_TMPVARI8, 1, "path", "path to filesystem object"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags")),
     [34] = SYSCALL2(34, ARG(HIR_TMPVARI32, 0, "", ""), "chflags", "macOS system call chflags", 4, PTR(HIR_TMPVARI8, 1, "path", "path to filesystem object"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags")),
     [35] = SYSCALL2(35, ARG(HIR_TMPVARI32, 0, "", ""), "fchflags", "macOS system call fchflags", 4, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags")),
@@ -86,18 +86,18 @@ static const syscall_t _syscalls[] = {
     [104] = SYSCALL3(104, ARG(HIR_TMPVARI32, 0, "", ""), "bind", "macOS system call bind", 3, ARG(HIR_TMPVARI32, 0, "s", "scalar argument s"), PTR(HIR_TMPVARI0, 0, "name", "sysctl MIB array or generic name pointer"), ARG(HIR_TMPVARI32, 0, "namelen", "scalar argument namelen")),
     [105] = SYSCALL5(105, ARG(HIR_TMPVARI32, 0, "", ""), "setsockopt", "macOS system call setsockopt", 3, ARG(HIR_TMPVARI32, 0, "s", "scalar argument s"), ARG(HIR_TMPVARI32, 0, "level", "scalar argument level"), ARG(HIR_TMPVARI32, 0, "name", "sysctl MIB array or generic name pointer"), PTR(HIR_TMPVARI0, 0, "val", "input pointer for val"), ARG(HIR_TMPVARI32, 0, "valsize", "scalar argument valsize")),
     [106] = SYSCALL2(106, ARG(HIR_TMPVARI32, 0, "", ""), "listen", "macOS system call listen", 3, ARG(HIR_TMPVARI32, 0, "s", "scalar argument s"), ARG(HIR_TMPVARI32, 0, "backlog", "scalar argument backlog")),
-    #else
-    #endif /* SOCKETS */
+#else
+#endif /* SOCKETS */
     [111] = SYSCALL1(111, ARG(HIR_TMPVARI32, 0, "", ""), "sigsuspend", "macOS system call sigsuspend", 2, ARG(HIR_TMPVARU32, 0, "mask", "scalar argument mask")),
-    #if SOCKETS
-    #else
-    #endif /* SOCKETS */
+#if SOCKETS
+#else
+#endif /* SOCKETS */
     [116] = SYSCALL3(116, ARG(HIR_TMPVARI32, 0, "", ""), "gettimeofday", "get current time and timezone information", 1, PTR(HIR_TMPVARI0, 0, "tp", "time output pointer"), PTR(HIR_TMPVARI0, 0, "tzp", "timezone pointer"), PTR(HIR_TMPVARI0, 0, "mach_absolute_time", "pointer argument mach_absolute_time")),
     [117] = SYSCALL2(117, ARG(HIR_TMPVARI32, 0, "", ""), "getrusage", "macOS system call getrusage", 1, ARG(HIR_TMPVARI32, 0, "who", "scalar argument who"), PTR(HIR_TMPVARI0, 0, "rusage", "resource usage output pointer")),
-    #if SOCKETS
+#if SOCKETS
     [118] = SYSCALL5(118, ARG(HIR_TMPVARI32, 0, "", ""), "getsockopt", "macOS system call getsockopt", 3, ARG(HIR_TMPVARI32, 0, "s", "scalar argument s"), ARG(HIR_TMPVARI32, 0, "level", "scalar argument level"), ARG(HIR_TMPVARI32, 0, "name", "sysctl MIB array or generic name pointer"), PTR(HIR_TMPVARI0, 0, "val", "input pointer for val"), PTR(HIR_TMPVARI0, 0, "avalsize", "pointer argument avalsize")),
-    #else
-    #endif /* SOCKETS */
+#else
+#endif /* SOCKETS */
     [120] = SYSCALL3(120, ARG(HIR_TMPVARI64, 0, "", ""), "readv", "macOS system call readv", 1, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), PTR(HIR_TMPVARI0, 0, "iovp", "input pointer for iovp"), ARG(HIR_TMPVARU32, 0, "iovcnt", "scalar argument iovcnt")),
     [121] = SYSCALL3(121, ARG(HIR_TMPVARI64, 0, "", ""), "writev", "macOS system call writev", 2, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), PTR(HIR_TMPVARI0, 0, "iovp", "input pointer for iovp"), ARG(HIR_TMPVARU32, 0, "iovcnt", "scalar argument iovcnt")),
     [122] = SYSCALL2(122, ARG(HIR_TMPVARI32, 0, "", ""), "settimeofday", "set current time and timezone information", 4, PTR(HIR_TMPVARI0, 0, "tv", "timeval pointer"), PTR(HIR_TMPVARI0, 0, "tzp", "timezone pointer")),
@@ -108,12 +108,12 @@ static const syscall_t _syscalls[] = {
     [128] = SYSCALL2(128, ARG(HIR_TMPVARI32, 0, "", ""), "rename", "macOS system call rename", 2, PTR(HIR_TMPVARI8, 1, "from", "input pointer for from"), PTR(HIR_TMPVARI8, 1, "to", "input pointer for to")),
     [131] = SYSCALL2(131, ARG(HIR_TMPVARI32, 0, "", ""), "flock", "macOS system call flock", 2, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), ARG(HIR_TMPVARI32, 0, "how", "scalar argument how")),
     [132] = SYSCALL2(132, ARG(HIR_TMPVARI32, 0, "", ""), "mkfifo", "macOS system call mkfifo", 2, PTR(HIR_TMPVARI8, 1, "path", "path to filesystem object"), ARG(HIR_TMPVARI32, 0, "mode", "permission/mode bits")),
-    #if SOCKETS
+#if SOCKETS
     [133] = SYSCALL6(133, ARG(HIR_TMPVARI32, 0, "", ""), "sendto", "macOS system call sendto", 3, ARG(HIR_TMPVARI32, 0, "s", "scalar argument s"), PTR(HIR_TMPVARI0, 0, "buf", "buffer"), ARG(HIR_TMPVARU64, 0, "len", "buffer length"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags"), PTR(HIR_TMPVARI8, 1, "to", "input pointer for to"), ARG(HIR_TMPVARI32, 0, "tolen", "scalar argument tolen")),
     [134] = SYSCALL2(134, ARG(HIR_TMPVARI32, 0, "", ""), "shutdown", "macOS system call shutdown", 3, ARG(HIR_TMPVARI32, 0, "s", "scalar argument s"), ARG(HIR_TMPVARI32, 0, "how", "scalar argument how")),
     [135] = SYSCALL4(135, ARG(HIR_TMPVARI32, 0, "", ""), "socketpair", "macOS system call socketpair", 3, ARG(HIR_TMPVARI32, 0, "domain", "scalar argument domain"), ARG(HIR_TMPVARI32, 0, "type", "scalar argument type"), ARG(HIR_TMPVARI32, 0, "protocol", "scalar argument protocol"), PTR(HIR_TMPVARI0, 0, "rsv", "pointer argument rsv")),
-    #else
-    #endif /* SOCKETS */
+#else
+#endif /* SOCKETS */
     [136] = SYSCALL2(136, ARG(HIR_TMPVARI32, 0, "", ""), "mkdir", "macOS system call mkdir", 2, PTR(HIR_TMPVARI8, 1, "path", "path to filesystem object"), ARG(HIR_TMPVARI32, 0, "mode", "permission/mode bits")),
     [137] = SYSCALL1(137, ARG(HIR_TMPVARI32, 0, "", ""), "rmdir", "macOS system call rmdir", 2, PTR(HIR_TMPVARI8, 1, "path", "path to filesystem object")),
     [138] = SYSCALL2(138, ARG(HIR_TMPVARI32, 0, "", ""), "utimes", "macOS system call utimes", 2, PTR(HIR_TMPVARI8, 1, "path", "path to filesystem object"), PTR(HIR_TMPVARI0, 0, "tptr", "pointer argument tptr")),
@@ -125,17 +125,17 @@ static const syscall_t _syscalls[] = {
     [152] = SYSCALL1(152, ARG(HIR_TMPVARI32, 0, "", ""), "setprivexec", "macOS system call setprivexec", 2, ARG(HIR_TMPVARI32, 0, "flag", "scalar argument flag")),
     [153] = SYSCALL4(153, ARG(HIR_TMPVARI64, 0, "", ""), "pread", "macOS system call pread", 1, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), PTR(HIR_TMPVARI0, 0, "buf", "buffer"), ARG(HIR_TMPVARU64, 0, "nbyte", "byte count"), ARG(HIR_TMPVARI64, 0, "offset", "file offset")),
     [154] = SYSCALL4(154, ARG(HIR_TMPVARI64, 0, "", ""), "pwrite", "macOS system call pwrite", 2, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), PTR(HIR_TMPVARI0, 0, "buf", "buffer"), ARG(HIR_TMPVARU64, 0, "nbyte", "byte count"), ARG(HIR_TMPVARI64, 0, "offset", "file offset")),
-    #if NFSSERVER
+#if NFSSERVER
     [155] = SYSCALL2(155, ARG(HIR_TMPVARI32, 0, "", ""), "nfssvc", "macOS system call nfssvc", 2, ARG(HIR_TMPVARI32, 0, "flag", "scalar argument flag"), PTR(HIR_TMPVARI8, 1, "argp", "argument vector")),
-    #else
-    #endif
+#else
+#endif
     [157] = SYSCALL2(157, ARG(HIR_TMPVARI32, 0, "", ""), "statfs", "macOS system call statfs", 1, PTR(HIR_TMPVARI8, 1, "path", "path to filesystem object"), PTR(HIR_TMPVARI0, 0, "buf", "buffer")),
     [158] = SYSCALL2(158, ARG(HIR_TMPVARI32, 0, "", ""), "fstatfs", "macOS system call fstatfs", 1, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), PTR(HIR_TMPVARI0, 0, "buf", "buffer")),
     [159] = SYSCALL2(159, ARG(HIR_TMPVARI32, 0, "", ""), "unmount", "macOS system call unmount", 2, PTR(HIR_TMPVARI8, 1, "path", "path to filesystem object"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags")),
-    #if NFSSERVER
+#if NFSSERVER
     [161] = SYSCALL2(161, ARG(HIR_TMPVARI32, 0, "", ""), "getfh", "macOS system call getfh", 1, PTR(HIR_TMPVARI8, 1, "fname", "path to executable or file name"), PTR(HIR_TMPVARI0, 0, "fhp", "pointer argument fhp")),
-    #else
-    #endif
+#else
+#endif
     [165] = SYSCALL4(165, ARG(HIR_TMPVARI32, 0, "", ""), "quotactl", "macOS system call quotactl", 2, PTR(HIR_TMPVARI8, 1, "path", "path to filesystem object"), ARG(HIR_TMPVARI32, 0, "cmd", "scalar argument cmd"), ARG(HIR_TMPVARI32, 0, "uid", "user id"), PTR(HIR_TMPVARI0, 0, "arg", "pointer argument arg")),
     [167] = SYSCALL4(167, ARG(HIR_TMPVARI32, 0, "", ""), "mount", "macOS system call mount", 4, PTR(HIR_TMPVARI8, 1, "type", "input pointer for type"), PTR(HIR_TMPVARI8, 1, "path", "path to filesystem object"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags"), PTR(HIR_TMPVARI0, 0, "data", "input pointer for data")),
     [169] = SYSCALL4(169, ARG(HIR_TMPVARI32, 0, "", ""), "csops", "macOS system call csops", 2, ARG(HIR_TMPVARI32, 0, "pid", "process id"), ARG(HIR_TMPVARU32, 0, "ops", "scalar argument ops"), PTR(HIR_TMPVARI0, 0, "useraddr", "pointer argument useraddr"), ARG(HIR_TMPVARU64, 0, "usersize", "scalar argument usersize")),
@@ -193,47 +193,47 @@ static const syscall_t _syscalls[] = {
     [243] = SYSCALL3(243, ARG(HIR_TMPVARI32, 0, "", ""), "initgroups", "macOS system call initgroups", 2, ARG(HIR_TMPVARU32, 0, "gidsetsize", "scalar argument gidsetsize"), PTR(HIR_TMPVARI0, 0, "gidset", "pointer argument gidset"), ARG(HIR_TMPVARI32, 0, "gmuid", "scalar argument gmuid")),
     [244] = SYSCALL5(244, ARG(HIR_TMPVARI32, 0, "", ""), "posix_spawn", "macOS system call posix_spawn", 2, PTR(HIR_TMPVARI0, 0, "pid", "process id"), PTR(HIR_TMPVARI8, 1, "path", "path to filesystem object"), PTR(HIR_TMPVARI0, 0, "adesc", "input pointer for adesc"), PTR2(HIR_TMPVARI8, 1, "argv", "argument vector"), PTR2(HIR_TMPVARI8, 1, "envp", "environment vector")),
     [245] = SYSCALL4(245, ARG(HIR_TMPVARI32, 0, "", ""), "ffsctl", "macOS system call ffsctl", 2, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), ARG(HIR_TMPVARU64, 0, "cmd", "scalar argument cmd"), PTR(HIR_TMPVARI0, 0, "data", "input pointer for data"), ARG(HIR_TMPVARU32, 0, "options", "scalar argument options")),
-    #if NFSCLIENT
+#if NFSCLIENT
     [247] = SYSCALL2(247, ARG(HIR_TMPVARI32, 0, "", ""), "nfsclnt", "macOS system call nfsclnt", 2, ARG(HIR_TMPVARI32, 0, "flag", "scalar argument flag"), PTR(HIR_TMPVARI8, 1, "argp", "argument vector")),
-    #else
-    #endif
-    #if NFSSERVER
+#else
+#endif
+#if NFSSERVER
     [248] = SYSCALL2(248, ARG(HIR_TMPVARI32, 0, "", ""), "fhopen", "macOS system call fhopen", 2, PTR(HIR_TMPVARI0, 0, "u_fhp", "input pointer for u_fhp"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags")),
-    #else
-    #endif
+#else
+#endif
     [250] = SYSCALL3(250, ARG(HIR_TMPVARI32, 0, "", ""), "minherit", "macOS system call minherit", 2, PTR(HIR_TMPVARI0, 0, "addr", "pointer argument addr"), ARG(HIR_TMPVARU64, 0, "len", "buffer length"), ARG(HIR_TMPVARI32, 0, "inherit", "scalar argument inherit")),
-    #if SYSV_SEM
+#if SYSV_SEM
     [251] = SYSCALL5(251, ARG(HIR_TMPVARI32, 0, "", ""), "semsys", "macOS system call semsys", 3, ARG(HIR_TMPVARU32, 0, "which", "scalar argument which"), ARG(HIR_TMPVARI32, 0, "a2", "scalar argument a2"), ARG(HIR_TMPVARI32, 0, "a3", "scalar argument a3"), ARG(HIR_TMPVARI32, 0, "a4", "scalar argument a4"), ARG(HIR_TMPVARI32, 0, "a5", "scalar argument a5")),
-    #else
-    #endif
-    #if SYSV_MSG
+#else
+#endif
+#if SYSV_MSG
     [252] = SYSCALL5(252, ARG(HIR_TMPVARI32, 0, "", ""), "msgsys", "macOS system call msgsys", 3, ARG(HIR_TMPVARU32, 0, "which", "scalar argument which"), ARG(HIR_TMPVARI32, 0, "a2", "scalar argument a2"), ARG(HIR_TMPVARI32, 0, "a3", "scalar argument a3"), ARG(HIR_TMPVARI32, 0, "a4", "scalar argument a4"), ARG(HIR_TMPVARI32, 0, "a5", "scalar argument a5")),
-    #else
-    #endif
-    #if SYSV_SHM
+#else
+#endif
+#if SYSV_SHM
     [253] = SYSCALL4(253, ARG(HIR_TMPVARI32, 0, "", ""), "shmsys", "macOS system call shmsys", 3, ARG(HIR_TMPVARU32, 0, "which", "scalar argument which"), ARG(HIR_TMPVARI32, 0, "a2", "scalar argument a2"), ARG(HIR_TMPVARI32, 0, "a3", "scalar argument a3"), ARG(HIR_TMPVARI32, 0, "a4", "scalar argument a4")),
-    #else
-    #endif
-    #if SYSV_SEM
+#else
+#endif
+#if SYSV_SEM
     [254] = SYSCALL4(254, ARG(HIR_TMPVARI32, 0, "", ""), "semctl", "macOS system call semctl", 3, ARG(HIR_TMPVARI32, 0, "semid", "scalar argument semid"), ARG(HIR_TMPVARI32, 0, "semnum", "scalar argument semnum"), ARG(HIR_TMPVARI32, 0, "cmd", "scalar argument cmd"), ARG(HIR_TMPVARU64, 0, "arg", "scalar argument arg")),
     [255] = SYSCALL3(255, ARG(HIR_TMPVARI32, 0, "", ""), "semget", "macOS system call semget", 3, ARG(HIR_TMPVARI32, 0, "key", "scalar argument key"), ARG(HIR_TMPVARI32, 0, "nsems", "scalar argument nsems"), ARG(HIR_TMPVARI32, 0, "semflg", "scalar argument semflg")),
     [256] = SYSCALL3(256, ARG(HIR_TMPVARI32, 0, "", ""), "semop", "macOS system call semop", 3, ARG(HIR_TMPVARI32, 0, "semid", "scalar argument semid"), PTR(HIR_TMPVARI0, 0, "sops", "pointer argument sops"), ARG(HIR_TMPVARI32, 0, "nsops", "scalar argument nsops")),
-    #else
-    #endif
-    #if SYSV_MSG
+#else
+#endif
+#if SYSV_MSG
     [258] = SYSCALL3(258, ARG(HIR_TMPVARI32, 0, "", ""), "msgctl", "macOS system call msgctl", 3, ARG(HIR_TMPVARI32, 0, "msqid", "scalar argument msqid"), ARG(HIR_TMPVARI32, 0, "cmd", "scalar argument cmd"), PTR(HIR_TMPVARI0, 0, "buf", "buffer")),
     [259] = SYSCALL2(259, ARG(HIR_TMPVARI32, 0, "", ""), "msgget", "macOS system call msgget", 3, ARG(HIR_TMPVARI32, 0, "key", "scalar argument key"), ARG(HIR_TMPVARI32, 0, "msgflg", "scalar argument msgflg")),
     [260] = SYSCALL4(260, ARG(HIR_TMPVARI32, 0, "", ""), "msgsnd", "macOS system call msgsnd", 3, ARG(HIR_TMPVARI32, 0, "msqid", "scalar argument msqid"), PTR(HIR_TMPVARI0, 0, "msgp", "input pointer for msgp"), ARG(HIR_TMPVARU64, 0, "msgsz", "scalar argument msgsz"), ARG(HIR_TMPVARI32, 0, "msgflg", "scalar argument msgflg")),
     [261] = SYSCALL5(261, ARG(HIR_TMPVARI64, 0, "", ""), "msgrcv", "macOS system call msgrcv", 3, ARG(HIR_TMPVARI32, 0, "msqid", "scalar argument msqid"), PTR(HIR_TMPVARI0, 0, "msgp", "input pointer for msgp"), ARG(HIR_TMPVARU64, 0, "msgsz", "scalar argument msgsz"), ARG(HIR_TMPVARI64, 0, "msgtyp", "scalar argument msgtyp"), ARG(HIR_TMPVARI32, 0, "msgflg", "scalar argument msgflg")),
-    #else
-    #endif
-    #if SYSV_SHM
+#else
+#endif
+#if SYSV_SHM
     [262] = SYSCALL3(262, PTR(HIR_TMPVARI0, 0, "", ""), "shmat", "macOS system call shmat", 3, ARG(HIR_TMPVARI32, 0, "shmid", "scalar argument shmid"), PTR(HIR_TMPVARI0, 0, "shmaddr", "pointer argument shmaddr"), ARG(HIR_TMPVARI32, 0, "shmflg", "scalar argument shmflg")),
     [263] = SYSCALL3(263, ARG(HIR_TMPVARI32, 0, "", ""), "shmctl", "macOS system call shmctl", 3, ARG(HIR_TMPVARI32, 0, "shmid", "scalar argument shmid"), ARG(HIR_TMPVARI32, 0, "cmd", "scalar argument cmd"), PTR(HIR_TMPVARI0, 0, "buf", "buffer")),
     [264] = SYSCALL1(264, ARG(HIR_TMPVARI32, 0, "", ""), "shmdt", "macOS system call shmdt", 3, PTR(HIR_TMPVARI0, 0, "shmaddr", "pointer argument shmaddr")),
     [265] = SYSCALL3(265, ARG(HIR_TMPVARI32, 0, "", ""), "shmget", "macOS system call shmget", 3, ARG(HIR_TMPVARI32, 0, "key", "scalar argument key"), ARG(HIR_TMPVARU64, 0, "size", "scalar argument size"), ARG(HIR_TMPVARI32, 0, "shmflg", "scalar argument shmflg")),
-    #else
-    #endif
+#else
+#endif
     [266] = SYSCALL3(266, ARG(HIR_TMPVARI32, 0, "", ""), "shm_open", "macOS system call shm_open", 3, PTR(HIR_TMPVARI8, 0, "name", "sysctl MIB array or generic name pointer"), ARG(HIR_TMPVARI32, 0, "oflag", "scalar argument oflag"), ARG(HIR_TMPVARI32, 0, "mode", "permission/mode bits")),
     [267] = SYSCALL1(267, ARG(HIR_TMPVARI32, 0, "", ""), "shm_unlink", "macOS system call shm_unlink", 3, PTR(HIR_TMPVARI8, 0, "name", "sysctl MIB array or generic name pointer")),
     [268] = SYSCALL4(268, PTR(HIR_TMPVARI0, 0, "", ""), "sem_open", "macOS system call sem_open", 3, PTR(HIR_TMPVARI8, 0, "name", "sysctl MIB array or generic name pointer"), ARG(HIR_TMPVARI32, 0, "oflag", "scalar argument oflag"), ARG(HIR_TMPVARI32, 0, "mode", "permission/mode bits"), ARG(HIR_TMPVARI32, 0, "value", "value buffer")),
@@ -259,13 +259,13 @@ static const syscall_t _syscalls[] = {
     [290] = SYSCALL2(290, ARG(HIR_TMPVARI32, 0, "", ""), "getwgroups", "macOS system call getwgroups", 1, PTR(HIR_TMPVARI0, 0, "setlen", "pointer argument setlen"), PTR(HIR_TMPVARI0, 0, "guidset", "pointer argument guidset")),
     [291] = SYSCALL5(291, ARG(HIR_TMPVARI32, 0, "", ""), "mkfifo_extended", "macOS system call mkfifo_extended", 2, PTR(HIR_TMPVARI8, 1, "path", "path to filesystem object"), ARG(HIR_TMPVARI32, 0, "uid", "user id"), ARG(HIR_TMPVARI32, 0, "gid", "group id"), ARG(HIR_TMPVARI32, 0, "mode", "permission/mode bits"), PTR(HIR_TMPVARI0, 0, "xsecurity", "input pointer for xsecurity")),
     [292] = SYSCALL5(292, ARG(HIR_TMPVARI32, 0, "", ""), "mkdir_extended", "macOS system call mkdir_extended", 2, PTR(HIR_TMPVARI8, 1, "path", "path to filesystem object"), ARG(HIR_TMPVARI32, 0, "uid", "user id"), ARG(HIR_TMPVARI32, 0, "gid", "group id"), ARG(HIR_TMPVARI32, 0, "mode", "permission/mode bits"), PTR(HIR_TMPVARI0, 0, "xsecurity", "input pointer for xsecurity")),
-    #if CONFIG_EXT_RESOLVER
+#if CONFIG_EXT_RESOLVER
     [293] = SYSCALL2(293, ARG(HIR_TMPVARI32, 0, "", ""), "identitysvc", "macOS system call identitysvc", 2, ARG(HIR_TMPVARI32, 0, "opcode", "scalar argument opcode"), PTR(HIR_TMPVARI0, 0, "message", "pointer argument message")),
-    #else
-    #endif
+#else
+#endif
     [294] = SYSCALL1(294, ARG(HIR_TMPVARI32, 0, "", ""), "shared_region_check_np", "macOS system call shared_region_check_np", 2, PTR(HIR_TMPVARI0, 0, "start_address", "pointer argument start_address")),
     [296] = SYSCALL3(296, ARG(HIR_TMPVARI32, 0, "", ""), "vm_pressure_monitor", "macOS system call vm_pressure_monitor", 2, ARG(HIR_TMPVARI32, 0, "wait_for_pressure", "scalar argument wait_for_pressure"), ARG(HIR_TMPVARI32, 0, "nsecs_monitored", "scalar argument nsecs_monitored"), PTR(HIR_TMPVARI0, 0, "pages_reclaimed", "output pointer for pages_reclaimed")),
-    #if PSYNCH
+#if PSYNCH
     [297] = SYSCALL5(297, ARG(HIR_TMPVARU32, 0, "", ""), "psynch_rw_longrdlock", "macOS system call psynch_rw_longrdlock", 2, PTR(HIR_TMPVARI0, 0, "rwlock", "pointer argument rwlock"), ARG(HIR_TMPVARU32, 0, "lgenval", "scalar argument lgenval"), ARG(HIR_TMPVARU32, 0, "ugenval", "scalar argument ugenval"), ARG(HIR_TMPVARU32, 0, "rw_wc", "scalar argument rw_wc"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags")),
     [298] = SYSCALL5(298, ARG(HIR_TMPVARU32, 0, "", ""), "psynch_rw_yieldwrlock", "macOS system call psynch_rw_yieldwrlock", 2, PTR(HIR_TMPVARI0, 0, "rwlock", "pointer argument rwlock"), ARG(HIR_TMPVARU32, 0, "lgenval", "scalar argument lgenval"), ARG(HIR_TMPVARU32, 0, "ugenval", "scalar argument ugenval"), ARG(HIR_TMPVARU32, 0, "rw_wc", "scalar argument rw_wc"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags")),
     [299] = SYSCALL5(299, ARG(HIR_TMPVARI32, 0, "", ""), "psynch_rw_downgrade", "macOS system call psynch_rw_downgrade", 2, PTR(HIR_TMPVARI0, 0, "rwlock", "pointer argument rwlock"), ARG(HIR_TMPVARU32, 0, "lgenval", "scalar argument lgenval"), ARG(HIR_TMPVARU32, 0, "ugenval", "scalar argument ugenval"), ARG(HIR_TMPVARU32, 0, "rw_wc", "scalar argument rw_wc"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags")),
@@ -279,14 +279,14 @@ static const syscall_t _syscalls[] = {
     [307] = SYSCALL5(307, ARG(HIR_TMPVARU32, 0, "", ""), "psynch_rw_wrlock", "macOS system call psynch_rw_wrlock", 2, PTR(HIR_TMPVARI0, 0, "rwlock", "pointer argument rwlock"), ARG(HIR_TMPVARU32, 0, "lgenval", "scalar argument lgenval"), ARG(HIR_TMPVARU32, 0, "ugenval", "scalar argument ugenval"), ARG(HIR_TMPVARU32, 0, "rw_wc", "scalar argument rw_wc"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags")),
     [308] = SYSCALL5(308, ARG(HIR_TMPVARU32, 0, "", ""), "psynch_rw_unlock", "macOS system call psynch_rw_unlock", 2, PTR(HIR_TMPVARI0, 0, "rwlock", "pointer argument rwlock"), ARG(HIR_TMPVARU32, 0, "lgenval", "scalar argument lgenval"), ARG(HIR_TMPVARU32, 0, "ugenval", "scalar argument ugenval"), ARG(HIR_TMPVARU32, 0, "rw_wc", "scalar argument rw_wc"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags")),
     [309] = SYSCALL5(309, ARG(HIR_TMPVARU32, 0, "", ""), "psynch_rw_unlock2", "macOS system call psynch_rw_unlock2", 2, PTR(HIR_TMPVARI0, 0, "rwlock", "pointer argument rwlock"), ARG(HIR_TMPVARU32, 0, "lgenval", "scalar argument lgenval"), ARG(HIR_TMPVARU32, 0, "ugenval", "scalar argument ugenval"), ARG(HIR_TMPVARU32, 0, "rw_wc", "scalar argument rw_wc"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags")),
-    #else
-    #endif
+#else
+#endif
     [310] = SYSCALL1(310, ARG(HIR_TMPVARI32, 0, "", ""), "getsid", "macOS system call getsid", 1, ARG(HIR_TMPVARI32, 0, "pid", "process id")),
     [311] = SYSCALL2(311, ARG(HIR_TMPVARI32, 0, "", ""), "settid_with_pid", "macOS system call settid_with_pid", 2, ARG(HIR_TMPVARI32, 0, "pid", "process id"), ARG(HIR_TMPVARI32, 0, "assume", "scalar argument assume")),
-    #if PSYNCH
+#if PSYNCH
     [312] = SYSCALL7(312, ARG(HIR_TMPVARI32, 0, "", ""), "psynch_cvclrprepost", "macOS system call psynch_cvclrprepost", 2, PTR(HIR_TMPVARI0, 0, "cv", "pointer argument cv"), ARG(HIR_TMPVARU32, 0, "cvgen", "scalar argument cvgen"), ARG(HIR_TMPVARU32, 0, "cvugen", "scalar argument cvugen"), ARG(HIR_TMPVARU32, 0, "cvsgen", "scalar argument cvsgen"), ARG(HIR_TMPVARU32, 0, "prepocnt", "scalar argument prepocnt"), ARG(HIR_TMPVARU32, 0, "preposeq", "scalar argument preposeq"), ARG(HIR_TMPVARU32, 0, "flags", "bitmask of flags")),
-    #else
-    #endif
+#else
+#endif
     [313] = SYSCALL2(313, ARG(HIR_TMPVARI32, 0, "", ""), "aio_fsync", "macOS system call aio_fsync", 2, ARG(HIR_TMPVARI32, 0, "op", "scalar argument op"), PTR(HIR_TMPVARI0, 0, "aiocbp", "input pointer for aiocbp")),
     [314] = SYSCALL1(314, ARG(HIR_TMPVARI64, 0, "", ""), "aio_return", "macOS system call aio_return", 2, PTR(HIR_TMPVARI0, 0, "aiocbp", "input pointer for aiocbp")),
     [315] = SYSCALL3(315, ARG(HIR_TMPVARI32, 0, "", ""), "aio_suspend", "macOS system call aio_suspend", 2, PTR(HIR_TMPVARI0, 0, "aiocblist", "input pointer for aiocblist"), ARG(HIR_TMPVARI32, 0, "nent", "scalar argument nent"), PTR(HIR_TMPVARI0, 0, "timeoutp", "input pointer for timeoutp")),
@@ -308,10 +308,10 @@ static const syscall_t _syscalls[] = {
     [333] = SYSCALL1(333, ARG(HIR_TMPVARI32, 0, "", ""), "__pthread_canceled", "macOS system call __pthread_canceled", 2, ARG(HIR_TMPVARI32, 0, "action", "scalar argument action")),
     [334] = SYSCALL6(334, ARG(HIR_TMPVARI32, 0, "", ""), "__semwait_signal", "macOS system call __semwait_signal", 3, ARG(HIR_TMPVARI32, 0, "cond_sem", "scalar argument cond_sem"), ARG(HIR_TMPVARI32, 0, "mutex_sem", "scalar argument mutex_sem"), ARG(HIR_TMPVARI32, 0, "timeout", "scalar argument timeout"), ARG(HIR_TMPVARI32, 0, "relative", "scalar argument relative"), ARG(HIR_TMPVARI64, 0, "tv_sec", "scalar argument tv_sec"), ARG(HIR_TMPVARI32, 0, "tv_nsec", "scalar argument tv_nsec")),
     [336] = SYSCALL6(336, ARG(HIR_TMPVARI32, 0, "", ""), "proc_info", "macOS system call proc_info", 2, ARG(HIR_TMPVARI32, 0, "callnum", "scalar argument callnum"), ARG(HIR_TMPVARI32, 0, "pid", "process id"), ARG(HIR_TMPVARU32, 0, "flavor", "scalar argument flavor"), ARG(HIR_TMPVARU64, 0, "arg", "scalar argument arg"), PTR(HIR_TMPVARI0, 0, "buffer", "output pointer for buffer"), ARG(HIR_TMPVARI32, 0, "buffersize", "scalar argument buffersize")),
-    #if SENDFILE
+#if SENDFILE
     [337] = SYSCALL6(337, ARG(HIR_TMPVARI32, 0, "", ""), "sendfile", "macOS system call sendfile", 2, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), ARG(HIR_TMPVARI32, 0, "s", "scalar argument s"), ARG(HIR_TMPVARI64, 0, "offset", "file offset"), PTR(HIR_TMPVARI0, 0, "nbytes", "pointer argument nbytes"), PTR(HIR_TMPVARI0, 0, "hdtr", "pointer argument hdtr"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags")),
-    #else /* !SENDFILE */
-    #endif /* SENDFILE */
+#else /* !SENDFILE */
+#endif /* SENDFILE */
     [338] = SYSCALL2(338, ARG(HIR_TMPVARI32, 0, "", ""), "stat64", "macOS system call stat64", 1, PTR(HIR_TMPVARI8, 1, "path", "path to filesystem object"), PTR(HIR_TMPVARI0, 0, "ub", "output pointer for ub")),
     [339] = SYSCALL2(339, ARG(HIR_TMPVARI32, 0, "", ""), "fstat64", "macOS system call fstat64", 1, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), PTR(HIR_TMPVARI0, 0, "ub", "output pointer for ub")),
     [340] = SYSCALL2(340, ARG(HIR_TMPVARI32, 0, "", ""), "lstat64", "macOS system call lstat64", 1, PTR(HIR_TMPVARI8, 1, "path", "path to filesystem object"), PTR(HIR_TMPVARI0, 0, "ub", "output pointer for ub")),
@@ -331,32 +331,32 @@ static const syscall_t _syscalls[] = {
     [357] = SYSCALL2(357, ARG(HIR_TMPVARI32, 0, "", ""), "getaudit_addr", "macOS system call getaudit_addr", 1, PTR(HIR_TMPVARI0, 0, "auditinfo_addr", "pointer argument auditinfo_addr"), ARG(HIR_TMPVARI32, 0, "length", "scalar argument length")),
     [358] = SYSCALL2(358, ARG(HIR_TMPVARI32, 0, "", ""), "setaudit_addr", "macOS system call setaudit_addr", 4, PTR(HIR_TMPVARI0, 0, "auditinfo_addr", "pointer argument auditinfo_addr"), ARG(HIR_TMPVARI32, 0, "length", "scalar argument length")),
     [359] = SYSCALL1(359, ARG(HIR_TMPVARI32, 0, "", ""), "auditctl", "macOS system call auditctl", 4, PTR(HIR_TMPVARI8, 1, "path", "path to filesystem object")),
-    #if CONFIG_WORKQUEUE
+#if CONFIG_WORKQUEUE
     [360] = SYSCALL5(360, PTR(HIR_TMPVARI0, 0, "", ""), "bsdthread_create", "macOS system call bsdthread_create", 3, PTR(HIR_TMPVARI0, 0, "func", "pointer argument func"), PTR(HIR_TMPVARI0, 0, "func_arg", "pointer argument func_arg"), PTR(HIR_TMPVARI0, 0, "stack", "pointer argument stack"), PTR(HIR_TMPVARI0, 0, "pthread", "pointer argument pthread"), ARG(HIR_TMPVARU32, 0, "flags", "bitmask of flags")),
     [361] = SYSCALL4(361, ARG(HIR_TMPVARI32, 0, "", ""), "bsdthread_terminate", "macOS system call bsdthread_terminate", 3, PTR(HIR_TMPVARI0, 0, "stackaddr", "pointer argument stackaddr"), ARG(HIR_TMPVARU64, 0, "freesize", "scalar argument freesize"), ARG(HIR_TMPVARU32, 0, "port", "scalar argument port"), ARG(HIR_TMPVARU32, 0, "sem", "scalar argument sem")),
-    #else
-    #endif /* CONFIG_WORKQUEUE */
+#else
+#endif /* CONFIG_WORKQUEUE */
     [362] = SYSCALL0(362, ARG(HIR_TMPVARI32, 0, "", ""), "kqueue", "macOS system call kqueue", 3),
     [363] = SYSCALL6(363, ARG(HIR_TMPVARI32, 0, "", ""), "kevent", "macOS system call kevent", 3, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), PTR(HIR_TMPVARI0, 0, "changelist", "input pointer for changelist"), ARG(HIR_TMPVARI32, 0, "nchanges", "scalar argument nchanges"), PTR(HIR_TMPVARI0, 0, "eventlist", "pointer argument eventlist"), ARG(HIR_TMPVARI32, 0, "nevents", "scalar argument nevents"), PTR(HIR_TMPVARI0, 0, "timeout", "input pointer for timeout")),
     [364] = SYSCALL3(364, ARG(HIR_TMPVARI32, 0, "", ""), "lchown", "macOS system call lchown", 2, PTR(HIR_TMPVARI8, 1, "path", "path to filesystem object"), ARG(HIR_TMPVARI32, 0, "owner", "scalar argument owner"), ARG(HIR_TMPVARI32, 0, "group", "scalar argument group")),
-    #if CONFIG_WORKQUEUE
+#if CONFIG_WORKQUEUE
     [366] = SYSCALL7(366, ARG(HIR_TMPVARI32, 0, "", ""), "bsdthread_register", "macOS system call bsdthread_register", 3, PTR(HIR_TMPVARI0, 0, "threadstart", "pointer argument threadstart"), PTR(HIR_TMPVARI0, 0, "wqthread", "pointer argument wqthread"), ARG(HIR_TMPVARU32, 0, "flags", "bitmask of flags"), PTR(HIR_TMPVARI0, 0, "stack_addr_hint", "pointer argument stack_addr_hint"), PTR(HIR_TMPVARI0, 0, "targetconc_ptr", "pointer argument targetconc_ptr"), ARG(HIR_TMPVARU32, 0, "dispatchqueue_offset", "scalar argument dispatchqueue_offset"), ARG(HIR_TMPVARU32, 0, "tsd_offset", "scalar argument tsd_offset")),
     [367] = SYSCALL0(367, ARG(HIR_TMPVARI32, 0, "", ""), "workq_open", "macOS system call workq_open", 2),
     [368] = SYSCALL4(368, ARG(HIR_TMPVARI32, 0, "", ""), "workq_kernreturn", "macOS system call workq_kernreturn", 2, ARG(HIR_TMPVARI32, 0, "options", "scalar argument options"), PTR(HIR_TMPVARI0, 0, "item", "pointer argument item"), ARG(HIR_TMPVARI32, 0, "affinity", "scalar argument affinity"), ARG(HIR_TMPVARI32, 0, "prio", "scalar argument prio")),
-    #else
-    #endif /* CONFIG_WORKQUEUE */
+#else
+#endif /* CONFIG_WORKQUEUE */
     [369] = SYSCALL7(369, ARG(HIR_TMPVARI32, 0, "", ""), "kevent64", "macOS system call kevent64", 3, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), PTR(HIR_TMPVARI0, 0, "changelist", "input pointer for changelist"), ARG(HIR_TMPVARI32, 0, "nchanges", "scalar argument nchanges"), PTR(HIR_TMPVARI0, 0, "eventlist", "pointer argument eventlist"), ARG(HIR_TMPVARI32, 0, "nevents", "scalar argument nevents"), ARG(HIR_TMPVARU64, 0, "flags", "bitmask of flags"), PTR(HIR_TMPVARI0, 0, "timeout", "input pointer for timeout")),
-    #if OLD_SEMWAIT_SIGNAL
+#if OLD_SEMWAIT_SIGNAL
     [370] = SYSCALL5(370, ARG(HIR_TMPVARI32, 0, "", ""), "__old_semwait_signal", "macOS system call __old_semwait_signal", 2, ARG(HIR_TMPVARI32, 0, "cond_sem", "scalar argument cond_sem"), ARG(HIR_TMPVARI32, 0, "mutex_sem", "scalar argument mutex_sem"), ARG(HIR_TMPVARI32, 0, "timeout", "scalar argument timeout"), ARG(HIR_TMPVARI32, 0, "relative", "scalar argument relative"), PTR(HIR_TMPVARI0, 0, "ts", "input pointer for ts")),
     [371] = SYSCALL5(371, ARG(HIR_TMPVARI32, 0, "", ""), "__old_semwait_signal_nocancel", "macOS system call __old_semwait_signal_nocancel", 2, ARG(HIR_TMPVARI32, 0, "cond_sem", "scalar argument cond_sem"), ARG(HIR_TMPVARI32, 0, "mutex_sem", "scalar argument mutex_sem"), ARG(HIR_TMPVARI32, 0, "timeout", "scalar argument timeout"), ARG(HIR_TMPVARI32, 0, "relative", "scalar argument relative"), PTR(HIR_TMPVARI0, 0, "ts", "input pointer for ts")),
-    #else
-    #endif
+#else
+#endif
     [372] = SYSCALL0(372, ARG(HIR_TMPVARU64, 0, "", ""), "thread_selfid", "macOS system call thread_selfid", 3),
     [373] = SYSCALL4(373, ARG(HIR_TMPVARI32, 0, "", ""), "ledger", "macOS system call ledger", 2, ARG(HIR_TMPVARI32, 0, "cmd", "scalar argument cmd"), PTR(HIR_TMPVARI0, 0, "arg1", "pointer argument arg1"), PTR(HIR_TMPVARI0, 0, "arg2", "pointer argument arg2"), PTR(HIR_TMPVARI0, 0, "arg3", "pointer argument arg3")),
     [374] = SYSCALL8(374, ARG(HIR_TMPVARI32, 0, "", ""), "kevent_qos", "macOS system call kevent_qos", 3, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), PTR(HIR_TMPVARI0, 0, "changelist", "input pointer for changelist"), ARG(HIR_TMPVARI32, 0, "nchanges", "scalar argument nchanges"), PTR(HIR_TMPVARI0, 0, "eventlist", "pointer argument eventlist"), ARG(HIR_TMPVARI32, 0, "nevents", "scalar argument nevents"), PTR(HIR_TMPVARI0, 0, "data_out", "pointer argument data_out"), PTR(HIR_TMPVARI0, 0, "data_available", "pointer argument data_available"), ARG(HIR_TMPVARU64, 0, "flags", "bitmask of flags")),
     [375] = SYSCALL8(375, ARG(HIR_TMPVARI32, 0, "", ""), "kevent_id", "macOS system call kevent_id", 3, ARG(HIR_TMPVARU64, 0, "id", "scalar argument id"), PTR(HIR_TMPVARI0, 0, "changelist", "input pointer for changelist"), ARG(HIR_TMPVARI32, 0, "nchanges", "scalar argument nchanges"), PTR(HIR_TMPVARI0, 0, "eventlist", "pointer argument eventlist"), ARG(HIR_TMPVARI32, 0, "nevents", "scalar argument nevents"), PTR(HIR_TMPVARI0, 0, "data_out", "pointer argument data_out"), PTR(HIR_TMPVARI0, 0, "data_available", "pointer argument data_available"), ARG(HIR_TMPVARU64, 0, "flags", "bitmask of flags")),
     [380] = SYSCALL4(380, ARG(HIR_TMPVARI32, 0, "", ""), "__mac_execve", "macOS system call __mac_execve", 2, PTR(HIR_TMPVARI8, 1, "fname", "path to executable or file name"), PTR2(HIR_TMPVARI8, 1, "argp", "argument vector"), PTR2(HIR_TMPVARI8, 1, "envp", "environment vector"), PTR(HIR_TMPVARI0, 0, "mac_p", "input pointer for mac_p")),
-    #if CONFIG_MACF
+#if CONFIG_MACF
     [381] = SYSCALL3(381, ARG(HIR_TMPVARI32, 0, "", ""), "__mac_syscall", "macOS system call __mac_syscall", 4, PTR(HIR_TMPVARI8, 1, "policy", "input pointer for policy"), ARG(HIR_TMPVARI32, 0, "call", "scalar argument call"), PTR(HIR_TMPVARI0, 0, "arg", "pointer argument arg")),
     [382] = SYSCALL2(382, ARG(HIR_TMPVARI32, 0, "", ""), "__mac_get_file", "macOS system call __mac_get_file", 2, PTR(HIR_TMPVARI8, 0, "path_p", "pointer argument path_p"), PTR(HIR_TMPVARI0, 0, "mac_p", "input pointer for mac_p")),
     [383] = SYSCALL2(383, ARG(HIR_TMPVARI32, 0, "", ""), "__mac_set_file", "macOS system call __mac_set_file", 2, PTR(HIR_TMPVARI8, 0, "path_p", "pointer argument path_p"), PTR(HIR_TMPVARI0, 0, "mac_p", "input pointer for mac_p")),
@@ -367,8 +367,8 @@ static const syscall_t _syscalls[] = {
     [388] = SYSCALL2(388, ARG(HIR_TMPVARI32, 0, "", ""), "__mac_get_fd", "macOS system call __mac_get_fd", 2, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), PTR(HIR_TMPVARI0, 0, "mac_p", "input pointer for mac_p")),
     [389] = SYSCALL2(389, ARG(HIR_TMPVARI32, 0, "", ""), "__mac_set_fd", "macOS system call __mac_set_fd", 2, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), PTR(HIR_TMPVARI0, 0, "mac_p", "input pointer for mac_p")),
     [390] = SYSCALL2(390, ARG(HIR_TMPVARI32, 0, "", ""), "__mac_get_pid", "macOS system call __mac_get_pid", 2, ARG(HIR_TMPVARI32, 0, "pid", "process id"), PTR(HIR_TMPVARI0, 0, "mac_p", "input pointer for mac_p")),
-    #else
-    #endif
+#else
+#endif
     [394] = SYSCALL6(394, ARG(HIR_TMPVARI32, 0, "", ""), "pselect", "macOS system call pselect", 2, ARG(HIR_TMPVARI32, 0, "nd", "scalar argument nd"), PTR(HIR_TMPVARI0, 0, "in", "pointer argument in"), PTR(HIR_TMPVARI0, 0, "ou", "pointer argument ou"), PTR(HIR_TMPVARI0, 0, "ex", "pointer argument ex"), PTR(HIR_TMPVARI0, 0, "ts", "input pointer for ts"), PTR(HIR_TMPVARI0, 0, "mask", "input pointer for mask")),
     [395] = SYSCALL6(395, ARG(HIR_TMPVARI32, 0, "", ""), "pselect_nocancel", "macOS system call pselect_nocancel", 2, ARG(HIR_TMPVARI32, 0, "nd", "scalar argument nd"), PTR(HIR_TMPVARI0, 0, "in", "pointer argument in"), PTR(HIR_TMPVARI0, 0, "ou", "pointer argument ou"), PTR(HIR_TMPVARI0, 0, "ex", "pointer argument ex"), PTR(HIR_TMPVARI0, 0, "ts", "input pointer for ts"), PTR(HIR_TMPVARI0, 0, "mask", "input pointer for mask")),
     [396] = SYSCALL3(396, ARG(HIR_TMPVARI64, 0, "", ""), "read_nocancel", "macOS system call read_nocancel", 1, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), PTR(HIR_TMPVARI0, 0, "cbuf", "user buffer"), ARG(HIR_TMPVARU64, 0, "nbyte", "byte count")),
@@ -376,46 +376,46 @@ static const syscall_t _syscalls[] = {
     [398] = SYSCALL3(398, ARG(HIR_TMPVARI32, 0, "", ""), "open_nocancel", "macOS system call open_nocancel", 2, PTR(HIR_TMPVARI8, 1, "path", "path to filesystem object"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags"), ARG(HIR_TMPVARI32, 0, "mode", "permission/mode bits")),
     [399] = SYSCALL1(399, ARG(HIR_TMPVARI32, 0, "", ""), "close_nocancel", "macOS system call close_nocancel", 2, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor")),
     [400] = SYSCALL4(400, ARG(HIR_TMPVARI32, 0, "", ""), "wait4_nocancel", "macOS system call wait4_nocancel", 2, ARG(HIR_TMPVARI32, 0, "pid", "process id"), PTR(HIR_TMPVARI0, 0, "status", "status output pointer"), ARG(HIR_TMPVARI32, 0, "options", "scalar argument options"), PTR(HIR_TMPVARI0, 0, "rusage", "resource usage output pointer")),
-    #if SOCKETS
+#if SOCKETS
     [401] = SYSCALL3(401, ARG(HIR_TMPVARI32, 0, "", ""), "recvmsg_nocancel", "macOS system call recvmsg_nocancel", 3, ARG(HIR_TMPVARI32, 0, "s", "scalar argument s"), PTR(HIR_TMPVARI0, 0, "msg", "input pointer for msg"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags")),
     [402] = SYSCALL3(402, ARG(HIR_TMPVARI32, 0, "", ""), "sendmsg_nocancel", "macOS system call sendmsg_nocancel", 3, ARG(HIR_TMPVARI32, 0, "s", "scalar argument s"), PTR(HIR_TMPVARI0, 0, "msg", "input pointer for msg"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags")),
     [403] = SYSCALL6(403, ARG(HIR_TMPVARI32, 0, "", ""), "recvfrom_nocancel", "macOS system call recvfrom_nocancel", 3, ARG(HIR_TMPVARI32, 0, "s", "scalar argument s"), PTR(HIR_TMPVARI0, 0, "buf", "buffer"), ARG(HIR_TMPVARU64, 0, "len", "buffer length"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags"), PTR(HIR_TMPVARI0, 1, "from", "input pointer for from"), PTR(HIR_TMPVARI0, 0, "fromlenaddr", "output pointer for fromlenaddr")),
     [404] = SYSCALL3(404, ARG(HIR_TMPVARI32, 0, "", ""), "accept_nocancel", "macOS system call accept_nocancel", 3, ARG(HIR_TMPVARI32, 0, "s", "scalar argument s"), PTR(HIR_TMPVARI0, 0, "name", "sysctl MIB array or generic name pointer"), PTR(HIR_TMPVARI0, 0, "anamelen", "output pointer for anamelen")),
-    #else
-    #endif /* SOCKETS */
+#else
+#endif /* SOCKETS */
     [405] = SYSCALL3(405, ARG(HIR_TMPVARI32, 0, "", ""), "msync_nocancel", "macOS system call msync_nocancel", 2, PTR(HIR_TMPVARI0, 0, "addr", "pointer argument addr"), ARG(HIR_TMPVARU64, 0, "len", "buffer length"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags")),
     [406] = SYSCALL3(406, ARG(HIR_TMPVARI32, 0, "", ""), "fcntl_nocancel", "macOS system call fcntl_nocancel", 2, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), ARG(HIR_TMPVARI32, 0, "cmd", "scalar argument cmd"), ARG(HIR_TMPVARI64, 0, "arg", "scalar argument arg")),
     [407] = SYSCALL5(407, ARG(HIR_TMPVARI32, 0, "", ""), "select_nocancel", "macOS system call select_nocancel", 1, ARG(HIR_TMPVARI32, 0, "nd", "scalar argument nd"), PTR(HIR_TMPVARI0, 0, "in", "pointer argument in"), PTR(HIR_TMPVARI0, 0, "ou", "pointer argument ou"), PTR(HIR_TMPVARI0, 0, "ex", "pointer argument ex"), PTR(HIR_TMPVARI0, 0, "tv", "timeval pointer")),
     [408] = SYSCALL1(408, ARG(HIR_TMPVARI32, 0, "", ""), "fsync_nocancel", "macOS system call fsync_nocancel", 2, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor")),
-    #if SOCKETS
+#if SOCKETS
     [409] = SYSCALL3(409, ARG(HIR_TMPVARI32, 0, "", ""), "connect_nocancel", "macOS system call connect_nocancel", 3, ARG(HIR_TMPVARI32, 0, "s", "scalar argument s"), PTR(HIR_TMPVARI0, 0, "name", "sysctl MIB array or generic name pointer"), ARG(HIR_TMPVARI32, 0, "namelen", "scalar argument namelen")),
-    #else
-    #endif /* SOCKETS */
+#else
+#endif /* SOCKETS */
     [410] = SYSCALL1(410, ARG(HIR_TMPVARI32, 0, "", ""), "sigsuspend_nocancel", "macOS system call sigsuspend_nocancel", 2, ARG(HIR_TMPVARU32, 0, "mask", "scalar argument mask")),
     [411] = SYSCALL3(411, ARG(HIR_TMPVARI64, 0, "", ""), "readv_nocancel", "macOS system call readv_nocancel", 1, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), PTR(HIR_TMPVARI0, 0, "iovp", "input pointer for iovp"), ARG(HIR_TMPVARU32, 0, "iovcnt", "scalar argument iovcnt")),
     [412] = SYSCALL3(412, ARG(HIR_TMPVARI64, 0, "", ""), "writev_nocancel", "macOS system call writev_nocancel", 2, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), PTR(HIR_TMPVARI0, 0, "iovp", "input pointer for iovp"), ARG(HIR_TMPVARU32, 0, "iovcnt", "scalar argument iovcnt")),
-    #if SOCKETS
+#if SOCKETS
     [413] = SYSCALL6(413, ARG(HIR_TMPVARI32, 0, "", ""), "sendto_nocancel", "macOS system call sendto_nocancel", 3, ARG(HIR_TMPVARI32, 0, "s", "scalar argument s"), PTR(HIR_TMPVARI0, 0, "buf", "buffer"), ARG(HIR_TMPVARU64, 0, "len", "buffer length"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags"), PTR(HIR_TMPVARI8, 1, "to", "input pointer for to"), ARG(HIR_TMPVARI32, 0, "tolen", "scalar argument tolen")),
-    #else
-    #endif /* SOCKETS */
+#else
+#endif /* SOCKETS */
     [414] = SYSCALL4(414, ARG(HIR_TMPVARI64, 0, "", ""), "pread_nocancel", "macOS system call pread_nocancel", 1, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), PTR(HIR_TMPVARI0, 0, "buf", "buffer"), ARG(HIR_TMPVARU64, 0, "nbyte", "byte count"), ARG(HIR_TMPVARI64, 0, "offset", "file offset")),
     [415] = SYSCALL4(415, ARG(HIR_TMPVARI64, 0, "", ""), "pwrite_nocancel", "macOS system call pwrite_nocancel", 2, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), PTR(HIR_TMPVARI0, 0, "buf", "buffer"), ARG(HIR_TMPVARU64, 0, "nbyte", "byte count"), ARG(HIR_TMPVARI64, 0, "offset", "file offset")),
     [416] = SYSCALL4(416, ARG(HIR_TMPVARI32, 0, "", ""), "waitid_nocancel", "macOS system call waitid_nocancel", 2, ARG(HIR_TMPVARI32, 0, "idtype", "scalar argument idtype"), ARG(HIR_TMPVARI32, 0, "id", "scalar argument id"), PTR(HIR_TMPVARI0, 0, "infop", "pointer argument infop"), ARG(HIR_TMPVARI32, 0, "options", "scalar argument options")),
     [417] = SYSCALL3(417, ARG(HIR_TMPVARI32, 0, "", ""), "poll_nocancel", "macOS system call poll_nocancel", 1, PTR(HIR_TMPVARI0, 0, "fds", "pointer argument fds"), ARG(HIR_TMPVARU32, 0, "nfds", "scalar argument nfds"), ARG(HIR_TMPVARI32, 0, "timeout", "scalar argument timeout")),
-    #if SYSV_MSG
+#if SYSV_MSG
     [418] = SYSCALL4(418, ARG(HIR_TMPVARI32, 0, "", ""), "msgsnd_nocancel", "macOS system call msgsnd_nocancel", 3, ARG(HIR_TMPVARI32, 0, "msqid", "scalar argument msqid"), PTR(HIR_TMPVARI0, 0, "msgp", "input pointer for msgp"), ARG(HIR_TMPVARU64, 0, "msgsz", "scalar argument msgsz"), ARG(HIR_TMPVARI32, 0, "msgflg", "scalar argument msgflg")),
     [419] = SYSCALL5(419, ARG(HIR_TMPVARI64, 0, "", ""), "msgrcv_nocancel", "macOS system call msgrcv_nocancel", 3, ARG(HIR_TMPVARI32, 0, "msqid", "scalar argument msqid"), PTR(HIR_TMPVARI0, 0, "msgp", "input pointer for msgp"), ARG(HIR_TMPVARU64, 0, "msgsz", "scalar argument msgsz"), ARG(HIR_TMPVARI64, 0, "msgtyp", "scalar argument msgtyp"), ARG(HIR_TMPVARI32, 0, "msgflg", "scalar argument msgflg")),
-    #else
-    #endif
+#else
+#endif
     [420] = SYSCALL1(420, ARG(HIR_TMPVARI32, 0, "", ""), "sem_wait_nocancel", "macOS system call sem_wait_nocancel", 3, PTR(HIR_TMPVARI0, 0, "sem", "pointer argument sem")),
     [421] = SYSCALL3(421, ARG(HIR_TMPVARI32, 0, "", ""), "aio_suspend_nocancel", "macOS system call aio_suspend_nocancel", 2, PTR(HIR_TMPVARI0, 0, "aiocblist", "input pointer for aiocblist"), ARG(HIR_TMPVARI32, 0, "nent", "scalar argument nent"), PTR(HIR_TMPVARI0, 0, "timeoutp", "input pointer for timeoutp")),
     [422] = SYSCALL2(422, ARG(HIR_TMPVARI32, 0, "", ""), "__sigwait_nocancel", "macOS system call __sigwait_nocancel", 2, PTR(HIR_TMPVARI0, 0, "set", "pointer argument set"), PTR(HIR_TMPVARI0, 0, "sig", "output pointer for sig")),
     [423] = SYSCALL6(423, ARG(HIR_TMPVARI32, 0, "", ""), "__semwait_signal_nocancel", "macOS system call __semwait_signal_nocancel", 3, ARG(HIR_TMPVARI32, 0, "cond_sem", "scalar argument cond_sem"), ARG(HIR_TMPVARI32, 0, "mutex_sem", "scalar argument mutex_sem"), ARG(HIR_TMPVARI32, 0, "timeout", "scalar argument timeout"), ARG(HIR_TMPVARI32, 0, "relative", "scalar argument relative"), ARG(HIR_TMPVARI64, 0, "tv_sec", "scalar argument tv_sec"), ARG(HIR_TMPVARI32, 0, "tv_nsec", "scalar argument tv_nsec")),
     [424] = SYSCALL5(424, ARG(HIR_TMPVARI32, 0, "", ""), "__mac_mount", "macOS system call __mac_mount", 2, PTR(HIR_TMPVARI8, 1, "type", "input pointer for type"), PTR(HIR_TMPVARI8, 1, "path", "path to filesystem object"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags"), PTR(HIR_TMPVARI0, 0, "data", "input pointer for data"), PTR(HIR_TMPVARI0, 0, "mac_p", "input pointer for mac_p")),
-    #if CONFIG_MACF
+#if CONFIG_MACF
     [425] = SYSCALL2(425, ARG(HIR_TMPVARI32, 0, "", ""), "__mac_get_mount", "macOS system call __mac_get_mount", 2, PTR(HIR_TMPVARI8, 1, "path", "path to filesystem object"), PTR(HIR_TMPVARI0, 0, "mac_p", "input pointer for mac_p")),
-    #else
-    #endif
+#else
+#endif
     [426] = SYSCALL5(426, ARG(HIR_TMPVARI32, 0, "", ""), "__mac_getfsstat", "macOS system call __mac_getfsstat", 2, PTR(HIR_TMPVARI0, 0, "buf", "buffer"), ARG(HIR_TMPVARI32, 0, "bufsize", "scalar argument bufsize"), PTR(HIR_TMPVARI0, 0, "mac", "pointer argument mac"), ARG(HIR_TMPVARI32, 0, "macsize", "scalar argument macsize"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags")),
     [427] = SYSCALL4(427, ARG(HIR_TMPVARI64, 0, "", ""), "fsgetpath", "private fsgetpath (File Manager SPI)", 2, PTR(HIR_TMPVARI0, 0, "buf", "buffer"), ARG(HIR_TMPVARU64, 0, "bufsize", "scalar argument bufsize"), PTR(HIR_TMPVARI0, 0, "fsid", "pointer argument fsid"), ARG(HIR_TMPVARU64, 0, "objid", "scalar argument objid")),
     [428] = SYSCALL0(428, ARG(HIR_TMPVARU32, 0, "", ""), "audit_session_self", "macOS system call audit_session_self", 2),
@@ -425,55 +425,55 @@ static const syscall_t _syscalls[] = {
     [432] = SYSCALL2(432, ARG(HIR_TMPVARI32, 0, "", ""), "audit_session_port", "macOS system call audit_session_port", 2, ARG(HIR_TMPVARI32, 0, "asid", "scalar argument asid"), PTR(HIR_TMPVARI0, 0, "portnamep", "pointer argument portnamep")),
     [433] = SYSCALL1(433, ARG(HIR_TMPVARI32, 0, "", ""), "pid_suspend", "macOS system call pid_suspend", 2, ARG(HIR_TMPVARI32, 0, "pid", "process id")),
     [434] = SYSCALL1(434, ARG(HIR_TMPVARI32, 0, "", ""), "pid_resume", "macOS system call pid_resume", 2, ARG(HIR_TMPVARI32, 0, "pid", "process id")),
-    #if CONFIG_EMBEDDED
+#if CONFIG_EMBEDDED
     [435] = SYSCALL1(435, ARG(HIR_TMPVARI32, 0, "", ""), "pid_hibernate", "macOS system call pid_hibernate", 2, ARG(HIR_TMPVARI32, 0, "pid", "process id")),
-    #else
-    #endif
-    #if SOCKETS
+#else
+#endif
+#if SOCKETS
     [436] = SYSCALL2(436, ARG(HIR_TMPVARI32, 0, "", ""), "pid_shutdown_sockets", "macOS system call pid_shutdown_sockets", 2, ARG(HIR_TMPVARI32, 0, "pid", "process id"), ARG(HIR_TMPVARI32, 0, "level", "scalar argument level")),
-    #else
-    #endif
+#else
+#endif
     [438] = SYSCALL6(438, ARG(HIR_TMPVARI32, 0, "", ""), "shared_region_map_and_slide_np", "macOS system call shared_region_map_and_slide_np", 2, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), ARG(HIR_TMPVARU32, 0, "count", "scalar argument count"), PTR(HIR_TMPVARI0, 0, "mappings", "input pointer for mappings"), ARG(HIR_TMPVARU32, 0, "slide", "scalar argument slide"), PTR(HIR_TMPVARI0, 0, "slide_start", "pointer argument slide_start"), ARG(HIR_TMPVARU32, 0, "slide_size", "scalar argument slide_size")),
     [439] = SYSCALL3(439, ARG(HIR_TMPVARI32, 0, "", ""), "kas_info", "macOS system call kas_info", 2, ARG(HIR_TMPVARI32, 0, "selector", "scalar argument selector"), PTR(HIR_TMPVARI0, 0, "value", "value buffer"), PTR(HIR_TMPVARI0, 0, "size", "pointer argument size")),
-    #if CONFIG_MEMORYSTATUS
+#if CONFIG_MEMORYSTATUS
     [440] = SYSCALL5(440, ARG(HIR_TMPVARI32, 0, "", ""), "memorystatus_control", "macOS system call memorystatus_control", 4, ARG(HIR_TMPVARU32, 0, "command", "scalar argument command"), ARG(HIR_TMPVARI32, 0, "pid", "process id"), ARG(HIR_TMPVARU32, 0, "flags", "bitmask of flags"), PTR(HIR_TMPVARI0, 0, "buffer", "output pointer for buffer"), ARG(HIR_TMPVARU64, 0, "buffersize", "scalar argument buffersize")),
-    #else
-    #endif
+#else
+#endif
     [441] = SYSCALL5(441, ARG(HIR_TMPVARI32, 0, "", ""), "guarded_open_np", "macOS system call guarded_open_np", 2, PTR(HIR_TMPVARI8, 1, "path", "path to filesystem object"), PTR(HIR_TMPVARI0, 0, "guard", "input pointer for guard"), ARG(HIR_TMPVARU32, 0, "guardflags", "scalar argument guardflags"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags"), ARG(HIR_TMPVARI32, 0, "mode", "permission/mode bits")),
     [442] = SYSCALL2(442, ARG(HIR_TMPVARI32, 0, "", ""), "guarded_close_np", "macOS system call guarded_close_np", 2, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), PTR(HIR_TMPVARI0, 0, "guard", "input pointer for guard")),
     [443] = SYSCALL2(443, ARG(HIR_TMPVARI32, 0, "", ""), "guarded_kqueue_np", "macOS system call guarded_kqueue_np", 2, PTR(HIR_TMPVARI0, 0, "guard", "input pointer for guard"), ARG(HIR_TMPVARU32, 0, "guardflags", "scalar argument guardflags")),
     [444] = SYSCALL6(444, ARG(HIR_TMPVARI32, 0, "", ""), "change_fdguard_np", "macOS system call change_fdguard_np", 2, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), PTR(HIR_TMPVARI0, 0, "guard", "input pointer for guard"), ARG(HIR_TMPVARU32, 0, "guardflags", "scalar argument guardflags"), PTR(HIR_TMPVARI0, 0, "nguard", "input pointer for nguard"), ARG(HIR_TMPVARU32, 0, "nguardflags", "scalar argument nguardflags"), PTR(HIR_TMPVARI0, 0, "fdflagsp", "pointer argument fdflagsp")),
     [445] = SYSCALL1(445, ARG(HIR_TMPVARI32, 0, "", ""), "usrctl", "macOS system call usrctl", 2, ARG(HIR_TMPVARU32, 0, "flags", "bitmask of flags")),
     [446] = SYSCALL3(446, ARG(HIR_TMPVARI32, 0, "", ""), "proc_rlimit_control", "macOS system call proc_rlimit_control", 2, ARG(HIR_TMPVARI32, 0, "pid", "process id"), ARG(HIR_TMPVARI32, 0, "flavor", "scalar argument flavor"), PTR(HIR_TMPVARI0, 0, "arg", "pointer argument arg")),
-    #if SOCKETS
+#if SOCKETS
     [447] = SYSCALL8(447, ARG(HIR_TMPVARI32, 0, "", ""), "connectx", "macOS system call connectx", 3, ARG(HIR_TMPVARI32, 0, "socket", "scalar argument socket"), PTR(HIR_TMPVARI0, 0, "endpoints", "input pointer for endpoints"), ARG(HIR_TMPVARU64, 0, "associd", "scalar argument associd"), ARG(HIR_TMPVARU64, 0, "flags", "bitmask of flags"), PTR(HIR_TMPVARI0, 0, "iov", "input pointer for iov"), ARG(HIR_TMPVARU64, 0, "iovcnt", "scalar argument iovcnt"), PTR(HIR_TMPVARI0, 0, "len", "buffer length"), PTR(HIR_TMPVARI0, 0, "connid", "pointer argument connid")),
     [448] = SYSCALL3(448, ARG(HIR_TMPVARI32, 0, "", ""), "disconnectx", "macOS system call disconnectx", 2, ARG(HIR_TMPVARI32, 0, "s", "scalar argument s"), ARG(HIR_TMPVARU64, 0, "aid", "scalar argument aid"), ARG(HIR_TMPVARU64, 0, "cid", "scalar argument cid")),
     [449] = SYSCALL2(449, ARG(HIR_TMPVARI32, 0, "", ""), "peeloff", "macOS system call peeloff", 2, ARG(HIR_TMPVARI32, 0, "s", "scalar argument s"), ARG(HIR_TMPVARU64, 0, "aid", "scalar argument aid")),
     [450] = SYSCALL4(450, ARG(HIR_TMPVARI32, 0, "", ""), "socket_delegate", "macOS system call socket_delegate", 3, ARG(HIR_TMPVARI32, 0, "domain", "scalar argument domain"), ARG(HIR_TMPVARI32, 0, "type", "scalar argument type"), ARG(HIR_TMPVARI32, 0, "protocol", "scalar argument protocol"), ARG(HIR_TMPVARI32, 0, "epid", "scalar argument epid")),
-    #else
-    #endif /* SOCKETS */
+#else
+#endif /* SOCKETS */
     [451] = SYSCALL6(451, ARG(HIR_TMPVARI32, 0, "", ""), "telemetry", "macOS system call telemetry", 2, ARG(HIR_TMPVARU64, 0, "cmd", "scalar argument cmd"), ARG(HIR_TMPVARU64, 0, "deadline", "scalar argument deadline"), ARG(HIR_TMPVARU64, 0, "interval", "scalar argument interval"), ARG(HIR_TMPVARU64, 0, "leeway", "scalar argument leeway"), ARG(HIR_TMPVARU64, 0, "arg4", "scalar argument arg4"), ARG(HIR_TMPVARU64, 0, "arg5", "scalar argument arg5")),
-    #if CONFIG_PROC_UUID_POLICY
+#if CONFIG_PROC_UUID_POLICY
     [452] = SYSCALL4(452, ARG(HIR_TMPVARI32, 0, "", ""), "proc_uuid_policy", "macOS system call proc_uuid_policy", 2, ARG(HIR_TMPVARU32, 0, "operation", "scalar argument operation"), PTR(HIR_TMPVARI0, 0, "uuid", "pointer argument uuid"), ARG(HIR_TMPVARU64, 0, "uuidlen", "scalar argument uuidlen"), ARG(HIR_TMPVARU32, 0, "flags", "bitmask of flags")),
-    #else
-    #endif
-    #if CONFIG_MEMORYSTATUS
+#else
+#endif
+#if CONFIG_MEMORYSTATUS
     [453] = SYSCALL1(453, ARG(HIR_TMPVARI32, 0, "", ""), "memorystatus_get_level", "macOS system call memorystatus_get_level", 2, PTR(HIR_TMPVARI0, 0, "level", "pointer argument level")),
-    #else
-    #endif
+#else
+#endif
     [454] = SYSCALL2(454, ARG(HIR_TMPVARI32, 0, "", ""), "system_override", "macOS system call system_override", 2, ARG(HIR_TMPVARU64, 0, "timeout", "scalar argument timeout"), ARG(HIR_TMPVARU64, 0, "flags", "bitmask of flags")),
     [455] = SYSCALL0(455, ARG(HIR_TMPVARI32, 0, "", ""), "vfs_purge", "macOS system call vfs_purge", 2),
     [456] = SYSCALL4(456, ARG(HIR_TMPVARI32, 0, "", ""), "sfi_ctl", "macOS system call sfi_ctl", 2, ARG(HIR_TMPVARU32, 0, "operation", "scalar argument operation"), ARG(HIR_TMPVARU32, 0, "sfi_class", "scalar argument sfi_class"), ARG(HIR_TMPVARU64, 0, "time", "scalar argument time"), PTR(HIR_TMPVARI0, 0, "out_time", "pointer argument out_time")),
     [457] = SYSCALL4(457, ARG(HIR_TMPVARI32, 0, "", ""), "sfi_pidctl", "macOS system call sfi_pidctl", 2, ARG(HIR_TMPVARU32, 0, "operation", "scalar argument operation"), ARG(HIR_TMPVARI32, 0, "pid", "process id"), ARG(HIR_TMPVARU32, 0, "sfi_flags", "scalar argument sfi_flags"), PTR(HIR_TMPVARI0, 0, "out_sfi_flags", "pointer argument out_sfi_flags")),
-    #if CONFIG_COALITIONS
+#if CONFIG_COALITIONS
     [458] = SYSCALL3(458, ARG(HIR_TMPVARI32, 0, "", ""), "coalition", "macOS system call coalition", 2, ARG(HIR_TMPVARU32, 0, "operation", "scalar argument operation"), PTR(HIR_TMPVARI0, 0, "cid", "pointer argument cid"), ARG(HIR_TMPVARU32, 0, "flags", "bitmask of flags")),
     [459] = SYSCALL4(459, ARG(HIR_TMPVARI32, 0, "", ""), "coalition_info", "macOS system call coalition_info", 2, ARG(HIR_TMPVARU32, 0, "flavor", "scalar argument flavor"), PTR(HIR_TMPVARI0, 0, "cid", "pointer argument cid"), PTR(HIR_TMPVARI0, 0, "buffer", "output pointer for buffer"), PTR(HIR_TMPVARI0, 0, "bufsize", "pointer argument bufsize")),
-    #else
-    #endif /* COALITIONS */
-    #if NECP
+#else
+#endif /* COALITIONS */
+#if NECP
     [460] = SYSCALL3(460, ARG(HIR_TMPVARI32, 0, "", ""), "necp_match_policy", "macOS system call necp_match_policy", 3, PTR(HIR_TMPVARI0, 0, "parameters", "pointer argument parameters"), ARG(HIR_TMPVARU64, 0, "parameters_size", "scalar argument parameters_size"), PTR(HIR_TMPVARI0, 0, "returned_result", "pointer argument returned_result")),
-    #else
-    #endif /* NECP */
+#else
+#endif /* NECP */
     [461] = SYSCALL5(461, ARG(HIR_TMPVARI32, 0, "", ""), "getattrlistbulk", "macOS system call getattrlistbulk", 1, ARG(HIR_TMPVARI32, 0, "dirfd", "scalar argument dirfd"), PTR(HIR_TMPVARI0, 0, "alist", "input pointer for alist"), PTR(HIR_TMPVARI0, 0, "attributeBuffer", "pointer argument attributeBuffer"), ARG(HIR_TMPVARU64, 0, "bufferSize", "scalar argument bufferSize"), ARG(HIR_TMPVARU64, 0, "options", "scalar argument options")),
     [462] = SYSCALL5(462, ARG(HIR_TMPVARI32, 0, "", ""), "clonefileat", "macOS system call clonefileat", 2, ARG(HIR_TMPVARI32, 0, "src_dirfd", "scalar argument src_dirfd"), PTR(HIR_TMPVARI8, 1, "src", "input pointer for src"), ARG(HIR_TMPVARI32, 0, "dst_dirfd", "scalar argument dst_dirfd"), PTR(HIR_TMPVARI8, 1, "dst", "input pointer for dst"), ARG(HIR_TMPVARU32, 0, "flags", "bitmask of flags")),
     [463] = SYSCALL4(463, ARG(HIR_TMPVARI32, 0, "", ""), "openat", "macOS system call openat", 2, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), PTR(HIR_TMPVARI8, 1, "path", "path to filesystem object"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags"), ARG(HIR_TMPVARI32, 0, "mode", "permission/mode bits")),
@@ -493,60 +493,60 @@ static const syscall_t _syscalls[] = {
     [477] = SYSCALL2(477, ARG(HIR_TMPVARI32, 0, "", ""), "proc_trace_log", "macOS system call proc_trace_log", 2, ARG(HIR_TMPVARI32, 0, "pid", "process id"), ARG(HIR_TMPVARU64, 0, "uniqueid", "scalar argument uniqueid")),
     [478] = SYSCALL4(478, ARG(HIR_TMPVARI32, 0, "", ""), "bsdthread_ctl", "macOS system call bsdthread_ctl", 3, PTR(HIR_TMPVARI0, 0, "cmd", "pointer argument cmd"), PTR(HIR_TMPVARI0, 0, "arg1", "pointer argument arg1"), PTR(HIR_TMPVARI0, 0, "arg2", "pointer argument arg2"), PTR(HIR_TMPVARI0, 0, "arg3", "pointer argument arg3")),
     [479] = SYSCALL3(479, ARG(HIR_TMPVARI32, 0, "", ""), "openbyid_np", "macOS system call openbyid_np", 4, PTR(HIR_TMPVARI0, 0, "fsid", "pointer argument fsid"), PTR(HIR_TMPVARI0, 0, "objid", "pointer argument objid"), ARG(HIR_TMPVARI32, 0, "oflags", "scalar argument oflags")),
-    #if SOCKETS
+#if SOCKETS
     [480] = SYSCALL4(480, ARG(HIR_TMPVARI64, 0, "", ""), "recvmsg_x", "macOS system call recvmsg_x", 3, ARG(HIR_TMPVARI32, 0, "s", "scalar argument s"), PTR(HIR_TMPVARI0, 0, "msgp", "input pointer for msgp"), ARG(HIR_TMPVARU32, 0, "cnt", "scalar argument cnt"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags")),
     [481] = SYSCALL4(481, ARG(HIR_TMPVARI64, 0, "", ""), "sendmsg_x", "macOS system call sendmsg_x", 3, ARG(HIR_TMPVARI32, 0, "s", "scalar argument s"), PTR(HIR_TMPVARI0, 0, "msgp", "input pointer for msgp"), ARG(HIR_TMPVARU32, 0, "cnt", "scalar argument cnt"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags")),
-    #else
-    #endif /* SOCKETS */
+#else
+#endif /* SOCKETS */
     [482] = SYSCALL0(482, ARG(HIR_TMPVARU64, 0, "", ""), "thread_selfusage", "macOS system call thread_selfusage", 3),
-    #if CONFIG_CSR
+#if CONFIG_CSR
     [483] = SYSCALL3(483, ARG(HIR_TMPVARI32, 0, "", ""), "csrctl", "macOS system call csrctl", 4, ARG(HIR_TMPVARU32, 0, "op", "scalar argument op"), PTR(HIR_TMPVARI0, 0, "useraddr", "pointer argument useraddr"), PTR(HIR_TMPVARI0, 0, "usersize", "pointer argument usersize")),
-    #else
-    #endif /* CSR */
+#else
+#endif /* CSR */
     [484] = SYSCALL7(484, ARG(HIR_TMPVARI32, 0, "", ""), "guarded_open_dprotected_np", "macOS system call guarded_open_dprotected_np", 4, PTR(HIR_TMPVARI8, 1, "path", "path to filesystem object"), PTR(HIR_TMPVARI0, 0, "guard", "input pointer for guard"), ARG(HIR_TMPVARU32, 0, "guardflags", "scalar argument guardflags"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags"), ARG(HIR_TMPVARI32, 0, "dpclass", "scalar argument dpclass"), ARG(HIR_TMPVARI32, 0, "dpflags", "scalar argument dpflags"), ARG(HIR_TMPVARI32, 0, "mode", "permission/mode bits")),
     [485] = SYSCALL4(485, ARG(HIR_TMPVARI64, 0, "", ""), "guarded_write_np", "macOS system call guarded_write_np", 2, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), PTR(HIR_TMPVARI0, 0, "guard", "input pointer for guard"), PTR(HIR_TMPVARI0, 0, "cbuf", "user buffer"), ARG(HIR_TMPVARU64, 0, "nbyte", "byte count")),
     [486] = SYSCALL5(486, ARG(HIR_TMPVARI64, 0, "", ""), "guarded_pwrite_np", "macOS system call guarded_pwrite_np", 2, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), PTR(HIR_TMPVARI0, 0, "guard", "input pointer for guard"), PTR(HIR_TMPVARI0, 0, "buf", "buffer"), ARG(HIR_TMPVARU64, 0, "nbyte", "byte count"), ARG(HIR_TMPVARI64, 0, "offset", "file offset")),
     [487] = SYSCALL4(487, ARG(HIR_TMPVARI64, 0, "", ""), "guarded_writev_np", "macOS system call guarded_writev_np", 2, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), PTR(HIR_TMPVARI0, 0, "guard", "input pointer for guard"), PTR(HIR_TMPVARI0, 0, "iovp", "input pointer for iovp"), ARG(HIR_TMPVARI32, 0, "iovcnt", "scalar argument iovcnt")),
     [488] = SYSCALL5(488, ARG(HIR_TMPVARI32, 0, "", ""), "renameatx_np", "macOS system call renameatx_np", 2, ARG(HIR_TMPVARI32, 0, "fromfd", "scalar argument fromfd"), PTR(HIR_TMPVARI8, 1, "from", "input pointer for from"), ARG(HIR_TMPVARI32, 0, "tofd", "scalar argument tofd"), PTR(HIR_TMPVARI8, 1, "to", "input pointer for to"), ARG(HIR_TMPVARU32, 0, "flags", "bitmask of flags")),
-    #if CONFIG_CODE_DECRYPTION
+#if CONFIG_CODE_DECRYPTION
     [489] = SYSCALL5(489, ARG(HIR_TMPVARI32, 0, "", ""), "mremap_encrypted", "macOS system call mremap_encrypted", 2, PTR(HIR_TMPVARI0, 0, "addr", "pointer argument addr"), ARG(HIR_TMPVARU64, 0, "len", "buffer length"), ARG(HIR_TMPVARU32, 0, "cryptid", "scalar argument cryptid"), ARG(HIR_TMPVARU32, 0, "cputype", "scalar argument cputype"), ARG(HIR_TMPVARU32, 0, "cpusubtype", "scalar argument cpusubtype")),
-    #else
-    #endif
-    #if NETWORKING
+#else
+#endif
+#if NETWORKING
     [490] = SYSCALL2(490, ARG(HIR_TMPVARI32, 0, "", ""), "netagent_trigger", "macOS system call netagent_trigger", 3, PTR(HIR_TMPVARI0, 0, "agent_uuid", "pointer argument agent_uuid"), ARG(HIR_TMPVARU64, 0, "agent_uuidlen", "scalar argument agent_uuidlen")),
-    #else
-    #endif /* NETWORKING */
+#else
+#endif /* NETWORKING */
     [491] = SYSCALL3(491, ARG(HIR_TMPVARI32, 0, "", ""), "stack_snapshot_with_config", "macOS system call stack_snapshot_with_config", 2, ARG(HIR_TMPVARI32, 0, "stackshot_config_version", "scalar argument stackshot_config_version"), PTR(HIR_TMPVARI0, 0, "stackshot_config", "pointer argument stackshot_config"), ARG(HIR_TMPVARU64, 0, "stackshot_config_size", "scalar argument stackshot_config_size")),
-    #if CONFIG_TELEMETRY
+#if CONFIG_TELEMETRY
     [492] = SYSCALL3(492, ARG(HIR_TMPVARI32, 0, "", ""), "microstackshot", "macOS system call microstackshot", 2, PTR(HIR_TMPVARI0, 0, "tracebuf", "pointer argument tracebuf"), ARG(HIR_TMPVARU32, 0, "tracebuf_size", "scalar argument tracebuf_size"), ARG(HIR_TMPVARU32, 0, "flags", "bitmask of flags")),
-    #else
-    #endif /* CONFIG_TELEMETRY */
-    #if PGO
+#else
+#endif /* CONFIG_TELEMETRY */
+#if PGO
     [493] = SYSCALL4(493, ARG(HIR_TMPVARI64, 0, "", ""), "grab_pgo_data", "macOS system call grab_pgo_data", 2, PTR(HIR_TMPVARI0, 0, "uuid", "pointer argument uuid"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags"), PTR(HIR_TMPVARI0, 0, "buffer", "output pointer for buffer"), ARG(HIR_TMPVARI64, 0, "size", "scalar argument size")),
-    #else
-    #endif
-    #if CONFIG_PERSONAS
+#else
+#endif
+#if CONFIG_PERSONAS
     [494] = SYSCALL5(494, ARG(HIR_TMPVARI32, 0, "", ""), "persona", "macOS system call persona", 4, ARG(HIR_TMPVARU32, 0, "operation", "scalar argument operation"), ARG(HIR_TMPVARU32, 0, "flags", "bitmask of flags"), PTR(HIR_TMPVARI0, 0, "info", "pointer argument info"), PTR(HIR_TMPVARI0, 0, "id", "pointer argument id"), PTR(HIR_TMPVARI0, 0, "idlen", "pointer argument idlen")),
-    #else
-    #endif
+#else
+#endif
     [499] = SYSCALL4(499, ARG(HIR_TMPVARI32, 0, "", ""), "work_interval_ctl", "macOS system call work_interval_ctl", 2, ARG(HIR_TMPVARU32, 0, "operation", "scalar argument operation"), ARG(HIR_TMPVARU64, 0, "work_interval_id", "scalar argument work_interval_id"), PTR(HIR_TMPVARI0, 0, "arg", "pointer argument arg"), ARG(HIR_TMPVARU64, 0, "len", "buffer length")),
     [500] = SYSCALL2(500, ARG(HIR_TMPVARI32, 0, "", ""), "getentropy", "macOS system call getentropy", 1, PTR(HIR_TMPVARI0, 0, "buffer", "output pointer for buffer"), ARG(HIR_TMPVARU64, 0, "size", "scalar argument size")),
-    #if NECP
+#if NECP
     /* [501] parse failed: int necp_open(int flags); } */
     [502] = SYSCALL6(502, ARG(HIR_TMPVARI32, 0, "", ""), "necp_client_action", "macOS system call necp_client_action", 3, ARG(HIR_TMPVARI32, 0, "necp_fd", "scalar argument necp_fd"), ARG(HIR_TMPVARU32, 0, "action", "scalar argument action"), PTR(HIR_TMPVARI0, 0, "client_id", "pointer argument client_id"), ARG(HIR_TMPVARU64, 0, "client_id_len", "scalar argument client_id_len"), PTR(HIR_TMPVARI0, 0, "buffer", "output pointer for buffer"), ARG(HIR_TMPVARU64, 0, "buffer_size", "scalar argument buffer_size")),
-    #else
-    #endif /* NECP */
+#else
+#endif /* NECP */
     [515] = SYSCALL4(515, ARG(HIR_TMPVARI32, 0, "", ""), "ulock_wait", "macOS system call ulock_wait", 3, ARG(HIR_TMPVARU32, 0, "operation", "scalar argument operation"), PTR(HIR_TMPVARI0, 0, "addr", "pointer argument addr"), ARG(HIR_TMPVARU64, 0, "value", "value buffer"), ARG(HIR_TMPVARU32, 0, "timeout", "scalar argument timeout")),
     [516] = SYSCALL3(516, ARG(HIR_TMPVARI32, 0, "", ""), "ulock_wake", "macOS system call ulock_wake", 3, ARG(HIR_TMPVARU32, 0, "operation", "scalar argument operation"), PTR(HIR_TMPVARI0, 0, "addr", "pointer argument addr"), ARG(HIR_TMPVARU64, 0, "wake_value", "scalar argument wake_value")),
     [517] = SYSCALL4(517, ARG(HIR_TMPVARI32, 0, "", ""), "fclonefileat", "macOS system call fclonefileat", 2, ARG(HIR_TMPVARI32, 0, "src_fd", "scalar argument src_fd"), ARG(HIR_TMPVARI32, 0, "dst_dirfd", "scalar argument dst_dirfd"), PTR(HIR_TMPVARI8, 1, "dst", "input pointer for dst"), ARG(HIR_TMPVARU32, 0, "flags", "bitmask of flags")),
     [518] = SYSCALL6(518, ARG(HIR_TMPVARI32, 0, "", ""), "fs_snapshot", "macOS system call fs_snapshot", 4, ARG(HIR_TMPVARU32, 0, "op", "scalar argument op"), ARG(HIR_TMPVARI32, 0, "dirfd", "scalar argument dirfd"), PTR(HIR_TMPVARI8, 1, "name1", "input pointer for name1"), PTR(HIR_TMPVARI8, 1, "name2", "input pointer for name2"), PTR(HIR_TMPVARI0, 0, "data", "input pointer for data"), ARG(HIR_TMPVARU32, 0, "flags", "bitmask of flags")),
     [520] = SYSCALL7(520, ARG(HIR_TMPVARI32, 0, "", ""), "terminate_with_payload", "macOS system call terminate_with_payload", 4, ARG(HIR_TMPVARI32, 0, "pid", "process id"), ARG(HIR_TMPVARU32, 0, "reason_namespace", "scalar argument reason_namespace"), ARG(HIR_TMPVARU64, 0, "reason_code", "scalar argument reason_code"), PTR(HIR_TMPVARI0, 0, "payload", "pointer argument payload"), ARG(HIR_TMPVARU32, 0, "payload_size", "scalar argument payload_size"), PTR(HIR_TMPVARI8, 1, "reason_string", "input pointer for reason_string"), ARG(HIR_TMPVARU64, 0, "reason_flags", "scalar argument reason_flags")),
     [521] = SYSCALL6(521, PTR(HIR_TMPVARI0, 0, "", ""), "abort_with_payload", "macOS system call abort_with_payload", 4, ARG(HIR_TMPVARU32, 0, "reason_namespace", "scalar argument reason_namespace"), ARG(HIR_TMPVARU64, 0, "reason_code", "scalar argument reason_code"), PTR(HIR_TMPVARI0, 0, "payload", "pointer argument payload"), ARG(HIR_TMPVARU32, 0, "payload_size", "scalar argument payload_size"), PTR(HIR_TMPVARI8, 1, "reason_string", "input pointer for reason_string"), ARG(HIR_TMPVARU64, 0, "reason_flags", "scalar argument reason_flags")),
-    #if NECP
+#if NECP
     /* [522] parse failed: int necp_session_open(int flags); } */
     [523] = SYSCALL6(523, ARG(HIR_TMPVARI32, 0, "", ""), "necp_session_action", "macOS system call necp_session_action", 3, ARG(HIR_TMPVARI32, 0, "necp_fd", "scalar argument necp_fd"), ARG(HIR_TMPVARU32, 0, "action", "scalar argument action"), PTR(HIR_TMPVARI0, 0, "in_buffer", "pointer argument in_buffer"), ARG(HIR_TMPVARU64, 0, "in_buffer_length", "scalar argument in_buffer_length"), PTR(HIR_TMPVARI0, 0, "out_buffer", "pointer argument out_buffer"), ARG(HIR_TMPVARU64, 0, "out_buffer_length", "scalar argument out_buffer_length")),
-    #else /* NECP */
-    #endif /* NECP */
+#else /* NECP */
+#endif /* NECP */
     [524] = SYSCALL6(524, ARG(HIR_TMPVARI32, 0, "", ""), "setattrlistat", "macOS system call setattrlistat", 2, ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), PTR(HIR_TMPVARI8, 1, "path", "path to filesystem object"), PTR(HIR_TMPVARI0, 0, "alist", "input pointer for alist"), PTR(HIR_TMPVARI0, 0, "attributeBuffer", "pointer argument attributeBuffer"), ARG(HIR_TMPVARU64, 0, "bufferSize", "scalar argument bufferSize"), ARG(HIR_TMPVARU32, 0, "options", "scalar argument options")),
     [525] = SYSCALL2(525, ARG(HIR_TMPVARI32, 0, "", ""), "net_qos_guideline", "macOS system call net_qos_guideline", 3, PTR(HIR_TMPVARI0, 0, "param", "pointer argument param"), ARG(HIR_TMPVARU32, 0, "param_len", "scalar argument param_len")),
     [526] = SYSCALL4(526, ARG(HIR_TMPVARI32, 0, "", ""), "fmount", "macOS system call fmount", 4, PTR(HIR_TMPVARI8, 1, "type", "input pointer for type"), ARG(HIR_TMPVARI32, 0, "fd", "file descriptor"), ARG(HIR_TMPVARI32, 0, "flags", "bitmask of flags"), PTR(HIR_TMPVARI0, 0, "data", "input pointer for data")),

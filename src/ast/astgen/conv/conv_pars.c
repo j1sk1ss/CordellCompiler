@@ -13,10 +13,7 @@ ast_node_t* cpl_parse_conv(PARSER_ARGS) {
 
     forward_token(it, 1);
     symbol_id_t type = type_lookup(CURRENT_TOKEN, ctx, smt);
-    if (
-        CURRENT_TOKEN && 
-        (!TKN_is_builtin_type(CURRENT_TOKEN) && type == NO_SYMBOL_ID)
-    ) {
+    if (CURRENT_TOKEN && (!TKN_is_builtin_type(CURRENT_TOKEN) && type == NO_SYMBOL_ID)) {
         PARSE_ERROR("Expected a type of a token in a cast!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;

@@ -95,8 +95,7 @@ lir_block_t* LIR_create_block(lir_operation_t op, lir_subject_t* fa, lir_subject
     blk->farg   = fa;
     blk->sarg   = sa;
     blk->targ   = ta;
-    blk->next   = NULL;
-    blk->prev   = NULL;
+    blk->next   = blk->prev = NULL;
     blk->unused = 0;
 
     if (fa && !fa->home) fa->home = blk;

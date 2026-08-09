@@ -4,7 +4,7 @@ CPL is an experimental language and compiler implementation. This page states th
 
 ## Current status
 
-The compiler can build and run non-trivial low-level examples, including pointer-heavy code, string traversal, direct syscall usage, inline assembly, containers, and benchmark programs. The documentation currently describes CPL v3.5-era behavior.
+The compiler can build and run non-trivial low-level examples, including pointer-heavy code, string traversal, direct syscall usage, inline assembly, containers, and benchmark programs. The documentation currently describes CPL v3.6.7-era behavior.
 
 The implementation includes:
 
@@ -15,7 +15,7 @@ The implementation includes:
 - SSA-related infrastructure;
 - HIR and LIR optimization passes;
 - LIR generation, instruction selection, register allocation, and memory selection;
-- x86-64 NASM assembly generation for Mach-O and Linux-style targets;
+- NASM assembly generation for x86-64 Mach-O, x86-64 Linux, and i386 Linux-style targets;
 - optional benchmark visualization and a static docsify playground frontend.
 
 ## Supported language areas
@@ -29,7 +29,7 @@ The language currently supports:
 - basic control flow and switch lowering annotations;
 - functions, overloads, generic functions, default arguments, local functions, lambdas, and function pointers;
 - direct syscalls and inline assembly;
-- low-level annotations for entry points, sections, alignment, counted loops, register placement, and varargs;
+- low-level annotations for entry points, symbol names, ABI/linker metadata, sections, alignment, counted loops, register placement, and varargs;
 - a small C-like preprocessor.
 
 ## Important limitations
@@ -48,7 +48,7 @@ These limitations are part of the current project scope. The compiler is meant t
 
 ## Target and deployment notes
 
-The compiler emits NASM assembly and then uses an external assembler and linker. The default target settings are close to Mach-O x86-64; Linux x86-64 requires explicit command-line options. See [Compiler usage](#/pages/compiler-usage) for examples.
+The compiler emits NASM assembly and then uses an external assembler and linker. Defaults depend on the host build: Linux builds default to Linux-style x86-64 settings, while the non-Linux default path uses Mach-O x86-64 settings. See [Compiler usage](#/pages/compiler-usage) for examples.
 
 The online documentation is a static docsify site. The editor in [Playground](#/pages/playground) works as a frontend, but live execution requires a separate backend service. On GitHub Pages, the page remains useful for reading and formatting examples but cannot compile programs by itself.
 

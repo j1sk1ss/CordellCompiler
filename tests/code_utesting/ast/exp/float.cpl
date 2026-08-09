@@ -10,10 +10,12 @@ start() {
       { scope, id=2 }
          [f64] (F64_TYPE_TOKEN, v_id=-1, t_id=1, s_id=-1)
             [a] (F64_VARIABLE_TOKEN, v_id=0, t_id=-1, s_id=2)
-            [4621819117588971520] (UNKNOWN_FLOAT_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+            [=] (ASSIGN_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+               [4621819117588971520] (UNKNOWN_FLOAT_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
          [f32] (F32_TYPE_TOKEN, v_id=-1, t_id=3, s_id=-1)
             [b] (F32_VARIABLE_TOKEN, v_id=1, t_id=-1, s_id=2)
-            [4607632778762754458] (UNKNOWN_FLOAT_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+            [=] (ASSIGN_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+               [4607632778762754458] (UNKNOWN_FLOAT_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
          [exit] (EXIT_TOKEN, v_id=-1, t_id=-1, s_id=2)
             [1] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
 /:

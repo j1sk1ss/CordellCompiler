@@ -6,7 +6,7 @@ ast_node_t* cpl_parse_break(PARSER_ARGS) {
 
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
     if (!base) {
-        PARSE_ERROR("Can't create a base for the '%s' statement!", BREAK_COMMAND);
+        PARSE_ERROR("Can't create a base for the 'break' statement!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }

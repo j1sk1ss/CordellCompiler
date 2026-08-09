@@ -35,7 +35,10 @@ int main(int argc, char* argv[]) {
     }
 
     finder_ctx_t finctx = { .bpath = argv[2] };
-    fd = PP_perform(fd, &finctx);
+    pp_ctx_t ppctx;
+    PP_init_pp_ctx(&ppctx);
+
+    fd = PP_perform(fd, &finctx, &ppctx);
     if (fd < 0) {
         fprintf(stderr, "Processed file %s isn't found!\n", argv[1]);
         return 1;
@@ -78,7 +81,7 @@ int main(int argc, char* argv[]) {
     HIR_CG_perform_dfe(&callctx, &smt);
     HIR_CG_apply_dfe(&cfgctx, &smt);
 
-    HIR_FUNC_delete_duplicated_functions(&cfgctx);
+    HIR_FUNC_set_unused_duplicated_functions(&cfgctx);
 
     DUMP_format_hirctx(&hirctx, &smt, 0, 0, stdout);
 

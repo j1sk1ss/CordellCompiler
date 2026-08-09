@@ -46,9 +46,10 @@ start(i32 argc, ptr ptr i8 argv) {
          { scope, id=5 }
             [i8] (I8_TYPE_TOKEN, v_id=-1, t_id=4, s_id=-1)
                [c] (I8_VARIABLE_TOKEN, v_id=2, t_id=0, s_id=5)
-               [as] (CONVERT_TOKEN, v_id=-1, t_id=-1, s_id=-1)
-                  [i8] (I8_TYPE_TOKEN, v_id=-1, t_id=0, s_id=-1)
-                  [x] (I32_VARIABLE_TOKEN, v_id=1, t_id=3, s_id=4)
+               [=] (ASSIGN_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+                  [as] (CONVERT_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+                     [i8] (I8_TYPE_TOKEN, v_id=-1, t_id=0, s_id=-1)
+                     [x] (I32_VARIABLE_TOKEN, v_id=1, t_id=3, s_id=4)
             [+=] (ADDASSIGN_TOKEN, v_id=-1, t_id=-1, s_id=-1)
                [c] (I8_VARIABLE_TOKEN, v_id=2, t_id=4, s_id=5)
                [as] (CONVERT_TOKEN, v_id=-1, t_id=-1, s_id=-1)

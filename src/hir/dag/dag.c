@@ -6,9 +6,15 @@ unsigned long HIR_DAG_compute_hash(dag_node_t* nd) {
         return HIR_hash_subject(nd->src);
     }
 
-    if (!set_size(&nd->args)) return HIR_hash_subject(nd->src);
+    if (!set_size(&nd->args)) {
+        unsigned long h = HIR_hash_subject(nd->src);
+        if (nd->op == HIR_GDREF) h ^= (unsigned long)nd->memory_version * 0x9e3779b97f4a7c15UL;
+        return h;
+    }
+
     nd->hash_busy = 1;
     unsigned long h = nd->op * 1315423911UL;
+    if (nd->op == HIR_GDREF) h ^= (unsigned long)nd->memory_version * 0x9e3779b97f4a7c15UL;
     set_foreach (dag_node_t* arg, &nd->args) {
         h ^= HIR_DAG_compute_hash(arg) + 0x9e3779b97f4a7c15UL + (h << 6) + (h >> 2);
     }
@@ -17,13 +23,11 @@ unsigned long HIR_DAG_compute_hash(dag_node_t* nd) {
     return h;
 }
 
-/*
-Create a new DAG node from the source HIR subject.
+/* Create a new DAG node from the source HIR subject.
 Params:
     - `src` - HIR subject.
 
-Returns a new DAG node or NULL.
-*/
+Returns a new DAG node or NULL. */
 static dag_node_t* _create_node(hir_subject_t* src) {
     dag_node_t* nd = (dag_node_t*)mm_malloc(sizeof(dag_node_t));
     if (!nd) return NULL;

@@ -2,7 +2,7 @@
 
 container node {
     ptr node next;
-    i32 value;
+    i32      value;
 }
 
 start() {

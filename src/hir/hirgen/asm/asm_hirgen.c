@@ -9,7 +9,7 @@ int HIR_generate_asmblock(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
         hir_subject_t* el = HIR_generate_elem(h, ctx, smt);
         if (!el) {
             HIR_unload_subject(args);
-            HIRGEN_ERROR(ctx, "Asm: Argument HIR generation error!");
+            HIRGEN_ERROR(ctx, "Argument HIR generation error in an asm structure!");
             return 0;
         }
         

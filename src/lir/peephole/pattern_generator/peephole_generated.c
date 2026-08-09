@@ -1,8 +1,6 @@
 /* This is a generated code. Don't change it, use the main.py instead. */
 #include <lir/peephole/peephole.h>
 
-static unsigned long long _peephole_visit_counter = 100;
-
 static int _peephole_subject_is_read(lir_block_t* lh, lir_subject_t* subj) {
     return LIR_is_readop(lh->op) && (
         LIR_subj_equals(lh->farg, subj) ||
@@ -18,15 +16,15 @@ static int _peephole_subject_is_overwritten(lir_block_t* lh, lir_subject_t* subj
         !LIR_subj_equals(lh->targ, subj);
 }
 
-static int _peephole_subject_dead_after_rec(long pred, cfg_block_t* bb, lir_subject_t* subj, lir_block_t* start) {
+static int _peephole_subject_dead_after_rec(long pred, cfg_block_t* bb, lir_subject_t* subj, lir_block_t* start, unsigned long long counter) {
     if (!bb) return 1;
-    if (bb->visited != _peephole_visit_counter) {
+    if (bb->visited != counter) {
         set_free(&bb->visitors);
         set_init(&bb->visitors, SET_NO_CMP);
     }
 
     if (set_has(&bb->visitors, (void*)pred)) return 1;
-    bb->visited = _peephole_visit_counter;
+    bb->visited = counter;
     set_add(&bb->visitors, (void*)pred);
 
     lir_block_t* lh = start ? start : bb->lmap.entry;
@@ -38,14 +36,14 @@ static int _peephole_subject_dead_after_rec(long pred, cfg_block_t* bb, lir_subj
         lh = LIR_get_next(lh, bb->lmap.exit, 1);
     }
 
-    return _peephole_subject_dead_after_rec(bb->id, bb->l, subj, NULL) &&
-           _peephole_subject_dead_after_rec(bb->id, bb->jmp, subj, NULL);
+    return _peephole_subject_dead_after_rec(bb->id, bb->l, subj, NULL, counter) &&
+           _peephole_subject_dead_after_rec(bb->id, bb->jmp, subj, NULL, counter);
 }
 
 static int _peephole_subject_dead_after(cfg_block_t* bb, lir_subject_t* subj, lir_block_t* start) {
     if (!subj) return 1;
-    _peephole_visit_counter++;
-    return _peephole_subject_dead_after_rec(-1, bb, subj, start);
+    unsigned long long counter = CFG_get_unique_counter();
+    return _peephole_subject_dead_after_rec(-1, bb, subj, start, counter);
 }
 
 int peephole_first_pass(cfg_block_t* bb) {

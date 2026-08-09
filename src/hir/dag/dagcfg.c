@@ -1,14 +1,12 @@
 #include <hir/dag.h>
 
-/*
-Find a DAG node from the DAG context. If we found one, 
+/* Find a DAG node from the DAG context. If we found one, 
 check if this is a unique hir subject and return it.
 Params:
     - `s` - Source HIR subject.
     - `dctx` - DAG context.
 
-Return NULL or subject from the context.
-*/
+Return NULL or subject from the context. */
 static hir_subject_t* _apply_dag_on_block(hir_subject_t* s, dag_ctx_t* dctx) {
     if (!s) return NULL;
     dag_node_t* nd = DAG_ACQUIRE_NODE(dctx, s);
@@ -20,15 +18,13 @@ static hir_subject_t* _apply_dag_on_block(hir_subject_t* s, dag_ctx_t* dctx) {
     return nd->src;
 }
 
-/*
-Check if the provided subject actually is a child of the provided HIR block.
+/* Check if the provided subject actually is a child of the provided HIR block.
 Params:
     - `h` - HIR block.
     - `s` - HIR subjects.
 
-Returns 1 if the subject is a child of the block.
-*/
-static int _check_home(hir_block_t* h, hir_subject_t* s) {
+Returns 1 if the subject is a child of the block. */
+static inline int _check_home(hir_block_t* h, hir_subject_t* s) {
     iterate_hir_args (hir_subject_t* arg, h, 0) {
         if (arg == s) return 1;
     }
@@ -36,8 +32,7 @@ static int _check_home(hir_block_t* h, hir_subject_t* s) {
     return 0;
 }
 
-/*
-Check if the provided subject can be safely freed.
+/* Check if the provided subject can be safely freed.
 Note: The reason why we need to do this is simple:
       If we free subject without rely on the home info,
       we will encounter NULL pointers in the real homes.
@@ -48,11 +43,10 @@ Params:
     - `src` - Considering block.
     - `s` - Considering subject.
 
-Returns 1 on success.
-*/
+Returns 1 on success. */
 static inline void _prepare_subject(hir_block_t* src, hir_subject_t* s) {
     if (s->home && s->home != src && _check_home(s->home, s)) s->home->unused = 1;
-    else HIR_unload_subject(s);
+    else                                                      HIR_unload_subject(s);
 }
 
 int HIR_DAG_CFG_rebuild(cfg_ctx_t* cctx, dag_ctx_t* dctx) {

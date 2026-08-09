@@ -1,7 +1,5 @@
 # Examples
 
-The examples below are based on files from `tests/code_utesting/**/*.cpl`.
-
 ## Arithmetic and casts
 
 ```cpl
@@ -144,5 +142,30 @@ Implementation:
 
 function print(ptr i8 s) -> i0 {
     syscall(0x2000004, 1, s, strlen(s));
+}
+```
+
+## HTTP HTML page
+
+```cpl
+#include <http_h.cpl>
+
+glob http_server server;
+
+function index(ptr http_request req, ptr http_response res) -> i0 {
+    res.html_file(ref "examples/small/http_page.html");
+}
+
+function stop(ptr http_request req, ptr http_response res) -> i0 {
+    res.text(200 as i32, ref "stopped\n");
+    server.stop();
+}
+
+start() {
+    server.init(ref "127.0.0.1", 18083);
+    if not server.get(ref "/", index); exit 1;
+    if not server.get(ref "/stop", stop); exit 2;
+    if not server.static(ref "/assets/", ref "examples/small/"); exit 3;
+    exit server.listen() as u8;
 }
 ```

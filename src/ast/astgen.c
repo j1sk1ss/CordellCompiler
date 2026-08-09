@@ -4,8 +4,7 @@ int AST_init_ctx(ast_ctx_t* ctx) {
     str_memset(ctx, 0, sizeof(ast_ctx_t));
     stack_init(&ctx->scopes.stack);
     stack_init(&ctx->annots);
-    ctx->t_id        = NO_SYMBOL_ID;
-    ctx->carry.pfunc = NO_SYMBOL_ID;
+    ctx->t_id = ctx->carry.pfunc = NO_SYMBOL_ID;
     return 1;
 }
 
@@ -17,7 +16,7 @@ static int _append_root_children(ast_node_t* dst, ast_node_t* src) {
         child->siblings.n = child->siblings.t = NULL;
         AST_add_node(dst, child);
     }
-
+    
     AST_unload(src);
     return 1;
 }
@@ -27,9 +26,9 @@ int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt) {
     list_iter_hinit(tkn, &it);
 
     if (!ctx->r) {
-        stack_push(&ctx->scopes.stack, (void*)((long)++ctx->scopes.s_id));
+        SCPTB_push_scope(&smt->sc, &ctx->scopes.stack);
         ctx->r = cpl_parse_block(&it, ctx, smt, EOF_TOKEN);
-        return !!ctx->r;
+        return ctx->r != NULL;
     }
 
     ast_node_t* root = cpl_parse_block(&it, ctx, smt, EOF_TOKEN);
@@ -54,9 +53,20 @@ int AST_finalize_parse(ast_ctx_t* ctx, sym_table_t* smt) {
     queue_init(&methods);
     AST_DVRT_move_container_functions(ctx->r, &methods);
     
-    ast_node_t* method;
+    method_t* method;
     while (queue_pop(&methods, (void**)&method)) {
-        AST_insert_node(ctx->r, method);
+        AST_insert_node(ctx->r, method->func);
+
+        func_info_t fi;
+        if (FNTB_get_info_id(method->func->c->sinfo.v_id, &fi, &smt->f)) {
+            string_t* vname = fi.virt->copy(fi.virt);
+            vname->rcat(vname, "__");
+            vname->cat(vname, method->prefix);
+            FNTB_update_virt_name(fi.id, vname, &smt->f);
+            destroy_string(vname);
+        }
+
+        mm_free(method);
     }
 
     queue_free(&methods);

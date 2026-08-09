@@ -12,13 +12,11 @@ int HIR_unload_extended_ctx(hir_ctx_t* ctx) {
     return HIR_unload_blocks(ctx->hot.h);
 }
 
-/*
-Mix64 hash function.
+/* Mix64 hash function.
 Params:
     - `x` - Input value.
 
-Returns hashed value.
-*/
+Returns hashed value */
 static inline unsigned long _mix64(unsigned long x) {
     x ^= x >> 30;
     x *= 0xbf58476d1ce4e5b9;
@@ -76,10 +74,10 @@ long HIR_hash_subject(hir_subject_t* s) {
 
 /* Global HIR block ID for a unique indexing
    which helps a lot in distinguish HIR blocks
-   from each other. */
+   from each other */
 static unsigned long _curr_id = 0;
 
-hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strval, long intval) {
+hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strval, unsigned long intval) {
     hir_subject_t* subj = mm_malloc(sizeof(hir_subject_t));
     if (!subj) return NULL;
     str_memset(subj, 0, sizeof(hir_subject_t));
@@ -102,10 +100,11 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strv
         case HIR_GLBVARARR: case HIR_GLBVARF64: case HIR_GLBVARU64:
         case HIR_GLBVARI64: case HIR_GLBVARF32: case HIR_GLBVARU32: case HIR_GLBVARI32:
         case HIR_GLBVARU16: case HIR_GLBVARI16: case HIR_GLBVARU8:  case HIR_GLBVARI8:
-        case HIR_GLBVARI0:
+        case HIR_GLBVARI0: {
             subj->storage.var.v_id = v_id;
-            subj->ptr = intval;
-        break;
+            subj->ptr              = intval;
+            break;
+        }
         case HIR_F64NUMBER: case HIR_F32NUMBER:
         case HIR_I64NUMBER: case HIR_I32NUMBER: case HIR_I16NUMBER: case HIR_I8NUMBER:
         case HIR_U64NUMBER: case HIR_U32NUMBER: case HIR_U16NUMBER: case HIR_U8NUMBER:
@@ -170,7 +169,7 @@ int HIR_block_shallow_equals(hir_block_t* a, hir_block_t* b) {
         if (!aa[i] && !bb[i]) continue;
         if (
             !aa[i] || !bb[i] ||
-            !HIR_subject_shallow_equals(aa[i], bb[i]) ||
+            !HIR_subject_shallow_equals(aa[i], bb[i])      ||
             HIR_is_sign(aa[i]->t) != HIR_is_sign(bb[i]->t) ||
             HIR_get_type_size(aa[i]->t) < HIR_get_type_size(bb[i]->t)
         ) return 0;
@@ -208,9 +207,10 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
         case HIR_F64NUMBER: case HIR_F32NUMBER:
         case HIR_I64NUMBER: case HIR_I32NUMBER: case HIR_I16NUMBER: case HIR_I8NUMBER:
         case HIR_U64NUMBER: case HIR_U32NUMBER: case HIR_U16NUMBER: case HIR_U8NUMBER:
-        case HIR_NUMBER:
+        case HIR_NUMBER: {
             ns->storage.num.value = s->storage.num.value->copy(s->storage.num.value);
-        break;
+            break;
+        }
         case HIR_TMPVARARR: case HIR_TMPVARF64: case HIR_TMPVARU64:
         case HIR_TMPVARI64: case HIR_TMPVARF32: case HIR_TMPVARU32: case HIR_TMPVARI32:
         case HIR_TMPVARU16: case HIR_TMPVARI16: case HIR_TMPVARU8:  case HIR_TMPVARI8:
@@ -228,9 +228,10 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
         case HIR_U32CONSTVAL: case HIR_I32CONSTVAL:
         case HIR_U64CONSTVAL: case HIR_I64CONSTVAL:
         case HIR_FNAME:       case HIR_RAWASM:
-        case HIR_STRING:      case HIR_FPOS:
+        case HIR_STRING:      case HIR_FPOS: {
             str_memcpy(&ns->storage, &s->storage, sizeof(s->storage));
-        break;
+            break;
+        }
         default: break;
     }
 
@@ -256,16 +257,14 @@ hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject
     return blk;
 }
 
-/*
-Safe copy with optional label preservation.
+/* Safe copy with optional label preservation.
 Label copy means a entirely new link, that's why in some cases we need to save the
 original label.
 Params:
     - `s` - Subject to copy.
     - `copy_label` - If this is 1 - it will copy label subject.
 
-Returns a copy of the subject.
-*/
+Returns a copy of the subject */
 static inline hir_subject_t* _safe_copy(hir_subject_t* s, int copy_label) {
     if (!s || (!copy_label && s->t == HIR_LABEL)) return s;
     return HIR_copy_subject(s);
@@ -299,13 +298,13 @@ int HIR_insert_block_after(hir_block_t* block, hir_block_t* pos) {
 }
 
 int HIR_append_block(hir_block_t* block, hir_ctx_t* ctx) {
+    if (!ctx || !block) return 0;
     if (ctx->is_hidden) block->unused = 1;
     if (ctx->cold.is_sup && ctx->is_cold) {
         list_add(&ctx->cold.blocks, block);
         return 1;
     }
 
-    if (!ctx || !block) return 0;
     if (!ctx->hot.h) ctx->hot.h = ctx->hot.t = block;
     else {
         block->prev      = ctx->hot.t;

@@ -3,13 +3,14 @@
 The compiler can emit intermediate files and can enable its debug compilation flag.
 
 ```bash
-./builds/ccompiler --debug --emit-ast --emit-ir --emit-asm main.cpl
+./builds/<platform>/cplc --debug --emit-ast --emit-ir --emit-lir --emit-asm main.cpl
 ```
 
 Generated files:
 
 - `output.ast`
 - `output.ir`
+- `output.lir`
 - `output.s`
 
 For debugging generated programs, prefer `-O0` so the generated code stays closer to the source.

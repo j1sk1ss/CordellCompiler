@@ -5,9 +5,7 @@ ast_node_t* AST_create_node(token_t* tkn) {
     if (!node) return NULL;
     str_memset(node, 0, sizeof(ast_node_t));
     node->t          = tkn;
-    node->sinfo.v_id = NO_SYMBOL_ID;
-    node->sinfo.t_id = NO_SYMBOL_ID;
-    node->sinfo.s_id = NO_SYMBOL_ID;
+    node->sinfo.v_id = node->sinfo.t_id = node->sinfo.s_id = NO_SYMBOL_ID;
     list_init(&node->annots);
     return node;
 }
@@ -51,7 +49,6 @@ ast_node_t* AST_copy_node(ast_node_t* n, int sp, int sib, int chld, ast_node_t* 
     }
 
     if (sp) dst->p = NULL;
-
     return dst;
 }
 
@@ -78,15 +75,14 @@ int AST_insert_node(ast_node_t* parent, ast_node_t* child) {
     if (!parent || !child) return 0;
     child->p = parent;
     if (!parent->c) {
-        parent->c = child;
-        child->siblings.n = NULL;
-        child->siblings.t = NULL;
+        parent->c         = child;
+        child->siblings.n = child->siblings.t = NULL;
     }
     else {
         ast_node_t* old_first = parent->c;
-        child->siblings.n = old_first;
-        child->siblings.t = old_first->siblings.t ? old_first->siblings.t : old_first;
-        parent->c = child;
+        child->siblings.n     = old_first;
+        child->siblings.t     = old_first->siblings.t ? old_first->siblings.t : old_first;
+        parent->c             = child;
     }
 
     return 1;
@@ -101,7 +97,7 @@ int AST_remove_node(ast_node_t* parent, ast_node_t* child) {
     while (current) {
         if (current == child) {
             if (prev) prev->siblings.n = current->siblings.n;
-            else parent->c = current->siblings.n;
+            else      parent->c = current->siblings.n;
             found = 1;
             break;
         }
@@ -110,11 +106,7 @@ int AST_remove_node(ast_node_t* parent, ast_node_t* child) {
         current = current->siblings.n;
     }
 
-    if (found) {
-        child->siblings.n = NULL;
-        child->p = NULL;
-    }
-
+    if (found) child->siblings.n = child->p = NULL;
     return found;
 }
 
@@ -128,8 +120,7 @@ int AST_unload(ast_node_t* node) {
     return 1;
 }
 
-/*
-Recursively hash the input node.
+/* Recursively hash the input node.
 Params:
     - `n` - Input node.
     - `s` - Hash the sibling node?
@@ -137,21 +128,26 @@ Params:
                   a hash from the sibling node.
     - `stp` - Stop token type.
 
-Returns a hash based on the provided node.
-*/
-static unsigned long _hash_ast_node(ast_node_t* n, int s, token_type_t stp) {
+Returns a hash based on the provided node. */
+static unsigned long _hash_ast_node(ast_node_t* n, int s, int no_name, token_type_t stp) {
     if (!n || !n->t || n->t->t_type == stp) return 0;
-    unsigned long hash = 0;
-    if (n->t) hash ^= TKN_hash_token(n->t);
-    if (s) hash ^= _hash_ast_node(n->siblings.n, 1, stp);
-    hash ^= _hash_ast_node(n->c, 1, stp);
+    unsigned long hash = 0xF123;
+    if (n->t && n->t->t_type == CUSTOM_VARIABLE_TOKEN) {
+        hash *= n->sinfo.t_id;
+    }
+
+    if (n->t) hash ^= TKN_hash_token(n->t, no_name);
+    hash *= 0x123321;
+    hash += 99929929;
+    if (s) hash ^= _hash_ast_node(n->siblings.n, 1, no_name, stp) + 0xDEAD;
+    hash ^= _hash_ast_node(n->c, 1, no_name, stp) + 0xDEAD;
     return hash;
 }
 
 unsigned long AST_hash_node(ast_node_t* node) {
-    return _hash_ast_node(node, 0, -1);
+    return _hash_ast_node(node, 0, 0, -1);
 }
 
-unsigned long AST_hash_node_stop(ast_node_t* node, token_type_t stp) {
-    return _hash_ast_node(node, 1, stp);
+unsigned long AST_hash_node_stop(ast_node_t* node, int no_name, token_type_t stp) {
+    return _hash_ast_node(node, 1, no_name, stp);
 }

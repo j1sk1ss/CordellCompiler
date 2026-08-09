@@ -15,22 +15,29 @@ typedef enum {
 } section_elem_type_t;
 
 typedef struct {
-    string_t* name;
-    set_t     vars; /* :symbol_id_t */
-    set_t     func; /* :symbol_id_t */
-    set_t     strs; /* :symbol_id_t */
+    string_t*  name;
+    set_t      vars; /* :symbol_id_t */
+    set_t      func; /* :symbol_id_t */
+    set_t      strs; /* :symbol_id_t */
+    int        align;
+    struct {
+        list_t vars;
+        list_t func;
+        list_t strs;
+    } sorted;
 } section_info_t;
 
 typedef struct {
-    map_t sectb;    /* :section_info_t */
+    map_t      sectb;    /* :section_info_t */
+    struct {
+        list_t sectb;
+    } sorted;
 } sectb_ctx_t;
 
-int SCTB_move_to_section(string_t* section, symbol_id_t id, section_elem_type_t t, sectb_ctx_t* ctx);
-int SCTB_add_to_section(string_t* section, symbol_id_t id, section_elem_type_t t, sectb_ctx_t* ctx);
+int SCTB_move_to_section(string_t* section, int align, symbol_id_t id, section_elem_type_t t, sectb_ctx_t* ctx);
+int SCTB_add_to_section(string_t* section, int align, symbol_id_t id, section_elem_type_t t, sectb_ctx_t* ctx);
 string_t* SCTB_get_section_name(symbol_id_t id, section_elem_type_t t, sectb_ctx_t* ctx);
-int SCTB_remove_from_section(string_t* section, symbol_id_t id, section_elem_type_t t, sectb_ctx_t* ctx);
 int SCTB_get_section(list_t* out, string_t* section, section_elem_type_t t, sectb_ctx_t* ctx);
-int SCTB_get_sections(list_t* out, sectb_ctx_t* ctx);
 int SCTB_unload(sectb_ctx_t* ctx);
 
 #endif

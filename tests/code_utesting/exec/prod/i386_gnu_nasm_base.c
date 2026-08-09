@@ -68,7 +68,7 @@ int main(int argc, char* argv[]) {
         },
         .system.sys_type = I386,
     };
-    CONF_set_config(&cfg);
+    CONF_set_config(cfg);
 
     int fd = open(argv[1], O_RDONLY);
     if (fd < 0) {
@@ -77,7 +77,10 @@ int main(int argc, char* argv[]) {
     }
 
     finder_ctx_t finctx = { .bpath = argv[2] };
-    fd = PP_perform(fd, &finctx);
+    pp_ctx_t ppctx;
+    PP_init_pp_ctx(&ppctx);
+
+    fd = PP_perform(fd, &finctx, &ppctx);
     if (fd < 0) {
         fprintf(stderr, "Processed file %s isn't found!\n", argv[1]);
         return 1;
@@ -117,7 +120,7 @@ int main(int argc, char* argv[]) {
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
     HIR_CG_build(&cfgctx, &callctx, &smt);
 
-    HIR_FUNC_delete_duplicated_functions(&cfgctx);
+    HIR_FUNC_set_unused_duplicated_functions(&cfgctx);
     HIR_FUNC_set_last_return(&cfgctx);
     HIR_FUNC_perform_tre(&cfgctx, &smt);
 
@@ -184,6 +187,7 @@ int main(int argc, char* argv[]) {
     };
     LIR_RA_sort_phi_movs(&cfgctx, &colors);
     LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel);
+    LIR_register_copy_propagation(&cfgctx);
 
     LIR_destroy_ssa(&cfgctx);
 
@@ -194,6 +198,7 @@ int main(int argc, char* argv[]) {
     LIR_peephole_optimization(&cfgctx, &pph);
 
     LIR_validate_memory(&cfgctx, &smt, &mem_sel);
+    LIR_clear_global_variables(&cfgctx, &smt);
 
     asm_gen_t asmgen = { .generator = i386_gnu_nasm_generate_asm };
     ASM_generate(&cfgctx, &smt, &asmgen, stdout);

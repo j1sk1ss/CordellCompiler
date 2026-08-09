@@ -1,21 +1,21 @@
 #include <asm/i386_gnu_nasm_asmgen.h>
 
-/*
-Convert one LIR block into x86_64 GNU NASM assembly and write it to output.
+/* Convert one LIR block into x86_64 GNU NASM assembly and write it to output.
 Params:
     - `b` - LIR block to emit.
     - `fi` - Current function info for prologue/epilogue generation.
     - `smt` - Symtable used to resolve symbols.
     - `output` - Output assembly stream.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds. */
 static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_table_t* smt, FILE* output) {
     if (b->unused) return 1;
     switch (b->op) {
         case LIR_SETPOS: {
-            if (!CONF_is_debug_compilation()) break;
-            if (!b->farg->storage.pos.file) break;
+            if (
+                !CONF_is_debug_compilation() ||
+                !b->farg->storage.pos.file
+            ) break;
             EMIT_COMMAND("%%line %li \"%s\"", b->farg->storage.pos.line, b->farg->storage.pos.file->body);
             break;
         }
@@ -28,7 +28,7 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         }
         case LIR_STRT:
         case LIR_FDCL: {
-            EMIT_COMMAND("%s:", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));
+            if (!fi->flags.onlybody) EMIT_COMMAND("%s:", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));
             if (!fi->flags.naked) {
                 EMIT_COMMAND("push ebp");
                 EMIT_COMMAND("mov ebp, esp");
@@ -62,10 +62,10 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_SYSC: EMIT_COMMAND("int 0x80"); break;
         case LIR_OEXT: {
             variable_info_t vi;
-            if (VRTB_get_info_id(b->farg->storage.cnst.value, &vi, &smt->v)) {
-                EMIT_COMMAND("extern %s", vi.name->body); 
-            }
-
+            if (
+                VRTB_get_info_id(b->farg->storage.cnst.value, &vi, &smt->v) && 
+                vi.vmi.used
+            ) EMIT_COMMAND("extern %s", vi.name->body); 
             break;
         }
         case LIR_BREAKPOINT: EMIT_COMMAND("int3 ; %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                 break;
@@ -172,15 +172,13 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
     return 1;
 }
 
-/*
-Emit an independent read-only string into the current assembly section.
+/* Emit an independent read-only string into the current assembly section.
 Params:
     - `id` - String symbol ID.
     - `smt` - Symtable that stores string information.
     - `output` - Output assembly stream.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds. */
 static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {
     str_info_t si;
     if (STTB_get_info_id(id, &si, &smt->s) && si.t == STR_INDEPENDENT) {
@@ -196,10 +194,9 @@ static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {
     return 1;
 }
 
-static long _array_reserve_size(variable_info_t* vi, array_info_t* ai, token_t* elem_tkn, sym_table_t* smt) {
+static inline long _array_reserve_size(variable_info_t* vi, array_info_t* ai, token_t* elem_tkn, sym_table_t* smt) {
     long type_size = TPTB_get_memory_size_id(vi->t_id, &smt->t);
     if (type_size != FIELD_NO_CHANGE) return type_size;
-
     switch (TKN_variable_bitness(elem_tkn, 1)) {
         case TYPE_FULL_SIZE:
         case TYPE_HALF_SIZE:    return ai->size * 4;
@@ -208,55 +205,179 @@ static long _array_reserve_size(variable_info_t* vi, array_info_t* ai, token_t* 
     }
 }
 
-/*
-Emit storage for a non-external variable into the current assembly section.
+/* Emit zero-filled bytes, optionally prefixed with a data label.
+Params:
+    - `name` - Optional label to emit before the reservation.
+    - `count` - Number of zero bytes to emit.
+    - `output` - Output assembly stream. */
+static inline void _emit_zero_bytes(string_t* name, long count, FILE* output) {
+    if (count <= 0) return;
+    if (name) EMIT_COMMAND("%s times %ld db 0", name->body, count);
+    else      EMIT_COMMAND("times %ld db 0", count);
+}
+
+/* Emit an integer value with the NASM directive matching its slot size.
+Params:
+    - `name` - Optional label to emit before the value.
+    - `size` - Slot size in bytes.
+    - `value` - Integer initializer value.
+    - `output` - Output assembly stream. */
+static inline void _emit_typed_value(string_t* name, long size, long long value, FILE* output) {
+    const char* op = size == 4 ? "dd" : size == 2 ? "dw" : "db";
+    if (name) EMIT_COMMAND("%s %s %lli", name->body, op, value);
+    else      EMIT_COMMAND("%s %lli", op, value);
+}
+
+/* Emit a typed aggregate initializer using type-layout slots and padding.
+Params:
+    - `vi` - Variable metadata for the aggregate.
+    - `ai` - Array metadata that stores initializer elements.
+    - `smt` - Symtable used to resolve type layout.
+    - `output` - Output assembly stream.
+
+Returns 1 if succeeds. */
+static int _generate_typed_initializer(variable_info_t* vi, array_info_t* ai, sym_table_t* smt, FILE* output) {
+    long emitted_end = 0, value_count = list_size(&ai->elems), reserve_size = _array_reserve_size(vi, ai, NULL, smt);
+    array_elem_info_t* elem = NULL;
+    long value_pos = 0, string_pos = 0;
+    symbol_id_t string_owner_id = NO_SYMBOL_ID;
+
+    list_iter_t values;
+    list_iter_hinit(&ai->elems, &values);
+
+    EMIT_DATA_LABEL(vi->name->body);
+    for (long slot = 0;; slot++) {
+        type_init_info_t slot_info = { 0 };
+        if (!TPTB_find_type_init_slot(vi->t_id, slot, 0, &slot_info, &smt->t)) break;
+        _emit_zero_bytes(NULL, slot_info.slot_off - emitted_end, output);
+
+        type_info_t slot_ti;
+        int for_string = (
+            TPTB_get_info_id(slot_info.slot_type, &slot_ti, &smt->t)  &&
+            slot_ti.tt == I8_TYPE_TOKEN                               &&
+            !slot_ti.memory.ptr
+        );
+
+        if (
+            !(
+                elem && elem->t == ARRAY_ELEM_STRING_TYPE && 
+                for_string && string_owner_id == slot_info.slot_owner
+            ) && 
+            value_pos < value_count &&
+            list_iter_next(&values, (void**)&elem)
+        ) { /* restore info if this isn't a string */
+            string_pos      = 0;
+            string_owner_id = NO_SYMBOL_ID;
+            value_pos++;
+        }
+
+        if (!elem) goto _default_const_type;
+        switch (elem->t) {
+            case ARRAY_ELEM_STRING_TYPE: {
+                if (for_string) {
+                    if (!(string_owner_id == NO_SYMBOL_ID || string_owner_id == slot_info.slot_owner)) {
+                        _emit_typed_value(NULL, slot_info.slot_size, 0, output);
+                        break;
+                    }
+
+                    str_info_t si;
+                    if (string_owner_id == NO_SYMBOL_ID) string_owner_id = slot_info.slot_owner;
+                    _emit_typed_value(
+                        NULL, slot_info.slot_size,
+                        (STTB_get_info_id(elem->s.s_id, &si, &smt->s) && string_pos < si.value->len(si.value)) 
+                            ? si.value->body[string_pos] 
+                            : 0,
+                        output
+                    );
+                    string_pos++;
+                }
+                /* Put a pointer instead of initialization */
+                else EMIT_COMMAND("dd _str_%li_", elem->s.s_id);
+                break;
+            }
+            default: {
+_default_const_type: {}
+                _emit_typed_value(NULL, slot_info.slot_size, elem ? elem->s.value : 0, output);
+                break;
+            }
+        }
+
+        emitted_end = slot_info.slot_off + slot_info.slot_size;
+    }
+
+    _emit_zero_bytes(NULL, reserve_size - emitted_end, output);
+    return 1;
+}
+
+/* Emit storage for a non-external variable into the current assembly section.
 Params:
     - `id` - Variable symbol ID.
     - `smt` - Symtable used to resolve variable and array metadata.
     - `output` - Output assembly stream.
 
-Returns 1 on success, otherwise 0.
-*/
+Returns 1 on success, otherwise 0. */
 static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
     variable_info_t vi;
-    if (!VRTB_get_info_id(id, &vi, &smt->v) || vi.vfs.ext) return 0;
-    token_t tmptkn = { .t_type = vi.type, .flags = { .ptr = vi.vfs.ptr, .ro = vi.vfs.ro } };
+    if (!VRTB_get_info_id(id, &vi, &smt->v) || vi.vfs.ext || !vi.vmi.used) return 0;
+    token_t fst_tmptkn = { .t_type = vi.type, .flags = { .ptr = vi.vfs.ptr, .ro = vi.vfs.ro } };
 
-    if (!TKN_is_one_slot(&tmptkn)) {
+    char name[256] = { 0 };
+    snprintf(name, sizeof(name), vi.s_id == 1 ? "%s" : "%s__%li", vi.name->body, vi.v_id);
+
+    if (!TKN_is_one_slot(&fst_tmptkn)) {
         array_info_t ai;
         if (!ARTB_get_info(vi.v_id, &ai, &smt->a)) return 0;
-        token_t tmptkn = { .t_type = ai.elements_info.el_type, .flags = { .ptr = ai.elements_info.el_flags.ptr } };
+        token_t sec_tmptkn = { .t_type = ai.elements_info.el_type, .flags = { .ptr = ai.elements_info.el_flags.ptr } };
         /* Simple reservation with the unitialized data */
         if (!list_size(&ai.elems)) {
-            long reserve_size = _array_reserve_size(&vi, &ai, &tmptkn, smt);
-            switch (TKN_variable_bitness(&tmptkn, 1)) {
+            long reserve_size = _array_reserve_size(&vi, &ai, &sec_tmptkn, smt);
+            switch (TKN_variable_bitness(&sec_tmptkn, 1)) {
                 case TYPE_FULL_SIZE:
-                case TYPE_HALF_SIZE:    EMIT_COMMAND("%s resd %ld", vi.name->body, reserve_size / 4); break;
-                case TYPE_QUARTER_SIZE: EMIT_COMMAND("%s resw %ld", vi.name->body, reserve_size / 2); break;
-                default:                EMIT_COMMAND("%s resb %ld", vi.name->body, reserve_size);     break;
+                case TYPE_HALF_SIZE:    EMIT_COMMAND("%s resd %ld", name, reserve_size / 4); break;
+                case TYPE_QUARTER_SIZE: EMIT_COMMAND("%s resw %ld", name, reserve_size / 2); break;
+                default:                EMIT_COMMAND("%s resb %ld", name, reserve_size);     break;
             }
         }
         /* Reservation with the initialized data */
         else {
-            switch (TKN_variable_bitness(&tmptkn, 1)) {
+            type_info_t ti;
+            if (
+                TPTB_get_info_id(vi.t_id, &ti, &smt->t) &&
+                (ti.t == TYPE_CUSTOM || (
+                    ti.t == TYPE_ARRAY &&
+                    TPTB_get_type_type_id(TPTB_get_first_child(vi.t_id, &smt->t), &smt->t) == TYPE_CUSTOM
+                ))
+            ) return _generate_typed_initializer(&vi, &ai, smt, output);
+
+            switch (TKN_variable_bitness(&sec_tmptkn, 1)) {
                 case TYPE_FULL_SIZE:
-                case TYPE_HALF_SIZE:    EMIT_PART_COMMAND("%s dd ", vi.name->body); break;
-                case TYPE_QUARTER_SIZE: EMIT_PART_COMMAND("%s dw ", vi.name->body); break;
-                default:                EMIT_PART_COMMAND("%s db ", vi.name->body); break;
+                case TYPE_HALF_SIZE:    EMIT_PART_COMMAND("%s dd ", name); break;
+                case TYPE_QUARTER_SIZE: EMIT_PART_COMMAND("%s dw ", name); break;
+                default:                EMIT_PART_COMMAND("%s db ", name); break;
             }
 
-            long el = 0;
-            int elcount = list_size(&ai.elems);
+            array_elem_info_t* el = NULL;
+            array_elem_info_t* last_elem = NULL;
+            int el_count = list_size(&ai.elems);
             foreach (el, &ai.elems) {
-                fprintf(output, "%li", el);
-                if (--elcount) fprintf(output, ",");
+                last_elem = el;
+                switch (el->t) {
+                    case ARRAY_ELEM_STRING_TYPE: fprintf(output, "_str_%li_", el->s.s_id); break;
+                    default: fprintf(output, "%lli", el->s.value);                         break;
+                }
+
+                if (--el_count) fprintf(output, ",");
             }
 
-            int last = ai.size - list_size(&ai.elems);
-            if (last > 0) fprintf(output, ",");
-            while (last-- > 0) {
-                fprintf(output, "%li", el);
-                if (last) fprintf(output, ",");
+            long last_el = ai.size - list_size(&ai.elems);
+            if (last_el > 0) fprintf(output, ",");
+            while (last_el-- > 0) {
+                switch (last_elem ? last_elem->t : ARRAY_ELEM_CONST_TYPE) {
+                    case ARRAY_ELEM_STRING_TYPE: fprintf(output, "_str_%li_", last_elem->s.s_id); break;
+                    default: fprintf(output, "%lli", last_elem ? last_elem->s.value : 0);         break;
+                }
+
+                if (last_el) fprintf(output, ",");
             }
 
             fprintf(output, "\n");
@@ -265,36 +386,36 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
         return 1;
     }
 
-    switch (TKN_variable_bitness(&tmptkn, 1)) {
+    switch (TKN_variable_bitness(&fst_tmptkn, 1)) {
         case TYPE_FULL_SIZE:
-        case TYPE_HALF_SIZE:    EMIT_COMMAND("%s dd %li", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
-        case TYPE_QUARTER_SIZE: EMIT_COMMAND("%s dw %li", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
-        default:                EMIT_COMMAND("%s db %li", vi.name->body, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
+        case TYPE_HALF_SIZE:    EMIT_COMMAND("%s dd %li", name, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
+        case TYPE_QUARTER_SIZE: EMIT_COMMAND("%s dw %li", name, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
+        default:                EMIT_COMMAND("%s db %li", name, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
     }
 
     return 1;
 }
 
-/*
-Emit assembly for a used CFG function.
+/* Emit assembly for a used CFG function.
 Params:
     - `f_id` - Function symbol ID.
     - `cctx` - CFG context with function LIR maps.
     - `smt` - Symtable used to resolve function metadata.
     - `output` - Output assembly stream.
 
-Returns 1 on success, otherwise 0.
-*/
+Returns 1 on success, otherwise 0. */
 static int _generate_function(symbol_id_t f_id, cfg_ctx_t* cctx, sym_table_t* smt, FILE* output) {
     func_info_t fi;
     if (!FNTB_get_info_id(f_id, &fi, &smt->f) || !fi.flags.used) return 0;
     
-    if (fi.flags.external == 2) EMIT_COMMAND("extern %s", fi.name->body);
-    else { 
-        const char* modifier = fi.flags.weak ? ":function weak" : "";
-        if (fi.flags.entry)       EMIT_COMMAND("global %s%s", fi.virt->body, modifier);
-        else if (fi.flags.global) EMIT_COMMAND("global %s%s", fi.name->body, modifier);
-        if (fi.flags.external)    EMIT_COMMAND("extern %s", fi.name->body);
+    if (!fi.flags.onlybody) {
+        if (fi.flags.external == 2) EMIT_COMMAND("extern %s", fi.flags.vname ? fi.virt->body : fi.name->body);
+        else { 
+            const char* modifier = fi.flags.weak ? ":function weak" : "";
+            if (fi.flags.entry)       EMIT_COMMAND("global %s%s", fi.virt->body, modifier);
+            else if (fi.flags.global) EMIT_COMMAND("global %s%s", fi.flags.vname ? fi.virt->body : fi.name->body, modifier);
+            if (fi.flags.external)    EMIT_COMMAND("extern %s", fi.flags.vname ? fi.virt->body : fi.name->body);
+        }
     }
 
     cfg_func_t* fb;
@@ -307,24 +428,23 @@ static int _generate_function(symbol_id_t f_id, cfg_ctx_t* cctx, sym_table_t* sm
 }
 
 int i386_gnu_nasm_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* output) {
-    foreach (lir_block_t* lb, &cctx->outs.lout) {
-        _convert_lirblock_to_assembly(lb, NULL, smt, output);
-    }
-
-    map_foreach (section_info_t* section, &smt->c.sectb) {
+    foreach (section_info_t* section, &smt->c.sorted.sectb) {
         if (!section->name->requals(section->name, CONF_get_no_section())) {
             EMIT_COMMAND("section %s", section->name->body);
+            if (section->align != FIELD_NO_CHANGE) {
+                EMIT_COMMAND("align %i", section->align);
+            }
         }
 
-        set_foreach (symbol_id_t id, &section->vars) {
+        foreach (symbol_id_t id, &section->sorted.vars) {
             _generate_variable(id, smt, output);
         }
 
-        set_foreach (symbol_id_t id, &section->strs) {
+        foreach (symbol_id_t id, &section->sorted.strs) {
             _generate_ro_string(id, smt, output);
         }
 
-        set_foreach (symbol_id_t id, &section->func) {
+        foreach (symbol_id_t id, &section->sorted.func) {
             func_info_t fi;
             if (!FNTB_get_info_id(id, &fi, &smt->f)) continue;
             foreach (symbol_id_t l_id, &fi.local) {
@@ -333,6 +453,10 @@ int i386_gnu_nasm_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* output) 
 
             _generate_function(id, cctx, smt, output);
         }
+    }
+
+    foreach (lir_block_t* lb, &cctx->outs.lout) {
+        _convert_lirblock_to_assembly(lb, NULL, smt, output);
     }
 
     return 1;

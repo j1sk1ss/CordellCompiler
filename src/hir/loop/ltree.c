@@ -1,14 +1,12 @@
 #include <hir/loop.h>
 
-/*
-Create a loop node.
+/* Create a loop node.
 Params:
     - `header` - Loop node header.
     - `latch` - Loop latch.
     - `loop_locks` - Related loop blocks.
 
-Returns a pointer to a new loop node.
-*/
+Returns a pointer to a new loop node. */
 static loop_node_t* _loop_node_create(cfg_block_t* header, cfg_block_t* latch, set_t* loop_blocks) {
     loop_node_t* n = (loop_node_t*)mm_malloc(sizeof(loop_node_t));
     if (!n) return NULL;
@@ -17,22 +15,21 @@ static loop_node_t* _loop_node_create(cfg_block_t* header, cfg_block_t* latch, s
     n->p      = NULL;
     list_init(&n->children);
     set_copy(&n->blocks, loop_blocks);
+    set_init(&n->ind, SET_NO_CMP);
     return n;
 }
 
-/*
-Get blocks in reverse order with the 'pred' field usage.
+/* Get blocks in reverse order with the 'pred' field usage.
 Params:
     - `entry` - Current entry block.
     - `exit` - Exit block.
     - `b` - Output set.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds. */
 static int _get_loop_blocks(cfg_block_t* entry, cfg_block_t* exit, set_t* b, set_t* visited) {
     if (
         !set_add(b, entry) || 
-        entry == exit || 
+        entry == exit      || 
         !set_add(visited, entry)
     ) return 0;
 
@@ -44,13 +41,11 @@ static int _get_loop_blocks(cfg_block_t* entry, cfg_block_t* exit, set_t* b, set
     return 1;
 }
 
-/*
-Unload the input loop node.
+/* Unload the input loop node.
 Params:
     - `n` - Node to free.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds. */
 static int _loop_node_free(loop_node_t* n) {
     if (!n) return 0;
     foreach (loop_node_t* ch, &n->children) {
@@ -59,18 +54,17 @@ static int _loop_node_free(loop_node_t* n) {
 
     list_free(&n->children);
     set_free(&n->blocks);
+    set_free(&n->ind);
     mm_free(n);
     return 1;
 }
 
-/*
-Collect all loops from the function CFG collection.
+/* Collect all loops from the function CFG collection.
 Params:
     - `fb` - Function block.
     - `l` - Output list for loop nodes.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds. */
 static int _collect_loops_for_func(cfg_func_t* fb, list_t* l) {
     foreach (cfg_block_t* cb, &fb->blocks) {
         cfg_block_t* succs[] = { cb->jmp, cb->l };
@@ -123,6 +117,12 @@ static int _collect_loops_for_func(cfg_func_t* fb, list_t* l) {
     return 1;
 }
 
+/* Build and store a nested loop tree for a CFG function.
+Params:
+    - `fb` - CFG function to analyze.
+    - `ctx` - Loop tree context that stores loops per function.
+
+Returns 1 if succeeds. */
 static int _build_loop_tree(cfg_func_t* fb, ltree_ctx_t* ctx) {    
     list_t* floops;
     if (!map_get(&ctx->lmap, fb->f_id, (void**)&floops)) {

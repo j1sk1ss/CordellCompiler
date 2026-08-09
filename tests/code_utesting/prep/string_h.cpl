@@ -11,15 +11,16 @@
 }
 
 :/ OUTPUT
-line=1, type={X}, data=[{],
-line=3, type={X}, data=[function],
-line=3, type={X}, data=[strlen],
-line=3, type={X}, data=[(],
-line=3, type={X}, data=[i8], ptr
-line=3, type={X}, data=[s], ptr
-line=3, type={X}, data=[)],
-line=3, type={X}, data=[->],
-line=3, type={X}, data=[i64],
-line=3, type={X}, data=[;],
-line=4, type={X}, data=[}],
+line=2, type=1, data=[{X}.cpl],
+line=1, type=20, data=[{],
+line=9, type=75, data=[function],
+line=9, type=5, data=[strlen],
+line=9, type=18, data=[(],
+line=9, type=51, data=[i8], ptr
+line=9, type=5, data=[s],
+line=9, type=19, data=[)],
+line=9, type=64, data=[->],
+line=9, type=48, data=[i64],
+line=9, type=10, data=[;],
+line=0, type=21, data=[}],
 /:

@@ -8,6 +8,7 @@
 #include <hir/cfg.h>
 #include <hir/dag.h>
 #include <hir/dump.h>
+#include <sem/hir/z3_wrapper.h>
 
 typedef enum {
     SETPOS_INST   = 1 << 0,
@@ -19,7 +20,8 @@ typedef enum {
     CALL_INST     = 1 << 6,
     RET_CALL_INST = 1 << 7,
     STMT_INST     = 1 << 8,
-    UNKNOWN_INST  = 1 << 9,
+    DECL_INST     = 1 << 9,
+    UNKNOWN_INST  = 1 << 10,
 } hir_instruction_type_t;
 
 typedef struct {
@@ -28,6 +30,7 @@ typedef struct {
     file_position_t curr_location;
     map_t           definitions; /* map of id:list, possible definitions of a variable */
     dag_ctx_t*      dctx;
+    z3_analyzer_t*  z3;
     FILE*           dump;
 } hir_visitors_ctx_t;
 

@@ -1,0 +1,300 @@
+#include <io_h.cpl>
+
+#define LIFE_WIDTH       30
+#define LIFE_HEIGHT      16
+#define LIFE_CELLS       480
+#define LIFE_GENERATIONS 48
+#define LIFE_DELAY_USEC  80000
+
+@[section(".bss")] glob arr world[LIFE_CELLS, u8];
+@[section(".bss")] glob arr scratch[LIFE_CELLS, u8];
+
+function life_index(i32 x, i32 y) -> i32 {
+    return y * LIFE_WIDTH + x;
+}
+
+function clear_world() -> i0 {
+    i32 i = 0;
+
+    while i < LIFE_CELLS; {
+        world[i] = 0 as u8;
+        i += 1;
+    }
+}
+
+function set_alive(i32 x, i32 y) -> i0 {
+    if x < 0 || x >= LIFE_WIDTH; {
+        return;
+    }
+
+    if y < 0 || y >= LIFE_HEIGHT; {
+        return;
+    }
+
+    world[life_index(x, y)] = 1 as u8;
+}
+
+function toggle_cell(i32 x, i32 y) -> i32 {
+    if x < 0 || x >= LIFE_WIDTH; {
+        return 0;
+    }
+
+    if y < 0 || y >= LIFE_HEIGHT; {
+        return 0;
+    }
+
+    i32 pos = life_index(x, y);
+    if world[pos] != 0; {
+        world[pos] = 0 as u8;
+    }
+    else {
+        world[pos] = 1 as u8;
+    }
+
+    return 1;
+}
+
+function cell_alive(i32 x, i32 y) -> u8 {
+    if x < 0 || x >= LIFE_WIDTH; {
+        return 0 as u8;
+    }
+
+    if y < 0 || y >= LIFE_HEIGHT; {
+        return 0 as u8;
+    }
+
+    return world[life_index(x, y)];
+}
+
+function seed_world() -> i0 {
+    clear_world();
+
+    set_alive(2 as i32, 1 as i32);
+    set_alive(3 as i32, 2 as i32);
+    set_alive(1 as i32, 3 as i32);
+    set_alive(2 as i32, 3 as i32);
+    set_alive(3 as i32, 3 as i32);
+
+    set_alive(11 as i32, 6 as i32);
+    set_alive(12 as i32, 6 as i32);
+    set_alive(13 as i32, 6 as i32);
+
+    set_alive(21 as i32, 4 as i32);
+    set_alive(22 as i32, 4 as i32);
+    set_alive(21 as i32, 5 as i32);
+    set_alive(22 as i32, 5 as i32);
+}
+
+function live_neighbors(i32 x, i32 y) -> i32 {
+    i32 count = 0;
+    i32 dy = -1;
+
+    while dy <= 1; {
+        i32 dx = -1;
+
+        while dx <= 1; {
+            if dx != 0 || dy != 0; {
+                count += cell_alive(x + dx, y + dy) as i32;
+            }
+
+            dx += 1;
+        }
+
+        dy += 1;
+    }
+
+    return count;
+}
+
+function next_state(u8 alive, i32 neighbors) -> u8 {
+    if alive != 0; {
+        if neighbors == 2 || neighbors == 3; {
+            return 1 as u8;
+        }
+
+        return 0 as u8;
+    }
+
+    if neighbors == 3; {
+        return 1 as u8;
+    }
+
+    return 0 as u8;
+}
+
+function evolve() -> i0 {
+    i32 y = 0;
+
+    while y < LIFE_HEIGHT; {
+        i32 x = 0;
+
+        while x < LIFE_WIDTH; {
+            i32 pos = life_index(x, y);
+            scratch[pos] = next_state(world[pos], live_neighbors(x, y));
+            x += 1;
+        }
+
+        y += 1;
+    }
+}
+
+function copy_scratch_to_world() -> i0 {
+    i32 i = 0;
+
+    while i < LIFE_CELLS; {
+        world[i] = scratch[i];
+        i += 1;
+    }
+}
+
+function draw_x_axis() -> i0 {
+    i32 x = 0;
+
+    printf(ref "   ");
+    while x < LIFE_WIDTH; {
+        putchar(('0' + (x % 10)) as i32);
+        x += 1;
+    }
+
+    putchar('\n');
+}
+
+function draw_cells() -> i0 {
+    draw_x_axis();
+
+    i32 y = 0;
+    while y < LIFE_HEIGHT; {
+        printf(ref "%02i ", y);
+        i32 x = 0;
+
+        while x < LIFE_WIDTH; {
+            if world[life_index(x, y)] != 0; {
+                putchar('#');
+            }
+            else {
+                putchar('.');
+            }
+
+            x += 1;
+        }
+
+        putchar('\n');
+        y += 1;
+    }
+}
+
+function draw_board(i32 generation) -> i0 {
+    printf(ref "Generation %i\n", generation);
+    draw_cells();
+
+    putchar('\n');
+}
+
+function skip_spaces(ptr i8 line, i32 pos) -> i32 {
+    while line[pos] == ' ' || line[pos] == '\t'; {
+        pos += 1;
+    }
+
+    return pos;
+}
+
+function parse_number(ptr i8 line, i32 pos, ptr i32 value, ptr i32 next) -> i32 {
+    pos = skip_spaces(line, pos);
+
+    if line[pos] < '0' || line[pos] > '9'; {
+        return 0;
+    }
+
+    i32 result = 0;
+    while line[pos] >= '0' && line[pos] <= '9'; {
+        result = result * 10 + (line[pos] - '0') as i32;
+        pos += 1;
+    }
+
+    dref value = result;
+    dref next = pos;
+    return 1;
+}
+
+function read_line(ptr i8 line, i32 limit) -> i32 {
+    i32 i = 0;
+    i32 ch = getchar();
+
+    while ch != EOF && ch != '\n' && i < limit - 1; {
+        line[i] = ch as i8;
+        i += 1;
+        ch = getchar();
+    }
+
+    line[i] = 0 as i8;
+
+    while ch != EOF && ch != '\n'; {
+        ch = getchar();
+    }
+
+    if ch == EOF && i == 0; {
+        return 0;
+    }
+
+    return 1;
+}
+
+function configure_initial_board() -> i0 {
+    arr input[64, i8];
+    ptr i8 line = ref input[0];
+    i32 editing = 1;
+
+    std::print(ref "Initial setup");
+    std::print(ref "Type 'x y' to toggle a cell, 'c' to clear, 'r' to restore seed, 's' or empty line to start.");
+
+    while editing; {
+        draw_cells();
+        printf(ref "life> ");
+        fflush(stdout);
+
+        if not read_line(line, 64 as i32); {
+            return;
+        }
+
+        if line[0] == 's' || line[0] == 'S' || line[0] == 0 as i8; {
+            editing = 0;
+        }
+        else if line[0] == 'c' || line[0] == 'C'; {
+            clear_world();
+        }
+        else if line[0] == 'r' || line[0] == 'R'; {
+            seed_world();
+        }
+        else {
+            i32 x = 0;
+            i32 y = 0;
+            i32 next = 0;
+
+            if parse_number(line, 0 as i32, ref x, ref next) && parse_number(line, next, ref y, ref next); {
+                if not toggle_cell(x, y); {
+                    std::print(ref "Coordinates are outside the board.");
+                }
+            }
+            else {
+                std::print(ref "Unknown command. Use: x y, c, r, s.");
+            }
+        }
+    }
+}
+
+start() {
+    seed_world();
+    std::print(ref "Conway's Game of Life");
+    configure_initial_board();
+
+    i32 generation = 0;
+    while generation <= LIFE_GENERATIONS; {
+        draw_board(generation);
+        evolve();
+        copy_scratch_to_world();
+        usleep(LIFE_DELAY_USEC as u32);
+        generation += 1;
+    }
+
+    exit 0;
+}

@@ -97,7 +97,7 @@ Return `i64`:hash.
 */
 long HIR_hash_subject(hir_subject_t* s);
 
-hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strval, long intval);
+hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strval, unsigned long intval);
 int HIR_subject_shallow_equals(hir_subject_t* a, hir_subject_t* b);
 hir_subject_t* HIR_copy_subject(hir_subject_t* s);
 hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject_t* sa, hir_subject_t* ta);
@@ -123,7 +123,7 @@ static inline hir_subject_type_t _get_token_stktype(token_t* tkn, int ptr) {
 #define HIR_SUBJ_STKVAR(v_id, kind, ptr) HIR_create_subject(kind, v_id, NULL, ptr)
 #define HIR_SUBJ_ASTVAR(n)               HIR_SUBJ_STKVAR(n->sinfo.v_id, _get_token_stktype(n->t, 0), n->t->flags.ptr)
 #define HIR_SUBJ_TMPVAR(kind, id)        HIR_create_subject(HIR_get_tmp_type(kind), id, NULL, 0)
-#define HIR_SUBJ_CPVAR(var, smt)         HIR_SUBJ_TMPVAR(var->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(var->t), 0, NULL, &smt->v))
+#define HIR_SUBJ_CPVAR(var, smt)         HIR_SUBJ_TMPVAR(var->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(var->t), 0, EMPTY_BASIC_FLAGS, &smt->v))
 #define HIR_SUBJ_LABEL()                 HIR_create_subject(HIR_LABEL, 0, NULL, 0)
 #define HIR_SUBJ_RAWASM(n)               HIR_create_subject(HIR_RAWASM, n->sinfo.v_id, NULL, 0)
 #define HIR_SUBJ_STRING(n)               HIR_create_subject(HIR_STRING, n->sinfo.v_id, NULL, 0)
@@ -146,14 +146,14 @@ static inline hir_subject_type_t _get_token_stktype(token_t* tkn, int ptr) {
 #define CONCAT2(a,b) a##b
 #define CONCAT(a,b)  CONCAT2(a,b)
 
-#define iterate_hir_args(v, block, off)                                                     \
-    hir_subject_t* CONCAT(__args_, __LINE__)[] = { block->farg, block->sarg, block->targ }; \
-    for (int i = off; i < 3; i++)                                                           \
-        for (                                                                               \
-            v = CONCAT(__args_, __LINE__)[i];                                               \
-            CONCAT(__args_, __LINE__)[i];                                                   \
-            CONCAT(__args_, __LINE__)[i] = NULL                                             \
-        )                                                                                   \
+#define iterate_hir_args(v, block, off)                                                         \
+    hir_subject_t* CONCAT(__args_, __LINE__)[] = { block->farg, block->sarg, block->targ };     \
+    for (int i = off; i < 3; i++)                                                               \
+        for (                                                                                   \
+            v = CONCAT(__args_, __LINE__)[i];                                                   \
+            CONCAT(__args_, __LINE__)[i];                                                       \
+            CONCAT(__args_, __LINE__)[i] = NULL                                                 \
+        )                                                                                       \
             if (CONCAT(__args_, __LINE__)[i])
 
 #define iterate_ref_hir_args(v, block, off)                                                     \

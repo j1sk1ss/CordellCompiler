@@ -8,7 +8,7 @@ hir_subject_t* HIR_generate_update_block(ast_node_t* node, hir_ctx_t* ctx, sym_t
     hir_subject_t* dst = HIR_generate_elem(left, ctx, smt);
     hir_subject_t* upd = HIR_generate_elem(right, ctx, smt);
 
-    hir_subject_t* res = HIR_SUBJ_TMPVAR(dst->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(dst->t), NO_SYMBOL_ID, NULL, &smt->v));
+    hir_subject_t* res = HIR_SUBJ_TMPVAR(dst->t, VRTB_add_info(NULL, HIR_get_tmptkn_type(dst->t), NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v));
     res->ptr = MAX(dst->ptr, upd->ptr);
     upd = HIR_generate_implconv(ctx, res->ptr, res->t, upd, smt);
     
@@ -28,8 +28,7 @@ hir_subject_t* HIR_generate_update_block(ast_node_t* node, hir_ctx_t* ctx, sym_t
     return ret ? HIR_copy_subject(dst) : NULL;
 }
 
-/*
-Generate lazy-logic operators, which means it generates code to evalueate the lowest count of
+/* Generate lazy-logic operators, which means it generates code to evalueate the lowest count of
 commands as it even possible.
 Params:
     - `op` - Operator node.
@@ -38,10 +37,9 @@ Params:
     - `ctx` - HIR context.
     - `smt` - Symtable.
 
-Returns the outproduct of the expression.
-*/
+Returns the outproduct of the expression. */
 static hir_subject_t* _generate_lazy_logic_operator(ast_node_t* op, ast_node_t* r, ast_node_t* l, hir_ctx_t* ctx, sym_table_t* smt) {
-    hir_subject_t* res = HIR_SUBJ_STKVAR(VRTB_add_info(NULL, I64_TYPE_TOKEN, NO_SYMBOL_ID, NULL, &smt->v), HIR_STKVARI64, 0);
+    hir_subject_t* res = HIR_SUBJ_STKVAR(VRTB_add_info(NULL, I64_TYPE_TOKEN, NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v), HIR_STKVARI64, 0);
     HIR_BLOCK1(ctx, HIR_VARDECL, res);
     hir_subject_t* lt1 = HIR_generate_elem(l, ctx, smt);
     if (!lt1) {
@@ -103,8 +101,7 @@ static hir_subject_t* _generate_lazy_logic_operator(ast_node_t* op, ast_node_t* 
     return res;
 }
 
-/*
-Force generation of a classic logic operator without any optimizations.
+/* Force generation of a classic logic operator without any optimizations.
 Params:
     - `op` - Operator node.
     - `r` - Right part of the expression.
@@ -112,8 +109,7 @@ Params:
     - `ctx` - HIR context.
     - `smt` - Symtable.
 
-Returns the outproduct of the expression.
-*/
+Returns the outproduct of the expression. */
 static hir_subject_t* _generate_logic_operator(ast_node_t* op, ast_node_t* r, ast_node_t* l, hir_ctx_t* ctx, sym_table_t* smt) {
     hir_subject_t* lt1 = HIR_generate_elem(l, ctx, smt);
     hir_subject_t* lt2 = HIR_generate_elem(r, ctx, smt);
@@ -126,7 +122,7 @@ static hir_subject_t* _generate_logic_operator(ast_node_t* op, ast_node_t* r, as
 
     hir_subject_t* res = HIR_SUBJ_TMPVAR(
         HIR_promote_types(lt1->t, lt2->t), 
-        VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(lt1->t, lt2->t)), NO_SYMBOL_ID, NULL, &smt->v)
+        VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(lt1->t, lt2->t)), NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v)
     );
     res->ptr = MAX(lt1->ptr, lt2->ptr);
     
@@ -187,7 +183,7 @@ hir_subject_t* HIR_generate_operand(ast_node_t* node, hir_ctx_t* ctx, sym_table_
 
             res = HIR_SUBJ_TMPVAR(
                 HIR_promote_types(lt1->t, lt2->t), 
-                VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(lt1->t, lt2->t)), NO_SYMBOL_ID, NULL, &smt->v)
+                VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(lt1->t, lt2->t)), NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v)
             );
             res->ptr = MAX(lt1->ptr, lt2->ptr);
             

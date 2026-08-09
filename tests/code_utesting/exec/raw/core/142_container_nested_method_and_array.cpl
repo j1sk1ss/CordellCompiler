@@ -4,9 +4,11 @@ container stats {
     arr values[3, i32];
 
     @[self]
-    function total(ptr stats self) -> i32 {
-        return self.values[0] + self.values[1] + self.values[2];
-    }
+    function total(ptr stats self) -> i32;
+}
+
+function stats::total(ptr stats self) -> i32 {
+    return self.values[0] + self.values[1] + self.values[2];
 }
 
 container report {
@@ -14,9 +16,11 @@ container report {
     i32 bonus;
 
     @[self]
-    function score(ptr report self) -> i32 {
-        return self.data.total() + self.bonus;
-    }
+    function score(ptr report self) -> i32;
+}
+
+function report::score(ptr report self) -> i32 {
+    return self.data.total() + self.bonus;
 }
 
 start() {

@@ -14,7 +14,18 @@ function d();
 #endif
 
 :/ OUTPUT
+#line 0 "{X}.cpl"
+#line 1 "{X}.cpl"
+#line 2 "{X}.cpl"
 function a();
+#line 4 "{X}.cpl"
+#line 5 "{X}.cpl"
 function b();
+#line 7 "{X}.cpl"
+#line 8 "{X}.cpl"
+#line 9 "{X}.cpl"
+#line 11 "{X}.cpl"
 function d();
+#line 13 "{X}.cpl"
+#line 14 "{X}.cpl"
 /:

@@ -27,4 +27,16 @@ Returns 1 if succeeds.
 */
 int LIR_variable_copy_propagation(cfg_ctx_t* cctx, sym_table_t* smt);
 
+/*
+Propagate register copies through already register-selected LIR.
+Params:
+    - `cctx` - CFG context.
+
+Returns 1 if succeeds.
+*/
+int LIR_register_copy_propagation(cfg_ctx_t* cctx);
+
+// TODO: docs
+int LIR_clear_global_variables(cfg_ctx_t* cctx, sym_table_t* smt);
+
 #endif

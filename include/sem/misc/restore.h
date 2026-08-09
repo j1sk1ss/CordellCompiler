@@ -8,7 +8,7 @@
 #include <prep/token_types.h>
 #include <ast/ast.h>
 
-#define ESC "\x1b["
+#define ESC     "\x1b["
 #define UL_ON   ESC "4m"
 #define UL_OFF  ESC "24m"
 #define RESET   ESC "0m"

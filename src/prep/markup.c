@@ -24,6 +24,7 @@ static const markup_token_t _lexems[] = {
 
     LEXEM(CONTAINER_COMMAND,      CONTAINER_TOKEN),
     LEXEM(DOT_COMMAND,            DOT_TOKEN),
+    LEXEM(STAT_COMMAND,           STAT_TOKEN),
 
     /* Function and jmp tokens. */
     LEXEM(FUNCTION_COMMAND,       FUNC_TOKEN),
@@ -159,7 +160,7 @@ Params:
 Returns 1 if succeeds.
 */
 static int _apply_modifiers(list_t* tkn) {
-    token_flags_t cflags = { 0 };
+    basic_object_info_t cflags = { 0 };
 
     list_iter_t it;
     list_iter_hinit(tkn, &it);
@@ -172,8 +173,8 @@ static int _apply_modifiers(list_t* tkn) {
             case PTR_TYPE_TOKEN:  cflags.ptr++;    _remove_token(tkn, curr); break;
             case RO_TYPE_TOKEN:   cflags.ro   = 1; _remove_token(tkn, curr); break;
             default: {
-                str_memcpy(&curr->flags, &cflags, sizeof(token_flags_t));
-                str_memset(&cflags, 0, sizeof(token_flags_t));
+                str_memcpy(&curr->flags, &cflags, sizeof(basic_object_info_t));
+                str_memset(&cflags, 0, sizeof(basic_object_info_t));
                 break;
             }
         }

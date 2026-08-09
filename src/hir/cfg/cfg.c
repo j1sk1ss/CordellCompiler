@@ -1,11 +1,12 @@
 /* cfg.c - Create CFG */
 #include <hir/cfg.h>
 
-int HIR_CFG_append_hir_block_back(cfg_block_t* bb, hir_block_t* hh) {
-    if (bb->hmap.entry && bb->hmap.exit) bb->hmap.exit = hh;
-    if (!bb->hmap.entry) bb->hmap.entry = hh;
-    if (!bb->hmap.exit)  bb->hmap.exit  = hh;
-    return 1;
+static unsigned long long _unique_counter = 0;
+
+unsigned long long CFG_get_unique_counter() {
+    _unique_counter++;
+    if (!_unique_counter) _unique_counter++;
+    return _unique_counter;
 }
 
 int HIR_CFG_remove_hir_block(cfg_block_t* bb, hir_block_t* hh) {
@@ -42,34 +43,14 @@ cfg_block_t* HIR_CFG_create_cfg_block(hir_block_t* e) {
     return block;
 }
 
-int HIR_CFG_insert_cfg_block_before(cfg_func_t* f, cfg_block_t* b, cfg_block_t* trg) {
-    if (!f || !b || !trg) return 0;
-    list_add(&f->blocks, b);
-    b->l = trg;
-
-    set_foreach (cfg_block_t* p, &trg->pred) {
-        if (p->l && p->l == trg)     p->l   = b;
-        if (p->jmp && p->jmp == trg) p->jmp = b;
-    }
-
-    set_copy(&b->pred, &trg->pred);
-    set_free(&trg->pred);
-
-    set_init(&trg->pred, SET_NO_CMP);
-    set_add(&trg->pred, b);
-    return 1;
-}
-
-/*
-Add CFG block to the function's blocks list.
+/* Add CFG block to the function's blocks list.
 Params:
     - `entry` - Block's entry instruction.
     - `exit` - Block's exit instruction.
     - `f` - Basic function.
     - `ctx` - CFG context.
 
-Returns 1 if the block was appended successfully.
-*/
+Returns 1 if the block was appended successfully. */
 static int _add_cfg_block(hir_block_t* entry, hir_block_t* exit, cfg_func_t* f, cfg_ctx_t* ctx) {
     cfg_block_t* b = HIR_CFG_create_cfg_block(entry);
     if (!b) return 0;
@@ -187,6 +168,11 @@ int HIR_CFG_finilize_before_dom(cfg_ctx_t* ctx) {
     return 1;
 }
 
+/* Free CFG block analysis sets and the block itself.
+Params:
+    - `bb` - CFG block to unload.
+
+Returns 1 if succeeds. */
 static int _unload_cfg_block(cfg_block_t* bb) {
     set_free(&bb->def);
     set_free(&bb->use);
@@ -268,29 +254,6 @@ int HIR_CFG_cleanup_navigation(cfg_ctx_t* cctx) {
             set_init(&cb->visitors, SET_NO_CMP);
             cb->visited = 0;
         }
-    }
-
-    return 1;
-}
-
-int HIR_CFG_cleanup_blocks_temporaries(cfg_ctx_t* cctx) {
-    foreach (cfg_func_t* fb, &cctx->funcs) {
-        foreach (cfg_block_t* cb, &fb->blocks) {
-            set_free(&cb->prev_in);
-            set_init(&cb->prev_in, SET_CMP);
-            
-            set_free(&cb->prev_out);
-            set_init(&cb->prev_out, SET_CMP);
-
-            set_free(&cb->copy_gen);
-            set_init(&cb->copy_gen, SET_NO_CMP);
-
-            set_free(&cb->copy_kill);
-            set_init(&cb->copy_kill, SET_NO_CMP);
-        }
-
-        set_free(&fb->leaders);
-        set_init(&fb->leaders, SET_NO_CMP);
     }
 
     return 1;

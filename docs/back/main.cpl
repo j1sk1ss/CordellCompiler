@@ -1,0 +1,328 @@
+#include <http_h.cpl>
+#include <stdio_h.cpl>
+#include <stdlib_h.cpl>
+#include <string_h.cpl>
+#include <unistd_h.cpl>
+#include <fcntl_h.cpl>
+#include <sys_stat_h.cpl>
+
+#define CPL_BACK_PORT             8000
+#define CPL_RUNNER_OUTPUT_LIMIT   65536
+#define CPL_RUNNER_COMMAND_LIMIT  4096
+#define CPL_RUNNER_PATH_LIMIT     256
+#define CPL_RUNNER_CODE_LIMIT     7000
+
+@[section(".bss")] glob http_server server;
+@[section(".bss")] glob arr runner_output[CPL_RUNNER_OUTPUT_LIMIT, i8];
+@[section(".bss")] glob arr runner_command[CPL_RUNNER_COMMAND_LIMIT, i8];
+@[section(".bss")] glob arr runner_source_path[CPL_RUNNER_PATH_LIMIT, i8];
+@[section(".bss")] glob arr runner_binary_path[CPL_RUNNER_PATH_LIMIT, i8];
+
+function response_write_str(ptr http_response res, ptr i8 text) -> i0 {
+    if not text; return;
+    res.write(text as ptr i0, strlen(text));
+}
+
+function response_write_json_string(ptr http_response res, ptr i8 text) -> i0 {
+    response_write_str(res, ref "\"");
+
+    if text; {
+        while dref text; {
+            @[straight] @[no_fall]
+            switch dref text; {
+                case '"';  { response_write_str(res, ref "\\\""); }
+                case '\\'; { response_write_str(res, ref "\\\\"); }
+                case '\n'; { response_write_str(res, ref "\\n");  }
+                case '\r'; { response_write_str(res, ref "\\r");  }
+                case '\t'; { response_write_str(res, ref "\\t");  }
+                default    { res.write(text as ptr i0, 1 as u64); }
+            }
+            
+            text += 1;
+        }
+    }
+
+    response_write_str(res, ref "\"");
+}
+
+function add_cors(ptr http_response res) -> i0 {
+    res.header(ref "Access-Control-Allow-Origin", ref "*");
+    res.header(ref "Access-Control-Allow-Headers", ref "Content-Type");
+    res.header(ref "Access-Control-Allow-Methods", ref "POST, OPTIONS");
+}
+
+function send_json_start(ptr http_response res, i32 code) -> i0 {
+    res.status(code);
+    add_cors(res);
+    res.header(ref "Content-Type", ref "application/json; charset=utf-8");
+    res.end_headers();
+}
+
+function send_json_error(ptr http_response res, i32 code, ptr i8 message) -> i0 {
+    send_json_start(res, code);
+    response_write_str(res, ref "{\"success\":false,\"error\":");
+    response_write_json_string(res, message);
+    response_write_str(res, ref ",\"stdout\":\"\",\"stderr\":");
+    response_write_json_string(res, message);
+    response_write_str(res, ref "}\n");
+}
+
+function json_skip_string(ptr i8 p) -> ptr i8 {
+    if not p; return 0 as ptr i8;
+    if dref p != '"' as i8; return 0 as ptr i8;
+
+    p += 1 as ptr i8;
+    while dref p; {
+        if dref p == '\\' as i8; {
+            p += 1 as ptr i8;
+            if dref p; p += 1 as ptr i8;
+        }
+        else if dref p == '"' as i8; {
+            return p + 1 as ptr i8;
+        }
+        else {
+            p += 1 as ptr i8;
+        }
+    }
+
+    0 as ptr i8
+}
+
+function json_find_code_value(ptr i8 body) -> ptr i8 {
+    ptr i8 p = body;
+    while p && dref p; {
+        if dref p == '"' as i8; {
+            ptr i8 key = p + 1 as ptr i8;
+            ptr i8 after = json_skip_string(p);
+            if not after; return 0 as ptr i8;
+
+            if
+                key[0] == 'c' as i8 &&
+                key[1] == 'o' as i8 &&
+                key[2] == 'd' as i8 &&
+                key[3] == 'e' as i8 &&
+                key[4] == '"' as i8;
+            {
+                p = after;
+                while dref p == ' ' as i8 || dref p == '\n' as i8 || dref p == '\r' as i8 || dref p == '\t' as i8; {
+                    p += 1 as ptr i8;
+                }
+                if dref p != ':' as i8; return 0 as ptr i8;
+                p += 1 as ptr i8;
+                while dref p == ' ' as i8 || dref p == '\n' as i8 || dref p == '\r' as i8 || dref p == '\t' as i8; {
+                    p += 1 as ptr i8;
+                }
+                if dref p != '"' as i8; return 0 as ptr i8;
+                return p + 1 as ptr i8;
+            }
+
+            p = after;
+        }
+        else {
+            p += 1 as ptr i8;
+        }
+    }
+
+    0 as ptr i8
+}
+
+function json_hex_digit(ptr i8 p) -> i32 {
+    if dref p >= '0' as i8 && dref p <= '9' as i8; return (dref p - '0' as i8) as i32;
+    if dref p >= 'a' as i8 && dref p <= 'f' as i8; return ((dref p - 'a' as i8) as i32) + 10;
+    if dref p >= 'A' as i8 && dref p <= 'F' as i8; return ((dref p - 'A' as i8) as i32) + 10;
+    -1
+}
+
+function json_write_code_file(ptr i8 encoded, ptr i8 path) -> i32 {
+    i32 fd = creat(path, 384 as i32);
+    if fd < 0; return -1;
+
+    i32 written = 0;
+    while dref encoded; {
+        if written >= CPL_RUNNER_CODE_LIMIT; {
+            close(fd);
+            unlink(path);
+            return -2;
+        }
+
+        if dref encoded == '"' as i8; {
+            close(fd);
+            return written;
+        }
+
+        i8 out = dref encoded;
+        if dref encoded == '\\' as i8; {
+            encoded += 1 as ptr i8;
+
+            if not dref encoded; {
+                close(fd);
+                unlink(path);
+                return -3;
+            }
+
+            if dref encoded == 'n' as i8; out = '\n' as i8;
+            else if dref encoded == 'r' as i8; out = '\r' as i8;
+            else if dref encoded == 't' as i8; out = '\t' as i8;
+            else if dref encoded == 'b' as i8; out = 8 as i8;
+            else if dref encoded == 'f' as i8; out = 12 as i8;
+            else if dref encoded == '"' as i8; out = '"' as i8;
+            else if dref encoded == '\\' as i8; out = '\\' as i8;
+            else if dref encoded == '/' as i8; out = '/' as i8;
+            else if dref encoded == 'u' as i8; {
+                if
+                    json_hex_digit(encoded + 1 as ptr i8) < 0 ||
+                    json_hex_digit(encoded + 2 as ptr i8) < 0 ||
+                    json_hex_digit(encoded + 3 as ptr i8) < 0 ||
+                    json_hex_digit(encoded + 4 as ptr i8) < 0;
+                {
+                    close(fd);
+                    unlink(path);
+                    return -3;
+                }
+                out = '?' as i8;
+                encoded += 4 as ptr i8;
+            }
+            else {
+                close(fd);
+                unlink(path);
+                return -3;
+            }
+        }
+
+        write(fd, (ref out) as ptr i0, 1 as u64);
+        written += 1;
+        encoded += 1 as ptr i8;
+    }
+
+    close(fd);
+    unlink(path);
+    -3
+}
+
+function prepare_runner_paths() -> i0 {
+    i32 pid = getpid();
+    snprintf(ref runner_source_path, CPL_RUNNER_PATH_LIMIT as u64, ref "/tmp/cpl_playground_%d_main.cpl", pid);
+    snprintf(ref runner_binary_path, CPL_RUNNER_PATH_LIMIT as u64, ref "/tmp/cpl_playground_%d_program.out", pid);
+}
+
+function build_runner_command() -> i0 {
+#ifdef CCPL_MACHO64
+    snprintf(
+        ref runner_command,
+        CPL_RUNNER_COMMAND_LIMIT as u64,
+        ref "src=%s; bin=%s; compiler=docs/back/.build/cplc; if [ ! -x \"$compiler\" ]; then compiler=builds/darwin-x86_64/cplc; fi; if [ ! -x \"$compiler\" ]; then compiler=docs/back/ccompiler; fi; run_timeout() { if command -v timeout >/dev/null 2>&1; then timeout \"$@\"; else shift; \"$@\"; fi; }; printf '=== compiler stdout ===\\n'; run_timeout 20s \"$compiler\" \"$src\" -I cpllib --ast-analysis --ir-analysis --arch x86_64 --sys-type macho64 --asm-format macho64 --linker clang --output \"$bin\" 2>&1; c=$?; printf '\\n=== compiler exit code ===\\n%%d\\n\\n' \"$c\"; if [ \"$c\" -eq 0 ] && [ -f \"$bin\" ]; then chmod +x \"$bin\"; printf '=== program stdout ===\\n'; run_timeout 5s \"$bin\" 2>&1; r=$?; printf '\\n=== program exit code ===\\n%%d\\n' \"$r\"; exit \"$r\"; fi; exit \"$c\"",
+        ref runner_source_path,
+        ref runner_binary_path
+    );
+#endif
+#ifndef CCPL_MACHO64
+    snprintf(
+        ref runner_command,
+        CPL_RUNNER_COMMAND_LIMIT as u64,
+        ref "src=%s; bin=%s; compiler=docs/back/.build/cplc; if [ ! -x \"$compiler\" ]; then compiler=builds/linux-x86_64/cplc; fi; if [ ! -x \"$compiler\" ]; then compiler=docs/back/ccompiler; fi; run_timeout() { if command -v timeout >/dev/null 2>&1; then timeout \"$@\"; else shift; \"$@\"; fi; }; printf '=== compiler stdout ===\\n'; run_timeout 20s \"$compiler\" \"$src\" -I cpllib --ast-analysis --ir-analysis --arch x86_64 --sys-type linux64 --asm-format elf64 --linker gcc --linker-no-pie --output \"$bin\" 2>&1; c=$?; printf '\\n=== compiler exit code ===\\n%%d\\n\\n' \"$c\"; if [ \"$c\" -eq 0 ] && [ -f \"$bin\" ]; then chmod +x \"$bin\"; printf '=== program stdout ===\\n'; run_timeout 5s \"$bin\" 2>&1; r=$?; printf '\\n=== program exit code ===\\n%%d\\n' \"$r\"; exit \"$r\"; fi; exit \"$c\"",
+        ref runner_source_path,
+        ref runner_binary_path
+    );
+#endif
+}
+
+function run_shell_command(ptr i8 command, ptr i8 output, i32 limit) -> i32 {
+    if limit <= 0; return -1;
+    output[0] = 0 as i8;
+
+    ptr FILE pipe = popen(command, ref "r");
+    if not pipe; return -1;
+
+    i32 total = 0;
+    i32 ch = fgetc(pipe);
+    while ch != EOF && total < limit - 1; {
+        output[total] = ch as i8;
+        total += 1;
+        ch = fgetc(pipe);
+    }
+
+    output[total] = 0 as i8;
+    if ch != EOF && total + 64 < limit; {
+        strcat(output, ref "\n[output truncated]\n");
+    }
+
+    i32 status = pclose(pipe);
+    if status < 0; return -1;
+    status / 256
+}
+
+function root(ptr http_request req, ptr http_response res) -> i0 {
+    res.html_file(ref "docs/index.html");
+}
+
+function stop(ptr http_request req, ptr http_response res) -> i0 {
+    res.text(200 as i32, ref "CPL docs backend stopped.\n");
+    server.stop();
+}
+
+function options_cpl_run(ptr http_request req, ptr http_response res) -> i0 {
+    send_json_start(res, 200 as i32);
+    response_write_str(res, ref "{}\n");
+}
+
+function cpl_run(ptr http_request req, ptr http_response res) -> i0 {
+    if not req.body || not req.body_len; {
+        send_json_error(res, 400 as i32, ref "Request body is empty.");
+        return;
+    }
+
+    ptr i8 code_value = json_find_code_value(req.body);
+    if not code_value; {
+        send_json_error(res, 400 as i32, ref "JSON field 'code' is required.");
+        return;
+    }
+
+    prepare_runner_paths();
+
+    i32 code_size = json_write_code_file(code_value, ref runner_source_path);
+    if code_size == -1; {
+        send_json_error(res, 500 as i32, ref "Could not create a temporary source file.");
+        return;
+    }
+    if code_size == -2; {
+        send_json_error(res, 400 as i32, ref "Code is too large.");
+        return;
+    }
+    if code_size < 0; {
+        send_json_error(res, 400 as i32, ref "Could not decode JSON string in field 'code'.");
+        return;
+    }
+    if code_size == 0; {
+        send_json_error(res, 400 as i32, ref "Field 'code' is empty.");
+        return;
+    }
+
+    unlink(ref runner_binary_path);
+    build_runner_command();
+
+    i32 exit_code = run_shell_command(ref runner_command, ref runner_output, CPL_RUNNER_OUTPUT_LIMIT as i32);
+
+    unlink(ref runner_source_path);
+    unlink(ref runner_binary_path);
+
+    send_json_start(res, 200 as i32);
+    response_write_str(res, ref "{\"success\":");
+    if exit_code == 0; response_write_str(res, ref "true");
+    else response_write_str(res, ref "false");
+    response_write_str(res, ref ",\"stdout\":");
+    response_write_json_string(res, ref runner_output);
+    response_write_str(res, ref ",\"stderr\":\"\"}\n");
+}
+
+start() {
+    server.init(ref "127.0.0.1", CPL_BACK_PORT as i32);
+    if
+        not server.get(ref "/", root) ||
+        not server.get(ref "/stop", stop) ||
+        not server.route(ref "OPTIONS", ref "/cpl/run", options_cpl_run) ||
+        not server.post(ref "/cpl/run", cpl_run) ||
+        not server.static(ref "/", ref "docs/");
+    exit 1;
+
+    exit server.listen() as u8;
+}

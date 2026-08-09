@@ -49,7 +49,7 @@ int HIR_generate_function_block(ast_node_t* node, symbol_id_t f_id, hir_ctx_t* c
     ast_node_t* body     = HIR_generate_argument_load(node->c->siblings.n, ctx, &fi);
     hir_subject_t* vargs = NULL;
     if (fi.flags.vargs) {
-        vargs = HIR_SUBJ_STKVAR(VRTB_add_info(NULL, I0_TYPE_TOKEN, NO_SYMBOL_ID, NULL, &smt->v), HIR_STKVARI0, 1);
+        vargs = HIR_SUBJ_STKVAR(VRTB_add_info(NULL, I0_TYPE_TOKEN, NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v), HIR_STKVARI0, 1);
         HIR_BLOCK1(ctx, HIR_REF_ARGS, vargs);
     }
 

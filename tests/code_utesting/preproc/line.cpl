@@ -1,0 +1,17 @@
+start() {
+    i32 a = __LINE__;
+    ptr i32 b = ref __FILE__;
+
+    a = __LINE__;
+    b = ref __FILE__;
+}
+
+:/ OUTPUT
+#line 0 "{X}.cpl"
+start() {
+    i32 a = 2;
+    ptr i32 b = ref "{X}.cpl";
+    a = 5;
+    b = ref "{X}.cpl";
+}
+/:

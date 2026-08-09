@@ -16,26 +16,25 @@ typedef struct {
 } syntax_info_t;
 
 typedef struct ast_node {
-    token_t*             t;    /* Linked AST token                           */
-                               /* Note: This token mustn't be freed manualy! */
-    token_t*             bt;   /* Backup AST token                           */
-                               /* Note: If it isn't the 'NULL' value,        */ 
-                               /* must be freed manualy!                     */
-    struct ast_node*     p;    /* Parent pointer                             */
-    struct ast_node*     c;    /* Child pointer                              */
-    struct ast_node*     self; /* Hidden linked node for Call nodes only!    */
+    token_t*             t;      /* Linked AST token                           */
+                                 /* Note: This token mustn't be freed manualy! */
+    token_t*             bt;     /* Backup AST token                           */
+                                 /* Note: If it isn't the 'NULL' value,        */ 
+                                 /* must be freed manualy!                     */
+    struct ast_node*     p;      /* Parent pointer                             */
+    struct ast_node*     c;      /* Child pointer                              */
+    struct ast_node*     self;   /* Hidden linked node for Call nodes only!    */
     struct {
-        struct ast_node* n;    /* Siblings next pointer                      */
-        struct ast_node* t;    /* Siblings list tail                         */
+        struct ast_node* n;      /* Siblings next pointer                      */
+        struct ast_node* t;      /* Siblings list tail                         */
     } siblings;
-    list_t           annots;   /* Attached annotations to this node          */
-    syntax_info_t    sinfo;    /* Scope information for the current node     */
+    list_t               annots; /* Attached annotations to this node          */
+    syntax_info_t        sinfo;  /* Scope information for the current node     */
 } ast_node_t;
 
 typedef struct {
     ast_node_t*     r;      /* AST root.                                */
     struct {
-        int         s_id;   /* Current scope id.                        */
         sstack_t    stack;  /* Scope id stack.                          */
     } scopes;
     symbol_id_t     t_id;   /* Current type id.                         */
@@ -94,7 +93,15 @@ Return -1 if something goes wrong.
 */
 int AST_add_node(ast_node_t* parent, ast_node_t* child);
 
-// TODO: docs
+/*
+Insert child tree node at the beginning of the parent's child list.
+Params:
+    - `parent` - Parent tree node.
+    - `child` - Tree node that will become the first child.
+
+Returns 1 if the child was inserted.
+Returns 0 if something goes wrong.
+*/
 int AST_insert_node(ast_node_t* parent, ast_node_t* child);
 
 /*
@@ -131,10 +138,11 @@ unsigned long AST_hash_node(ast_node_t* node);
 Hash an ast-node with the crc64 hash function.
 Params:
     - `node` - AST-node.
+    - `no_name` - Ignore token's name. 
     - `stp` - Stop token type.
 
 Return hash sum of the AST-node.
 */
-unsigned long AST_hash_node_stop(ast_node_t* node, token_type_t stp);
+unsigned long AST_hash_node_stop(ast_node_t* node, int no_name, token_type_t stp);
 
 #endif

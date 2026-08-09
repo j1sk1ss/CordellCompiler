@@ -1,7 +1,6 @@
 #include <hir/hirgens/hirgens.h>
 
-/*
-Generation element handler. The main purpose is handling of the 'return' AST nodes.
+/* Generation element handler. The main purpose is handling of the 'return' AST nodes.
 Note: The 'return' AST node is a node that returns something. For instance:
         1. function call
         2. syscall
@@ -16,8 +15,7 @@ Params:
     - `ctx` - HIR context.
     - `smt` - Symtable.
 
-Returns generated value from the AST node or the 'NULL' value.
-*/
+Returns generated value from the AST node or the 'NULL' value. */
 static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret) {    
     hir_subject_t* res = NULL;
     switch (node->t->t_type) {
@@ -36,22 +34,16 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
            where we generate the special load sequence */
         case CALL_ADDR_TOKEN:
         case I0_VARIABLE_TOKEN:
-        case I8_VARIABLE_TOKEN:
-        case U8_VARIABLE_TOKEN:
-        case I16_VARIABLE_TOKEN:
-        case U16_VARIABLE_TOKEN:
-        case I32_VARIABLE_TOKEN:
-        case U32_VARIABLE_TOKEN:
-        case F32_VARIABLE_TOKEN:
-        case I64_VARIABLE_TOKEN:
-        case U64_VARIABLE_TOKEN:
-        case F64_VARIABLE_TOKEN:
+        case I8_VARIABLE_TOKEN:  case U8_VARIABLE_TOKEN:
+        case I16_VARIABLE_TOKEN: case U16_VARIABLE_TOKEN:
+        case I32_VARIABLE_TOKEN: case U32_VARIABLE_TOKEN: case F32_VARIABLE_TOKEN:
+        case I64_VARIABLE_TOKEN: case U64_VARIABLE_TOKEN: case F64_VARIABLE_TOKEN:
         case ARR_VARIABLE_TOKEN:
         case STRING_VALUE_TOKEN:
         case CUSTOM_VARIABLE_TOKEN:
         case UNKNOWN_NUMERIC_TOKEN:
         case GENERIC_VARIABLE_TOKEN:
-        case UNKNOWN_FLOAT_NUMERIC_TOKEN: res = HIR_generate_load(node, ctx, smt);            break;
+        case UNKNOWN_FLOAT_NUMERIC_TOKEN: res = HIR_generate_load(node, ctx, smt);               break;
         default: break;
     }
 
@@ -71,23 +63,21 @@ hir_subject_t* HIR_generate_elem(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* 
     return _generation_handler(node, ctx, smt, 1);
 }
 
-/*
-Select the generator depends on the provided node's type.
+/* Select the generator depends on the provided node's type.
 Note: Typically this is a 'master' AST node.
 Params:
     - `node` - AST node.
     - `ctx` - HIR context.
     - `smt` - Symtable.
 
-Returns 1 on success, otherwise 0.
-*/
+Returns 1 on success, otherwise 0. */
 static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     switch (node->t->t_type) {
         case IF_TOKEN:              return HIR_generate_if_block(node, ctx, smt);
         case ASM_TOKEN:             return HIR_generate_asmblock(node, ctx, smt);
         case FUNC_TOKEN:            return HIR_generate_function_block(node, NO_SYMBOL_ID, ctx, smt);
         case EXIT_TOKEN:            return HIR_generate_exit_block(node, ctx, smt);
-        case CALLING_TOKEN:         return (int)((long)HIR_generate_funccall(node, ctx, smt, 0));
+        case CALLING_TOKEN:         return HIR_generate_funccall(node, ctx, smt, 0) == NULL;
         case LOOP_TOKEN:            return HIR_generate_loop_block(node, ctx, smt);
         case BREAK_TOKEN:           return HIR_generate_break_block(node, ctx);
         case WHILE_TOKEN:           return HIR_generate_while_block(node, ctx, smt);
@@ -96,9 +86,9 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* sm
         case RETURN_TOKEN:          return HIR_generate_return_block(node, ctx, smt);
         case EXTERN_TOKEN:          return HIR_generate_extern_block(node, ctx);
         case ASSIGN_TOKEN:          return HIR_generate_assignment_block(node, ctx, smt);
-        case SYSCALL_TOKEN:         return (int)((long)HIR_generate_syscall(node, ctx, smt, 0));
+        case SYSCALL_TOKEN:         return HIR_generate_syscall(node, ctx, smt, 0) == NULL;
         case BREAKPOINT_TOKEN:      return HIR_generate_breakpoint_block(node, ctx);
-        case LAMBDA_FUNCTION_TOKEN: return (int)((long)HIR_generate_lambda(node, ctx, smt, 0));
+        case LAMBDA_FUNCTION_TOKEN: return HIR_generate_lambda(node, ctx, smt, 0) == NULL;
         default: break;
     }
 
@@ -106,20 +96,18 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* sm
         TKN_is_builtin_type(node->t) ||
         node->t->t_type == CUSTOM_TYPE_TOKEN
     ) return HIR_generate_declaration_block(node, ctx, smt);
-    if (TKN_is_update_operator(node->t)) return (int)((long)HIR_generate_update_block(node, ctx, smt, 0));
-    return (int)((long)_generation_handler(node, ctx, smt, 0));
+    if (TKN_is_update_operator(node->t)) return HIR_generate_update_block(node, ctx, smt, 0) == NULL;
+    return _generation_handler(node, ctx, smt, 0) != NULL;
 }
 
-/*
-We need to save scopes from the AST.
+/* We need to save scopes from the AST.
 Fot this purpose we create a scope command when we've met a scope AST node.
 Note: If the provided AST node isn't a scope node, 
       this function wont create a scope HIR command.
 Params:
     - `t` - AST node.
     - `ctx` - HIR context.
-    - `op` - 'HIR_MKSCOPE' or 'HIR_ENDSCOPE' command.
-*/
+    - `op` - 'HIR_MKSCOPE' or 'HIR_ENDSCOPE' command. */
 static inline void _insert_scope(ast_node_t* t, hir_ctx_t* ctx, hir_operation_t op) {
     if (t->t && t->t->t_type == SCOPE_TOKEN) HIR_BLOCK1(ctx, op, HIR_SUBJ_CONST(t->sinfo.s_id));
 }

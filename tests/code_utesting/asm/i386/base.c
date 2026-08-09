@@ -58,7 +58,7 @@ int main(int argc, char* argv[]) {
             .e_bytness = 1
         }
     };
-    CONF_set_config(&cfg);
+    CONF_set_config(cfg);
 
     int fd = open(argv[1], O_RDONLY);
     if (fd < 0) {
@@ -67,7 +67,10 @@ int main(int argc, char* argv[]) {
     }
 
     finder_ctx_t finctx = { .bpath = argv[2] };
-    fd = PP_perform(fd, &finctx);
+    pp_ctx_t ppctx;
+    PP_init_pp_ctx(&ppctx);
+
+    fd = PP_perform(fd, &finctx, &ppctx);
     if (fd < 0) {
         fprintf(stderr, "Processed file %s isn't found!\n", argv[1]);
         return 1;

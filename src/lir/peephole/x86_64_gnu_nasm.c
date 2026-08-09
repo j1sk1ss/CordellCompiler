@@ -60,10 +60,7 @@ static int _label_pass(cfg_func_t* fb) {
         if (
             !lh->unused && 
             lh->op == LIR_MKLB && !_find_label_usage(fb, lh->farg)
-        ) {
-            lh->unused = 1; 
-            changed = 1;
-        }
+        ) lh->unused = changed = 1;
     }
 
     return changed;
@@ -136,45 +133,14 @@ static int _deep_jump_pass(cfg_func_t* fb) {
     return changed;
 }
 
-static unsigned long long _visit_counter = 100;
-
 static int _is_stack_pointer_subject(lir_subject_t* s) {
     return s && s->t == LIR_REGISTER && LIR_format_register(s->storage.reg.reg, 8) == RSP;
 }
 
-/*
-Recursive cleanup visits CFG blocks with one simple rule:
-a WRITE operation may be eliminated if:
-    - further code doesn't use its value, or
-    - further code rewrites its value.
-
-Params:
-    - `op` - Write operation type.
-             Note: We don't use a general term of WRITE operation 
-                   given a different nature of some operations.
-    - `pred` - Service argument. For initial call use '-1'.
-    - `bbh` - Head Basic Block.
-    - `trg` - Target WRITE location in the considered LIR block.
-    - `ign` - Service argument. For initial call use a parent of the 'trg' argument.
-    - `off` - Service argument. For initial call use 'ign->next'.
-
-Returns 1 if the considered LIR block can be marked as unused.
-Returns 0 if the considered LIR block can't be marked as unused.
-*/
-static int _recursive_cleanup(
-    lir_operation_t op, long pred, cfg_block_t* bbh, lir_subject_t* trg, lir_block_t* ign, lir_block_t* off
+static cfg_dfs_action_t _cleanup_walk_logic(
+    cfg_block_t* bbh, long pred, lir_operation_t op, lir_subject_t* trg, lir_block_t* ign, lir_block_t* off
 ) {
-    if (!bbh) return 1;
-    if (bbh->visited != _visit_counter) {
-        set_free(&bbh->visitors);
-        set_init(&bbh->visitors, SET_NO_CMP);
-    }
-    
-    if (set_has(&bbh->visitors, (void*)pred)) return 1;
-    bbh->visited = _visit_counter;
-    set_add(&bbh->visitors, (void*)pred);
-
-    lir_block_t* lh = off ? off : bbh->lmap.entry;
+    lir_block_t* lh = pred == -1 && off ? off : bbh->lmap.entry;
     while (lh) {
         if (!lh->unused) {
             if (
@@ -184,10 +150,9 @@ static int _recursive_cleanup(
                 (
                     !LIR_subj_equals(lh->sarg, trg) &&    /* The second and the third arguments must be a uniq /          */
                     !LIR_subj_equals(lh->targ, trg)       /* different with the first.                                    */
-                )                                         /* The reason is easy: We don't want to delete command if its    */
+                )                                         /* The reason is easy: We don't want to delete command if its   */
                                                           /* value rewritten by itself.                                   */
-            ) return 1;                                   /* That means we can safely mark the target write command       */
-
+            ) return CFG_DFS_SKIP;                        /* That means we can safely mark the target write command       */
             if (
                 LIR_is_readop(lh->op) &&                  /* If this instruction reads second and third arguments         */
                 (
@@ -195,17 +160,13 @@ static int _recursive_cleanup(
                     LIR_subj_equals(lh->sarg, trg) ||     /* or the second argument is equal to the target.               */
                     LIR_subj_equals(lh->targ, trg)        /* Also we need to take care about the third argument too.      */
                 )
-            ) return 0;                                   /* That means, we should mark the target write command as valid */
+            ) return CFG_DFS_STOP;                        /* That means, we should mark the target write command as valid */
         }
         
         lh = LIR_get_next(lh, bbh->lmap.exit, 1);
     }
 
-    if (
-        !_recursive_cleanup(op, bbh->id, bbh->l, trg, ign, NULL) || 
-        !_recursive_cleanup(op, bbh->id, bbh->jmp, trg, ign, NULL)
-    ) return 0; /* If the command is used somewhere in the children, return 0                       */
-    return 1;   /* By default, if the considering command is unused elsewhere, we mark it to drop */
+    return CFG_DFS_CONTINUE;
 }
 
 static int _cleanup_pass(cfg_block_t* bb) {
@@ -217,8 +178,7 @@ static int _cleanup_pass(cfg_block_t* bb) {
             !_is_stack_pointer_subject(lh->farg) &&
             LIR_is_writeop(lh->op) && !LIR_has_sideeffect(lh->op)
         ) {
-            _visit_counter++;
-            if (_recursive_cleanup(lh->op, -1, bb, lh->farg, lh, lh->next)) {
+            if (CFG_DFS_WALK(bb, _cleanup_walk_logic, lh->op, lh->farg, lh, lh->next)) {
                 lh->unused = 1;
                 changed = 1;
             }

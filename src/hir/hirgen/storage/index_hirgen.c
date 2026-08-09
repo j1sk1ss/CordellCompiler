@@ -1,14 +1,16 @@
 #include <hir/hirgens/hirgens.h>
 
-/*
-Extract the final element size from the pointed data.
+/* Extract the final element size from the pointed data.
 Params:
+    - `index_type` - Type id of the whole indexation expression.
     - `base` - The subject which represents an array or a pointer.
     - `smt` - Symtable.
 
-Returns the element size of the pointed data in bytes.
-*/
-static int _get_pointed_element_size(hir_subject_t* base, sym_table_t* smt) {
+Returns the element size of the pointed data in bytes. */
+static int _get_pointed_element_size(symbol_id_t index_type, hir_subject_t* base, sym_table_t* smt) {
+    long type_size = TPTB_get_memory_size_id(index_type, &smt->t);
+    if (type_size != FIELD_NO_CHANGE) return type_size;
+
     array_info_t ai;
     int el_size = (base->ptr - 1) > 0 ? CONF_get_full_bytness() : HIR_get_type_size(base->t);
     if (
@@ -34,20 +36,19 @@ static int _get_pointed_element_size(hir_subject_t* base, sym_table_t* smt) {
     return el_size;
 }
 
-/*
-Setup all essential instructions and return a head to the input data.
+/* Setup all essential instructions and return a head to the input data.
 Params:
-    - `base` - The target data for indexation.
-    - `offt` - The index in the data.
+    - `node` - Indexation AST node.
     - `smt` - Symtable.
     - `indexed_type` - Output final dereferenced type (The type of the element).
 
 Returns the subject which represents a pointer to a head of the data 
-(In correct reference level and type).
-*/
+(In correct reference level and type). */
 static hir_subject_t* _get_final_head(
-    ast_node_t* base_node, ast_node_t* offt_node, hir_ctx_t* ctx, sym_table_t* smt, hir_subject_type_t* indexed_type
+    ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, hir_subject_type_t* indexed_type
 ) {
+    ast_node_t* base_node = node->c;
+    ast_node_t* offt_node = node->c->siblings.n;
     hir_subject_t* base = HIR_generate_elem(base_node, ctx, smt);
     hir_subject_t* offt = HIR_generate_elem(offt_node, ctx, smt);
     hir_subject_t* head = HIR_reference_subject(base, smt, 0);
@@ -76,11 +77,16 @@ static hir_subject_t* _get_final_head(
     /* The final offset for the base address is the result of the
         expression 'real_offset = offset * element_size' */
     hir_subject_t* real_offset = HIR_SUBJ_TMPVAR(
-        HIR_promote_types(offt->t, HIR_I8CONSTVAL), 
-        VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(offt->t, HIR_I8CONSTVAL)), NO_SYMBOL_ID, NULL, &smt->v)
+        HIR_TMPVARU64, 
+        VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(offt->t, HIR_I8CONSTVAL)), NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v)
     );
+    real_offset->ptr = offt->ptr;
 
-    HIR_BLOCK3(ctx, HIR_iMUL, real_offset, offt, HIR_SUBJ_CONST(_get_pointed_element_size(base, smt)));
+    HIR_BLOCK3(
+        ctx, HIR_iMUL, real_offset, 
+        HIR_generate_implconv(ctx, real_offset->ptr, real_offset->t, offt, smt), 
+        HIR_SUBJ_CONST(_get_pointed_element_size(node->sinfo.t_id, base, smt))
+    );
 
     /* No we move the address (base) by the offser (addr):
         - final_head = head + real_offset */
@@ -93,7 +99,7 @@ static hir_subject_t* _get_final_head(
 hir_subject_t* HIR_generate_load_indexation(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     HIR_SET_CURRENT_POS(ctx, node);
     hir_subject_type_t indexed_type;
-    hir_subject_t* final_head = _get_final_head(node->c, node->c->siblings.n, ctx, smt, &indexed_type);
+    hir_subject_t* final_head = _get_final_head(node, ctx, smt, &indexed_type);
 
     /* There is no need here to dereference an stack element,
        that's why if this is an array or a container, return it without
@@ -105,7 +111,7 @@ hir_subject_t* HIR_generate_load_indexation(ast_node_t* node, hir_ctx_t* ctx, sy
         (c_ti.t == TYPE_ARRAY || c_ti.t == TYPE_CUSTOM) && !c_ti.memory.ptr
     ) return final_head;
 
-    hir_subject_t* res = HIR_SUBJ_TMPVAR(indexed_type, VRTB_add_info(NULL, HIR_get_tmptkn_type(indexed_type), NO_SYMBOL_ID, NULL, &smt->v));
+    hir_subject_t* res = HIR_SUBJ_TMPVAR(indexed_type, VRTB_add_info(NULL, HIR_get_tmptkn_type(indexed_type), NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v));
     res->ptr = MAX(final_head->ptr - 1, 0);
     
     HIR_BLOCK2(ctx, HIR_GDREF, res, final_head);
@@ -114,13 +120,13 @@ hir_subject_t* HIR_generate_load_indexation(ast_node_t* node, hir_ctx_t* ctx, sy
 
 hir_subject_t* HIR_generate_ref_indexation(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     HIR_SET_CURRENT_POS(ctx, node);
-    return _get_final_head(node->c, node->c->siblings.n, ctx, smt, NULL);
+    return _get_final_head(node, ctx, smt, NULL);
 }
 
 int HIR_generate_store_indexation(ast_node_t* node, hir_subject_t* data, hir_ctx_t* ctx, sym_table_t* smt) {
     HIR_SET_CURRENT_POS(ctx, node);
     hir_subject_type_t indexed_type;
-    hir_subject_t* final_head = _get_final_head(node->c, node->c->siblings.n, ctx, smt, &indexed_type);
+    hir_subject_t* final_head = _get_final_head(node, ctx, smt, &indexed_type);
     HIR_BLOCK2(ctx, HIR_LDREF, final_head, HIR_generate_implconv(ctx, final_head->ptr - 1, indexed_type, data, smt));
     return 1;
 }

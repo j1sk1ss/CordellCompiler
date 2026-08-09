@@ -1,0 +1,35 @@
+name: Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: make test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential binutils nasm python3 python3-tqdm
+
+      - name: Build compiler
+        run: make all CC=gcc PYTHON=python3 ENABLE_Z3=0
+
+      - name: Run tests
+        run: make test CC=gcc PYTHON=python3 ENABLE_Z3=0

@@ -516,32 +516,47 @@ def _parse_run_asm_args(raw: str) -> list[str]:
 
     return next(csv.reader([raw], skipinitialspace=True))
 
-def _parse_run_asm_cases(spec: str) -> list[list[str]]:
+def _parse_run_asm_libs(raw: str) -> list[str]:
+    libs = _parse_run_asm_args(raw)
+    return [lib if lib.startswith("-l") else f"-l{lib}" for lib in libs]
+
+def _parse_run_asm_options(spec: str) -> tuple[list[list[str]], list[str]]:
     spec = spec.strip()
     if not spec:
-        return [[]]
+        return [[]], []
 
     cases: list[list[str]] = []
+    link_args: list[str] = []
     for chunk in _split_unquoted(spec, sep="|"):
         if not chunk:
             continue
 
-        if not chunk.startswith("args="):
-            raise ValueError(f"Unsupported RUN_ASM option block: {chunk}")
+        if chunk.startswith("args="):
+            cases.append(_parse_run_asm_args(chunk[len("args="):]))
+            continue
 
-        cases.append(_parse_run_asm_args(chunk[len("args="):]))
+        if chunk.startswith("link="):
+            link_args.extend(_parse_run_asm_args(chunk[len("link="):]))
+            continue
 
-    return cases or [[]]
+        if chunk.startswith("libs="):
+            link_args.extend(_parse_run_asm_libs(chunk[len("libs="):]))
+            continue
 
-def _parse_run_asm_directive(line: str) -> tuple[bool, bool, list[list[str]]] | None:
+        raise ValueError(f"Unsupported RUN_ASM option block: {chunk}")
+
+    return cases or [[]], link_args
+
+def _parse_run_asm_directive(line: str) -> tuple[bool, bool, list[list[str]], list[str]] | None:
     m = re.fullmatch(r":\s*(RUN_ASM|RUN_ASM_DEBUG)(?:\[(.*)\])?\s*:", line)
     if not m:
         return None
 
     kind = m.group(1)
     spec = m.group(2)
+    cases, link_args = _parse_run_asm_options(spec or "")
 
-    return kind == "RUN_ASM", kind == "RUN_ASM_DEBUG", _parse_run_asm_cases(spec or "")
+    return kind == "RUN_ASM", kind == "RUN_ASM_DEBUG", cases, link_args
 
 def _parse_test_file(path: Path) -> tuple[str, str, dict]:
     text = path.read_text(encoding="utf-8")
@@ -555,6 +570,7 @@ def _parse_test_file(path: Path) -> tuple[str, str, dict]:
         "run_asm":       False,
         "run_asm_debug": False,
         "run_asm_cases": [[]],
+        "run_asm_link_args": [],
         "asm_arches":    None,
         "output_annotations": {},
         "output_case_blocks": None,
@@ -567,7 +583,12 @@ def _parse_test_file(path: Path) -> tuple[str, str, dict]:
 
         run_asm_directive = _parse_run_asm_directive(stripped)
         if run_asm_directive:
-            flags["run_asm"], flags["run_asm_debug"], flags["run_asm_cases"] = run_asm_directive
+            (
+                flags["run_asm"],
+                flags["run_asm_debug"],
+                flags["run_asm_cases"],
+                flags["run_asm_link_args"],
+            ) = run_asm_directive
             continue
 
         asm_arches = _parse_asm_arch_directive(stripped)
@@ -688,6 +709,7 @@ def _assemble_and_run(
     asm_text: str,
     debug: bool,
     runs: list[list[str]] | None = None,
+    link_args: list[str] | None = None,
     log_sections: list[tuple[str, str]] | None = None,
     asm_arch: str | None = None,
 ) -> tuple[bool, str | None, list[str] | None, list[int] | None, float | None]:
@@ -743,6 +765,8 @@ def _assemble_and_run(
         if nasm_proc.returncode != 0:
             return False, nasm_proc.stdout, None, None, None
 
+        extra_link_args = link_args or []
+
         if asm_arch == "x86_64_nasm_macho" or (asm_arch is None and sys.platform == "darwin"):
             link_cmd = [
                 "ld",
@@ -750,7 +774,8 @@ def _assemble_and_run(
                 "-macos_version_min", "10.13",
                 "-lSystem",
                 "-o", str(exe_path),
-                str(obj_path)
+                str(obj_path),
+                *extra_link_args,
             ]
         elif asm_arch == "i386_nasm_gnu":
             link_cmd = [
@@ -758,14 +783,16 @@ def _assemble_and_run(
                 "-e", "_main",
                 "-m", "elf_i386",
                 "-o", str(exe_path),
-                str(obj_path)
+                str(obj_path),
+                *extra_link_args,
             ]
         else:
             link_cmd = [
                 "ld",
                 "-e", "_main",
                 "-o", str(exe_path),
-                str(obj_path)
+                str(obj_path),
+                *extra_link_args,
             ]
 
         _log(f"[ASM] linking command: {_cmd_to_str(link_cmd)}")
@@ -984,6 +1011,7 @@ def _run_test_once(
                     compiler_proc.stdout,
                     debug=flags["run_asm_debug"],
                     runs=flags["run_asm_cases"],
+                    link_args=flags["run_asm_link_args"],
                     log_sections=log_sections,
                     asm_arch=asm_arch,
                 )
@@ -1231,6 +1259,18 @@ def _run_test(
                 "metrics": f"{skip_reason}; host={sys.platform}",
             }
 
+    if _is_ci() and (flags["test_debug"] or flags["run_asm_debug"]):
+        return {
+            "file": str(test_file),
+            "asm_arch": asm_arch,
+            "ok": True,
+            "skipped": True,
+            "critical": False,
+            "warning": False,
+            "diff": None,
+            "metrics": "interactive debug test skipped in CI",
+        }
+
     annotations = flags.get("output_annotations", {})
     measure_time = _annotation_enabled(annotations, "measure_time")
     measure_lines = _annotation_enabled(annotations, "measure_lines")
@@ -1340,16 +1380,66 @@ def _find_module_base_variants(root: Path) -> list[tuple[str | None, Path]]:
     return _find_arch_base_files(root)
 
 
+def _is_test_root(path: Path) -> bool:
+    return path.is_dir() and (path / "dependencies.json").is_file() and bool(_find_module_base_variants(path))
+
+
+def _find_nearest_test_root(start_path: Path) -> Path | None:
+    current = start_path if start_path.is_dir() else start_path.parent
+    for candidate in [current, *current.parents]:
+        if _is_test_root(candidate):
+            return candidate
+
+    return None
+
+
 def _find_test_roots(start_path: Path) -> list[Path]:
     roots = []
     for root, _, _ in os.walk(start_path):
         root_path = Path(root)
-        if not (root_path / "dependencies.json").is_file():
-            continue
-        if _find_module_base_variants(root_path):
+        if _is_test_root(root_path):
             roots.append(root_path)
 
     return roots
+
+
+def _collect_cpl_files_from_path(path: Path, all_roots: set[Path]) -> list[Path]:
+    if path.is_file():
+        return [path] if path.suffix == ".cpl" else []
+
+    if path.is_dir():
+        return _collect_cpl_files(path, all_roots)
+
+    return []
+
+
+def _resolve_test_selection(raw_path: Path) -> tuple[Path, list[Path], dict[Path, Path]]:
+    if raw_path.is_file():
+        if raw_path.suffix != ".cpl":
+            print(f"Error: Test file '{raw_path}' is not a .cpl file", file=sys.stderr)
+            sys.exit(1)
+
+        root = _find_nearest_test_root(raw_path)
+        if root is None:
+            print(f"Error: No test module root found above '{raw_path}'", file=sys.stderr)
+            sys.exit(1)
+
+        return root, [root], {root: raw_path}
+
+    if not raw_path.is_dir():
+        print(f"Error: Test path '{raw_path}' wasn't found", file=sys.stderr)
+        sys.exit(1)
+
+    roots = _find_test_roots(raw_path)
+    if roots:
+        return raw_path, roots, {}
+
+    root = _find_nearest_test_root(raw_path)
+    if root is None:
+        print(f"No test modules found (no base.c/architecture base + dependencies.json) under {raw_path}", file=sys.stderr)
+        sys.exit(1)
+
+    return root, [root], {root: raw_path}
 
 def _collect_cpl_files(root: Path, all_roots: set[Path]) -> list[Path]:
     cpl_files = []
@@ -1379,6 +1469,10 @@ def _test_file_has_only_this(path: Path) -> bool:
     return False
 
 
+def _is_ci() -> bool:
+    return os.environ.get("CI", "").strip().lower() in {"1", "true", "yes", "on"}
+
+
 def _select_only_this_tests(cpl_files: list[Path]) -> list[Path]:
     return [cpl for cpl in cpl_files if _test_file_has_only_this(cpl)]
 
@@ -1392,14 +1486,10 @@ def _entry() -> None:
     parser.add_argument('--force-rewrite', action='store_true', help='Rewrite OUTPUT blocks for all tests')
     args = parser.parse_args()
 
-    test_top: Path = Path(args.path)
-    if not test_top.is_dir():
-        print(f"Error: Test directory '{args.path}' wasn't found", file=sys.stderr)
-        sys.exit(1)
+    test_top, all_roots, cpl_scope_by_root = _resolve_test_selection(Path(args.path))
 
     os.makedirs(args.output_dir, exist_ok=True)
 
-    all_roots = _find_test_roots(test_top)
     if not all_roots:
         print(f"No test modules found (no base.c/architecture base + dependencies.json) under {test_top}", file=sys.stderr)
         sys.exit(1)
@@ -1409,7 +1499,7 @@ def _entry() -> None:
     selected_cpl_files_by_root: dict[Path, list[Path]] = {}
 
     for root in all_roots:
-        cpl_files = _collect_cpl_files(root, all_roots_set)
+        cpl_files = _collect_cpl_files_from_path(cpl_scope_by_root.get(root, root), all_roots_set)
         cpl_files_by_root[root] = cpl_files
         selected_cpl_files_by_root[root] = _select_only_this_tests(cpl_files)
 

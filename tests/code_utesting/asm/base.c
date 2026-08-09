@@ -25,6 +25,7 @@
 #include <lir/selector/savereg.h>
 #include <lir/selector/x86_64_gnu_nasm.h>
 #include <lir/dfg.h>
+#include <lir/copyprop.h>
 #include <lir/regalloc/ra.h>
 #include <lir/regalloc/regalloc.h>
 #include <lir/regalloc/x86_64_gnu_precolor.h>
@@ -48,7 +49,10 @@ int main(int argc, char* argv[]) {
     }
 
     finder_ctx_t finctx = { .bpath = argv[2] };
-    fd = PP_perform(fd, &finctx);
+    pp_ctx_t ppctx;
+    PP_init_pp_ctx(&ppctx);
+
+    fd = PP_perform(fd, &finctx, &ppctx);
     if (fd < 0) {
         fprintf(stderr, "Processed file %s isn't found!\n", argv[1]);
         return 1;
@@ -128,6 +132,7 @@ int main(int argc, char* argv[]) {
 
     register_saver_t reg_save = { .save_registers = x86_64_gnu_nasm_caller_saving };
     LIR_save_registers(&cfgctx, &callctx, &smt, &reg_save);
+    LIR_clear_global_variables(&cfgctx, &smt);
 
     asm_gen_t asmgen = { .generator = x86_64_gnu_nasm_generate_asm };
     ASM_generate(&cfgctx, &smt, &asmgen, stdout);

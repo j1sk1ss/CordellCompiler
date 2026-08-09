@@ -6,19 +6,19 @@ ast_node_t* cpl_parse_start(PARSER_ARGS) {
 
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
     if (!base) {
-        PARSE_ERROR("Can't create a base for the '%s' statement!", START_COMMAND);
+        PARSE_ERROR("Can't create a base for the 'start' statement!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
     if (!consume_token(it, OPEN_BRACKET_TOKEN)) {
-        PARSE_ERROR("Expected the 'OPEN_BRACKET_TOKEN' token during a parse of the '%s' statement!", START_COMMAND);
+        PARSE_ERROR("Expected the '(' token during a parse of the 'start' statement!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
-    annotations_summary_t annots = { .section = NULL };
+    annotations_summary_t annots = { .section = NULL, .salign = -1 };
     ANNOT_read_annotations(&ctx->annots, &annots); 
 
     forward_token(it, 1);
@@ -31,7 +31,7 @@ ast_node_t* cpl_parse_start(PARSER_ARGS) {
     }
 
     if (!consume_token(it, OPEN_BLOCK_TOKEN)) {
-        PARSE_ERROR("Expected the 'OPEN_BLOCK_TOKEN' in a body of the '%s' statement! %s( ... ) { ... }!", START_COMMAND, START_COMMAND);
+        PARSE_ERROR("Expected the '{' in a body of the 'start' statement! start( ... ) { ... }!");
         AST_unload(base);
         ANNOT_destroy_summary(&annots);
         RESTORE_TOKEN_POINT;
@@ -55,7 +55,11 @@ ast_node_t* cpl_parse_start(PARSER_ARGS) {
     string_t* virt_name = annots.fname;
     stack_top(&ctx->scopes.stack, (void**)&base->sinfo.s_id);
     base->sinfo.v_id = FNTB_add_info(
-        main_name, virt_name, (func_info_flags_t){ .entry = 1, .global = 1, .naked = annots.is_naked }, base->sinfo.s_id, base, NULL, &smt->f
+        main_name, virt_name, 
+        (func_info_flags_t){ 
+            .entry = 1, .global = 1, .naked = annots.is_naked ? 1 : 0, .onlybody = annots.is_onlybody, .weak = annots.is_weak, .abi = annots.is_abi
+        }, 
+        base->sinfo.s_id, base, NULL, &smt->f
     );
     destroy_string(main_name);
 
@@ -63,7 +67,7 @@ ast_node_t* cpl_parse_start(PARSER_ARGS) {
     PRESERVE_AST_CARRY_ARG({ body = cpl_parse_scope(it, ctx, smt, 1); }, base->sinfo.v_id);
     if (body) AST_add_node(base, body);
     else {
-        PARSE_ERROR("Error during the parsing of the '%s' body!", START_COMMAND);
+        PARSE_ERROR("Error during the parsing of the 'start' body!");
         AST_unload(base);
         ANNOT_destroy_summary(&annots);
         RESTORE_TOKEN_POINT;
@@ -71,7 +75,7 @@ ast_node_t* cpl_parse_start(PARSER_ARGS) {
     }
 
     if (!annots.section) annots.section = create_string(CONF_get_code_section());
-    SCTB_move_to_section(annots.section, base->sinfo.v_id, SECTION_ELEMENT_FUNCTION, &smt->c);
+    SCTB_move_to_section(annots.section, annots.salign, base->sinfo.v_id, SECTION_ELEMENT_FUNCTION, &smt->c);
     ANNOT_destroy_summary(&annots);
     return base;
 }

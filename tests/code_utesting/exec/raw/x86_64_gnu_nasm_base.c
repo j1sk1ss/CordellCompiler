@@ -29,6 +29,7 @@
 #include <lir/regalloc/ra.h>
 #include <lir/regalloc/regalloc.h>
 #include <lir/regalloc/x86_64_gnu_precolor.h>
+#include <lir/copyprop.h>
 #include <lir/dump.h>
 
 #include <asm/asmgen.h>
@@ -50,6 +51,21 @@ int main(int argc, char* argv[]) {
 
     mm_init();
 
+    config_t cfg = {
+        .system.entry_name   = "_main",
+        .system.ro_section   = ".rodata",
+        .system.glob_section = ".data",
+        .system.code_section = ".text",
+        .system.bytness = {
+            .bytness   = 8,
+            .h_bytness = 4,
+            .q_bytness = 2,
+            .e_bytness = 1
+        },
+        .system.sys_type = LINUX64,
+    };
+    CONF_set_config(cfg);
+
     int fd = open(argv[1], O_RDONLY);
     if (fd < 0) {
         fprintf(stderr, "File %s isn't found!\n", argv[1]);
@@ -57,7 +73,10 @@ int main(int argc, char* argv[]) {
     }
 
     finder_ctx_t finctx = { .bpath = argv[2] };
-    fd = PP_perform(fd, &finctx);
+    pp_ctx_t ppctx;
+    PP_init_pp_ctx(&ppctx);
+
+    fd = PP_perform(fd, &finctx, &ppctx);
     if (fd < 0) {
         fprintf(stderr, "Processed file %s isn't found!\n", argv[1]);
         return 1;
@@ -146,6 +165,7 @@ int main(int argc, char* argv[]) {
     LIR_save_registers(&cfgctx, &callctx, &smt, &reg_save);
 
     LIR_validate_memory(&cfgctx, &smt, &mem_sel);
+    LIR_clear_global_variables(&cfgctx, &smt);
 
     asm_gen_t asmgen = { .generator = x86_64_gnu_nasm_generate_asm };
     ASM_generate(&cfgctx, &smt, &asmgen, stdout);

@@ -1,21 +1,25 @@
 #include <hir/loop.h>
 
-/*
-Get the basic id of a SSA-variable.
+/* Get the basic id of a SSA-variable.
 Will try to find the highest id (id of a variable, id of the variable's parent, etc.).
 Params:
     - `v_id` - Basic SSA-variable id.
     - `smt` - Symtable.
 
-Returns the base id of a variable.
-*/
+Returns the base id of a variable. */
 static symbol_id_t _gather_base_vid(symbol_id_t v_id, sym_table_t* smt) {
     variable_info_t vi;
     if (!VRTB_get_info_id(v_id, &vi, &smt->v)) return v_id;
     return vi.p_id == NO_SYMBOL_ID ? vi.v_id : _gather_base_vid(vi.p_id, smt);
 }
 
-// TODO: docs
+/* Redirect a predecessor's branch target from the loop header to the preheader.
+Params:
+    - `pred` - External predecessor block.
+    - `header` - Original loop header.
+    - `preheader_label` - Label emitted for the inserted preheader block.
+
+Returns 1 if succeeds, otherwise 0. */
 static int _redirect_preheader_jump(cfg_block_t* pred, cfg_block_t* header, hir_subject_t* preheader_label) {
     if (
         !pred || !header || 
@@ -37,15 +41,13 @@ static int _redirect_preheader_jump(cfg_block_t* pred, cfg_block_t* header, hir_
     return 1;
 }
 
-/*
-Insert a preheader block in the CFG context before the header block.
+/* Insert a preheader block in the CFG context before the header block.
 Params:
     - `cctx` - CFG context.
     - `header` - Current loop header.
     - `loop` - Current loop.
 
-Return the preheader block or the 'NULL' value.
-*/
+Return the preheader block or the 'NULL' value. */
 static cfg_block_t* _insert_preheader(cfg_ctx_t* cctx, cfg_block_t* header, set_t* loop) {
     /* Check if the current block has a 'preheader' as an
        ancestor. 
@@ -101,15 +103,13 @@ static cfg_block_t* _insert_preheader(cfg_ctx_t* cctx, cfg_block_t* header, set_
     return preheader;
 }
 
-/*
-Extract HIR blocks from the provided set of the loop blocks.
+/* Extract HIR blocks from the provided set of the loop blocks.
 Params:
     - `loop` - Loop blocks.
     - `b` - Output set of HIR blocks.
 
-Returns 1 on success, otherwise 0.
-*/
-static int _get_loop_hir_blocks(set_t* loop, set_t* b) {
+Returns 1 on success, otherwise 0. */
+static inline int _get_loop_hir_blocks(set_t* loop, set_t* b) {
     set_foreach (cfg_block_t* bb, loop) {
         iterate_hir_instructions (bb) {
             set_add(b, hh);
@@ -119,13 +119,11 @@ static int _get_loop_hir_blocks(set_t* loop, set_t* b) {
     return 1;
 }
 
-/*
-Check whether the provided HIR block can be moved form a loop.
+/* Check whether the provided HIR block can be moved form a loop.
 Params:
     - `hh` - HIR block.
 
-Returns 1 if this block can be moved.
-*/
+Returns 1 if this block can be moved. */
 static inline int _hir_can_be_licm_def(hir_block_t* hh) {
     if (
         !hh || !HIR_is_writeop(hh->op) || HIR_is_sideeffect_op(hh->op) ||
@@ -134,13 +132,13 @@ static inline int _hir_can_be_licm_def(hir_block_t* hh) {
     return 1;
 }
 
-/*
-Add the provided variable and its parent variable.
+/* Add the provided variable and its parent variable.
 Params:
     - `s` - Output set.
     - `v_id` - Variable's Id.
-    - `smt` - Symtable.
-*/
+    - `smt` - Symtable. 
+
+Returns whether a new ID was added. */
 static int _set_add_vid_with_base(set_t* s, symbol_id_t v_id, sym_table_t* smt) {
     int changed = 0;
     changed |= set_add(s, (void*)v_id);
@@ -149,16 +147,14 @@ static int _set_add_vid_with_base(set_t* s, symbol_id_t v_id, sym_table_t* smt) 
     return changed;
 }
 
-/*
-Add all subjects of a block to a set as a variable with its parent.
+/* Add all subjects of a block to a set as a variable with its parent.
 Note: This is a wrapper.
 Params:
     - `s` - Output set.
     - `hh` - Block with variables.
     - `smt` - Symtable.
 
-Returns 1 if succeeds and has changed something.
-*/
+Returns 1 if succeeds and has changed something. */
 static int _set_add_block_vids_with_base(set_t* s, hir_block_t* hh, sym_table_t* smt) {
     if (!hh) return 0;
     int changed = 0;
@@ -170,8 +166,7 @@ static int _set_add_block_vids_with_base(set_t* s, hir_block_t* hh, sym_table_t*
     return changed;
 }
 
-/*
-Check whether any subject from a block uses some variables outside.
+/* Check whether any subject from a block uses some variables outside.
 Params:
     - `hh` - HIR block.
     - `s` - Output set.
@@ -179,12 +174,10 @@ Params:
     - `loop_hir` - Loop to consider.
     - `visited` - Guards.
 
-Returns 1 if the block matches.
-*/
+Returns 1 if the block matches. */
 static int _hir_uses_any_vid_from_set(hir_block_t* hh, set_t* s, sym_table_t* smt, set_t* loop_hir);
 
-/*
-Get HIR blocks that aren't affect on the loop environment.
+/* Get HIR blocks that aren't affect on the loop environment.
 For instance:
 ```cpl
     i32 a = 0;
@@ -200,8 +193,7 @@ Parmas:
     - `inductive` - Inductive variables set. 
                     Note: Inductive variable is a variable like `a += 1`, etc.
     
-Returns 1 on success, otherwise 0.
-*/
+Returns 1 on success, otherwise 0. */
 static int _get_invariant_defs(set_t* loop_hir, set_t* invariant_defs, set_t* inductive, sym_table_t* smt) {
     int changed = 1;
     do {
@@ -239,14 +231,12 @@ static int _get_invariant_defs(set_t* loop_hir, set_t* invariant_defs, set_t* in
     return 1;
 }
 
-/*
-Search for the CFG block with the 'trg' HIR block.
+/* Search for the CFG block with the 'trg' HIR block.
 Params:
     - `s` - Output set.
     - `trg` - HIR block for search.
 
-Returns the CFG block or the 'NULL' value.
-*/
+Returns the CFG block or the 'NULL' value. */
 static cfg_block_t* _get_hir_block_cfg(set_t* s, hir_block_t* trg) {
     set_foreach (cfg_block_t* bb, s) {
         iterate_hir_instructions (bb) {
@@ -257,30 +247,24 @@ static cfg_block_t* _get_hir_block_cfg(set_t* s, hir_block_t* trg) {
     return NULL;
 }
 
-/*
-Check whether the provided block depends on a variable which is outside.
+/* Check whether the provided block depends on a variable which is outside.
 Params:
     - `hh` - HIR block.
     - `v_id` - Variable to check.
     - `smt` - Symtable.
     - `loop_hir` - Loop to consider.
 
-Returns 1 if the block matches.
-*/
-static int _hir_rhs_depends_on_vid(
-    hir_block_t* hh, symbol_id_t v_id, sym_table_t* smt, set_t* loop_hir, set_t* visited
-);
+Returns 1 if the block matches. */
+static int _hir_rhs_depends_on_vid(hir_block_t* hh, symbol_id_t v_id, sym_table_t* smt, set_t* loop_hir, set_t* visited);
 
-/*
-Check whether the provided subject depends on a variable which is outside.
+/* Check whether the provided subject depends on a variable which is outside.
 Params:
     - `hh` - HIR block.
     - `v_id` - Variable to check.
     - `smt` - Symtable.
     - `loop_hir` - Loop to consider.
 
-Returns 1 if the block matches.
-*/
+Returns 1 if the block matches. */
 static int _hir_subject_depends_on_vid(
     hir_subject_t* s, symbol_id_t v_id, sym_table_t* smt, set_t* loop_hir, set_t* visited
 ) {
@@ -296,9 +280,16 @@ static int _hir_subject_depends_on_vid(
     return _hir_rhs_depends_on_vid(s->home, v_id, smt, loop_hir, visited);
 }
 
-static int _hir_rhs_depends_on_vid(
-    hir_block_t* hh, symbol_id_t v_id, sym_table_t* smt, set_t* loop_hir, set_t* visited
-) {
+/* Check whether the RHS of a HIR block depends on a variable.
+Params:
+    - `hh` - HIR block.
+    - `v_id` - Variable to check.
+    - `smt` - Symtable.
+    - `loop_hir` - Loop to consider.
+    - `visited` - Guards.
+
+Returns 1 if the block depends on the variable. */
+static int _hir_rhs_depends_on_vid(hir_block_t* hh, symbol_id_t v_id, sym_table_t* smt, set_t* loop_hir, set_t* visited) {
     if (!hh) return 0;
     iterate_hir_args (hir_subject_t* arg, hh, 1) {
         if (_hir_subject_depends_on_vid(arg, v_id, smt, loop_hir, visited)) return 1;
@@ -307,16 +298,14 @@ static int _hir_rhs_depends_on_vid(
     return 0;
 }
 
-/*
-Check whether the provided block uses a variable which is outside.
+/* Check whether the provided block uses a variable which is outside.
 Params:
     - `hh` - HIR block.
     - `v_id` - Variable to check.
     - `smt` - Symtable.
     - `loop_hir` - Loop to consider.
 
-Returns 1 if the block matches.
-*/
+Returns 1 if the block matches. */
 static int _hir_uses_vid(hir_block_t* hh, symbol_id_t v_id, sym_table_t* smt, set_t* loop_hir) {
     set_t visited;
     if (!set_init(&visited, SET_NO_CMP)) return 0;
@@ -325,8 +314,7 @@ static int _hir_uses_vid(hir_block_t* hh, symbol_id_t v_id, sym_table_t* smt, se
     return res;
 }
 
-/*
-Check whether any subject from a block depends from some variables outside.
+/* Check whether any subject from a block depends from some variables outside.
 Params:
     - `hh` - HIR block.
     - `s` - Output set.
@@ -334,14 +322,12 @@ Params:
     - `loop_hir` - Loop to consider.
     - `visited` - Guards.
 
-Returns 1 if the block matches.
-*/
+Returns 1 if the block matches. */
 static int _hir_rhs_depends_on_any_vid_from_set(
     hir_block_t* hh, set_t* s, sym_table_t* smt, set_t* loop_hir, set_t* visited
 );
 
-/*
-Check whether a subject is dependent on any outside variable.
+/* Check whether a subject is dependent on any outside variable.
 We need to check this to be sure that we can safely move a block from
 a loop. Additionally, we can check whether a block is inductive or not.
 Params:
@@ -351,8 +337,7 @@ Params:
     - `loop_hir` - Current loop to consider.
     - `visited` - Gurads.
 
-Returns 1 if the subject depends on outside data.
-*/
+Returns 1 if the subject depends on outside data. */
 static int _hir_subject_depends_on_any_vid_from_set(
     hir_subject_t* subj, set_t* s, sym_table_t* smt, set_t* loop_hir, set_t* visited
 ) {
@@ -368,6 +353,15 @@ static int _hir_subject_depends_on_any_vid_from_set(
     return _hir_rhs_depends_on_any_vid_from_set(subj->home, s, smt, loop_hir, visited);
 }
 
+/* Check whether any RHS subject from a block depends on variables from a set.
+Params:
+    - `hh` - HIR block.
+    - `s` - Set of variable IDs.
+    - `smt` - Symtable.
+    - `loop_hir` - Current loop to consider.
+    - `visited` - Guards.
+
+Returns 1 if the block depends on any variable from the set. */
 static int _hir_rhs_depends_on_any_vid_from_set(
     hir_block_t* hh, set_t* s, sym_table_t* smt, set_t* loop_hir, set_t* visited
 ) {
@@ -379,6 +373,14 @@ static int _hir_rhs_depends_on_any_vid_from_set(
     return 0;
 }
 
+/* Check whether a HIR block uses any variable from a set.
+Params:
+    - `hh` - HIR block.
+    - `s` - Set of variable IDs.
+    - `smt` - Symtable.
+    - `loop_hir` - Current loop to consider.
+
+Returns 1 if the block uses any variable from the set. */
 static int _hir_uses_any_vid_from_set(hir_block_t* hh, set_t* s, sym_table_t* smt, set_t* loop_hir) {
     set_t visited;
     if (!set_init(&visited, SET_NO_CMP)) return 0;
@@ -387,8 +389,7 @@ static int _hir_uses_any_vid_from_set(hir_block_t* hh, set_t* s, sym_table_t* sm
     return res;
 }
 
-/*
-Find inductive variables. Such variables uses their values in the next iteration.
+/* Find inductive variables. Such variables uses their values in the next iteration.
 For instance, we consider the next variable (`a`) as the inductive variable.
 ```cpl
     i32 a;
@@ -402,8 +403,7 @@ Params:
     - `s` - Output set.
     - `smt` - Symtable.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds. */
 static int _get_inductive_variables(set_t* loop_hir, set_t* s, sym_table_t* smt) {
     int changed = 0;
 
@@ -438,15 +438,13 @@ static int _get_inductive_variables(set_t* loop_hir, set_t* s, sym_table_t* smt)
     return 1;
 }
 
-/*
-Move the `inv` to a pre-header.
+/* Move the `inv` to a pre-header.
 Params:
     - `preheader` - Detination base block.
     - `src_cfg` - Source base block where the `inv` from.
     - `inv` - Invariant HIR block.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds. */
 static inline int _move_to_preheader(cfg_block_t* preheader, cfg_block_t* src_cfg, hir_block_t* inv) {
     if (!preheader || !src_cfg || !inv) return 0;
     HIR_CFG_remove_hir_block(src_cfg, inv);
@@ -456,36 +454,36 @@ static inline int _move_to_preheader(cfg_block_t* preheader, cfg_block_t* src_cf
     return 1;
 }
 
-/*
-This function moves invariant definitions to the preheader block.
+/* This function moves invariant definitions to the preheader block.
 Params:
     - `cctx` - CFG context.
     - `node` - Considering loop.
     - `smt` - Symtable.
     - `licm` - Perfrorm LICM operation?
 
-Returns 1 on success, otherwise 0.
-*/
+Returns 1 on success, otherwise 0. */
 static int _licm_process(cfg_ctx_t* cctx, loop_node_t* loop, sym_table_t* smt, int licm) {
     cfg_block_t* preheader = _insert_preheader(cctx, loop->header, &loop->blocks);
     if (!preheader) return 0;
     if (!licm) return 1;
 
-    set_t loop_hir, inductive, invariant_defs;
+    set_t loop_hir, invariant_defs;
     if (
         !set_init(&invariant_defs, SET_NO_CMP) ||
-        !set_init(&inductive,      SET_NO_CMP) ||
         !set_init(&loop_hir,       SET_NO_CMP)
     ) {
         set_free(&invariant_defs);
-        set_free(&inductive);
         set_free(&loop_hir);
         return 0;
     }
 
     _get_loop_hir_blocks(&loop->blocks, &loop_hir);
-    _get_inductive_variables(&loop_hir, &inductive, smt);
-    _get_invariant_defs(&loop_hir, &invariant_defs, &inductive, smt);
+
+    set_free(&loop->ind);
+    set_init(&loop->ind, SET_NO_CMP);
+
+    _get_inductive_variables(&loop_hir, &loop->ind, smt);
+    _get_invariant_defs(&loop_hir, &invariant_defs, &loop->ind, smt);
 
     /* From an unordered set of hir blocks, we need to create an ordered
        list. Order is based on the home function. */
@@ -507,21 +505,18 @@ static int _licm_process(cfg_ctx_t* cctx, loop_node_t* loop, sym_table_t* smt, i
 
     list_free(&linear);
     set_free(&invariant_defs);
-    set_free(&inductive);
     set_free(&loop_hir);
     return changed;
 }
 
-/*
-Invoke the LICM optimization on the loop recursively.
+/* Invoke the LICM optimization on the loop recursively.
 Params:
     - `cctx` - CFG context.
     - `node` - Current loop.
     - `smt` - Symtable.
     - `licm` - Perform LICM transformation.
 
-Returns 1 if it changed something, otherwise 0.
-*/
+Returns 1 if it changed something, otherwise 0. */
 int _licm_loop_node_process(cfg_ctx_t* cctx, loop_node_t* loop, sym_table_t* smt, int licm) {
     int changed = 0;
     foreach (loop_node_t* ch, &loop->children) {

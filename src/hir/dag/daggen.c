@@ -1,15 +1,13 @@
 #include <hir/dag.h>
 
-/*
-Register a new DAG node in the DAG context.
+/* Register a new DAG node in the DAG context.
 Params:
     - `dctx` - DAG context.
     - `dst` - DAG node.
     - `farg` - First DAG's argument.
     - `sarg` - Second DAG's argument.
 
-Returns 1 on success.
-*/
+Returns 1 on success. */
 static int _register_node(dag_ctx_t* dctx, dag_node_t* dst, dag_node_t* farg, dag_node_t* sarg) {
     map_put(&dctx->groups, dst->hash, dst);
     map_put(&dctx->dag, HIR_hash_subject(dst->src), dst);
@@ -20,6 +18,7 @@ static int _register_node(dag_ctx_t* dctx, dag_node_t* dst, dag_node_t* farg, da
 
 int HIR_DAG_init(dag_ctx_t* dctx) {
     if (!dctx) return 0;
+    dctx->memory_version = 0;
     map_init(&dctx->dag, MAP_NO_CMP);
     map_init(&dctx->groups, MAP_NO_CMP);
     return 1;
@@ -30,13 +29,10 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
         foreach (cfg_block_t* bb, &fb->blocks) {
             iterate_hir_instructions (bb) {
                 switch (hh->op) {
+                    case HIR_LDREF: dctx->memory_version++; break;
                     case HIR_PHI:
-                    // case HIR_PHI_PREAMBLE:
-                    case HIR_STORE_ECLL:
-                    case HIR_STORE_FCLL:
-                    case HIR_STORE_SYSC:
-                    case HIR_FARGLD:
-                    case HIR_STARGLD: {
+                    case HIR_FARGLD:     case HIR_STARGLD:
+                    case HIR_STORE_ECLL: case HIR_STORE_FCLL: case HIR_STORE_SYSC: {
                         dag_node_t* dst = DAG_GET_NODE(dctx, hh->op == HIR_PHI ? hh->sarg : hh->farg);
                         if (!dst) break;
                         dst->op   = hh->op;
@@ -61,6 +57,7 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
 
                         dst->op   = hh->op;
                         dst->home = bb;
+                        if (hh->op == HIR_GDREF) dst->memory_version = dctx->memory_version;
 
                         if (HIR_is_commutative_op(hh->op)) {
                             if (farg) set_add(&dst->args, farg);

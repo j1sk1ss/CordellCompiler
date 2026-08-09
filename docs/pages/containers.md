@@ -10,12 +10,8 @@ container storage {
 }
 
 start() {
-    storage s;
-    s.count = 10;
-    s.tag = 5;
-    s.total = 11;
-
-    exit (s.count + s.tag + s.total) as u8;
+    storage s = { 10, 5, 11 };
+    exit (s.count + s.tag + s.total) as u8; :/ 26 /:
 }
 ```
 
@@ -78,16 +74,16 @@ container point {
 container rect {
     point left;
     point right;
-    arr color[4, i8];
+    arr   color[4, i8];
 }
 
 start() {
     rect r;
 
-    r.left.x = 3;
-    r.left.y = 5;
-    r.right.x = 7;
-    r.right.y = 11;
+    r.left.x   = 3;
+    r.left.y   = 5;
+    r.right.x  = 7;
+    r.right.y  = 11;
     r.color[0] = 255 as i8;
 
     exit (r.left.x + r.left.y + r.right.x + r.right.y) as u8;
@@ -111,6 +107,32 @@ start() {
 }
 ```
 
+The same reference rule applies to arrays whose element type is a container or another array. Indexing such an array returns a reference to the selected element storage, not a copied value. If `items` is `arr [N, item]`, then `items[0]` is already suitable for a `ptr item` parameter; writing `ref items[0]` is unnecessary.
+
+```cpl
+container item {
+    i32 value;
+}
+
+function use_item(ptr item it) -> i0;
+
+start() {
+    arr items[2, item];
+    use_item(items[0]);
+}
+```
+
+For global container initializers, string literals are written without `ref`. The initializer stores a static string reference for `ptr i8` fields and expands the bytes for inline `arr [N, i8]` fields.
+
+```cpl
+container text_pair {
+    ptr i8 title;
+    arr    body[16, i8];
+}
+
+glob text_pair pair = { "Title", "Body" };
+```
+
 ## Pointer Fields
 
 Containers can reference values of their own type through pointers. This is useful for linked structures.
@@ -118,7 +140,7 @@ Containers can reference values of their own type through pointers. This is usef
 ```cpl
 container node {
     ptr node next;
-    i32 value;
+    i32      value;
 }
 
 start() {
@@ -127,8 +149,8 @@ start() {
 
     a.value = 4;
     b.value = 8;
-    a.next = ref b;
-    b.next = 0;
+    a.next  = ref b;
+    b.next  = 0;
 
     exit (a.value + a.next.value) as u8;
 }
@@ -148,30 +170,25 @@ container math_box {
 }
 
 start() {
-    math_box box;
-    exit box.add(20, 22) as u8;
+    exit math_box::add(20, 22) as u8;
 }
 ```
 
-Defining a function body directly inside a container creates an implementation wherever that container declaration is parsed. For header-style code, prefer a prototype in the container and a separate implementation marked with `@[impl(<container>)]`:
+Defining a function body directly inside a container creates an implementation wherever that container declaration is parsed. For header-style code, prefer a prototype in the container and a separate implementation marked with `<container>::<function>`:
 
 ```cpl
 container math_box {
     function add(i32 a, i32 b) -> i32;
 }
 
-@[impl(math_box)]
-function add(i32 a, i32 b) -> i32 {
+function math_box::add(i32 a, i32 b) -> i32 {
     return a + b;
 }
 
 start() {
-    math_box box;
-    exit box.add(20, 22) as u8;
+    exit math_box::add(20, 22) as u8;
 }
 ```
-
-`@[impl(math_box)]` attaches the standalone function to the `math_box` container declaration. This is the preferred pattern when a `.cpl` header declares a container API and another file provides the implementation.
 
 Container functions can also be generic. Generic container functions use the same explicit type-argument syntax as regular generic functions:
 
@@ -183,8 +200,7 @@ container caster {
 }
 
 start() {
-    caster c;
-    exit c.pick<u8>(42) as u8;
+    exit caster::pick<u8>(42) as u8;
 }
 ```
 
@@ -201,10 +217,8 @@ container slot {
 }
 
 start() {
-    slot s;
-    s.total = 10;
+    slot s = { 10 };
     s.add<i8>(5);
-
     exit s.total as u8;
 }
 ```
@@ -221,16 +235,13 @@ container counter {
     function add(ptr counter self, i32 delta) -> i0;
 }
 
-@[impl(counter)]
-function add(ptr counter self, i32 delta) -> i0 {
+function counter::add(ptr counter self, i32 delta) -> i0 {
     self.value += delta;
 }
 
 start() {
-    counter c;
-    c.value = 10;
+    counter c = { 10 };
     c.add(7);
-
     exit c.value as u8;
 }
 ```
@@ -241,7 +252,7 @@ The call `c.add(7)` is lowered as a normal function call where `ref c` is passed
 
 - the function is marked with `@[self]`;
 - the first parameter has a type compatible with the receiver, normally `ptr counter self`;
-- a separated implementation uses `@[impl(counter)]`;
+- a separated implementation uses `counter::add`;
 - all mutation is explicit through that pointer.
 
 Methods can also call methods on nested container fields:

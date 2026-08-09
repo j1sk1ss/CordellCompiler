@@ -11,16 +11,19 @@ int FNTB_get_info_id(symbol_id_t id, func_info_t* out, functab_ctx_t* ctx) {
     return 0;
 }
 
-int FNTB_collect_info(string_t* fname, symbol_id_t s_id, list_t* out, functab_ctx_t* ctx) {
+int FNTB_collect_info(string_t* fname, symbol_id_t s_id, list_t* out, functab_ctx_t* ctx, scopetab_ctx_t* sctx) {
     print_log("FNTB_collect_info(name=%s, s_id=%li)", fname ? fname->body : "(null)", s_id);
-    map_foreach (func_info_t* fi, &ctx->functb) {
-        if (
-            fi->name->equals(fi->name, fname) && 
-            fi->s_id == s_id && !fi->flags.generic && fi->s_id != NO_SYMBOL_ID
-        ) list_add(out, fi);
+    for (symbol_id_t visible_sid = s_id; visible_sid != NO_SYMBOL_ID; visible_sid = SCPTB_get_parent(visible_sid, sctx)) {
+        map_foreach (func_info_t* fi, &ctx->functb) {
+            if (fi->flags.generic) continue;
+            if (
+                fi->s_id == visible_sid &&
+                fi->name->equals(fi->name, fname)
+            ) list_add(out, fi);
+        }
     }
 
-    print_warn("FNTB_collect_info -> %i!", list_size(out));
+    print_debug("FNTB_collect_info(%s) -> %i!\n", fname ? fname->body : "(null)", list_size(out));
     return 1;
 }
 
@@ -57,9 +60,9 @@ static int _is_function_presented(
 ) {
     map_foreach (func_info_t* fi, &ctx->functb) {
         if (
-            (s_id == FIELD_NO_CHANGE || fi->s_id == s_id) &&
-            fi->name->equals(fi->name, name) &&
-            AST_hash_node_stop(args->c, SCOPE_TOKEN) == AST_hash_node_stop(fi->args->c, SCOPE_TOKEN) &&
+            (s_id == FIELD_NO_CHANGE || fi->s_id == s_id)                                                  &&
+            fi->name->equals(fi->name, name)                                                               &&
+            AST_hash_node_stop(args->c, 1, SCOPE_TOKEN) == AST_hash_node_stop(fi->args->c, 1, SCOPE_TOKEN) &&
             (!gen || map_equals(&fi->template.generic, gen))
         ) {
             if (out) str_memcpy(out, fi, sizeof(func_info_t));
@@ -83,7 +86,7 @@ symbol_id_t FNTB_add_info(
 ) {
     print_log(
         "FNTB_add_info(name=%s, global=%i, entry=%i, naked=%i, args=%lu)", 
-        name ? name->body : "(null)", flags.global, flags.entry, flags.naked, args ? AST_hash_node_stop(args->c, SCOPE_TOKEN) : 0
+        name ? name->body : "(null)", flags.global, flags.entry, flags.naked, args ? AST_hash_node_stop(args->c, 1, SCOPE_TOKEN) : 0
     );
     
     func_info_t out;
@@ -130,10 +133,22 @@ int FNTB_add_local(symbol_id_t f_id, symbol_id_t l_id, functab_ctx_t* ctx) {
     return 0;
 }
 
+int FNTB_update_virt_name(symbol_id_t id, string_t* vname, functab_ctx_t* ctx) {
+    print_log("FNTB_update_virt_name(id=%li, name=%s)", id, vname->body);
+    func_info_t* fi;
+    if (map_get(&ctx->functb, id, (void**)&fi)) {
+        destroy_string(fi->virt);
+        fi->virt = vname->copy(vname);
+        return 1;
+    }
+
+    return 0;
+}
+
 int FNTB_update_func(
     symbol_id_t id, string_t* name, func_info_flags_t flags, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
 ) {
-    print_log("FNTB_update_func(id=%llu, name=%s)", id, name->body);
+    print_log("FNTB_update_func(id=%li, name=%s)", id, name->body);
     func_info_t* fi;
     if (map_get(&ctx->functb, id, (void**)&fi)) {
         if (name) {
@@ -272,9 +287,9 @@ symbol_id_t FNTB_create_resolved_copy(symbol_id_t id, list_t* types, functab_ctx
         map_copy(&n->template.generic, &reg_types);
         map_free(&reg_types);
 
-        n->s_id    = fi->s_id;
-        n->id      = ctx->curr_id++;
-        n->virt    = _create_virt_name(n->id, n->name);
+        n->s_id = fi->s_id;
+        n->id   = ctx->curr_id++;
+        n->virt = _create_virt_name(n->id, n->name);
         
         if (n->virt) {
             foreach (token_type_t* t, types) {

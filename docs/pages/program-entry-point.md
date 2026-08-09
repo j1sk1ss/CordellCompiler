@@ -42,7 +42,7 @@ function main() -> i0 {
 }
 ```
 
-The default emitted entry symbol comes from the compiler configuration. It is `_main` by default. You can override it in source:
+The default emitted entry symbol comes from the compiler configuration. Current defaults are host-dependent: Linux builds default to `main`, while the non-Linux default path uses `_main`. You can override it in source:
 
 ```cpl
 @[entry("_start")]
@@ -54,7 +54,7 @@ function main() -> i0 {
 or from the command line:
 
 ```bash
-./builds/ccompiler --entry-name _start main.cpl
+./builds/<platform>/cplc --entry-name _start main.cpl
 ```
 
 ## Rules

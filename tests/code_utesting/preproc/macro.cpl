@@ -14,9 +14,16 @@ function foo3(i32 a) {}
 #endif
 
 :/ OUTPUT
+#line 0 "{X}.cpl"
+#line 1 "{X}.cpl"
 function foo(i32 a = 0) {
 }
-
+#line 5 "{X}.cpl"
+#line 6 "{X}.cpl"
 function foo2(i32 a = 1) {
 }
+#line 9 "{X}.cpl"
+#line 10 "{X}.cpl"
+#line 12 "{X}.cpl"
+#line 14 "{X}.cpl"
 /:

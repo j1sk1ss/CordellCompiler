@@ -4,7 +4,7 @@ ast_node_t* cpl_parse_contdef(PARSER_ARGS) {
     PARSER_ARGS_USE;
     SAVE_TOKEN_POINT;
 
-    annotations_summary_t annots = { .align = CONF_get_full_bytness(), .section = NULL, .reg = FIELD_NO_CHANGE };
+    annotations_summary_t annots = { .align = CONF_get_full_bytness(), .section = NULL, .salign = -1, .reg = -1 };
     ANNOT_read_annotations(&ctx->annots, &annots);
 
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
@@ -34,7 +34,10 @@ ast_node_t* cpl_parse_contdef(PARSER_ARGS) {
     ctx->t_id = name->sinfo.t_id;
     ast_node_t* decls = cpl_parse_scope(it, ctx, smt, 1);
     ctx->t_id = NO_SYMBOL_ID;
-    if (decls) AST_add_node(base, decls);
+    if (decls) {
+        TPTB_set_child_scope_id(name->sinfo.t_id, decls->sinfo.s_id, &smt->t);
+        AST_add_node(base, decls);
+    }
     else {
         PARSE_ERROR("Can't parse the container's body!");
         AST_unload(base);

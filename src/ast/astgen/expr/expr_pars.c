@@ -1,7 +1,6 @@
 #include <ast/astgen/astgen.h>
 
-/*
-Parse left part of a stmt.
+/* Parse left part of a stmt.
 Params:
     - `it` - Current iterator.
     - `ctx` - AST context.
@@ -14,8 +13,7 @@ Params:
                    If you want to parse only the left part (before assign),
                    set this flag to 1.
 
-Returns an AST node.
-*/
+Returns an AST node. */
 static ast_node_t* _parse_primary(list_iter_t*, ast_ctx_t*, sym_table_t*, int);
 
 #define WRAP_REFERENCE_NODE(nd) \
@@ -23,8 +21,7 @@ static ast_node_t* _parse_primary(list_iter_t*, ast_ctx_t*, sym_table_t*, int);
     AST_add_node(__pp, nd);                                                               \
     nd = __pp;                                                                            \
 
-/*
-Parse expression that looks like: <stmt> <op> <stmt>. 
+/* Parse expression that looks like: <stmt> <op> <stmt>. 
 Note: <stmt> here can be either a simple <(a..> or a complex sub-stmt.
 Params:
     - `it` - Current iterator.
@@ -42,8 +39,7 @@ Params:
                    set this flag to 1.
                    If you want to parse only the primary - set this flag to 2.
 
-Returns an AST node.
-*/
+Returns an AST node. */
 static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int mp, int na) {
     SAVE_TOKEN_POINT;
     ast_node_t* left = _parse_primary(it, ctx, smt, na);
@@ -83,12 +79,16 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                 break;
             }
             /* Member access */
+            case STAT_TOKEN: left->sinfo.t_id = type_lookup(left->t, ctx, smt); 
+                             __attribute__ ((fallthrough));
             case DOT_TOKEN: {
                 forward_token(it, 1);
-                if (left->sinfo.t_id == NO_SYMBOL_ID) left->sinfo.t_id = type_lookup(left->t, ctx, smt);
                 symbol_id_t field_type = TPTB_resolve_child(left->sinfo.t_id, CURRENT_TOKEN->body, &smt->t);
-                if (field_type == NO_SYMBOL_ID) {
-                    PARSE_ERROR("Unknown container field!");
+                if (
+                    left->sinfo.t_id == NO_SYMBOL_ID || 
+                    field_type == NO_SYMBOL_ID
+                ) {
+                    PARSE_ERROR("Unknown container or a container's field!");
                     AST_unload(left);
                     RESTORE_TOKEN_POINT;
                     return NULL;
@@ -193,9 +193,8 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                     left = target;
                     if (tmp) AST_add_node(left, tmp);
                     if (
-                        tmp && 
-                        left->t->t_type == INDEXATION_TOKEN
-                    ) left->sinfo.t_id = TPTB_get_first_child(tmp->sinfo.t_id, &smt->t);
+                        tmp && left->t->t_type == INDEXATION_TOKEN
+                    ) left->sinfo.t_id = TPTB_get_indexed_type(tmp->sinfo.t_id, &smt->t);
                     if (data) {
                         AST_add_node(left, data);
                         forward_token(it, 1);
@@ -285,8 +284,11 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
                 symbol_id_t type = type_lookup(CURRENT_TOKEN, ctx, smt);
                 ast_node_t* node = NULL;
                 if (
-                    type != NO_SYMBOL_ID ||
-                    CURRENT_TOKEN->t_type == CLOSE_BRACKET_TOKEN
+                    (
+                        (type != NO_SYMBOL_ID || TKN_is_builtin_type(CURRENT_TOKEN)) &&
+                        look_next_token(it) && look_next_token(it)->t_type == UNKNOWN_STRING_TOKEN
+                    ) ||                                                           /* We found a type         */
+                    CURRENT_TOKEN->t_type == CLOSE_BRACKET_TOKEN                   /* We found a closed token */
                 ) node = cpl_parse_lambda(it, ctx, smt, 0);
                 else {
                     node = _parse_binary_expression(it, ctx, smt, 0, na == 2 ? 1 : na);
@@ -325,7 +327,7 @@ _primary_resolve_complete: {}
         case STRING_VALUE_TOKEN: {
             node->sinfo.v_id  = STTB_add_info(node->t->body, STR_INDEPENDENT, &smt->s);
             string_t* section = create_string(CONF_get_ro_section());
-            SCTB_move_to_section(section, node->sinfo.v_id, SECTION_ELEMENT_STRING, &smt->c);
+            SCTB_move_to_section(section, FIELD_NO_CHANGE, node->sinfo.v_id, SECTION_ELEMENT_STRING, &smt->c);
             destroy_string(section);
             break;
         }

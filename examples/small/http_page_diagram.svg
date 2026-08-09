@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="420" viewBox="0 0 900 420" role="img" aria-labelledby="title desc">
+  <title id="title">CordellCompiler HTTP flow</title>
+  <desc id="desc">A compact diagram showing a CPL source file compiled into a native HTTP server that serves HTML and static assets.</desc>
+  <rect width="900" height="420" fill="#f7f9fb"/>
+  <rect x="42" y="42" width="816" height="336" rx="18" fill="#ffffff" stroke="#d6dde5" stroke-width="2"/>
+  <text x="82" y="94" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="31" font-weight="700" fill="#17202a">CPL HTTP example</text>
+  <text x="82" y="128" font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="17" fill="#5c6674">One compiled program accepts a request and serves HTML plus assets.</text>
+
+  <g font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif">
+    <rect x="82" y="176" width="158" height="94" rx="10" fill="#eef4f8" stroke="#b8c5d1"/>
+    <text x="161" y="214" text-anchor="middle" font-size="18" font-weight="700" fill="#0f766e">CPL source</text>
+    <text x="161" y="242" text-anchor="middle" font-size="14" fill="#5c6674">http_page.cpl</text>
+
+    <path d="M256 223h58" stroke="#0f766e" stroke-width="4" stroke-linecap="round"/>
+    <path d="M314 223l-15-10v20z" fill="#0f766e"/>
+
+    <rect x="336" y="176" width="158" height="94" rx="10" fill="#eef4f8" stroke="#b8c5d1"/>
+    <text x="415" y="214" text-anchor="middle" font-size="18" font-weight="700" fill="#0f766e">Compiler</text>
+    <text x="415" y="242" text-anchor="middle" font-size="14" fill="#5c6674">HIR / LIR / ASM</text>
+
+    <path d="M510 223h58" stroke="#0f766e" stroke-width="4" stroke-linecap="round"/>
+    <path d="M568 223l-15-10v20z" fill="#0f766e"/>
+
+    <rect x="590" y="176" width="228" height="94" rx="10" fill="#fff7ed" stroke="#e8c69c"/>
+    <text x="704" y="214" text-anchor="middle" font-size="18" font-weight="700" fill="#b45309">Native server</text>
+    <text x="704" y="242" text-anchor="middle" font-size="14" fill="#5c6674">HTML + static files</text>
+  </g>
+
+  <g font-family="-apple-system,BlinkMacSystemFont,Segoe UI,sans-serif" font-size="15" fill="#17202a">
+    <rect x="82" y="304" width="736" height="1" fill="#d6dde5"/>
+    <text x="82" y="338">GET /</text>
+    <text x="196" y="338" fill="#5c6674">returns</text>
+    <text x="268" y="338">http_page.html</text>
+    <text x="442" y="338">GET /assets/http_page_diagram.svg</text>
+    <text x="720" y="338" fill="#5c6674">returns this image</text>
+  </g>
+</svg>

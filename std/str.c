@@ -15,21 +15,21 @@ typedef struct {
     unsigned long hash;
 } string_info_t;
 
-/*
-Calculate the basic string information.
+/* Calculate the basic string information.
 Params:
     - `s` - The input string.
     - `len` - The string's size.
     - `info` - Output information.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds. */
 static int _get_string_info(const char* s, int len, string_info_t* info) {
     char* h = (char*)s;
     info->size = 0;
     info->hash = 0xFFFF;
     while (h && *h && (len == -1 || len-- > 0)) {
         info->hash ^= *h * 0xFDDDF123;
+        info->hash *= 0xFFFF;
+        info->hash /= 0b01010101010101010;
         info->size++;
         h++;
     }
@@ -47,6 +47,7 @@ static int _string_cat(str_self self, string_t* dst) {
     _get_string_info(nbody, -1, &info);
 
     self->body = nbody;
+    self->head = self->body;
     self->hash = info.hash;
     self->size += dst->size;
     return 1;
@@ -258,56 +259,37 @@ static int _string_replace(str_self self, const char* src, const char* dst) {
 
     if (!src_len) return 0;
     unsigned int count = 0;
-    unsigned int j = 0;
-    for (unsigned int i = 0; i < self->size; i++) {
-        if (s[i] != src[j]) j = 0;
+    for (unsigned int i = 0; i + src_len <= self->size;) {
+        if (str_memcmp(s + i, src, src_len)) {
+            count++;
+            i += src_len;
+        }
         else {
-            j++;
-            if (j == src_len) {
-                count++;
-                j = 0;
-            }
+            i++;
         }
     }
 
     if (!count) return 0;
-    unsigned int new_size = self->size + count * (dst_len - src_len);
+    unsigned int new_size = self->size + count * dst_len - count * src_len;
     char* result = (char*)mm_malloc(new_size + 1);
     if (!result) return -1;
 
     unsigned int ri = 0;
-    j = 0;
-
-    for (unsigned int i = 0; i < self->size; i++) {
-        if (s[i] == src[j]) {
-            j++;
-            if (j == src_len) {
-                str_memcpy(result + ri, dst, dst_len);
-                ri += dst_len;
-                j = 0;
-            }
+    for (unsigned int i = 0; i < self->size;) {
+        if (i + src_len <= self->size && str_memcmp(s + i, src, src_len)) {
+            str_memcpy(result + ri, dst, dst_len);
+            ri += dst_len;
+            i += src_len;
         }
         else {
-            if (j > 0) {
-                unsigned int k = i - j;
-                for (unsigned int t = 0; t < j; t++)
-                    result[ri++] = s[k + t];
-                j = 0;
-            }
-
-            result[ri++] = s[i];
+            result[ri++] = s[i++];
         }
-    }
-
-    if (j > 0) {
-        unsigned int k = self->size - j;
-        for (unsigned int t = 0; t < j; t++)
-            result[ri++] = s[k + t];
     }
 
     result[ri] = 0;
     mm_free(self->body);
     self->body = result;
+    self->head = self->body;
 
     string_info_t info;
     _get_string_info(result, -1, &info);
@@ -359,7 +341,10 @@ static string_t* _create_base_string(const char* s, unsigned int off, int len) {
     str->replace     = _string_replace;
 
     str->head = str->body;
-    if (s) str_memcpy(str->body, s, info.size + 1);
+    if (s) {
+        str_memcpy(str->body, (char*)s + off, info.size);
+        str->body[info.size] = 0;
+    }
     return str;
 }
 

@@ -1,68 +1,64 @@
 # Annotations
 
-Annotations extend the small core syntax without adding many dedicated keywords. They are written before the construct they affect:
+Annotations extend the small core syntax without adding many dedicated keywords. They look like a combination of `Java` and `Rust` annotations. They are written before the construct they affect:
 
 ```cpl
-@[entry("_main")]
-function main() -> i0 {
+:/ entry affects the function /:
+@[entry("_main")] function main() -> i0 {
     exit 0;
 }
 ```
 
-The parser accepts the form `@[name]` and, for annotations that need a value, `@[name(value)]`. The value is read as the single token inside parentheses: numeric annotations convert it to an integer, while `entry`, `section`, and `inline` keep it as text.
+The parser accepts `@[name]`, `@[name(value / variable)]` and `@[name(value / variable, value / variable)]`.
 
 ## Available annotations
 
-| Annotation | Applies to | Meaning |
-|---|---|---|
-| `@[entry]`, `@[entry("name")]` | function or `start` | mark the function as the program entry; without `name`, the configured entry symbol is used |
-| `@[naked]` | function or `start` | suppress normal entry/exit routines |
-| `@[section("name")]` | global variable, global array, function, or `start` | place the symbol into a named section |
-| `@[nosection]` | global function | place the function into the configured no-section bucket |
-| `@[align(N)]` | variable, array, or container | request memory/container alignment |
-| `@[register(N)]` | variable declaration | bind the variable to a target register index |
-| `@[poparg]` | variable declaration in a variadic context | read the next variadic argument into this declaration |
-| `@[inline]` | function | increase the inliner preference |
-| `@[inline(always)]` | function | force the inline decision toward always inline |
-| `@[inline(never)]` | function | force the inline decision toward never inline |
-| `@[inline(model)]` | function | use the model-based inline mode |
-| `@[self]` | container function | mark the function as an explicit-self method for container call rewriting |
-| `@[abi]` | function | mark the function as ABI-compatible |
-| `@[weak]` | function | mark the function as a weak symbol |
-| `@[like_c]` | container | use C-like field layout handling instead of the requested CPL alignment value |
-| `@[no_fall]` | `switch` | make switch cases behave as if they end with `break` |
-| `@[straight]` | `switch` | force linear switch selection |
-| `@[counter(N)]` | `loop` | generate a counted loop |
-| `@[hot]` | `if` | make the false branch cold for layout |
-| `@[cold]` | `if` or switch `case` | make the true branch, or the annotated case, cold for layout |
-| `@[not_lazy]` | logical expression | evaluate both sides of `&&` or `\|\|` |
-| `@[union]` | container | lay out all fields at offset zero and allocate enough memory for the largest field |
-| `@[impl(N)]` | container function | mark a standalone function as an implementation for container `N` |
-
-The compiler also parses `@[address(N)]`, but the current implementation does not connect its summary field to code generation yet. Treat it as reserved/internal until that changes.
+| Annotation                                    | Applies to                                                       | Meaning                                                                                            |
+|-----------------------------------------------|------------------------------------------------------------------|----------------------------------------------------------------------------------------------------|
+| `@[entry]`, `@[entry("name")]`                | function or `start`                                              | mark the function as the program entry; without `name`, the configured entry symbol is used        |
+| `@[naked]`                                    | function or `start`                                              | suppress normal entry/exit routines                                                                |
+| `@[section("name")]`, `@[section("name", N)]` | global or read-only variable, global array, function, or `start` | place the symbol into a named section; optional `N` sets section alignment                         |
+| `@[nosection]`                                | global function                                                  | place the function into the configured no-section bucket                                           |
+| `@[align(N)]`                                 | variable, array, or container                                    | request memory/container alignment                                                                 |
+| `@[register(N)]`                              | variable declaration                                             | bind the variable to a target register index                                                       |
+| `@[poparg]`                                   | variable declaration in a variadic context                       | read the next variadic argument into this declaration                                              |
+| `@[inline]`                                   | function                                                         | increase the inliner preference                                                                    |
+| `@[inline(always)]`                           | function                                                         | force the inline decision toward always inline                                                     |
+| `@[inline(never)]`                            | function                                                         | force the inline decision toward never inline                                                      |
+| `@[inline(model)]`                            | function                                                         | use the model-based inline mode                                                                    |
+| `@[only_body]`                                | function                                                         | emit only the function body, without the normal label/export wrapper                               |
+| `@[self]`                                     | container function                                               | mark the function as an explicit-self method for container call rewriting                          |
+| `@[abi]`                                      | function                                                         | mark the function as ABI-compatible                                                                |
+| `@[weak]`                                     | function                                                         | mark the function as a weak symbol                                                                 |
+| `@[vname("symbol")]`                          | function                                                         | use an explicit backend/linker-visible symbol name without marking the function as the entry point |
+| `@[like_c]`                                   | container                                                        | use C-like field layout handling instead of the requested CPL alignment value                      |
+| `@[no_fall]`                                  | `switch`                                                         | make switch cases behave as if they end with `break`                                               |
+| `@[straight]`                                 | `switch`                                                         | force linear switch selection                                                                      |
+| `@[counter(N, STP)]`                          | `loop`                                                           | generate a counted loop where 'STP' is optional                                                    |
+| `@[hot]`                                      | `if`                                                             | make the false branch cold for layout                                                              |
+| `@[cold]`                                     | `if` or switch `case`                                            | make the true branch, or the annotated case, cold for layout                                       |
+| `@[not_lazy]`                                 | logical expression                                               | evaluate both sides of `&&` or `\|\|`                                                              |
+| `@[union]`                                    | container                                                        | lay out all fields at offset zero and allocate enough memory for the largest field                 |
 
 ## Entry, naked, sections
 
 ```cpl
-@[entry("_main")]
-function main() -> i0 {
+@[entry("_main")] function main() -> i0 {
     exit 0;
 }
 
-@[naked]
-start() {
+@[naked] start() {
     asm() {
         "ret"
     }
 }
 
-@[section(".my_text")]
-function helper() -> i0 {
+@[section(".my_text", 16)] function helper() -> i0 {
     return;
 }
 ```
 
-Use `@[naked]` only for code that fully controls its own prologue, epilogue, and exit behavior. Default sections are target/config dependent. The CLI exposes `--ro-section`, `--glob-section`, and `--code-section`.
+Use `@[naked]` only for code that fully controls its own prologue, epilogue, and exit behavior. Default sections are target/config dependent. The CLI exposes `--ro-section`, `--glob-section`, and `--code-section`. If several symbols are placed in the same section with an alignment argument, the section table keeps the maximum requested alignment.
 
 `@[nosection]` is currently handled for functions:
 
@@ -78,11 +74,8 @@ Use `@[naked]` only for code that fully controls its own prologue, epilogue, and
 ## Data layout
 
 ```cpl
-@[align(16)]
-glob i32 value = 1;
-
-@[section(".my_data")]
-glob i32 other = 2;
+@[align(16)] glob i32 value = 1;
+@[section(".my_data")] glob i32 other = 2;
 
 @[align(1)]
 container packed {
@@ -103,8 +96,6 @@ container word_view {
 }
 ```
 
-`@[align(N)]` affects variables, arrays, and container field layout. `@[like_c]` and `@[union]` are only read when defining a container.
-
 ## Function hints and symbols
 
 ```cpl
@@ -116,11 +107,14 @@ function add(i64 a, i64 b) -> i64 {
 @[weak]
 @[abi]
 function external_hook() -> i0;
+
+@[vname("_printf")]
+@[abi]
+extern function printf(ptr i8 fmt, ...) -> i32;
 ```
 
-`@[inline]` without an option is a soft preference. Supported options are `always`, `never`, and `model`.
-
-`@[abi]` and `@[weak]` are low-level symbol/interop flags used by the function table and backend path.
+`@[inline]` without an option is a soft preference. Supported options are `always`, `never`, and `model`. </br>
+`@[abi]`, `@[weak]`, and `@[vname("symbol")]` are low-level symbol/interop flags used by the function table and backend path. `@[entry("symbol")]` also gives a function a backend-visible name, but it additionally marks that function as the program entry point. Use `@[vname("symbol")]` when only the emitted symbol name should change.
 
 ## Container self methods
 
@@ -156,14 +150,14 @@ The call `c.add(7)` is lowered as a normal function call where `ref c` is passed
 switch code; {
     case 'A'; { putc('A'); }
     case 'B'; { putc('B'); }
-    default  { putc('?'); }
+    default   { putc('?'); }
 }
 ```
 
 `@[straight]` asks the compiler to use a linear search instead of the default binary-search-style generation:
 
 ```cpl
-@[straight]
+@[straight] @[no_fall]
 switch code; {
     case 1; { putc('1'); }
     default { putc('?'); }
@@ -188,13 +182,13 @@ On `if`, `@[hot]` makes the false branch cold; `@[cold]` makes the true branch c
 ## Counted loop
 
 ```cpl
-@[counter(10)]
-loop {
-    putc('x');
-}
-```
+@[counter(10)] loop putc('x');
+@[counter(10, 1)] loop putc('x');
 
-The counter value must be constant.
+i32 a = 10;
+i32 b = 0;
+@[counter(a, b)] loop putc('x');
+```
 
 ## Logical evaluation
 

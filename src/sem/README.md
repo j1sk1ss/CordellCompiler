@@ -55,5 +55,5 @@ CSA involves Z3 as SMT solver to prove the next list of questions:
 - Can program cause a Dereference of Null error?
 - Is this code reachable? 
 
-It works with the python bindings (you can find them in the `z3_wrapper` folder). Actually, such an approach is similar to how Svace static analyzer works, that's why I did the same thing. </br>
+It works through the native Z3 C API in the `z3_wrapper` module. </br>
 P.S.: *This is a pure experiment and can't be considered as a solid research. I'm just trying to obtain some experience with SMT solvers.*

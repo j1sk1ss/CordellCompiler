@@ -42,7 +42,8 @@ start(i32 a, ptr ptr i8 answers) {
          { scope, id=3 }
             [i32] (I32_TYPE_TOKEN, v_id=-1, t_id=3, s_id=-1)
                [l] (I32_VARIABLE_TOKEN, v_id=1, t_id=-1, s_id=3)
-               [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+               [=] (ASSIGN_TOKEN, v_id=-1, t_id=-1, s_id=-1)
+                  [0] (UNKNOWN_NUMERIC_TOKEN, v_id=-1, t_id=-1, s_id=-1)
             [while] (WHILE_TOKEN, v_id=-1, t_id=-1, s_id=3)
                [dref] (DREF_TYPE_TOKEN, v_id=-1, t_id=-1, s_id=-1)
                   [s] (I8_VARIABLE_TOKEN, ptr, v_id=0, t_id=1, s_id=2)

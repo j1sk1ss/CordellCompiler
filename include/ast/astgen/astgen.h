@@ -284,22 +284,6 @@ Returns an ast node.
 ast_node_t* cpl_parse_extern(PARSER_ARGS);
 
 /*
-Parse .cpl exit block. Should be invoked on a 'exit' token.
-Snippet:
-```cpl
-exit : statement :;
-```
-
-Params:
-    - `it` - Current iterator on token list.
-    - `ctx` - AST ctx.
-    - `smt` - Symtable pointer.
-
-Returns an ast node.
-*/
-ast_node_t* cpl_parse_exit(PARSER_ARGS);
-
-/*
 Parse .cpl return block. Should be invoked on a 'return' token.
 Snippet:
 ```cpl
@@ -489,7 +473,13 @@ Returns an ast node.
 */
 ast_node_t* cpl_parse_conv(PARSER_ARGS);
 
-// TODO: docs
+/*
+Parse a unary expression.
+Params:
+    - <parser_args>
+
+Returns an AST node.
+*/
 ast_node_t* cpl_parse_unary(PARSER_ARGS);
 
 /*
@@ -519,7 +509,22 @@ Returns an AST node.
 */
 ast_node_t* cpl_parse_sizeof(PARSER_ARGS);
 
-// TODO: docs
+/*
+Parse a container definition.
+Params:
+    - <parser_args>
+
+Returns an AST node.
+*/
 ast_node_t* cpl_parse_contdef(PARSER_ARGS);
+
+/*
+Parse a declaration initializer value.
+Params:
+    - <parser_args>
+
+Returns an AST node.
+*/
+ast_node_t* cpl_parse_declaration_value(PARSER_ARGS);
 
 #endif

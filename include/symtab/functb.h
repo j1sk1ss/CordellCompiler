@@ -8,6 +8,7 @@
 #include <ast/ast.h>
 #include <ast/dump.h>
 #include <symtab/symtab_id.h>
+#include <symtab/scopetb.h>
 
 typedef struct {
     signed char global;   /* keyword   */
@@ -22,6 +23,8 @@ typedef struct {
     signed char self;     /* annot     */
     signed char naked;    /* 1 / 0   */ /* annot */
     signed char inln;     /* 1, 2, 3 */ /* annot */
+    signed char onlybody; /* annot     */
+    signed char vname;    /* annot     */
 } func_info_flags_t;
 
 typedef struct {
@@ -51,13 +54,14 @@ typedef struct func_ctx {
 Collect all functions with the same name.
 Params:
     - `fname` - Target function name.
-    - `s_id` - Function's scope.
+    - `s_id` - Function call scope.
     - `out` - The output list.
     - `ctx` - Function symbol table.
+    - `sctx` - Scope symbol table.
 
 Returns 1 on success, otherwise 0.
 */
-int FNTB_collect_info(string_t* fname, symbol_id_t s_id, list_t* out, functab_ctx_t* ctx);
+int FNTB_collect_info(string_t* fname, symbol_id_t s_id, list_t* out, functab_ctx_t* ctx, scopetab_ctx_t* sctx);
 
 /*
 Get function from a table by the provided ID.
@@ -110,7 +114,14 @@ Returns the ID of a copied function.
 */
 symbol_id_t FNTB_add_copy(func_info_t* src, functab_ctx_t* ctx);
 
-// TODO: docs
+/*
+Check whether a function has registered generic types.
+Params:
+    - `f_id` - Function ID.
+    - `ctx` - Symtable context.
+
+Returns 1 if generic types are registered, otherwise 0.
+*/
 int FNTB_has_generic_types(symbol_id_t f_id, functab_ctx_t* ctx);
 
 /*
@@ -147,12 +158,21 @@ Returns 1 on success, otherwise 0.
 */
 int FNTB_add_local(symbol_id_t f_id, symbol_id_t l_id, functab_ctx_t* ctx);
 
+// TODO: docs
+int FNTB_update_virt_name(symbol_id_t id, string_t* vname, functab_ctx_t* ctx);
+
+#define FNTB_ONLY_NAME(name)   name, FNTB_NO_FLAGS_CHANGE, NULL, NULL
 #define FNTB_ONLY_FLAGS(flags) NULL, flags, NULL, NULL
-#define FNTB_SET_EXTERNAL(n) ((func_info_flags_t){ .global=-1, .abi=-1, .weak=-1, .external=n, .entry=-1, .used=-1, \
+#define FNTB_SHALLOW_EXTERN  2
+#define FNTB_EXPLICIT_EXTERN 1
+#define FNTB_NO_EXTERN       0
+#define FNTB_NO_FLAGS_CHANGE ((func_info_flags_t){ .global=-1, .abi=-1, .weak=-1, .external=-1, .entry=-1, .used=-1,  \
     .local=-1, .vargs=-1, .generic=-1, .self=-1, .naked=-1, .inln=-1 })
-#define FNTB_SET_NAKED(n)    ((func_info_flags_t){ .global=-1, .abi=-1, .weak=-1, .external=-1, .entry=-1, .used=-1, \
+#define FNTB_SET_EXTERNAL(n) ((func_info_flags_t){ .global=-1, .abi=-1, .weak=-1, .external=n, .entry=-1, .used=-1,   \
+    .local=-1, .vargs=-1, .generic=-1, .self=-1, .naked=-1, .inln=-1 })
+#define FNTB_SET_NAKED(n)    ((func_info_flags_t){ .global=-1, .abi=-1, .weak=-1, .external=-1, .entry=-1, .used=-1,  \
     .local=-1, .vargs=-1, .generic=-1, .self=-1, .naked=(n), .inln=-1 })
-#define FNTB_SET_GENERIC(n)  ((func_info_flags_t){ .global=-1, .abi=-1, .weak=-1, .external=-1, .entry=-1, .used=-1, \
+#define FNTB_SET_GENERIC(n)  ((func_info_flags_t){ .global=-1, .abi=-1, .weak=-1, .external=-1, .entry=-1, .used=-1,  \
     .local=-1, .vargs=-1, .generic=(n), .self=-1, .naked=-1, .inln=-1 })
 #define FNTB_SET_USED(n)     ((func_info_flags_t){ .global=-1, .abi=-1, .weak=-1, .external=-1, .entry=-1, .used=(n), \
     .local=-1, .vargs=-1, .generic=-1, .self=-1, .naked=-1, .inln=-1 })

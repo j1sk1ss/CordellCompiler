@@ -7,32 +7,26 @@
 #include <symtab/symtab_id.h>
 
 typedef struct {
-    symbol_id_t            v_id;     /* Variable ID                      */
-    symbol_id_t            p_id;     /* Parent variable ID (def: -1)     */
-    symbol_id_t            s_id;     /* Scope ID                         */
-    string_t*              name;    
-    token_type_t           type;     /* Variable type                    */
-    symbol_id_t            t_id;     /* Varaible's type ID               */
+    symbol_id_t         v_id;     /* Variable ID                      */
+    symbol_id_t         p_id;     /* Parent variable ID (def: -1)     */
+    symbol_id_t         s_id;     /* Scope ID                         */
+    string_t*           name;    
+    token_type_t        type;     /* Variable type                    */
+    symbol_id_t         t_id;     /* Varaible's type ID               */
+    basic_object_info_t vfs;
 
     struct {
-        char               vla  : 1; /* Point to vla, can't be reused    */
-        char               ptr;      /* PTR type == maximum size in arch */
-        char               ro   : 1; /* Declaration RO flag              */
-        char               glob : 1; /* Declaration global flag          */
-        char               ext  : 1; /* Is an external variable          */
-    } vfs; /* VariableFlags          */
-
-    struct {
-        short              align;
-        long               offset;
-        long               size;
-        char               reg;
-        char               allocated : 1;
+        short           align;
+        long            offset;
+        long            size;
+        char            reg;
+        char            allocated : 1;
+        char            used      : 1;
     } vmi; /* VariableMemoryInfo     */
 
     struct {
-        long               definition;
-        char               defined;
+        long            definition;
+        char            defined;
     } vdi; /* VariableDefinitionInfo */
 } variable_info_t;
 
@@ -45,13 +39,15 @@ typedef struct {
 #define DEFINED_VARIABLE     1
 #define OVERDEFINED_VARIABLE 2
 
+int VRTB_set_used(symbol_id_t id, vartab_ctx_t* ctx);
 int VRTB_update_memory(symbol_id_t id, long offset, long size, char reg, short align, vartab_ctx_t* ctx);
 int VRTB_update_definition(symbol_id_t id, long definition, symbol_id_t overdefined, vartab_ctx_t* ctx, int rewrite);
 int VRTB_update_type(symbol_id_t id, int t, symbol_id_t t_id, vartab_ctx_t* ctx);
 int VRTB_get_info_id(symbol_id_t id, variable_info_t* info, vartab_ctx_t* ctx);
 int VRTB_get_info(string_t* vname, symbol_id_t scope, variable_info_t* info, vartab_ctx_t* ctx);
+symbol_id_t VRTB_resolve_parent(symbol_id_t id, vartab_ctx_t* ctx);
 symbol_id_t VRTB_add_copy(variable_info_t* src, vartab_ctx_t* ctx);
-symbol_id_t VRTB_add_info(string_t* name, token_type_t type, symbol_id_t scope, token_flags_t* flags, vartab_ctx_t* ctx);
+symbol_id_t VRTB_add_info(string_t* name, token_type_t type, symbol_id_t scope, basic_object_info_t flags, vartab_ctx_t* ctx);
 int VRTB_unload(vartab_ctx_t* ctx);
 
 #endif

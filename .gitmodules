@@ -1,0 +1,8 @@
+[submodule "cpllib"]
+	path = cpllib
+	url = https://github.com/j1sk1ss/CPL_stdlib.git
+	branch = main
+[submodule "vscode"]
+	path = vscode
+	url = https://github.com/j1sk1ss/CPL_vscode.git
+	branch = main

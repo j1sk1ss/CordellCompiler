@@ -6,13 +6,13 @@ ast_node_t* cpl_parse_asm(PARSER_ARGS) {
 
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
     if (!base) {
-        PARSE_ERROR("Can't create a base for the '%s' structure!", ASM_COMMAND);
+        PARSE_ERROR("Can't create a base for the 'asm' structure!");
         RESTORE_TOKEN_POINT;
         return NULL;
     }
     
     if (!consume_token(it, OPEN_BRACKET_TOKEN)) {
-        PARSE_ERROR("Expected the 'OPEN_BRACKET_TOKEN' token while parse of the '%s' statement!", ASM_COMMAND);
+        PARSE_ERROR("Expected the '(' token while parse of the 'asm' statement!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
@@ -22,7 +22,7 @@ ast_node_t* cpl_parse_asm(PARSER_ARGS) {
     ast_node_t* args = cpl_parse_call_arguments(it, ctx, smt, 0);
     if (args) AST_add_node(base, args);
     else {
-        PARSE_ERROR("Error during the '%s' argument value parsing! %s(<stmt>)!", ASM_COMMAND, ASM_COMMAND);
+        PARSE_ERROR("Error during the 'asm' argument value parsing! Provide variables or values.");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
@@ -31,14 +31,14 @@ ast_node_t* cpl_parse_asm(PARSER_ARGS) {
     ast_node_t* body = AST_create_node_bt(CREATE_SCOPE_TOKEN);
     if (body) AST_add_node(base, body);
     else {
-        PARSE_ERROR("Can't create a body for the '%s' structure!", ASM_COMMAND);
+        PARSE_ERROR("Can't create a body for the 'asm' structure!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
     }
 
     if (!consume_token(it, OPEN_BLOCK_TOKEN)) {
-        PARSE_ERROR("Expected the 'OPEN_BLOCK_TOKEN' token while parse of the '%s' statement!", ASM_COMMAND);
+        PARSE_ERROR("Expected the '{' token while parse of the 'asm' statement!");
         AST_unload(base);
         RESTORE_TOKEN_POINT;
         return NULL;
@@ -46,20 +46,17 @@ ast_node_t* cpl_parse_asm(PARSER_ARGS) {
 
     do {
         if (!consume_token(it, STRING_VALUE_TOKEN)) {
-            PARSE_ERROR("Expected a string value in the '%s's body!", ASM_COMMAND);
+            PARSE_ERROR("Expected a string value in the 'asm's body!");
             AST_unload(base);
             RESTORE_TOKEN_POINT;
             return NULL;
         }
 
-        int sid = STTB_add_info(CURRENT_TOKEN->body, STR_RAW_ASM, &smt->s);
         ast_node_t* arg = AST_create_node(CURRENT_TOKEN);
-        if (arg && sid >= 0) { 
-            arg->sinfo.v_id = sid;
-            AST_add_node(body, arg);
-        }
+        if (arg) arg->sinfo.v_id = STTB_add_info(CURRENT_TOKEN->body, STR_RAW_ASM, &smt->s);
+        if (arg && arg->sinfo.v_id != NO_SYMBOL_ID) AST_add_node(body, arg);
         else {
-            PARSE_ERROR("Can't create a body for the '%s'-string!", ASM_COMMAND);
+            PARSE_ERROR("Can't create a body for the 'asm'-string!");
             AST_unload(base);
             RESTORE_TOKEN_POINT;
             return NULL;

@@ -29,7 +29,10 @@ int main(int argc, char* argv[]) {
     }
 
     finder_ctx_t finctx = { .bpath = argv[2] };
-    fd = PP_perform(fd, &finctx);
+    pp_ctx_t ppctx;
+    PP_init_pp_ctx(&ppctx);
+
+    fd = PP_perform(fd, &finctx, &ppctx);
     if (fd < 0) {
         fprintf(stderr, "Processed file %s isn't found!\n", argv[1]);
         return 1;
@@ -60,8 +63,6 @@ int main(int argc, char* argv[]) {
     }
 
     AST_finalize_parse(&sctx, &smt);
-
-    AST_DVRT_resolve_calls(sctx.r, &smt);
 
     map_foreach (func_info_t* fi, &smt.f.functb) {
         printf(

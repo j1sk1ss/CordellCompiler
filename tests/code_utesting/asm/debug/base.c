@@ -47,11 +47,13 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    config_t config = { .compilation_flags.debug = 1 };
-    CONF_set_config(&config);
+    CONF_set_config((config_t){ .compilation_flags.debug = 1 });
 
     finder_ctx_t finctx = { .bpath = argv[2] };
-    fd = PP_perform(fd, &finctx);
+    pp_ctx_t ppctx;
+    PP_init_pp_ctx(&ppctx);
+
+    fd = PP_perform(fd, &finctx, &ppctx);
     if (fd < 0) {
         fprintf(stderr, "Processed file %s isn't found!\n", argv[1]);
         return 1;

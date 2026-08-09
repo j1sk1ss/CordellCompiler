@@ -1,34 +1,23 @@
 #include <preproc/pp.h>
 
-int PP_create_tmp_file(int src_fd) {
-    char src_path[PP_PATH_MAX] = { 0 };
-    char path[PP_PATH_MAX]     = { 0 };
-    char dir_buf[PP_PATH_MAX]  = { 0 };
+int PP_create_tmp_file() {
+    char path[PP_PATH_MAX] = { 0 };
+    const char* tmp_dir = getenv("TMPDIR");
+    if (!tmp_dir || !tmp_dir[0]) tmp_dir = "/tmp";
 
-#if defined(__linux__)
-    char link_path[64];
-    snprintf(link_path, sizeof(link_path), "/proc/self/fd/%d", src_fd);
-    ssize_t n = readlink(link_path, src_path, sizeof(src_path) - 1);
-    if (n < 0) return -1;
-    src_path[n] = 0;
-#elif defined(__APPLE__)
-    if (fcntl(src_fd, F_GETPATH, src_path) == -1) return -1;
-#else
-    return -1;
-#endif
-
-    if (src_path[0] != '/') return -1;
-    strncpy(dir_buf, src_path, sizeof(dir_buf));
-    dir_buf[sizeof(dir_buf) - 1] = 0;
-
-    const char* dir = dirname(dir_buf);
-    int w = snprintf(path, sizeof(path), "%s/.pp_tmp_XXXXXX", dir);
-    if (w < 0 || (size_t)w >= sizeof(path)) return -1;
+    int w = snprintf(path, sizeof(path), "%s/cplc-pp-XXXXXX", tmp_dir);
+    if (w < 0 || (size_t)w >= sizeof(path)) {
+        fprintf(stderr, "Preprocessor temporary path is too long: %s\n", tmp_dir);
+        return -1;
+    }
 
     int tmp_fd = mkstemp(path);
-    if (tmp_fd < 0) return -1;
-    unlink(path);
+    if (tmp_fd < 0) {
+        fprintf(stderr, "Can't create a preprocessor temporary file in %s: %s\n", tmp_dir, strerror(errno));
+        return -1;
+    }
 
+    unlink(path);
     fchmod(tmp_fd, 0644);
 
     int flags = fcntl(tmp_fd, F_GETFL);
@@ -95,11 +84,7 @@ static inline int _is_ident_char(char c) {
     return _is_ident_start(c) || (c >= '0' && c <= '9');
 }
 
-static inline int _is_ident_cont(unsigned char c) {
-    return (c == '_') || isalnum(c); 
-}
-
-static int _ensure_cap(char** out, size_t* cap, size_t need) {
+static inline int _ensure_cap(char** out, size_t* cap, size_t need) {
     if (need <= *cap) return 1;
     size_t nc = (*cap ? *cap : 64);
     while (nc < need) nc *= 2;
@@ -110,7 +95,7 @@ static int _ensure_cap(char** out, size_t* cap, size_t need) {
     return 1;
 }
 
-static int _append_mem(char** out, size_t* cap, size_t* oi, const char* p, size_t n) {
+static inline int _append_mem(char** out, size_t* cap, size_t* oi, const char* p, size_t n) {
     if (!_ensure_cap(out, cap, (*oi) + n + 1)) return 0;
     memcpy((*out) + (*oi), p, n);
     *oi += n;
@@ -118,7 +103,7 @@ static int _append_mem(char** out, size_t* cap, size_t* oi, const char* p, size_
     return 1;
 }
 
-static int _append_ch(char** out, size_t* cap, size_t* oi, char c) {
+static inline int _append_ch(char** out, size_t* cap, size_t* oi, char c) {
     return _append_mem(out, cap, oi, &c, 1);
 }
 
@@ -142,7 +127,7 @@ static int _resolve_defines(const char* in, char** out, size_t* out_cap, deftb_t
         unsigned char c = (unsigned char)in[i];
         if (_is_ident_start(c)) {
             size_t start = i++;
-            while (in[i] && _is_ident_cont((unsigned char)in[i])) i++;
+            while (in[i] && ((in[i] == '_') || isalnum(in[i]))) i++;
             size_t len = i - start;
 
             char stack_tok[256] = { 0 };
@@ -192,14 +177,18 @@ int PP_resolve_defines(char** in, size_t* in_cap, char** out, size_t* out_cap, d
     for (int pass = 0; pass < PP_MAX_PASSES; pass++) {
         int changed = _resolve_defines(*in, out, out_cap, dctx);
         if (changed < 0) return 0;
-        if (changed == 0) return 1;
-
-        char* ts = *in; *in = *out; *out = ts;
-        size_t tcap = *in_cap; *in_cap = *out_cap; *out_cap = tcap;
+        if (!changed) return 1;
+        char *ts    = *in; 
+        *in         = *out; 
+        *out        = ts;
+        size_t tcap = *in_cap; 
+        *in_cap     = *out_cap; 
+        *out_cap    = tcap;
     }
     
     return 1;
 }
+#undef PP_MAX_PASSES
 
 int PP_strip_colon_comments(const char* in, pp_cmt_state_t* st, char** out, size_t* out_cap) {
     if (!in || !st || !out || !out_cap) return 0;
@@ -228,43 +217,49 @@ int PP_strip_colon_comments(const char* in, pp_cmt_state_t* st, char** out, size
             if (c == ':') st->in_colon = 0;
             continue;
         }
-
-        if (st->in_str) {
+        else if (st->in_str) {
             (*out)[oi++] = c;
-            if (st->esc)        st->esc = 0;
-            else if (c == '\\') st->esc = 1;
+            if (st->esc)        st->esc    = 0;
+            else if (c == '\\') st->esc    = 1;
             else if (c == '"')  st->in_str = 0;
             continue;
         }
-
-        if (st->in_chr) {
+        else if (st->in_chr) {
             (*out)[oi++] = c;
-            if (st->esc)        st->esc = 0;
-            else if (c == '\\') st->esc = 1;
+            if (st->esc)        st->esc    = 0;
+            else if (c == '\\') st->esc    = 1;
             else if (c == '\'') st->in_chr = 0;
             continue;
         }
 
-        if (c == '"') {
-            st->in_str = 1;
-            (*out)[oi++] = c;
-            continue;
-        }
-
-        if (c == '\'') {
-            st->in_chr = 1;
-            (*out)[oi++] = c;
-            continue;
-        }
-
-        if (c == ':') {
-            if (in[i + 1] != '/') st->in_colon = 1;
-            else {
-                st->in_colon_slash = 1;
-                i++;
+        switch (c) {
+            case '"': {
+                st->in_str = 1;
+                (*out)[oi++] = c;
+                continue;
             }
+            case '\'': {
+                st->in_chr = 1;
+                (*out)[oi++] = c;
+                continue;
+            }
+            case ':': {
+                if (in[i + 1] == ':') {
+                    (*out)[oi++] = ':';
+                    (*out)[oi++] = ':';
+                    i++;
+                    continue;
+                }
 
-            continue;
+                if (in[i + 1] != '/') st->in_colon = 1;
+                else {
+                    st->in_colon_slash = 1;
+                    i++;
+                }
+
+                continue;
+            }
+            default: break;
         }
 
         (*out)[oi++] = c;
@@ -274,13 +269,8 @@ int PP_strip_colon_comments(const char* in, pp_cmt_state_t* st, char** out, size
     return 1;
 }
 
-int PP_parse_define_arg(
-    const char* p,
-    char* name_out,  size_t name_sz,
-    char* value_out, size_t value_sz
-) {
+int PP_parse_define_arg(const char* p, char* name_out,  size_t name_sz, char* value_out, size_t value_sz) {
     if (!p || !name_out || !name_sz) return 0;
-
     while (*p == ' ' || *p == '\t') p++;
     if (!_is_ident_start(*p)) return 0;
 

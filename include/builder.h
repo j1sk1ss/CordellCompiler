@@ -1,53 +1,56 @@
 #ifndef BUILDER_H_
 #define BUILDER_H_
 
-/* Base libs for STDIO with CLI and files */
+/* Base libs for STDIO with CLI and files        */
 #include <errno.h>
 #include <sys/wait.h>
 #include <stdio.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 
-/* Pre-processor part and tokenization part */
+/* basics                                        */
+#include <std/list.h>
+
+/* Pre-processor part and tokenization part      */
 #include <preproc/pp.h>
 #include <prep/token.h>
 #include <prep/markup.h>
 
-/* Semantic (Static analyzer) setup */
+/* Semantic (Static analyzer) setup              */
 #include <sem/semantic.h>
 
 /* AST generation part and AST optimization part */
 #include <ast/ast.h>
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
-#include <ast/opt/condunroll.h>
-#include <ast/opt/deadscope.h>
 
-/* HIR generation part and CFG generation part */
+/* HIR generation part and CFG generation part   */
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
 #include <hir/cfg.h>
+#include <hir/dump.h>
 
-/* SSA + constant fold / propagation + TRE + inline + LICM */
+/* SSA + const fold / prop + TRE + inline + LICM */
 #include <hir/ssa.h>
 #include <hir/dag.h>
 #include <hir/constfold.h>
 #include <hir/func.h>
 #include <hir/loop.h>
 
-/* HLIR generation */
+/* HLIR generation                               */
 #include <lir/lirgen.h>
 #include <lir/lirgens/lirgens.h>
 #include <lir/dump.h>
 
-/* HLIR copy prop */
+/* HLIR copy prop                                */
 #include <lir/copyprop.h>
 
-/* HLIR constfold part */
+/* HLIR constfold part                           */
 #include <lir/constfold.h>
 
-/* From HLIR to LLIR (now we're arch dependent) */
+/* From HLIR to LLIR (now we're arch dependent)  */
 #include <lir/selector/instsel.h>
 #include <lir/selector/memsel.h>
 #include <lir/selector/savereg.h>
@@ -55,39 +58,56 @@
 #include <lir/selector/i386_gnu_nasm.h>
 #include <lir/selector/x86_64_macho_nasm.h>
 
-/* Instruction scheduling */
+/* Instruction scheduling                        */
 #include <lir/instplan/targinfo.h>
 #include <lir/instplan/instplan.h>
 
-/* Liveness analysis + Register allocation */
+/* Liveness analysis + Register allocation       */
 #include <lir/dfg.h>
 #include <lir/regalloc/ra.h>
 #include <lir/regalloc/i386_gnu_precolor.h>
 #include <lir/regalloc/x86_64_gnu_precolor.h>
 #include <lir/regalloc/regalloc.h>
 
-/* Peephole optimization */
+/* Peephole optimization                         */
 #include <lir/peephole/peephole.h>
 #include <lir/peephole/x86_64_gnu_nasm.h>
 
-/* Codegen */
+/* Codegen                                       */
 #include <asm/asmgen.h>
 #include <asm/x86_64_gnu_nasm_asmgen.h>
 #include <asm/i386_gnu_nasm_asmgen.h>
 #include <asm/x86_64_macho_nasm_asmgen.h>
 
-#define CCPL_VERSION                 "3.6.3:0806.26" // major.minor<.sub> (old version style):ddmm.yy (new version style)
+#include <gem_data.h>
+#define CCPL_VERSION                 "3.6.13:0908.26" // major.minor<.patch> (old version style):ddmm.yy (new version style)
+
+#ifndef CPL_DEFAULT_INCLUDE_DIR
+    #define CPL_DEFAULT_INCLUDE_DIR  "/usr/local/share/cpl/include"
+#endif
+
+#ifndef CPL_DEFAULT_RUNTIME_LIB
+    #define CPL_DEFAULT_RUNTIME_LIB  "/usr/local/lib/cpl/libcpl.a"
+#endif
+
+#ifndef PATH_MAX
+    #define PATH_MAX                 4096
+#endif
 
 #define OPTION_HELP_SHORT            "-h"
 #define OPTION_HELP                  "--help"
 #define OPTION_VERSION_SHORT         "-v"
 #define OPTION_VERSION               "--version"
+#define OPTION_SOMETHING             "--smth"
+#define OPTION_SOMETHING_SHORT       "-s"
 #define OPTION_PREPROCESS_ONLY       "-E"
 #define OPTION_INLUCDE               "-I"
+#define OPTION_DEFINE                "-D"
+#define OPTION_PRINT_STDLIB          "--print-stdlib-path"
 #define OPTION_OUTPUT                "--output"
-#define OPTION_WITHOUT_COMPILATION   "--without-compilation"
 #define OPTION_ENABLE_AST_ANALYSIS   "--ast-analysis"
 #define OPTION_ENABLE_IR_ANALYSIS    "--ir-analysis"
+#define OPTION_ANALYSIS_ONLY         "--analysis-only"
 #define OPTION_DEBUG                 "--debug"
 #define OPTION_NO_DEBUG              "--no-debug"
 #define OPTION_NO_OPTIMIZATION       "-O0"
@@ -99,12 +119,14 @@
 #define OPTION_ASM_FORMAT            "--asm-format"
 #define OPTION_LINKER                "--linker"
 #define OPTION_LINKER_MODE           "--linker-mode"
+#define OPTION_LINKER_ARG_SHORT      "-Xlinker"
+#define OPTION_LINKER_ARG            "--linker-arg"
+#define OPTION_COMPILE_ONLY_SHORT    "-c"
+#define OPTION_COMPILE_ONLY          "--compile-only"
 #define OPTION_LINKER_NO_PIE         "--linker-no-pie"
 #define OPTION_LINKER_PIE            "--linker-pie"
 #define OPTION_LINKER_M32            "--linker-m32"
 #define OPTION_LINKER_NO_M32         "--linker-no-m32"
-#define OPTION_NO_COMPILE            "--no-compile"
-#define OPTION_NO_OBJECT_BUILD       "--no-object-build"
 #define OPTION_ENTRY_NAME            "--entry-name"
 #define OPTION_RO_SECTION            "--ro-section"
 #define OPTION_GLOB_SECTION          "--glob-section"
@@ -128,7 +150,9 @@
 #define OPTION_NO_PEEPHOLE           "--no-peephole"
 #define OPTION_EMIT_AST              "--emit-ast"
 #define OPTION_EMIT_IR               "--emit-ir"
+#define OPTION_EMIT_HIR_CFG          "--emit-hir-cfg"
 #define OPTION_EMIT_LIR              "--emit-lir"
+#define OPTION_EMIT_LIR_CFG          "--emit-lir-cfg"
 #define OPTION_EMIT_ASM              "--emit-asm"
 #define OPTION_AST_OUTPUT            "--ast-output"
 #define OPTION_IR_OUTPUT             "--ir-output"
@@ -141,56 +165,70 @@ typedef struct {
     const char* description;
 } cli_help_option_t;
 
+typedef enum {
+    BUILD_MODE_EXECUTABLE,
+    BUILD_MODE_OBJECT,
+    BUILD_MODE_ANALYSIS
+} build_mode_t;
+
 typedef struct {
+    build_mode_t     build_mode;
     struct {
-        const char*  include;
-        const char** files;
+        char*        include;
+        char*        stdlib;
+        char*        runtime;
+        char**       files;
         int          files_count;
+        list_t       defines;
         char*        output;
         char*        ast_output;
         char*        ir_output;
+        char*        hir_cfg_name;
         char*        lir_output;
+        char*        lir_cfg_name;
         char*        asm_output;
     } locations;
     struct {
-        const char*  asm_compiler;
-        const char*  asm_format;
-        const char*  linker;
+        char*        asm_compiler;
+        char*        asm_format;
+        char*        linker;
+        list_t       linker_args;
         int          linker_use_c_driver;
         int          linker_no_pie;
         int          linker_m32;
     } tools;
     struct {
-        const char*  entry_name;
-        const char*  ro_section;
-        const char*  glob_section;
-        const char*  code_section;
+        char*        entry_name;
+        char*        ro_section;
+        char*        glob_section;
+        char*        code_section;
         long         full_bytness;
         long         half_bytness;
         long         quart_bytness;
         long         eight_bytness;
         arch_type_t  sys_type;
-        int          tre;
-        int          finline;
-        int          licm;
-        int          constant;
-        int          peephole;
-        int          copy_prop;
-        int          debug;
-        int          emit_ast;
-        int          emit_ir;
-        int          emit_lir;
-        int          emit_asm;
+        int          tre                  : 1;
+        int          finline              : 1;
+        int          licm                 : 1;
+        int          constant             : 1;
+        int          peephole             : 1;
+        int          copy_prop            : 1;
+        int          debug                : 1;
+        int          emit_ast             : 1;
+        int          emit_ir              : 1;
+        int          emit_hir_cfg         : 1;
+        int          emit_lir             : 1;
+        int          emit_lir_cfg         : 1;
+        int          emit_asm             : 1;
     } config;
     struct {
-        int          ast_analysis;
-        int          hir_analysis;
-        int          show_help;
-        int          show_version;
-        int          preprocess_only;
-        int          without_compilation;
-        int          no_compile;
-        int          no_object_build;
+        int          ast_analysis         : 1;
+        int          hir_analysis         : 1;
+        int          show_help            : 1;
+        int          show_version         : 1;
+        int          print_stdlib         : 1;
+        int          show_something       : 1;
+        int          preprocess_only      : 1;
     } flags;
 } options_t;
 

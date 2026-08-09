@@ -24,7 +24,6 @@ typedef struct {
     map_t       strtb;
 } strtb_ctx_t;
 
-int STTB_update_info(symbol_id_t id, string_t* value, str_type_t t, strtb_ctx_t* ctx);
 symbol_id_t STTB_add_info(string_t* value, str_type_t t, strtb_ctx_t* ctx);
 int STTB_get_info_id(symbol_id_t id, str_info_t* info, strtb_ctx_t* ctx);
 int STTB_get_info(string_t* value, str_info_t* info, strtb_ctx_t* ctx);

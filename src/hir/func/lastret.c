@@ -3,10 +3,10 @@
 int HIR_FUNC_set_last_return(cfg_ctx_t* cctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         cfg_block_t* rblock = NULL;
-        int entry = 1, rcount = 0;
+        int entry = 1;
         foreach (cfg_block_t* bb, &fb->blocks) {
             if (!bb->l && !bb->jmp && (set_size(&bb->pred) || entry)) {
-                if (rcount++ > 1) goto _skip_function;
+                if (bb->hmap.exit->op == HIR_FRET) continue;
                 rblock = bb;
             }
 
@@ -21,7 +21,6 @@ int HIR_FUNC_set_last_return(cfg_ctx_t* cctx) {
                 rblock->hmap.exit = hb;
             }
         }
-_skip_function: {}
     }
 
     return 1;

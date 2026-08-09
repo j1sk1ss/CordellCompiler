@@ -1,0 +1,16 @@
+function foo(i32 a) -> i32 {
+    return 100 / a;
+}
+
+start(i32 a) {
+    foo(a);
+    if a != 0; {
+        foo(a);
+    }
+}
+
+:/ OUTPUT
+[WARNING] [{X}.cpl:2:12] Possible Division of zero! This expression will return 0. (variable 'tmp' is NULL)!
+[WARNING] [{X}.cpl:6:9] Function 'foo' has the 'i32' return type but the call doesn't store it anywhere else.
+[WARNING] [{X}.cpl:8:17] Function 'foo' has the 'i32' return type but the call doesn't store it anywhere else.
+/:

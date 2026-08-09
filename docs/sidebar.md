@@ -16,6 +16,7 @@
   - [Binary and unary operations](pages/binary-and-unary-operations.md)
   - [Control flow statements](pages/control-flow-statements.md)
   - [Functions and built-ins](pages/functions-and-inbuilt-macros.md)
+  - [CPL standard library](pages/cpllib-reference.md)
   - [Scopes](pages/scopes.md)
   - [Containers](pages/containers.md)
   - [Annotations](pages/annotations.md)
@@ -23,6 +24,7 @@
   - [Keywords](pages/keywords.md)
 
 - **Compiler & toolchain**
+  - [Build, install, and package](pages/build-install-package.md)
   - [Compiler usage](pages/compiler-usage.md)
   - [Compiler architecture](pages/compiler-architecture.md)
   - [Semantic static checker](pages/semantic-static-checker.md)

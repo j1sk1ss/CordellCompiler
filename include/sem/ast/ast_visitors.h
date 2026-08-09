@@ -92,25 +92,6 @@ Returns 1 if the node is correct, otherwise 0.
 int ASTWLKR_illegal_declaration(AST_VISITOR_ARGS);
 
 /*
-ASTWLKR_no_return checks if function block has return statement at every path.
-Example:
-```cpl
-    function a() -> i8 {
-        if 1; {
-            return 1;
-        }
-        : <= Will fire a warning :
-    }
-```
-
-Params:
-    - AST_VISITOR_ARGS - Default AST visitor args.
-
-Returns 1 if the node is correct, otherwise 0.
-*/
-int ASTWLKR_no_return(AST_VISITOR_ARGS);
-
-/*
 ASTWLKR_no_exit checks if start block has exit statement at every path.
 Example:
 ```cpl
@@ -128,22 +109,6 @@ Params:
 Returns 1 if the node is correct, otherwise 0.
 */
 int ASTWLKR_no_exit(AST_VISITOR_ARGS);
-
-/*
-ASTWLKR_not_enough_args checks provided argument's count in function call body.
-Example:
-```cpl
-    function a(i32 b) -> i0 { return; }
-    a(100, 100); : <= Will fire a warning : 
-    a(); : <= Will fire a warning : 
-```
-
-Params:
-    - AST_VISITOR_ARGS - Default AST visitor args.
-
-Returns 1 if the node is correct, otherwise 0.
-*/
-int ASTWLKR_not_enough_args(AST_VISITOR_ARGS);
 
 /*
 ASTWLKR_wrong_arg_type checks provided arguments into the function call body.
@@ -244,16 +209,6 @@ Params:
 Returns 1 if the node is correct, otherwise 0.
 */
 int ASTWLKR_deadcode(AST_VISITOR_ARGS);
-
-/*
-This checker fire a warning when detects a possible implict convertion.
-This isn't a important warning, but still essential for supporting well-typed approach.
-Params:
-    - AST_VISITOR_ARGS - Default AST visitor args.
-
-Returns 1 if the node is correct, otherwise 0.
-*/
-int ASTWLKR_implict_convertion(AST_VISITOR_ARGS);
 
 /*
 This checker checks for inefficient while statements such as statements with a constant value.

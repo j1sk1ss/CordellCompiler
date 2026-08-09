@@ -62,10 +62,6 @@ int MCTB_get_define(char* name, define_t* out, deftb_t* ctx) {
     return 0;
 }
 
-int MCTB_init(deftb_t* ctx) {
-    return map_init(&ctx->t, MAP_NO_CMP);
-}
-
 int MCTB_unload(deftb_t* ctx) {
     return map_free_force_op(&ctx->t, (int (*)(void*))_unload_def);
 }

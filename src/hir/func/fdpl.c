@@ -1,13 +1,11 @@
 #include <hir/func.h>
 
-/*
-Collect all HIR blocks from a CFG function into a queue in traversal order.
+/* Collect all HIR blocks from a CFG function into a queue in traversal order.
 Params:
     - `fb` - CFG function to read.
     - `out` - Queue that receives HIR blocks.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds. */
 static int _put_blocks_to_queue(cfg_func_t* fb, queue_t* out) {
     foreach (cfg_block_t* bb, &fb->blocks) {
         iterate_hir_instructions (bb) {
@@ -18,15 +16,13 @@ static int _put_blocks_to_queue(cfg_func_t* fb, queue_t* out) {
     return 1;
 }
 
-/*
-Compare two CFG functions by their HIR block sequences.
+/* Compare two CFG functions by their HIR block sequences.
 Note: System HIR blocks from the second function are ignored during comparison.
 Params:
     - `a` - First CFG function.
     - `b` - Second CFG function.
 
-Returns 1 if functions are equal, otherwise 0.
-*/
+Returns 1 if functions are equal, otherwise 0. */
 static int _function_cmp(cfg_func_t* a, cfg_func_t* b) {
     queue_t aa;
     queue_init(&aa);
@@ -56,14 +52,13 @@ _forced_exit_of_cmp: {}
     return res;
 }
 
-/*
-Resolve final function replacement through a replacement map.
+/* Resolve final function replacement through a replacement map. Find one from many of
+duplicated functions - the root.
 Params:
     - `repl` - Map where keys are old function IDs and values are replacement IDs.
     - `id` - Function ID to resolve.
 
-Returns the final replacement ID or the original ID if there is no replacement.
-*/
+Returns the final replacement ID or the original ID if there is no replacement. */
 static symbol_id_t _resolve(map_t* repl, symbol_id_t id) {
     symbol_id_t next;
     while (map_get(repl, id, (void**)&next)) {
@@ -74,15 +69,13 @@ static symbol_id_t _resolve(map_t* repl, symbol_id_t id) {
     return id;
 }
 
-/*
-Find an already used function that can replace the provided function.
+/* Find an already used function that can replace the provided function.
 Params:
     - `ctx` - CFG context with functions.
     - `a` - Function that needs a replacement candidate.
     - `replacements` - Current replacement map, used to resolve replacement chains.
 
-Returns replacement function if found, otherwise NULL.
-*/
+Returns replacement function if found, otherwise NULL. */
 static cfg_func_t* _find_replacement(cfg_ctx_t* ctx, cfg_func_t* a, map_t* replacements) {
     foreach (cfg_func_t* b, &ctx->funcs) {
         if (a == b || !b->used) continue;
@@ -103,7 +96,7 @@ static cfg_func_t* _find_replacement(cfg_ctx_t* ctx, cfg_func_t* a, map_t* repla
     return NULL;
 }
 
-int HIR_FUNC_delete_duplicated_functions(cfg_ctx_t* ctx) {
+int HIR_FUNC_set_unused_duplicated_functions(cfg_ctx_t* ctx) {
     map_t replacements;
     map_init(&replacements, MAP_NO_CMP);
 

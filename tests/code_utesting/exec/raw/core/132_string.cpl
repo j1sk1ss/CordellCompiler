@@ -8,7 +8,7 @@ container string {
     }
 
     @[self]
-    function equals(ptr string self, ptr string other) -> i0 {
+    function equals(ptr string self, ptr string other) -> i8 {
         ptr i8 s1 = self.body;
         ptr i8 s2 = other.body;
 
@@ -18,7 +18,7 @@ container string {
             s2 += 1;
         }
 
-        return not dref s1 && not dref s2;
+        return (not dref s1 && not dref s2) as i8;
     }
 }
 

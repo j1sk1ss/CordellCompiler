@@ -11,7 +11,7 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
         return NULL;
     }
 
-    annotations_summary_t annots = { .align = CONF_get_full_bytness(), .section = NULL, .reg = FIELD_NO_CHANGE };
+    annotations_summary_t annots = { .align = CONF_get_full_bytness(), .section = NULL, .salign = -1, .reg = -1 };
     ANNOT_read_annotations(&ctx->annots, &annots);
     if (annots.is_argpop) list_add(&base->annots, ANNOT_create_annotation(POPARG_ANNOTATION, NULL, 0));
 
@@ -34,7 +34,7 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
     /* Register a variable in the symtable and update its type
        from the carry, if we're working with a dynamic type. */
     stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
-    name->sinfo.v_id = VRTB_add_info(name->t->body, base->t->t_type, name->sinfo.s_id, &base->t->flags, &smt->v);
+    name->sinfo.v_id = VRTB_add_info(name->t->body, base->t->t_type, name->sinfo.s_id, base->t->flags, &smt->v);
     VRTB_update_type(name->sinfo.v_id, FIELD_NO_CHANGE, carry, &smt->v);
 
     /* If this is a custom type variable, register it as an array as well. */
@@ -42,7 +42,7 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
     if (
         base->t->t_type == CUSTOM_TYPE_TOKEN && 
         TPTB_get_info_id(carry, &ti, &smt->t)
-    ) ARTB_add_info(name->sinfo.v_id, ti.memory.size, 0, U8_TYPE_TOKEN, &base->t->flags, &smt->a);
+    ) ARTB_add_info(name->sinfo.v_id, ti.memory.size, 0, U8_TYPE_TOKEN, base->t->flags, &smt->a);
 
     /* Update variable's memory flags according to the provided annotations
        and move it to a corresponding section. */
@@ -50,27 +50,12 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
     VRTB_update_memory(name->sinfo.v_id, FIELD_NO_CHANGE, FIELD_NO_CHANGE, annots.reg, annots.align, &smt->v);
     if (!TKN_in_stack(name->t)) {
         if (!annots.section) annots.section = create_string(name->t->flags.glob ? CONF_get_glob_section() : CONF_get_ro_section());
-        SCTB_move_to_section(annots.section, name->sinfo.v_id, SECTION_ELEMENT_VARIABLE, &smt->c);
+        SCTB_move_to_section(annots.section, annots.salign, name->sinfo.v_id, SECTION_ELEMENT_VARIABLE, &smt->c);
     }
 
-    if (consume_token(it, ASSIGN_TOKEN)) {
-        forward_token(it, 1);
-        ast_node_t* value_node = cpl_parse_expression(it, ctx, smt, 1);
-        if (!value_node) {
-            PARSE_ERROR("Error during parsing of a declaration statement!");
-            AST_unload(base);
-            ANNOT_destroy_summary(&annots);
-            RESTORE_TOKEN_POINT;
-            return NULL;
-        }
-
-        if ( /* If it's a global variable, it acts differently.
-                It doesn't generate any initialization code and must have a pre-compiled value */
-            base->t->flags.glob
-        ) VRTB_update_definition(name->sinfo.v_id, value_node->t->body->to_llong(value_node->t->body), NO_SYMBOL_ID, &smt->v, 0);
-        AST_add_node(base, value_node);
-    }
-
+    ast_node_t* init_values = cpl_parse_declaration_value(it, ctx, smt, 0);
+    if (init_values) AST_add_node(base, init_values);
+    
     /* Register the variable as a basic type of the parent type,
        if this is a declaraion in a type. */
     symbol_id_t declared_type = base->sinfo.t_id;
@@ -81,9 +66,7 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
 
     base->sinfo.t_id = TPTB_add_copy(declared_type, name->sinfo.v_id, base->t->flags.ptr, &smt->t);
     VRTB_update_type(name->sinfo.v_id, FIELD_NO_CHANGE, base->sinfo.t_id, &smt->v);
-    if (ctx->t_id != NO_SYMBOL_ID) {
-       TPTB_add_as_child(ctx->t_id, base->sinfo.t_id, name->t->body, base->t->flags.ptr ? CONF_get_full_bytness() : FIELD_NO_CHANGE, &smt->t);
-    }
+    TPTB_add_as_child(ctx->t_id, base->sinfo.t_id, name->t->body, base->t->flags.ptr ? CONF_get_full_bytness() : FIELD_NO_CHANGE, &smt->t);
 
     ANNOT_destroy_summary(&annots);
     return base;

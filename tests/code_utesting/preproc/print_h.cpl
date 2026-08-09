@@ -13,7 +13,14 @@ function print(ptr i8 msg) -> i0;
 
 :/ OUTPUT
 #line 0 "{X}.cpl"
+#line 1 "{X}.cpl"
+#line 2 "{X}.cpl"
+#line 0 "code_utesting/preproc/string_h.cpl"
+#line 1 "code_utesting/preproc/string_h.cpl"
+#line 2 "code_utesting/preproc/string_h.cpl"
 function strlen(ptr i8 s) -> i64;
+#line 9 "code_utesting/preproc/string_h.cpl"
 #line 3 "{X}.cpl"
 function print(ptr i8 msg) -> i0;
+#line 12 "{X}.cpl"
 /:

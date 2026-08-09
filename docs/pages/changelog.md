@@ -3,6 +3,194 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Local and Global globals
+<div class="change-date">Date: 2026-08-08</div>
+Local `glob`s now act like a static variable from C. For instance, you can create multiple local globals in differenct functions:
+
+```cpl
+function foo() { glob i32 a = 1; }
+function bar() { glob i32 a = 1; }
+```
+
+Hovewer, there is no way to create multiple global globals with the same name:
+
+```cpl
+glob i32 a = 1;
+glob i32 a = 1;
+```
+
+At the end, local globs act the same with other variables with one difference - they're living in a section, not on the stack. That means you can use them if you don't want to waste your stack on something big and etc.
+
+## For-like loops via annotations
+<div class="change-date">Date: 2026-07-26</div>
+Now loops accept a start variable, step variable (as an alternative for integers) in the counter annotation:
+
+```cpl
+@[counter(10, 1)] loop {}
+
+i32 a; i32 b;
+@[counter(a, b)] loop {}
+```
+
+## String size cap
+<div class="change-date">Date: 2026-07-23</div>
+Strings now track the provided size. If a user provided the '0' size, it will allocate enougth space for the entire string. Otherwise it will cut the string:
+
+```cpl
+arr msg[0, i8] = "Hello world! This is a big string!";   :/ Hello world! This is a big string! /:
+arr msg[10, i8] = "Hello world! This is a big string!";  :/ Hello wor                          /:
+```
+
+## Strings initialization
+<div class="change-date">Date: 2026-07-22</div>
+The compiler now allows to initialize a container with strings:
+
+```cpl
+container asd {
+    ptr i8 a;
+    arr    b[10, i8];
+}
+
+glob asd a = { "asd", "asd" };
+```
+
+It doesn't require the `ref` keyword due to the IR specifics. The reason why we can ignore the `ref` keyword here is 'cause the IR requires us to use only one instruction for initialization of a global variable. Considering the nature of strings (they're read-only) I've decided to allow this logic in the compiler.
+
+## De-ast-detectorization
+<div class="change-date">Date: 2026-07-19</div>
+Have removed several AST-level detectors. They didn't work properly given the fact that they don't have enought information about code.
+
+## Overloads, generics and standart library
+<div class="change-date">Date: 2026-07-14</div>
+At this point there is no valid way to properly handle the case like that:
+
+```cpl
+function foo<T>(T a, i32 b) -> T {
+}
+function foo<U>(U a, i64 b) -> U {
+}
+foo<i32>(1, 1 as i32);
+foo<i32>(1, 1 as i64);
+```
+
+That's why I've decided to forbid this usage in this way. </br>
+Also I've decided to start working on my standart library which implies I have a lot of stuff to do.
+
+## CPL standart library!
+<div class="change-date">Date: 2026-07-02</div>
+Now the compiler has a library which provides a major part of the C-glibc library. To use it, provide the glibc-name and add at its end `_h` part:
+
+```cpl
+#include <stdio_h.cpl>
+start() {
+    printf(ref "Hello world!\n");
+}
+```
+
+Also the pre-proccessor now accepts `<>` headers, and the Makefile now installs the library at the `share` location.
+
+## No more AST-level optimization
+<div class="change-date">Date: 2026-06-15</div>
+The oldest optimizations now deleted from the compiler. They weren't used in the pipeline, which means this change doesn't affect anything.
+
+## Arch flags in the pre-processor
+<div class="change-date">Date: 2026-06-15</div>
+The pre-processor now has a set of pre-init flags and defines. On of the is a set of arch flags (`CCPL_MACHO64`, `CCPL_GNU64`, `CCPL_GNUI386` and `CCPL_WINDOWS64`):
+
+```cpl
+#ifdef CCPL_MACHO64
+    :/ MACHO64 specific code /:
+#endif
+#ifdef CCPL_GNU64
+    :/ GNU x86_64 specific code /:
+#endif
+#ifdef CCPL_GNUI386
+    :/ GNU i386 specific code /:
+#endif
+#ifdef CCPL_WINDOWS64
+    :/ Windows specific code /:
+#endif
+```
+
+P.S.: *At this point, GNU x86_64/i386 are the same (in general), but there is no way to check two flags at the same time.*
+
+## Section alignment
+<div class="change-date">Date: 2026-06-12</div>
+Section annotation now can have an align modifier which helps us to align an entire section. For instance:
+
+```cpl
+@[section(".text", 16)]
+glob i32 bloated = 0;
+
+@[section(".text", 16)]
+function aligned_func() {
+    i32 a;
+    arr test[10, i32];
+}
+```
+
+The second optional parameter in the section annotation now is responsible for section alignment. </br>
+Why we need this? The `GRUB2` bootloader requires us to write a boot script, which looks like the next one:
+
+```asm
+; code ...
+section .bss
+align 16
+stack_bottom:
+	resb 16384 ; 16 KiB
+stack_top:
+; code ...
+```
+
+By default, there was no way to set align to a section. Now this is possible.
+
+## only_body annotation
+<div class="change-date">Date: 2026-06-11</div>
+Sometimes there is a desire to write low-level information which neither is not a function nor variable. For instance: `[bits 16]`. Now, CPL functions can be used with the `only_body` annotation:
+
+```cpl
+@[only_body] :/ This function should be glob to be preserved in the final code /:
+glob function __head() {
+    asm() { "[bits 16]" }
+}
+start() {
+    exit 1;
+}
+```
+
+The code above will work as a header for a file:
+
+```asm
+[bits 16]
+global _start
+_start:
+    ; logic
+```
+
+The annotation will tell to the compiler to ignore all information about the '__head' function and use only its body. The importnat part here - '__head' still exists, which means compiler can and will optimize it.
+
+## :: for implementation
+<div class="change-date">Date: 2026-06-10</div>
+Instead of the 'impl' annotation, I've decided to use '::':
+
+```cpl
+container math {
+    function add(i32 a, i32 b);
+}
+
+function math::add(i32 a, i32 b) {
+    return a + b;
+}
+
+start() {
+    math mt;
+    mt.add(1, 1);    : Instance :
+    math::add(1, 1); : Static   :
+}
+```
+
+P.S.: *Comments are the same, just strict `::` now considered as a container access*
+
 ## Impl annotation
 <div class="change-date">Date: 2026-06-08</div>
 Container can include an implementation of a function or not:
@@ -1376,7 +1564,7 @@ This is the third version of this compiler. Was performed a full structure trans
 ----------------------------------------
 
 # Version v2
-<div class="change-date">Date: 2025-10-21</div>
+<div class="change-date">Date: 2025-09-01</div>
 This is the second version of this compiler (at the moment of 10.20.2025, at least a stable work version). Main features is a full code refactoring of the `token` part and the `AST` generation. Also perform a cleanup and implement the basic `LIR`. The main improvement was in the syntax of the `CP-language` (Improve the gramma).
 
 ```cplv2
@@ -1418,7 +1606,7 @@ Some improvements in typing (now we're able to use Rust-like statements such as 
 ----------------------------------------
 
 # Version v1
-<div class="change-date">Date: 2025-10-21</div>
+<div class="change-date">Date: 2025-06-18</div>
 This is the first version of this compiler. The last commit before v2 was in the middle of summer of 2025. Main features of this version is a [`token` -> `AST` -> `ASM`] structure, basic `NASM`-syntax code generation, examples like `brainfuck interpreter`, etc. The most interesting part, in my opinion, is the syntax:
 
 ```cplv1

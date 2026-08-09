@@ -22,7 +22,6 @@ This repository also includes a [documentation site](https://j1sk1ss.github.io/C
 - [Tokenization part](#tokenization-part)
 - [Markup part](#markup-part)
 - [AST part](#ast-part)
-   - [AST optimization](#ast-optimization)
 - [HIR part](#hir-part)
 - [CFG part](#cfg-part)
 - [Dominator calculation](#dominator-calculation)
@@ -58,9 +57,9 @@ This repository also includes a [documentation site](https://j1sk1ss.github.io/C
    - [Example of generated code](#example-of-generated-code)
 
 ## Introduction
-This compiler is not primarily about creating a language with complex syntax and high-level abstractions. CPL does not even support structures. The main goal is to implement modern code optimization techniques, observe how input code can be transformed into a higher-performance version of itself, and test ideas such as neural-network-based heuristics and compressed symbol tables. This `README` describes what has been implemented so far. </br>
+This compiler is not primarily about creating a language with complex syntax and high-level abstractions. CPL now has value-layout containers, but it still avoids a large object model and keeps the interesting work in the compiler pipeline. The main goal is to implement modern code optimization techniques, observe how input code can be transformed into a higher-performance version of itself, and test ideas such as neural-network-based heuristics and compressed symbol tables. This `README` describes what has been implemented so far. </br>
 
-In short, CPL has an `EBNF-defined` [[?]](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) syntax, its own [VS Code extension](https://github.com/j1sk1ss/CordellCompiler/tree/HIR_LIR_SSA/vscode), and a small [documentation site](https://j1sk1ss.github.io/CordellCompiler/). If you are more interested in the language than in the compiler pipeline, start with the documentation site. </br>
+In short, CPL has an `EBNF-defined` [[?]](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) syntax, its own [VS Code extension](https://github.com/j1sk1ss/CPL_vscode), and a small [documentation site](https://j1sk1ss.github.io/CordellCompiler/). If you are more interested in the language than in the compiler pipeline, start with the documentation site. </br>
 
 P.S.: *The language itself is not the main subject of this README, but while explaining each compiler layer I will use direct examples written in CPL. Its surface grammar is close enough to C-like languages to make the examples readable.*
 
@@ -88,7 +87,7 @@ P.S.: *The code above is used in several later sections, so it is worth expandin
 
 ## Compilation pipeline
 <p align="center">
-  <img src="docs/media/compiler_pipeline.png">
+  <img src="docs/media/compiler_pipeline.png" alt="Compiler's pipeline">
   <br>
   <em>Figure 1 — Compiler pipeline</em>
 </p>
@@ -96,7 +95,7 @@ P.S.: *The code above is used in several later sections, so it is worth expandin
 ## PP part
 Before the main compiler pipeline starts, source code may need preprocessing. Preprocessing is optional in many compilers, but it is necessary here because CPL uses a header-style organization. This stage handles directives similar to `gcc -E`, including `include`, `define`, `undef`, `ifdef`, and `ifndef`. These directives behave similarly to their C/C++ counterparts, except that `define` does not currently support function-like macros with different arguments. </br>
 
-Let us return to the snippet above and include all header files into the final code. This is similar to what `gcc -E` does when it creates a single preprocessed translation unit:
+Let us return to the snippet above and include all header files into the final code. This is similar to what `gcc -E` does when it creates a single preprocessed translation unit (You can get the same result with `cplc -E`):
 ```cpl
 : string_h.cpl :
 #ifndef STRING_H_
@@ -162,17 +161,16 @@ In short, this stage is a DFA that does more than split input by spaces or comma
 - If a string character appears while the current token is numeric, the character is appended to the number.
 
 <p align="center">
-  <img src="docs/media/tokenization.png">
+  <img src="docs/media/tokenization.png" alt="Tokenization">
   <br>
   <em>Figure 2 — Basic token generation</em>
 </p>
 
 ## Markup part
 The markup stage is the second part of token processing. Most compilers do not separate the tokenizer and markup stage in this way, but this compiler does. The markup stage operates on the token list produced by the tokenizer and adds scope-aware semantic information. </br>
-The main idea is to perform basic semantic markup for variables. For instance, if we declare some `i32` variable with the name `a` in a scope with `id=10`, all occurrences of `a` within the corresponding scope can be marked as having the `i32` type.
 
 <p align="center">
-  <img src="docs/media/markup.png">
+  <img src="docs/media/markup.png" alt="Markup">
   <br>
   <em>Figure 3 — Token markup</em>
 </p>
@@ -237,7 +235,7 @@ line=9, type=18, data=[}],
 Next, we need to parse this sequence of marked tokens to build an `AST` structure (Abstract Syntax Tree). There are many approaches to achieve this, for example `LL` parsing, `LR` parsing, or hybrid techniques that combine `LL` and `LR`. A more complete list of parser types can be found [[here]](https://www.geeksforgeeks.org/compiler-design/types-of-parsers-in-compiler-design/) or in related compiler design books (see [Used links and literature](#used-links-and-literature) section). This compiler uses the `LL` approach.
 
 <p align="center">
-  <img src="docs/media/ast.png">
+  <img src="docs/media/ast.png" alt="AST">
   <br>
   <em>Figure 4 — Basic AST generation</em>
 </p>
@@ -293,26 +291,6 @@ The AST generated from the [Markup part](#markup-part)'s list of marked tokens:
 
 At this point, a compiler could either go straight to code generation or first lower the program into an intermediate representation. Cordell Compiler does not allow skipping the IR phase, so it uses the second approach.
 
-### AST optimization
-Once we have a correct `AST` representation of the input code, we can optionally apply several available optimizations. We will not spend much time here and will cover only a few examples. Note that `AST-level` optimizations are mostly redundant in the current compiler; they were much more useful before the project had an `IR` level.
-- `Condition unrolling`. If we have an `if` statement with a constant condition, such as `if 1; { ... }`, or similar situation with a `while` keyword or a `switch` statement, we can unroll them by removing the condition and keeping only the body.
-- `Dead scope elimination`. If a scope does not affect the environment, it can be safely removed.
-
-To understand what they actually do, we can consider the next example of `DSE` (Dead Scope Elimination):
-```cpl
-start() {
-    {
-        i32 a = 10;
-        a += 10 * 10 - 11;
-    }
-    exit 1;
-}
-```
-
-According to the compiler's markup logic, the `exit` statement cannot see the variable `a`. The scope also has no effect on the surrounding environment: it does not call anything, change anything outside the scope, return, or exit. Therefore, this scope can be safely removed at the AST level. </br>
-
-P.S.: *I kept these optimizations because they do not duplicate the existing HIR or LIR optimizations. Older compiler versions had more AST-level optimizations; see the v2.0 and v1.0 tags on GitHub if you are interested.*
-
 ## HIR part
 The `AST` representation of the input code must be flattened for later optimization phases. A common approach is to convert the `AST` structure into a list of `Three-Address Code` (3AC) [[?]](https://web.stanford.edu/class/archive/cs/cs143/cs143.1128/lectures/13/Slides13.pdf). </br>
 *Three-Address Code* implies that there are only three placeholders for addresses in each command. For example, the `a += b` command can be converted to `3AC` as `a = a + b`. Also, the simple indexing command `a[x] = 0` will be converted to:
@@ -326,7 +304,7 @@ tmp_head = tmp_head + tmp_off;
 Figure 5 shows a schematic view of how the `AST -> HIR` process works in this compiler.
 
 <p align="center">
-  <img src="docs/media/HIR.png">
+  <img src="docs/media/HIR.png" alt="HIR">
   <br>
   <em>Figure 5 — AST to HIR</em>
 </p>
@@ -367,7 +345,7 @@ After obtaining the complete list of `3AC` instructions, we can move on to `CFG`
 P.S.: *Both approaches are implemented in this compiler, but this example uses the Dragon Book approach.*
 
 <p align="center">
-  <img src="docs/media/CFG.png">
+  <img src="docs/media/CFG.png" alt="CFG">
   <br>
   <em>Figure 6 — CFG from HIR</em>
 </p>
@@ -382,7 +360,7 @@ P.S.: *Both approaches are implemented in this compiler, but this example uses t
 With the structured `CFG`, we can move on to `SSA` form [[?]](https://en.wikipedia.org/wiki/Static_single-assignment_form) [[?]](https://www.geeksforgeeks.org/compiler-design/static-single-assignment-with-relevant-examples/) [[?]](https://dl.acm.org/doi/10.1145/75277.75280). First, we need to calculate dominators [[?]](https://en.wikipedia.org/wiki/Dominator_(graph_theory)) for each block in the `CFG`. In short, a dominator of a block `Y` is a block `X` that appears on every path from the start block to `Y`. Figure 7 illustrates how this works.
 
 <p align="center">
-  <img src="docs/media/dominators.png">
+  <img src="docs/media/dominators.png" alt="Dominators">
   <br>
   <em>Figure 7 — How we find a dominator</em>
 </p>
@@ -393,7 +371,7 @@ Strict dominance tells us which block strictly dominates another. A block `X` st
 Figure 8 shows what strict dominators look like.
 
 <p align="center">
-  <img src="docs/media/strict_dominance.png">
+  <img src="docs/media/strict_dominance.png" alt="Strict dominance">
   <br>
   <em>Figure 8 — How we find a strict dominator</em>
 </p>
@@ -402,7 +380,7 @@ Figure 8 shows what strict dominators look like.
 The dominance frontier [[?]](https://pages.cs.wisc.edu/~fischer/cs701.f05/lectures/Lecture22.pdf) [[?]](https://stackoverflow.com/questions/69794988/how-to-build-dominance-frontier-for-control-flow-graph) of a block `X` is the set of blocks where the dominance of `X` ends. More precisely, it represents all the blocks that are partially influenced by `X`: `X` dominates at least one of their predecessors, but does not dominate the block itself. In other words, it marks the boundary where control flow paths from inside `X`'s dominance region meet paths coming from outside (Figure 9).
 
 <p align="center">
-  <img src="docs/media/dominance_frontier.png">
+  <img src="docs/media/dominance_frontier.png" alt="Dominance frontier">
   <br>
   <em>Figure 9 — Finding the dominance frontier</em>
 </p>
@@ -412,7 +390,7 @@ The `SSA` form renames all reassigned variables so that each assignment creates 
 At this moment, CordellCompiler supports the most "basic" `SSA` form, as presented in Figure 10.
 
 <p align="center">
-  <img src="docs/media/ssa_basic.png">
+  <img src="docs/media/ssa_basic.png" alt="SSA">
   <br>
   <em>Figure 10 — "Basic" SSA form</em>
 </p>
@@ -421,7 +399,7 @@ At this moment, CordellCompiler supports the most "basic" `SSA` form, as present
 But what happens when we encounter an `if` statement? What should we do when we cannot determine which unique variable version must be used in a `read` operation after a control-flow statement? Consider the example in Figure 11.
 
 <p align="center">
-  <img src="docs/media/ssa_problem.png">
+  <img src="docs/media/ssa_problem.png" alt="SSA">
   <br>
   <em>Figure 11 — The "phi" problem</em>
 </p>
@@ -429,7 +407,7 @@ But what happens when we encounter an `if` statement? What should we do when we 
 Which version of the variable `a` should be used in the declaration of `b`? The answer is simple: `both`. In `SSA` form, we use a `φ (phi)` function, which tells the compiler which variable version to use depending on the incoming control-flow edge. An example of a `φ` function is shown in Figure 12.
 
 <p align="center">
-  <img src="docs/media/phi_function.png">
+  <img src="docs/media/phi_function.png" alt="SSA">
   <br>
   <em>Figure 12 — Phi function</em>
 </p>
@@ -437,7 +415,7 @@ Which version of the variable `a` should be used in the declaration of `b`? The 
 But how do we determine where to place this function? Here, we use previously computed dominance information. We traverse the entire symbol table of variables. For each variable, we collect the set of blocks where it is defined (either declared or assigned). Then, for each block with a definition, we take its dominance frontier blocks and insert a `φ` function there (Figure 13).
 
 <p align="center">
-  <img src="docs/media/phi_placement.png">
+  <img src="docs/media/phi_placement.png" alt="PHI">
   <br>
   <em>Figure 13 — Phi function placement</em>
 </p>
@@ -445,7 +423,7 @@ But how do we determine where to place this function? Here, we use previously co
 Then, during the SSA renaming process, we keep track of each block that passes through a `φ`-function block, recording the version of the variable and the block number. This completes the SSA renaming phase, producing the following result in Figure 14.
 
 <p align="center">
-  <img src="docs/media/phi_final.png">
+  <img src="docs/media/phi_final.png" alt="PHI">
   <br>
   <em>Figure 14 — Final phi function</em>
 </p>
@@ -454,7 +432,7 @@ Then, during the SSA renaming process, we keep track of each block that passes t
 With the complete `SSA` form, we can move on to the first optional optimizations. The first one requires building a `DAG` (Directed Acyclic Graph) [[?]](https://www.geeksforgeeks.org/compiler-design/directed-acyclic-graph-in-compiler-design-with-examples/) [[?]](https://en.wikipedia.org/wiki/Directed_acyclic_graph) representation of the code. In short, the `DAG` shows how every value in the program is derived and how each variable obtains its value, with some exceptions for `arrays` and `strings`. A basic example is provided in Figure 15.
 
 <p align="center">
-  <img src="docs/media/base_DAG.png">
+  <img src="docs/media/base_DAG.png" alt="DAG">
   <br>
   <em>Figure 15 — DAG</em>
 </p>
@@ -607,7 +585,7 @@ At this point, we can determine where each variable dies. If a variable appears 
    dref b0 = 20;
 }
 ```
-the variable `a` is owned by `b`, so we must not kill `a` while `b` is still alive. In other words, the liveness of `a` depends on the liveness of `b`, and this dependency is preserved through the aliasmap.
+the variable `a` is owned by `b`, so we must not kill `a` while `b` is still alive. In other words, the liveness of `a` depends on the liveness of `b`, and this dependency is preserved through the alias map.
 ![kill_var](docs/media/kill_var.png)
 
 ## Register allocation part

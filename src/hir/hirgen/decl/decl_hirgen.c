@@ -1,60 +1,101 @@
 #include <hir/hirgens/hirgens.h>
 
-// TODO: docs
+/* Generate HIR for a string declaration.
+Global strings are also copied into array metadata for static initialization.
+Params:
+    - `node` - Declaration AST node.
+    - `ctx` - HIR context.
+    - `smt` - Symtable.
+
+Returns 1 if succeeds. */
 static int _str_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* name  = node->c;
     ast_node_t* size  = name->siblings.n;
     ast_node_t* type  = size->siblings.n;
     ast_node_t* value = type->siblings.n;
-    HIR_BLOCK2(ctx, HIR_STRDECL, HIR_SUBJ_ASTVAR(name), HIR_SUBJ_STRING(value));
+    HIR_BLOCK2(ctx, HIR_STRDECL, HIR_SUBJ_ASTVAR(name), HIR_SUBJ_STRING(value->c));
+
+    long size_cap    = size->t->body->to_llong(size->t->body);
+    int use_size_cap = size_cap != 0;
 
     variable_info_t vi;
     if (VRTB_get_info_id(name->sinfo.v_id, &vi, &smt->v) && vi.vfs.glob) {
-        char* head = value->t->body->body;
-        while (head && *head) ARTB_add_elems(vi.v_id, *(head++), &smt->a);
-        ARTB_add_elems(vi.v_id, 0, &smt->a);
+        char* head = value->c->t->body->body;
+        while (
+            head && *head && 
+            (!use_size_cap || size_cap-- > 0)
+        ) ARTB_add_elems(vi.v_id, (array_elem_info_t){ .s.value = *(head++), .t = ARRAY_ELEM_CONST_TYPE }, &smt->a);
+        ARTB_add_elems(vi.v_id, (array_elem_info_t){ .s.value = 0, .t = ARRAY_ELEM_CONST_TYPE }, &smt->a); /* C-string */
     }
 
     return 1;
 }
 
-// TODO: docs
+/* Generate HIR subjects for declaration initializer elements.
+Global initializers are copied into array metadata, while local initializers
+are collected into a HIR subject list.
+Params:
+    - `vi` - Variable metadata for the declaration.
+    - `elems` - AST node that contains initializer elements.
+    - `ctx` - HIR context.
+    - `smt` - Symtable.
+    - `static_init` - Whether we're able to emit instructions for an element or not.
+
+Returns a HIR subject list with local initializer elements. */
+static hir_subject_t* _generate_init_args(variable_info_t* vi, ast_node_t* elems, hir_ctx_t* ctx, sym_table_t* smt, int static_init) {
+    hir_subject_t* init_elems = HIR_SUBJ_LIST();
+    if (!elems) return init_elems;
+    for (ast_node_t* ast_el = elems->c; ast_el; ast_el = ast_el->siblings.n) {
+        hir_subject_t* el = HIR_generate_elem(ast_el, ctx, smt);
+        if (!el) continue;
+        if (static_init) {
+            if (HIR_is_defined_type(el->t)) ARTB_add_elems(vi->v_id, (array_elem_info_t){ .s.value = el->storage.num.value->to_llong(el->storage.num.value), .t = ARRAY_ELEM_CONST_TYPE  }, &smt->a);
+            else if (el->t == HIR_STRING)   ARTB_add_elems(vi->v_id, (array_elem_info_t){ .s.s_id = el->storage.str.s_id,                                    .t = ARRAY_ELEM_STRING_TYPE }, &smt->a);
+            else                            HIRGEN_ERROR(ctx, "Global initializer element must be a constant numeric value or string!");
+            HIR_unload_subject(el);
+        }
+        else {
+            hir_subject_t* curr_el = el;
+            if (!HIR_is_defined_type(curr_el->t)) {
+                HIR_BLOCK1(ctx, HIR_VRUSE, curr_el);
+                curr_el = HIR_copy_subject(curr_el);
+            }
+
+            list_add(&init_elems->storage.list.h, curr_el);
+        }
+    }
+
+    return init_elems;
+} 
+
+/* Generate HIR for an array declaration and its initializer.
+Global arrays receive constant initializer values in array metadata; local
+arrays keep runtime initializer subjects in the HIR declaration.
+Params:
+    - `node` - Declaration AST node.
+    - `ctx` - HIR context.
+    - `smt` - Symtable.
+
+Returns 1 if succeeds. */
 static int _arr_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* name  = node->c;
     ast_node_t* size  = name->siblings.n;
     ast_node_t* type  = size->siblings.n;
     ast_node_t* elems = type->siblings.n;
 
-    if (elems && elems->t->t_type == STRING_VALUE_TOKEN) {
-        return _str_declaration(node, ctx, smt);
-    }
-
+    if (
+        elems && elems->c                         && 
+        elems->c->t->t_type == STRING_VALUE_TOKEN &&
+        type->t->t_type == I8_TYPE_TOKEN          &&
+        !type->t->flags.ptr
+    ) return _str_declaration(node, ctx, smt);
+    
     array_info_t ai;
     variable_info_t vi;
     if (
         VRTB_get_info_id(name->sinfo.v_id, &vi, &smt->v) && 
         ARTB_get_info(vi.v_id, &ai, &smt->a)
     ) {
-        hir_subject_t* init_elems = HIR_SUBJ_LIST();
-        for (ast_node_t* e = elems; e; e = e->siblings.n) {
-            hir_subject_t* el = HIR_generate_elem(e, ctx, smt);
-            if (!el) continue;
-            if (vi.vfs.glob) {
-                if (!HIR_is_defined_type(el->t)) HIRGEN_ERROR(ctx, "Global initializer element must be a constant numeric value!");
-                else ARTB_add_elems(vi.v_id, el->storage.num.value->to_llong(el->storage.num.value), &smt->a);
-                HIR_unload_subject(el);
-            }
-            else {
-                hir_subject_t* element = el;
-                if (!HIR_is_defined_type(element->t)) {
-                    HIR_BLOCK1(ctx, HIR_VRUSE, element);
-                    element = HIR_copy_subject(element);
-                }
-
-                list_add(&init_elems->storage.list.h, element);
-            }
-        }
-
         hir_subject_t* alloc_size = NULL;
         if (
             ai.vla || 
@@ -66,26 +107,45 @@ static int _arr_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) 
             alloc_size = HIR_SUBJ_CONST(type_size);
         }
 
-        HIR_BLOCK3(ctx, HIR_ARRDECL, HIR_SUBJ_ASTVAR(name), alloc_size, init_elems);
+        HIR_BLOCK3(ctx, HIR_ARRDECL, HIR_SUBJ_ASTVAR(name), alloc_size, _generate_init_args(&vi, elems, ctx, smt, vi.vfs.glob));
     }
 
     return 1;
 }
 
-// TODO: docs
+/* Generate allocation HIR for a custom container declaration.
+Params:
+    - `node` - Declaration AST node.
+    - `ctx` - HIR context.
+    - `smt` - Symtable.
+
+Returns 1 if succeeds, otherwise 0. */
 static inline int _cnt_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+    ast_node_t* name  = node->c;
+    ast_node_t* elems = name->siblings.n;
     type_info_t ti;
     if (!TPTB_get_info_id(node->sinfo.t_id, &ti, &smt->t)) return 0;
-    HIR_BLOCK3(ctx, HIR_ARRDECL, HIR_SUBJ_ASTVAR(node->c), HIR_SUBJ_CONST(ti.memory.size), HIR_SUBJ_LIST());
+    variable_info_t vi;
+    if (!VRTB_get_info_id(name->sinfo.v_id, &vi, &smt->v)) return 0;
+    HIR_BLOCK3(
+        ctx, HIR_ARRDECL, HIR_SUBJ_ASTVAR(node->c), HIR_SUBJ_CONST(ti.memory.size), 
+        _generate_init_args(&vi, elems, ctx, smt, vi.vfs.glob || !TKN_in_stack(name->t))
+    );
     return 1;
 }
 
-// TODO: docs
+/* Dispatch declarations that need storage larger than a scalar stack slot.
+Params:
+    - `node` - Declaration AST node.
+    - `ctx` - HIR context.
+    - `smt` - Symtable.
+
+Returns 1 if succeeds. */
 static inline int _starr_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     switch (node->t->t_type) {
         case ARRAY_TYPE_TOKEN:  return _arr_declaration(node, ctx, smt);
         case CUSTOM_TYPE_TOKEN: return _cnt_declaration(node, ctx, smt);
-        default: return 1;
+        default:                return 0;
     }
 }
 
@@ -96,9 +156,14 @@ int HIR_generate_declaration_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t
         return _starr_declaration(node, ctx, smt);
     }
 
-    /* Don't declare a variable if it is global.
+    /* Do not declare a variable if it is global.
        All essential info already in the symtable. */
     if (!TKN_in_stack(name->t)) {
+        variable_info_t vi;
+        if (
+            VRTB_get_info_id(name->sinfo.v_id, &vi, &smt->v) && 
+            vi.vfs.glob && name->siblings.n
+        ) VRTB_update_definition(vi.v_id, name->siblings.n->c->t->body->to_llong(name->siblings.n->c->t->body), NO_SYMBOL_ID, &smt->v, 0);
         return 1;
     }
     
@@ -113,7 +178,7 @@ int HIR_generate_declaration_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t
         HIR_BLOCK2(ctx, HIR_GDREF, decl, HIR_copy_subject(ctx->carry.varg));
         hir_subject_t* res = HIR_SUBJ_TMPVAR(
             ctx->carry.varg->t, 
-            VRTB_add_info(NULL, HIR_get_tmptkn_type(ctx->carry.varg->t), NO_SYMBOL_ID, NULL, &smt->v)
+            VRTB_add_info(NULL, HIR_get_tmptkn_type(ctx->carry.varg->t), NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v)
         );
         res->ptr = ctx->carry.varg->ptr;
         HIR_BLOCK3(
@@ -125,5 +190,12 @@ int HIR_generate_declaration_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t
     });
 
     if (!name->siblings.n) return 1;
-    return HIR_generate_assignment_block(node, ctx, smt);
+    ast_node_t* left   = node->c;
+    hir_subject_t* src = HIR_generate_elem(left->siblings.n->c, ctx, smt);
+    if (!src) {
+        HIRGEN_ERROR(ctx, "Assign: The right part generation error!");
+        return 0;
+    }
+    
+    return HIR_generate_store_block(left, src, ctx, smt);
 }

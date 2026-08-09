@@ -16,6 +16,7 @@ typedef struct {
 #define SET_NO_CMP 0
 #define SET_CMP    1
 int set_init(set_t* s, int cmp);
+int set_is_init(set_t* s);
 int set_has_inttuple(set_t* s, int_tuple_t* t);
 int set_has(set_t* s, void* data);
 

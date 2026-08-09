@@ -1,0 +1,26 @@
+#ifndef GAME_H_
+#define GAME_H_ 0
+
+#include <stdlib_h.cpl>
+#include <string_h.cpl>
+#include <stdio_h.cpl>
+
+container game {
+    ptr i8 map;
+    i32    width;
+    i32    height;
+    i32    px;
+    i32    py;
+    i8     has_key;
+    i8     running;
+    i8     won;
+
+    @[self] function new(ptr game self) -> i0;
+    @[self] function index(ptr game self, i32 x, i32 y) -> i32;
+    @[self] function cell(ptr game self, i32 x, i32 y) -> ptr i8;
+    @[self] function draw(ptr game self) -> i0;
+    @[self] function step(ptr game self, i32 input) -> i0;
+    @[self] function destroy(ptr game self) -> i0;
+}
+
+#endif

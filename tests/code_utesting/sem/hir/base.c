@@ -21,8 +21,8 @@
 #include <sem/semantic.h>
 
 int main(int argc, char* argv[]) {
-    config_t cfg = { .csa.z3 = "/Users/nikolaj/Documents/Repositories/CordellCompiler/src/sem/hir/z3_wrapper/z3_wrapper.py" };
-    CONF_set_config(&cfg);
+    config_t cfg = { 0 };
+    CONF_set_config(cfg);
 
     if (argc != 3) {
         fprintf(stderr, "Not enough arguments! Expected 3, got %i!\n", argc);
@@ -38,7 +38,10 @@ int main(int argc, char* argv[]) {
     }
 
     finder_ctx_t finctx = { .bpath = argv[2] };
-    fd = PP_perform(fd, &finctx);
+    pp_ctx_t ppctx;
+    PP_init_pp_ctx(&ppctx);
+
+    fd = PP_perform(fd, &finctx, &ppctx);
     if (fd < 0) {
         fprintf(stderr, "Processed file %s isn't found!\n", argv[1]);
         return 1;

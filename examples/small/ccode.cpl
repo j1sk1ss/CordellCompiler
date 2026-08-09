@@ -1,0 +1,7 @@
+#include "ctype_h.cpl"
+
+@[entry("main")]
+function main(int argc, ptr ptr char argv) -> i32 {
+    int a = 10;
+    return a;
+}

@@ -4,6 +4,10 @@ int set_init(set_t* s, int cmp) {
     return map_init(&s->body, cmp);
 }
 
+int set_is_init(set_t* s) {
+    return s->body.entries != NULL;
+}
+
 int set_has_inttuple(set_t* s, int_tuple_t* t) {
     map_foreach (int_tuple_t* tuple, &s->body) {
         if (tuple->x == t->x && tuple->y == t->y) return 1;

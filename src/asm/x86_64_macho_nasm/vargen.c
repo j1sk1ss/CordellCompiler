@@ -94,10 +94,12 @@ const char* x86_64_macho_nasm_format_lir_subject(lir_subject_t* v, sym_table_t* 
                 }
 
                 if (
-                    fi.flags.entry
+                    fi.flags.entry ||
+                    fi.flags.vname
                 ) snprintf(buffer, sizeof(_buffers[0]), global, fi.virt->body);
                 else if (
-                    fi.flags.global || fi.flags.external
+                    fi.flags.global || 
+                    fi.flags.external
                 ) snprintf(buffer, sizeof(_buffers[0]), global, fi.name->body);
                 else snprintf(buffer, sizeof(_buffers[0]), local, fi.virt->body);
                 return buffer;
@@ -110,7 +112,17 @@ const char* x86_64_macho_nasm_format_lir_subject(lir_subject_t* v, sym_table_t* 
             variable_info_t vi;
             if (VRTB_get_info_id(v->storage.var.v_id, &vi, &smt->v)) {
                 if (vi.vfs.glob) {
-                    snprintf(buffer, sizeof(_buffers[0]), "%s[rel %s]", _get_mem_modifier(v->size), vi.name->body);
+                    const char* extern_modifier = "";
+                    if (vi.vfs.ext) extern_modifier = " wrt ..gotpcrel";
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wconditional-type-mismatch"
+#pragma GCC diagnostic ignored "-Wformat"
+                    snprintf(
+                        buffer, sizeof(_buffers[0]), vi.s_id == 1 ? "%s[rel %s%s]" : "%s[rel %s__%li%s]", 
+                        _get_mem_modifier(v->size), vi.name->body, 
+                        vi.s_id == 1 ? extern_modifier : VRTB_resolve_parent(vi.v_id, &smt->v), extern_modifier
+                    );
+#pragma GCC diagnostic pop
                     return buffer;
                 }
 
