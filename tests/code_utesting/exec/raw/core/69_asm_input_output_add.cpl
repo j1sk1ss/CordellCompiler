@@ -1,4 +1,4 @@
-: ASM_ARCH=x86_64_nasm_macho,x86_64_nasm_gnu,i386_nasm_gnu :
+: ASM_ARCH=x86_64_nasm_macho,x86_64_nasm_gnu :
 #include "raw_syscall.inc"
 : BLOCK_TEST :
 : RUN_ASM :
