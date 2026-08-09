@@ -273,4 +273,4 @@ help:
 	@awk 'BEGIN {FS = ":.*## "; printf "Usage: make <target> [VAR=value]\n\nTargets:\n"} /^[a-zA-Z0-9_.-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 .DELETE_ON_ERROR:
-.PHONY: all check-cpllib-src check-vscode-src cpllib debug release install package run test unit-test rewrite-test std-test builder-cli-test vscode-docker-build vscode-docker-package submodules clean clean-tests distclean print-sources print-config help
+.PHONY: all check-cpllib-src check-vscode-src cpllib debug release install package run test unit-test rewrite-test std-test cli-test vscode-docker-build vscode-docker-package submodules clean clean-tests distclean print-sources print-config help

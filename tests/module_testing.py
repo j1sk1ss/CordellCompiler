@@ -1259,6 +1259,18 @@ def _run_test(
                 "metrics": f"{skip_reason}; host={sys.platform}",
             }
 
+    if _is_ci() and (flags["test_debug"] or flags["run_asm_debug"]):
+        return {
+            "file": str(test_file),
+            "asm_arch": asm_arch,
+            "ok": True,
+            "skipped": True,
+            "critical": False,
+            "warning": False,
+            "diff": None,
+            "metrics": "interactive debug test skipped in CI",
+        }
+
     annotations = flags.get("output_annotations", {})
     measure_time = _annotation_enabled(annotations, "measure_time")
     measure_lines = _annotation_enabled(annotations, "measure_lines")
@@ -1455,6 +1467,10 @@ def _test_file_has_only_this(path: Path) -> bool:
         pass
 
     return False
+
+
+def _is_ci() -> bool:
+    return os.environ.get("CI", "").strip().lower() in {"1", "true", "yes", "on"}
 
 
 def _select_only_this_tests(cpl_files: list[Path]) -> list[Path]:
