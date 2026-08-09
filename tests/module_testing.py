@@ -14,12 +14,33 @@ from tqdm import tqdm
 from pathlib import Path
 from collections import Counter
 
+def _is_ci() -> bool:
+    return os.environ.get("CI", "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _verbose_logs() -> bool:
+    return not _is_ci() or os.environ.get("CPL_TEST_VERBOSE", "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _show_skipped_tests() -> bool:
+    return _verbose_logs()
+
+
 def _cmd_to_str(cmd: list[object]) -> str:
     return " ".join(str(part) for part in cmd)
 
 
 def _log(message: str) -> None:
-    tqdm.write(str(message))
+    if _verbose_logs():
+        tqdm.write(str(message))
+
+
+def _write_captured_output(text: str) -> None:
+    if not text:
+        return
+
+    for line in text.rstrip("\n").splitlines():
+        tqdm.write(line)
 
 
 def _run_interactive_command(cmd: list[str]) -> int:
@@ -693,7 +714,7 @@ def _attach_failure_log(result: dict, test_file: Path, sections: list[tuple[str,
     if result.get("diff"):
         _append_log_section(sections, "FAILURE REASON", result["diff"])
 
-    log_path = "dummy" # _write_failure_log(test_file, sections)
+    log_path = _write_failure_log(test_file, sections)
     result["failure_log"] = log_path
 
     note = f"Full log: {log_path}"
@@ -1469,10 +1490,6 @@ def _test_file_has_only_this(path: Path) -> bool:
     return False
 
 
-def _is_ci() -> bool:
-    return os.environ.get("CI", "").strip().lower() in {"1", "true", "yes", "on"}
-
-
 def _select_only_this_tests(cpl_files: list[Path]) -> list[Path]:
     return [cpl for cpl in cpl_files if _test_file_has_only_this(cpl)]
 
@@ -1524,7 +1541,8 @@ def _entry() -> None:
         desc="Modules compiled",
         unit="module",
         dynamic_ncols=True,
-        position=0
+        position=0,
+        disable=not _verbose_logs()
     )
 
     for root, asm_arch, base in build_jobs:
@@ -1563,15 +1581,15 @@ def _entry() -> None:
                 extra_flags=['Wno-int-conversion', 'Wno-unused-function', 'Wno-ignored-qualifiers']
             )
         _out: str = _buf.getvalue()
-        if _out:
-            for _line in _out.rstrip("\n").splitlines():
-                tqdm.write(_line)
         compile_pbar.update(1)
 
         if not binary:
             print(f"Failed to build module {root} [{_format_current_asm_arch(asm_arch)}], skipping its tests.", file=sys.stderr)
+            _write_captured_output(_out)
             failed_modules += 1
             continue
+        elif _verbose_logs():
+            _write_captured_output(_out)
 
         _log(f"[BUILD] executable path: {binary}")
 
@@ -1598,16 +1616,17 @@ def _entry() -> None:
                     extra_flags=['Wno-int-conversion', 'Wno-unused-function', 'DMEM_OPERATION_LOGS']
                 )
             _out = _buf.getvalue()
-            if _out:
-                for _line in _out.rstrip("\n").splitlines():
-                    tqdm.write(_line)
+            if _verbose_logs():
+                _write_captured_output(_out)
             if binary_leak:
                 _log(f"[BUILD] leak executable path: {binary_leak}")
+            elif _out:
+                _write_captured_output(_out)
             
         if not cpl_files:
             print(f"Module {root} has no .cpl files to test.")
 
-        for cpl in tqdm(cpl_files, desc=f"Module {rel}", leave=False, position=1):
+        for cpl in tqdm(cpl_files, desc=f"Module {rel}", leave=False, position=1, disable=not _verbose_logs()):
             results.append(_run_test(
                 binary,
                 binary_leak,
@@ -1617,6 +1636,7 @@ def _entry() -> None:
             ))
 
     compile_pbar.close()
+    passed: int = 0
     failed: int = 0
     skipped: int = 0
     critical_failed: bool = False
@@ -1624,8 +1644,10 @@ def _entry() -> None:
         metrics_suffix = f" [{r['metrics']}]" if r.get("metrics") else ""
         if r.get("skipped", False):
             skipped += 1
-            print(f"Skipped: {_format_result_subject(r)}{metrics_suffix}")
+            if _show_skipped_tests():
+                print(f"Skipped: {_format_result_subject(r)}{metrics_suffix}")
         elif r.get("ok", False):
+            passed += 1
             print(f"Succeed: {_format_result_subject(r)}{metrics_suffix}")
         else:
             failed += 1
@@ -1640,7 +1662,7 @@ def _entry() -> None:
                 print(f"\nFailed: {_format_result_subject(r)}{metrics_suffix}")
                 print(r["diff"])
 
-    print(f"\nSummary: {len(results)} tests run, {skipped} skipped, {failed} failed, {failed_modules} modules failed to build.")
+    print(f"\nSummary: {len(results)} tests run, {passed} passed, {skipped} skipped, {failed} failed, {failed_modules} modules failed to build.")
     if critical_failed:
         print("\nCritical failure detected. Stopping immediately.")
         sys.exit(2)

@@ -16,6 +16,7 @@ jobs:
   test:
     name: make test
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
       - name: Checkout
@@ -33,3 +34,13 @@ jobs:
 
       - name: Run tests
         run: make test CC=gcc PYTHON=python3 ENABLE_Z3=0
+
+      - name: Upload failure logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-failure-logs
+          path: |
+            tests/**/*.full.log
+            tests/logs/**/*.log
+          if-no-files-found: ignore
