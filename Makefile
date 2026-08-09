@@ -21,7 +21,7 @@ LOGS 					?=
 PRINT_PARSE 			?= 1
 ENABLE_Z3 				?= auto
 INPUT 					?= examples/print.cpl
-UTEST 					?= code_utesting
+UTEST 					?= code_utesting/exec/raw
 STD_UTEST 				?= std_utesting
 CPLLIB_SRC_DIR 		    ?= cpllib
 VSCODE_DIR 				?= vscode
@@ -196,10 +196,10 @@ package: | check-cpllib-src ## Build a relocatable binary tarball with the stand
 run: $(OUTPUT) ## Compile INPUT with the built compiler.
 	$(OUTPUT) $(RUN_ARGS) $(INPUT)
 
-test: unit-test ## Run module tests.
+test: unit-test std-test cli-test ## Run unit, standard library, and CLI tests.
 
 unit-test: ## Run module tests, e.g. make unit-test UTEST=code_utesting/ast.
-	cd tests && $(PYTHON) module_testing.py --path $(UTEST) --compiler $(CC) --output-dir bin --base ../
+	cd tests && $(PYTHON) module_testing.py --path $(UTEST) --compiler $(CC) --output-dir bin
 
 rewrite-test: ## Rewrite OUTPUT blocks for module tests.
 	cd tests && $(PYTHON) module_testing.py --path $(UTEST) --compiler $(CC) --output-dir bin --base ../ --force-rewrite
@@ -216,6 +216,9 @@ std-test: ## Run std library tests, e.g. make std-test or make std-test STD_UTES
 	else \
 		cd tests && $(PYTHON) std_testing.py --path $(STD_UTEST) --compiler $(CC) --output-dir bin --base ../; \
 	fi
+
+cli-test: $(OUTPUT) ## Run builder CLI tests.
+	cd tests && CPLC_BINARY=$(abspath $(OUTPUT)) $(PYTHON) cli_testing.py
 
 vscode-docker-build: | check-vscode-src ## Build the VS Code extension Docker image.
 	docker build -t $(VSCODE_DOCKER_IMAGE) $(VSCODE_ABS_DIR)
@@ -270,4 +273,4 @@ help:
 	@awk 'BEGIN {FS = ":.*## "; printf "Usage: make <target> [VAR=value]\n\nTargets:\n"} /^[a-zA-Z0-9_.-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 .DELETE_ON_ERROR:
-.PHONY: all check-cpllib-src check-vscode-src cpllib debug release install package run test unit-test rewrite-test std-test vscode-docker-build vscode-docker-package submodules clean clean-tests distclean print-sources print-config help
+.PHONY: all check-cpllib-src check-vscode-src cpllib debug release install package run test unit-test rewrite-test std-test builder-cli-test vscode-docker-build vscode-docker-package submodules clean clean-tests distclean print-sources print-config help
