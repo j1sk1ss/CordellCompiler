@@ -69,6 +69,9 @@ The default installation layout is:
 /usr/local/bin/cplc
 /usr/local/share/cpl/include/
 /usr/local/share/doc/cpl/
+/usr/local/share/bash-completion/completions/cplc
+/usr/local/share/zsh/site-functions/_cplc
+/usr/local/share/fish/vendor_completions.d/cplc.fish
 ```
 
 `DESTDIR` is supported for distribution packaging and staged installations:
@@ -85,6 +88,35 @@ Use `CPL_INCLUDE_PATH` to override the standard-library directory. The `-I` opti
 CPL_INCLUDE_PATH=/opt/cpl/include cplc program.cpl
 cplc -I project/include program.cpl
 cplc --print-stdlib-path
+```
+
+## Shell completion
+
+`make install` installs TAB completion for bash, zsh, and fish. Open a new shell after installation; most distributions load files from the standard completion directories automatically.
+
+For a local checkout without installing, load completion manually:
+
+```bash
+# bash
+source completions/cplc.bash
+
+# zsh
+fpath=("$PWD/completions" $fpath)
+autoload -Uz compinit
+compinit
+
+# fish
+mkdir -p ~/.config/fish/completions
+ln -sf "$PWD/completions/cplc.fish" ~/.config/fish/completions/cplc.fish
+```
+
+The install paths can be overridden for unusual distributions:
+
+```bash
+make install PREFIX=/usr \
+  BASH_COMPLETION_DIR=/usr/share/bash-completion/completions \
+  ZSH_COMPLETION_DIR=/usr/share/zsh/site-functions \
+  FISH_COMPLETION_DIR=/usr/share/fish/vendor_completions.d
 ```
 
 ## Build the VS Code extension package

@@ -80,7 +80,7 @@
 #include <asm/x86_64_macho_nasm_asmgen.h>
 
 #include <gem_data.h>
-#define CCPL_VERSION                 "3.6.13:1008.26" // major.minor<.patch> (old version style):ddmm.yy (new version style)
+#define CCPL_VERSION                 "3.6.14:1108.26" // major.minor<.patch> (old version style):ddmm.yy (new version style)
 /* Version logic is next: We have the old style and the new style:
     - Old style is a default version semantics - major-minor-patch style, where major is incremented when
       I've added a lot of new features and they work properly. Also there should be some big shifts in
@@ -124,6 +124,7 @@ according you system requirements. */
 #define OPTION_ANALYSIS_ONLY         "--analysis-only"
 #define OPTION_DEBUG                 "--debug"
 #define OPTION_NO_DEBUG              "--no-debug"
+#define OPTION_NO_STRICT             "--i-know-what-i-am-doing"
 #define OPTION_NO_OPTIMIZATION       "-O0"
 #define OPTION_ROUGHT_OPTIMIZATION   "-O1"
 #define OPTION_GOOD_OPTIMIZATION     "-O2"
@@ -227,6 +228,7 @@ typedef struct {
         int          peephole             : 1;
         int          copy_prop            : 1;
         int          debug                : 1;
+        int          strict               : 1;
         int          emit_ast             : 1;
         int          emit_ir              : 1;
         int          emit_hir_cfg         : 1;

@@ -15,6 +15,7 @@ typedef char* config_string_field_t;
 typedef long  config_int_field_t;
 typedef char  config_flag_field_t;
 
+#define FLAG(name) config_flag_field_t name : 1
 typedef struct {
     struct {
         config_int_field_t     attention; /* 1, 2, 3 ...                 */
@@ -36,17 +37,19 @@ typedef struct {
     } system;
 
     struct {
-        config_flag_field_t    tre      : 1; /* Enable or disable TRE optimization    */
-        config_flag_field_t    finline  : 1; /* Enable or disable function inline     */
-        config_flag_field_t    licm     : 1; /* Enable or disable LICM optimization   */
-        config_flag_field_t    constant : 1; /* Enable or disable constant fold/prop  */
-        config_flag_field_t    peephole : 1; /* Enable or disable peephole            */
+        FLAG(tre);                           /* Enable or disable TRE optimization    */
+        FLAG(finline);                       /* Enable or disable function inline     */
+        FLAG(licm);                          /* Enable or disable LICM optimization   */
+        FLAG(constant);                      /* Enable or disable constant fold/prop  */
+        FLAG(peephole);                      /* Enable or disable peephole            */
     } optimization_flags;
 
     struct {
-        config_flag_field_t    debug    : 1; /* Debug flag                            */
+        FLAG(debug);                         /* Debug flag                            */
+        FLAG(strict);                        /* The compiler stops on casts or not    */
     } compilation_flags;
 } config_t;
+#undef FLAG
 
 void                  CONF_set_config(config_t conf);
 config_string_field_t CONF_get_entry_name();
@@ -62,5 +65,6 @@ config_int_field_t    CONF_get_eight_bytness();
 config_int_field_t    CONF_get_attention_level();
 config_flag_field_t   CONF_is_debug_compilation();
 arch_type_t           CONF_get_system_type();
+config_flag_field_t   CONF_is_strict_compilation();
 
 #endif

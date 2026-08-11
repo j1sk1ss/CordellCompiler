@@ -445,6 +445,7 @@ class BuilderCLITests(unittest.TestCase):
                 "-O3",
                 "--debug",
                 "--no-debug",
+                "--i-know-what-i-am-doing",
                 "--ast-analysis",
                 "--ir-analysis",
                 "--emit-ast",
@@ -475,6 +476,8 @@ class BuilderCLITests(unittest.TestCase):
             (["--sys-type", "plan9"], "Can't parse input arguments"),
             (["--analysis-only", "--emit-lir"], "Can't parse input arguments"),
             (["--analysis-only", "-c"], "Can't parse input arguments"),
+            (["--strict"], "Can't parse input arguments"),
+            (["--no-strict"], "Can't parse input arguments"),
         ]
 
         with _tmpdir() as tmp:
@@ -904,7 +907,7 @@ class BuilderCLITests(unittest.TestCase):
             source = Path(tmp) / "main.cpl"
             ast_output = Path(tmp) / "analysis.ast"
             ir_output = Path(tmp) / "analysis.ir"
-            _minimal_source(source)
+            source.write_text("start() {\n    exit 0 as u8;\n}\n", encoding="utf-8")
 
             result = self.run_cplc(
                 "--analysis-only",
@@ -920,6 +923,65 @@ class BuilderCLITests(unittest.TestCase):
         self.assertTrue(ast_exists)
         self.assertTrue(ir_exists)
         self.assert_no_stderr(result)
+
+    def test_strict_ast_analysis_stops_on_blocking_issue(self) -> None:
+        with _tmpdir() as tmp:
+            source = Path(tmp) / "main.cpl"
+            output = Path(tmp) / "main.o"
+            _minimal_source(source)
+
+            result = self.run_cplc(
+                "--ast-analysis",
+                "-c",
+                "--output", output,
+                source,
+            )
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("[WARNING]", result.stdout)
+        self.assertIn("AST semantic analysis failed", result.stderr)
+
+    def test_strict_hir_analysis_stops_on_blocking_issue(self) -> None:
+        with _tmpdir() as tmp:
+            source = Path(tmp) / "main.cpl"
+            output = Path(tmp) / "main.o"
+            source.write_text(
+                "start() {\n"
+                "    i32 a = 0;\n"
+                "    exit (10 / a) as u8;\n"
+                "}\n",
+                encoding="utf-8",
+            )
+
+            result = self.run_cplc(
+                "--ir-analysis",
+                "--constant",
+                "-c",
+                "--output", output,
+                source,
+            )
+
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn("[WARNING]", result.stdout)
+        self.assertIn("HIR semantic analysis failed", result.stderr)
+
+    def test_i_know_what_i_am_doing_disables_strict_analysis_failure(self) -> None:
+        with _tmpdir() as tmp:
+            source = Path(tmp) / "main.cpl"
+            output = Path(tmp) / "main.o"
+            _minimal_source(source)
+
+            result = self.run_cplc(
+                "--i-know-what-i-am-doing",
+                "--ast-analysis",
+                "-c",
+                "--output", output,
+                source,
+            )
+            output_exists = output.is_file()
+
+        self.assertEqual(result.returncode, 0, result.stderr)
+        self.assertTrue(output_exists)
 
     def test_multiple_input_files_are_parsed_before_finalization(self) -> None:
         with _tmpdir() as tmp:

@@ -13,6 +13,9 @@ DATADIR 				?= $(PREFIX)/share
 CPLLIBDIR 				?= $(DATADIR)/cpl/include
 CPLRUNTIMEDIR 			?= $(LIBDIR)/cpl
 DOCDIR 					?= $(DATADIR)/doc/cpl
+BASH_COMPLETION_DIR 	?= $(DATADIR)/bash-completion/completions
+ZSH_COMPLETION_DIR 		?= $(DATADIR)/zsh/site-functions
+FISH_COMPLETION_DIR 	?= $(DATADIR)/fish/vendor_completions.d
 VERSION 				?= 3.6_X
 
 BUILD 					?= debug
@@ -77,6 +80,7 @@ CPLLIB_BUILDDIR := builds/$(PLATFORM)/cpllib
 CPLLIB_OBJDIR   := $(CPLLIB_BUILDDIR)/obj
 CPLLIB_OBJS     := $(patsubst $(CPLLIB_SRC_DIR)/%.cpl,$(CPLLIB_OBJDIR)/%.o,$(CPLLIB_IMPLS))
 CPLLIB_ARCHIVE  := $(CPLLIB_BUILDDIR)/libcpl.a
+COMPLETION_DIR  ?= completions
 
 CPPFLAGS 		+= -Iinclude -DALLOC_BUFFER_SIZE=$(AVAILABLE_MEMORY) -DCPL_DEFAULT_INCLUDE_DIR=\"$(CPLLIBDIR)\" -DCPL_DEFAULT_RUNTIME_LIB=\"$(CPLRUNTIMEDIR)/libcpl.a\"
 CFLAGS   		+= -Wall -Wno-int-conversion
@@ -178,19 +182,27 @@ release: ## Build an optimized compiler.
 
 install: $(OUTPUT) $(CPLLIB_ARCHIVE) | check-cpllib-src ## Install the compiler and CPL standard library under PREFIX.
 	$(INSTALL) -d $(DESTDIR)$(BINDIR) $(DESTDIR)$(CPLLIBDIR) $(DESTDIR)$(CPLRUNTIMEDIR) $(DESTDIR)$(DOCDIR)
+	$(INSTALL) -d $(DESTDIR)$(BASH_COMPLETION_DIR) $(DESTDIR)$(ZSH_COMPLETION_DIR) $(DESTDIR)$(FISH_COMPLETION_DIR)
 	$(INSTALL) -m 0755 $(OUTPUT) $(DESTDIR)$(BINDIR)/cplc
 	$(INSTALL) -m 0644 $(CPLLIB_SOURCES) $(DESTDIR)$(CPLLIBDIR)/
 	$(INSTALL) -m 0644 $(CPLLIB_ARCHIVE) $(DESTDIR)$(CPLRUNTIMEDIR)/libcpl.a
 	$(INSTALL) -m 0644 LICENSE $(DESTDIR)$(DOCDIR)/
+	$(INSTALL) -m 0644 $(COMPLETION_DIR)/cplc.bash $(DESTDIR)$(BASH_COMPLETION_DIR)/cplc
+	$(INSTALL) -m 0644 $(COMPLETION_DIR)/_cplc $(DESTDIR)$(ZSH_COMPLETION_DIR)/_cplc
+	$(INSTALL) -m 0644 $(COMPLETION_DIR)/cplc.fish $(DESTDIR)$(FISH_COMPLETION_DIR)/cplc.fish
 
 package: | check-cpllib-src ## Build a relocatable binary tarball with the standard library.
 	$(MAKE) BUILD=release PRINT_PARSE=0 CPLLIB_SRC_DIR=$(CPLLIB_SRC_DIR) -B all cpllib
 	$(RM) -r builds/package/cpl-$(VERSION)
 	$(INSTALL) -d builds/package/cpl-$(VERSION)/bin builds/package/cpl-$(VERSION)/lib/cpl builds/package/cpl-$(VERSION)/share/cpl/include builds/package/cpl-$(VERSION)/share/doc/cpl
+	$(INSTALL) -d builds/package/cpl-$(VERSION)/share/bash-completion/completions builds/package/cpl-$(VERSION)/share/zsh/site-functions builds/package/cpl-$(VERSION)/share/fish/vendor_completions.d
 	$(INSTALL) -m 0755 $(OUTPUT) builds/package/cpl-$(VERSION)/bin/cplc
 	$(INSTALL) -m 0644 $(CPLLIB_SOURCES) builds/package/cpl-$(VERSION)/share/cpl/include/
 	$(INSTALL) -m 0644 $(CPLLIB_ARCHIVE) builds/package/cpl-$(VERSION)/lib/cpl/libcpl.a
 	$(INSTALL) -m 0644 LICENSE builds/package/cpl-$(VERSION)/share/doc/cpl/
+	$(INSTALL) -m 0644 $(COMPLETION_DIR)/cplc.bash builds/package/cpl-$(VERSION)/share/bash-completion/completions/cplc
+	$(INSTALL) -m 0644 $(COMPLETION_DIR)/_cplc builds/package/cpl-$(VERSION)/share/zsh/site-functions/_cplc
+	$(INSTALL) -m 0644 $(COMPLETION_DIR)/cplc.fish builds/package/cpl-$(VERSION)/share/fish/vendor_completions.d/cplc.fish
 	tar -C builds/package -czf builds/cpl-$(VERSION)-$(PLATFORM).tar.gz cpl-$(VERSION)
 
 run: $(OUTPUT) ## Compile INPUT with the built compiler.
@@ -250,6 +262,9 @@ print-config:
 	@echo "CPLLIBDIR=$(CPLLIBDIR)"
 	@echo "CPLLIB_SRC_DIR=$(CPLLIB_SRC_DIR)"
 	@echo "CPLRUNTIMEDIR=$(CPLRUNTIMEDIR)"
+	@echo "BASH_COMPLETION_DIR=$(BASH_COMPLETION_DIR)"
+	@echo "ZSH_COMPLETION_DIR=$(ZSH_COMPLETION_DIR)"
+	@echo "FISH_COMPLETION_DIR=$(FISH_COMPLETION_DIR)"
 	@echo "CPLLIB_SOURCES=$(CPLLIB_SOURCES)"
 	@echo "CPLLIB_IMPLS=$(CPLLIB_IMPLS)"
 	@echo "CPLLIB_ARCHIVE=$(CPLLIB_ARCHIVE)"
