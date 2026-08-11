@@ -80,12 +80,26 @@
 #include <asm/x86_64_macho_nasm_asmgen.h>
 
 #include <gem_data.h>
-#define CCPL_VERSION                 "3.6.13:0908.26" // major.minor<.patch> (old version style):ddmm.yy (new version style)
+#define CCPL_VERSION                 "3.6.13:1008.26" // major.minor<.patch> (old version style):ddmm.yy (new version style)
+/* Version logic is next: We have the old style and the new style:
+    - Old style is a default version semantics - major-minor-patch style, where major is incremented when
+      I've added a lot of new features and they work properly. Also there should be some big shifts in
+      logic / syntax / language / optimizations / etc. If there is no huge changes - then this is a minor
+      change. If there is just a few bug fixes - it's a patch.
+    - New style is a date + mounth + two last digits of a year. There is nothing special - just change it
+      when there is any changes in the code just to track the progress and verify whether this is the last
+      version of the compiler or not. */
 
+/* Builder remembers where is the default directory for headers (only headers without any executable code)
+for any CPL program. It means it is an important data, tho which can be corrupted or rewritten - it will just cause
+'header not found' error. */
 #ifndef CPL_DEFAULT_INCLUDE_DIR
     #define CPL_DEFAULT_INCLUDE_DIR  "/usr/local/share/cpl/include"
 #endif
 
+/* Some headers includes prototypes of functions which implementations are placed in the CPL library. Usually it
+is work of the makefile to place libcpl.a by the proper path. But if it can't be performed - change this variable
+according you system requirements. */
 #ifndef CPL_DEFAULT_RUNTIME_LIB
     #define CPL_DEFAULT_RUNTIME_LIB  "/usr/local/lib/cpl/libcpl.a"
 #endif
@@ -177,8 +191,7 @@ typedef struct {
         char*        include;
         char*        stdlib;
         char*        runtime;
-        char**       files;
-        int          files_count;
+        list_t       files;
         list_t       defines;
         char*        output;
         char*        ast_output;
