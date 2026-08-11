@@ -74,6 +74,9 @@ PLATFORM ?= $(shell uname -s | tr '[:upper:]' '[:lower:]')-$(shell uname -m | tr
 
 SOURCES 		:= $(sort $(shell find src std -type f -name '*.c'))
 OUTPUT 			= builds/$(PLATFORM)/cplc
+OBJDIR 			= builds/$(PLATFORM)/obj
+OBJECTS 		:= $(patsubst %.c,$(OBJDIR)/%.o,$(SOURCES))
+DEPS 			:= $(OBJECTS:.o=.d)
 CPLLIB_SOURCES  := $(sort $(shell if [ -d "$(CPLLIB_SRC_DIR)" ]; then find "$(CPLLIB_SRC_DIR)" -maxdepth 1 -type f -name '*.cpl'; fi))
 CPLLIB_IMPLS 	:= $(sort $(shell if [ -d "$(CPLLIB_SRC_DIR)" ]; then find "$(CPLLIB_SRC_DIR)" -type f -name '*.cpl' ! -name '*_h.cpl'; fi))
 CPLLIB_BUILDDIR := builds/$(PLATFORM)/cpllib
@@ -152,9 +155,13 @@ check-vscode-src:
 		exit 1; \
 	fi
 
-$(OUTPUT): $(SOURCES)
+$(OUTPUT): $(OBJECTS)
 	@$(MKDIR_P) $(dir $@)
-	$(CC) $(CPPFLAGS) $(CFLAGS) $(SOURCES) -o $@ $(LDFLAGS) $(LDLIBS)
+	$(CC) $(OBJECTS) -o $@ $(LDFLAGS) $(LDLIBS)
+
+$(OBJDIR)/%.o: %.c Makefile
+	@$(MKDIR_P) $(dir $@)
+	$(CC) $(CPPFLAGS) $(CFLAGS) -MMD -MP -c $< -o $@
 
 $(CPLLIB_OBJDIR)/%.o: $(CPLLIB_SRC_DIR)/%.cpl $(OUTPUT) | check-cpllib-src
 	@$(MKDIR_P) $(dir $@)
@@ -257,6 +264,7 @@ print-config:
 	@echo "BUILD=$(BUILD)"
 	@echo "PLATFORM=$(PLATFORM)"
 	@echo "OUTPUT=$(OUTPUT)"
+	@echo "OBJDIR=$(OBJDIR)"
 	@echo "PREFIX=$(PREFIX)"
 	@echo "LIBDIR=$(LIBDIR)"
 	@echo "CPLLIBDIR=$(CPLLIBDIR)"
@@ -289,3 +297,5 @@ help:
 
 .DELETE_ON_ERROR:
 .PHONY: all check-cpllib-src check-vscode-src cpllib debug release install package run test unit-test rewrite-test std-test cli-test vscode-docker-build vscode-docker-package submodules clean clean-tests distclean print-sources print-config help
+
+-include $(DEPS)
