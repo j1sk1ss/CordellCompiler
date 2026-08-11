@@ -943,9 +943,15 @@ static int _z3c_predicate_for_subject_value_at_block(
     if (!eq) return Z3A_UNKNOWN;
 
     cfg_block_t* entry = (cfg_block_t*)list_get_head(&function->blocks);
-    return _z3c_any_path_to_block(fctx, entry, block, eq, 0, _z3c_max_depth(function))
-        ? Z3A_MAYBE
-        : Z3A_NO;
+    int max_depth = _z3c_max_depth(function);
+    Z3_ast neq = Z3_mk_not(fctx->ctx, eq);
+    int can_true  = _z3c_any_path_to_block(fctx, entry, block, eq, 0, max_depth);
+    int can_false = _z3c_any_path_to_block(fctx, entry, block, neq, 0, max_depth);
+
+    if (can_true && !can_false) return Z3A_YES;
+    if (can_true && can_false)  return Z3A_MAYBE;
+    if (!can_true && can_false) return Z3A_NO;
+    return Z3A_UNKNOWN;
 }
 
 static int _z3c_predicate_for_subjects_eq(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* lhs, hir_subject_t* rhs, int negate) {

@@ -1102,7 +1102,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (options.config.emit_hir_cfg) {
-            const char* hir_cfg_output = _output_path_or_default(options.locations.ir_output, "output.dot");
+            const char* hir_cfg_output = "output.dot";
             FILE* hir_cfg_file = fopen(hir_cfg_output, "w");
             if (!hir_cfg_file) {
                 fprintf(stderr, "Can't open HIR CFG output file %s: %s\n", hir_cfg_output, strerror(errno));
@@ -1188,7 +1188,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (options.config.emit_lir_cfg) {
-            const char* lir_cfg_output = _output_path_or_default(options.locations.lir_output, "output.dot");
+            const char* lir_cfg_output = "output.dot";
             FILE* lir_cfg_file = fopen(lir_cfg_output, "w");
             if (!lir_cfg_file) {
                 fprintf(stderr, "Can't open LIR CFG output file %s: %s\n", lir_cfg_output, strerror(errno));
