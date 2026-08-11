@@ -71,7 +71,7 @@ int access(const char* pathname, int mode) {
 
 ssize_t readlink(const char* pathname, char* buf, size_t bufsiz) {
     ssize_t (*real_readlink)(const char*, char*, size_t) = sym("readlink");
-    if (env_is("readlink")) {
+    if (env_is("readlink") && contains(pathname, "/proc/self/exe")) {
         errno = EINVAL;
         return -1;
     }
@@ -259,16 +259,27 @@ def _copy_binary(src: Path, dst: Path) -> Path:
     return dst
 
 
+def _linker_passthrough_arg() -> str:
+    if platform.system() == "Darwin":
+        return "-Wl,-dead_strip"
+    return "-Wl,--as-needed"
+
+
 def _build_fault_preload(output_dir: Path) -> Path:
     compiler = shutil.which("gcc") or shutil.which("cc")
     if not compiler:
         raise unittest.SkipTest("C compiler is required to build the fault preload helper")
 
     source = output_dir / "fault_preload.c"
-    library = output_dir / "fault_preload.so"
+    is_darwin = platform.system() == "Darwin"
+    library = output_dir / ("fault_preload.dylib" if is_darwin else "fault_preload.so")
     source.write_text(FAULT_PRELOAD_SOURCE, encoding="utf-8")
+    if is_darwin:
+        command = [compiler, "-dynamiclib", "-fPIC", source, "-o", library]
+    else:
+        command = [compiler, "-shared", "-fPIC", "-D_GNU_SOURCE", source, "-o", library, "-ldl"]
     result = subprocess.run(
-        [compiler, "-shared", "-fPIC", "-D_GNU_SOURCE", source, "-o", library, "-ldl"],
+        command,
         cwd=REPO_ROOT,
         capture_output=True,
         text=True,
@@ -330,7 +341,13 @@ class BuilderCLITests(unittest.TestCase):
 
     def fault_env(self, fault: str | None = None, **extra: str) -> dict[str, str]:
         assert self.fault_preload is not None
-        env = {"LD_PRELOAD": str(self.fault_preload)}
+        if platform.system() == "Darwin":
+            env = {
+                "DYLD_INSERT_LIBRARIES": str(self.fault_preload),
+                "DYLD_FORCE_FLAT_NAMESPACE": "1",
+            }
+        else:
+            env = {"LD_PRELOAD": str(self.fault_preload)}
         if fault:
             env["CPLC_FAULT"] = fault
         env.update(extra)
@@ -856,6 +873,7 @@ class BuilderCLITests(unittest.TestCase):
                 "-c",
                 "--output", obj_output,
                 source,
+                cwd=root,
             )
             explicit_outputs = [ast_output, ir_output, lir_output, asm_output, obj_output]
             explicit_output_stats = [(path.is_file(), path.stat().st_size if path.is_file() else 0) for path in explicit_outputs]
@@ -915,6 +933,7 @@ class BuilderCLITests(unittest.TestCase):
                 "--ir-output", ir_output,
                 "--emit-hir-cfg", "main",
                 source,
+                cwd=Path(tmp),
             )
             ast_exists = ast_output.is_file()
             ir_exists = ir_output.is_file()
@@ -1006,13 +1025,13 @@ class BuilderCLITests(unittest.TestCase):
             _minimal_source(source)
 
             default_result = self.run_cplc(
-                "--linker-arg", "-Wl,--as-needed",
+                "--linker-arg", _linker_passthrough_arg(),
                 source,
                 cwd=root,
             )
             explicit_result = self.run_cplc(
                 "--output", explicit_output,
-                "--linker-arg", "-Wl,--as-needed",
+                "--linker-arg", _linker_passthrough_arg(),
                 source,
             )
             default_exists = (root / "a.out").is_file()
