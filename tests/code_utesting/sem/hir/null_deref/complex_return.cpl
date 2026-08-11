@@ -23,16 +23,22 @@ start() {
 }
 
 :/ OUTPUT
-[WARNING] [{X}cpl:12:15] Function 'foo' has some arguments, which have the wrong type! Consider to use the 'as' operator!
-          [{X}cpl:12:15]     Value '10' has the 'i8' type! Consider the 'as i32' command!
-[WARNING] [{X}cpl:13:16] 'If' with a constant value 'true'!
-[WARNING] [{X}cpl:10:15] Condition with a constant value (variable 'tmp' is equals 'true' (1))!
-          [{X}cpl:10:15]     Variable 'tmp' declared as a constant here!
-          [{X}cpl:10:15]     Can't reach the 'else' branch! Consider to refactor the code.
-[WARNING] [{X}cpl:10:15] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
-          [{X}cpl:10:15]     Variable 'tmp' declared as a constant here!
-          [{X}cpl:10:15]     Can't reach the 'else' branch! Consider to refactor the code.
-          [{X}cpl:10:15]     Can't reach the 'then' branch! Consider to refactor the code.
-[WARNING] [{X}cpl:21:10] NULL-dereference error (variable 'b' is NULL)!
-          [{X}cpl:14:22]     Variable 'b' becomes NULL-value
+[WARNING] Condition with a constant value (variable 'tmp' is equals 'true' (1))!
+    at: {X}.cpl:10:15
+    trace: Variable 'tmp' declared as a constant here!
+      at: {X}.cpl:10:15
+[WARNING] Function 'foo' has some arguments, which have a wrong type! Consider to use the 'as' operator!
+    at: {X}.cpl:12:15
+    trace: Value '10' has the 'i8' type! Consider the 'as i32' command!
+      at: {X}.cpl:12:15
+[WARNING] 'If' with a constant value 'true'!
+    at: {X}.cpl:13:16
+[WARNING] Possible NULL-dereference error (variable 'b' is NULL)!
+    at: {X}.cpl:21:10
+    trace: Variable 'b' becomes NULL
+      at: {X}.cpl:14:22
+[WARNING] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
+    at: {X}.cpl:21:10
+    trace: Variable 'tmp' declared as a constant here!
+      at: {X}.cpl:10:15
 /:

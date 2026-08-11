@@ -25,19 +25,30 @@ function foo() {
 }
 
 :/ OUTPUT
-#
-[WARNING] [{X}cpl:8{X}] Condition with a constant value (variable 'tmp' is equals 'true' (1))!
-          [{X}cpl:8{X}]     Variable 'tmp' declared as a constant here!
-[WARNING] [{X}cpl:8{X}] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
-          [{X}cpl:8{X}]     Variable 'tmp' declared as a constant here!
-[WARNING] [{X}cpl:8{X}] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
-          [{X}cpl:8{X}]     Variable 'tmp' declared as a constant here!
-[WARNING] [{X}cpl:17{X}] Condition with a constant value (variable 'tmp' is equals 'true' (1))!
-          [{X}cpl:17{X}]     Variable 'tmp' declared as a constant here!
-[WARNING] [{X}cpl:17{X}] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
-          [{X}cpl:17{X}]     Variable 'tmp' declared as a constant here!
-#
-[WARNING] [{X}cpl:23{X}] NULL-dereference error (variable 'a' is NULL)!
-          [{X}cpl:{X}]     Variable 'a' becomes NULL-value
-          [{X}cpl:{X}]     Variable 'a' becomes NULL-value
+[WARNING] Condition with a constant value (variable 'tmp' is equals 'true' (1))!
+    at: {X}.cpl:8:15
+    trace: Variable 'tmp' declared as a constant here!
+      at: {X}.cpl:8:15
+[WARNING] Condition with a constant value (variable 'tmp' is equals 'true' (1))!
+    at: {X}.cpl:17:15
+    trace: Variable 'tmp' declared as a constant here!
+      at: {X}.cpl:17:15
+[WARNING] Possible NULL-dereference error (variable 'a' is NULL)!
+    at: {X}.cpl:23:16
+    trace: Variable 'a' becomes NULL
+      at: {X}.cpl:12:23
+    trace: Variable 'a' becomes NULL
+      at: {X}.cpl:11:25
+[WARNING] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
+    at: {X}.cpl:24:16
+    trace: Variable 'tmp' declared as a constant here!
+      at: {X}.cpl:17:15
+[WARNING] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
+    at: {X}.cpl:20:23
+    trace: Variable 'tmp' declared as a constant here!
+      at: {X}.cpl:8:15
+[WARNING] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
+    at: {X}.cpl:10:25
+    trace: Variable 'tmp' declared as a constant here!
+      at: {X}.cpl:8:15
 /:

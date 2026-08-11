@@ -9,7 +9,8 @@ start() {
 }
 
 :/ OUTPUT
-[WARNING] [{X}:3:8] 'If' with a constant value 'true'!
-[WARNING] [{X}:4:12] 'If' with a constant value 'true'!
-          [{X}:4:12]     Can't reach the 'else' branch! Consider to refactor the code.
+[WARNING] 'If' with a constant value 'true'!
+    at: {X}.cpl:3:8
+[WARNING] 'If' with a constant value 'true'!
+    at: {X}.cpl:4:12
 /:

@@ -7,8 +7,10 @@ start() {
 }
 
 :/ OUTPUT
-[{X}4:9] Narrow implicit cast is forbidden!
-[WARNING] [{X}4:9] Function 'bar' doesn't return any value, but it used as a value. Consider to change the return type.
-[WARNING] [{X}5:9] Function 'foo' has the 'i32' return type but the call doesn't store it anywhere else.
-[WARNING] [{X}6:14] The danger reference to a temp value! Consider to reference from a variable with this value.
+[WARNING] Function 'bar' doesn't return any value, but it used as a value. Consider to change the return type.
+    at: {X}.cpl:4:9
+[WARNING] Function 'foo' has the 'i32' return type but the call doesn't store it anywhere else.
+    at: {X}.cpl:5:13
+[WARNING] The danger reference to a temp value! Consider to reference from a variable with this value.
+    at: {X}.cpl:6:14
 /:

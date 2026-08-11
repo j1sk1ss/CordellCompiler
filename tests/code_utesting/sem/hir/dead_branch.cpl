@@ -1,3 +1,4 @@
+: BUG :
 @[entry]
 function foo(i32 a) {
     if a > 10 && a <= 20; {
@@ -12,5 +13,4 @@ function foo(i32 a) {
 }
 
 :/ OUTPUT
-[WARNING] [{X}:7:8] Can't reach the 'then' branch! Consider to refactor the code.
 /:
