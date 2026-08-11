@@ -188,7 +188,6 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
 
     switch (ns->t) {
         case HIR_PHISET: {
-            set_init(&ns->storage.set.h, SET_NO_CMP);
             set_foreach (int_tuple_t* tpl, &s->storage.set.h) {
                 set_add(&ns->storage.set.h, inttuple_create(tpl->x, tpl->y));
             }
@@ -196,7 +195,6 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
             break;
         }
         case HIR_ARGLIST: {
-            list_init(&ns->storage.list.h);
             hir_subject_t* arg;
             foreach (arg, &s->storage.list.h) {
                 list_add(&ns->storage.list.h, HIR_copy_subject(arg));
