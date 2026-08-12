@@ -1,5 +1,6 @@
 glob i32 a;
 
 :/ OUTPUT
-id: 0, a, glob i32, s_id: 1, align: 8
+| id    | type                 | name                 | align | par   | scope | ptr   | ro  | glb | ext |
+| 0     | i32                  | a                    | 8     | -1    | 1     | 0     |     | +   |     |
 /:

@@ -10,7 +10,7 @@
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
 #include <sem/misc/restore.h>
-#include "../../../../misc/symtb_helper.h"
+#include <symtab/dump.h>
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -62,23 +62,8 @@ int main(int argc, char* argv[]) {
 
     AST_finalize_parse(&sctx, &smt);
 
-    map_foreach (variable_info_t* vi, &smt.v.vartb) {
-        printf("id: %li, %s, ", vi->v_id, vi->name->body);
-        for (int i = 0; i < vi->vfs.ptr; i++) printf("ptr ");
-        printf("%s, s_id: %i, align: %i", format_tkntype(vi->type), vi->s_id, vi->vmi.align);
-        printf("\n");
-    }
-
-    map_foreach (section_info_t* ti, &smt.c.sectb) {
-        printf("section='%s'", ti->name->body);
-        if (set_size(&ti->vars)) {
-            printf(", ");
-            set_foreach (symbol_id_t id, &ti->vars) {
-                printf("%li ", id);
-            }
-        }
-        printf("\n");
-    }
+    DUMP_format_vartb(&smt, stdout);
+    DUMP_format_sectb(&smt, stdout);
 
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);
     AST_unload_ctx(&sctx);

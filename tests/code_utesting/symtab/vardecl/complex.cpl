@@ -3,20 +3,21 @@ start() {
 }
 
 :/ OUTPUT
-{id: 0, a, i32, s_id: 2, align: 8}
-{id: 1, b, i32, s_id: 2, align: 8}
-{id: 8, l, i32, s_id: 2, align: 8}
-{id: 14, s, i32, s_id: 2, align: 8}
-{id: 2, c, i32, s_id: 2, align: 8}
-{id: 6, g, i32, s_id: 2, align: 8}
-{id: 11, o, i32, s_id: 2, align: 8}
-{id: 3, d, i32, s_id: 2, align: 8}
-{id: 13, r, i32, s_id: 2, align: 8}
-{id: 4, e, i32, s_id: 2, align: 8}
-{id: 7, k, i32, s_id: 2, align: 8}
-{id: 9, m, i32, s_id: 2, align: 8}
-{id: 10, n, i32, s_id: 2, align: 8}
-{id: 15, t, i32, s_id: 2, align: 8}
-{id: 5, f, i32, s_id: 2, align: 8}
-{id: 12, p, i32, s_id: 2, align: 8}
+| id    | type                 | name                 | align | par   | scope | ptr   | ro  | glb | ext |
+| 2     | i32                  | c                    | 8     | -1    | 2     | 0     |     |     |     |
+| 9     | i32                  | m                    | 8     | -1    | 2     | 0     |     |     |     |
+| 12    | i32                  | p                    | 8     | -1    | 2     | 0     |     |     |     |
+| 14    | i32                  | s                    | 8     | -1    | 2     | 0     |     |     |     |
+| 1     | i32                  | b                    | 8     | -1    | 2     | 0     |     |     |     |
+| 4     | i32                  | e                    | 8     | -1    | 2     | 0     |     |     |     |
+| 15    | i32                  | t                    | 8     | -1    | 2     | 0     |     |     |     |
+| 3     | i32                  | d                    | 8     | -1    | 2     | 0     |     |     |     |
+| 7     | i32                  | k                    | 8     | -1    | 2     | 0     |     |     |     |
+| 13    | i32                  | r                    | 8     | -1    | 2     | 0     |     |     |     |
+| 11    | i32                  | o                    | 8     | -1    | 2     | 0     |     |     |     |
+| 10    | i32                  | n                    | 8     | -1    | 2     | 0     |     |     |     |
+| 0     | i32                  | a                    | 8     | -1    | 2     | 0     |     |     |     |
+| 5     | i32                  | f                    | 8     | -1    | 2     | 0     |     |     |     |
+| 6     | i32                  | g                    | 8     | -1    | 2     | 0     |     |     |     |
+| 8     | i32                  | l                    | 8     | -1    | 2     | 0     |     |     |     |
 /:

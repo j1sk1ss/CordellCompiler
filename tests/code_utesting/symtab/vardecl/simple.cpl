@@ -3,5 +3,6 @@ start() {
 }
 
 :/ OUTPUT
-id: 0, a, i32, s_id: 2, align: 8
+| id    | type                 | name                 | align | par   | scope | ptr   | ro  | glb | ext |
+| 0     | i32                  | a                    | 8     | -1    | 2     | 0     |     |     |     |
 /:

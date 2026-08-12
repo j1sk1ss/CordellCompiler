@@ -1,6 +1,8 @@
 @[align(16)] glob i32 a;
 
 :/ OUTPUT
-{id: 0, a, i32, s_id: 1, align: 16}
-{section='.data', 0}
+| id    | type                 | name                 | align | par   | scope | ptr   | ro  | glb | ext |
+| 0     | i32                  | a                    | 16    | -1    | 1     | 0     |     | +   |     |
+| section              | align | vars                                                             |
+| .data                | -1    | {0}                                                              |
 /:

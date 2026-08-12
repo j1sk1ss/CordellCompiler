@@ -6,8 +6,9 @@ start() {
 }
 
 :/ OUTPUT
-{id: 0, a, i32, s_id: 2, align: 8}
-{id: 3, a2, f64, s_id: 2, align: 8}
-{id: 1, b, u8, s_id: 2, align: 8}
-{id: 2, a1, i8, s_id: 2, align: 8}
+| id    | type                 | name                 | align | par   | scope | ptr   | ro  | glb | ext |
+| 1     | u8                   | b                    | 8     | -1    | 2     | 0     |     |     |     |
+| 3     | f64                  | a2                   | 8     | -1    | 2     | 0     |     |     |     |
+| 0     | i32                  | a                    | 8     | -1    | 2     | 0     |     |     |     |
+| 2     | i8                   | a1                   | 8     | -1    | 2     | 0     |     |     |     |
 /:

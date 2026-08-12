@@ -2,8 +2,10 @@
 glob i32 b;
 
 :/ OUTPUT
-{id: 0, a, i32, s_id: 1, align: 8}
-{id: 1, b, i32, s_id: 1, align: 8}
-{section='.bss', 0}
-{section='.data', 1}
+| id    | type                 | name                 | align | par   | scope | ptr   | ro  | glb | ext |
+| 1     | i32                  | b                    | 8     | -1    | 1     | 0     |     | +   |     |
+| 0     | i32                  | a                    | 8     | -1    | 1     | 0     |     | +   |     |
+| section              | align | vars                                                             |
+| .bss                 | -1    | {0}                                                              |
+| .data                | -1    | {1}                                                              |
 /:
