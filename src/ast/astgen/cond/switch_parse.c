@@ -69,14 +69,9 @@ ast_node_t* cpl_parse_switch(PARSER_ARGS) {
             AST_add_node(case_node, case_stmt);
         }
 
-        if (!consume_token(it, OPEN_BLOCK_TOKEN)) {
-            PARSE_ERROR("Expected the 'OPEN_BLOCK_TOKEN' token during a parse of the 'switch' statement!");
-            AST_unload(base);
-            RESTORE_TOKEN_POINT;
-            return NULL;
-        }
-
-        ast_node_t* case_body = cpl_parse_scope(it, ctx, smt, 1);
+        ast_node_t* case_body = NULL;
+        if (!consume_token(it, OPEN_BLOCK_TOKEN)) case_body = cpl_parse_line_scope(it, ctx, smt, 1);
+        else case_body = cpl_parse_scope(it, ctx, smt, 1);
         if (case_body) AST_add_node(case_node, case_body);
         else {
             PARSE_ERROR("Error during the parsing process for the case!");

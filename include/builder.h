@@ -80,7 +80,7 @@
 #include <asm/x86_64_macho_nasm_asmgen.h>
 
 #include <gem_data.h>
-#define CCPL_VERSION                 "3.6.15:1108.26" // major.minor<.patch> (old version style):ddmm.yy (new version style)
+#define CCPL_VERSION                 "3.6.16:1208.26" // major.minor<.patch> (old version style):ddmm.yy (new version style)
 /* Version logic is next: We have the old style and the new style:
     - Old style is a default version semantics - major-minor-patch style, where major is incremented when
       I've added a lot of new features and they work properly. Also there should be some big shifts in
