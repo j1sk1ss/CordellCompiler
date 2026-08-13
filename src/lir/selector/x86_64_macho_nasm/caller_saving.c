@@ -35,7 +35,7 @@ _unknown_call: {}
                 if (
                     LIR_is_writeop(lh->op) &&   /* We are writing some value to register (for some reason)        */
                     lh->farg->t == LIR_REGISTER /* This is a register object, we can say that this is a dirty one */
-                ) set_add(dirty, (void*)LIR_format_register(lh->farg->storage.reg.reg, 8));
+                ) set_add(dirty, (void*)LIR_format_register(lh->farg->storage.reg.reg, CONF_get_full_bytness()));
             }
         }
     }
@@ -53,14 +53,14 @@ static void _collect_local_out_function_reg_usage(set_t* dirty, set_t* save, cfg
             LIR_is_writeop(lh->op) &&
             lh->farg->t == LIR_REGISTER &&
             !LIR_subj_equals(lh->farg, lh->sarg)
-        ) set_remove(dirty, (void*)LIR_format_register(lh->farg->storage.reg.reg, 8));
+        ) set_remove(dirty, (void*)LIR_format_register(lh->farg->storage.reg.reg, CONF_get_full_bytness()));
 
         iterate_lir_args (lir_subject_t* arg, lh, LIR_is_writeop(lh->op)) {
             if (
                 arg->t != LIR_REGISTER ||
-                !set_has(dirty, (void*)LIR_format_register(arg->storage.reg.reg, 8))
+                !set_has(dirty, (void*)LIR_format_register(arg->storage.reg.reg, CONF_get_full_bytness()))
             ) continue;
-            set_add(save, (void*)LIR_format_register(arg->storage.reg.reg, 8));
+            set_add(save, (void*)LIR_format_register(arg->storage.reg.reg, CONF_get_full_bytness()));
         }
 
         if (lh->op == LIR_JMP) {
@@ -104,7 +104,7 @@ static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_
 }
 
 static int _is_function_arg(lir_registers_t r) {
-    r = LIR_format_register(r, 8);
+    r = LIR_format_register(r, CONF_get_full_bytness());
     lir_registers_t dec_abi_regs[]  = { RDI,  RSI,  RDX,  RCX,  R8,   R9 };
     lir_registers_t simd_abi_regs[] = { XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7 };
     for (int i = 0; i < (int)(sizeof(dec_abi_regs) / sizeof(dec_abi_regs[0])); i++) {
@@ -118,7 +118,7 @@ static int _is_function_arg(lir_registers_t r) {
 
 static inline int _same_full_register(lir_subject_t* a, lir_subject_t* b) {
     if (!a || !b || a->t != LIR_REGISTER || b->t != LIR_REGISTER) return 0;
-    return LIR_format_register(a->storage.reg.reg, 8) == LIR_format_register(b->storage.reg.reg, 8);
+    return LIR_format_register(a->storage.reg.reg, CONF_get_full_bytness()) == LIR_format_register(b->storage.reg.reg, CONF_get_full_bytness());
 }
 
 static inline lir_block_t* _find_pre_argload(lir_block_t* lh, lir_block_t* ex) {
@@ -260,13 +260,13 @@ int x86_64_macho_nasm_caller_saving(cfg_ctx_t* cctx, call_graph_t* calls, sym_ta
 
                         lir_block_t* push_pos = pre;
                         for (int i = 0; i < regs_count; i++) {
-                            lir_block_t* push = LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(regs[i], 8), NULL, NULL);
+                            lir_block_t* push = LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(regs[i], CONF_get_full_bytness()), NULL, NULL);
                             LIR_insert_block_after(push, push_pos);
                             push_pos = push;
                         }
 
                         for (int i = regs_count - 1; i >= 0; i--) {
-                            LIR_insert_block_before(LIR_create_block(LIR_POP, LIR_SUBJ_REG(regs[i], 8), NULL, NULL), post);
+                            LIR_insert_block_before(LIR_create_block(LIR_POP, LIR_SUBJ_REG(regs[i], CONF_get_full_bytness()), NULL, NULL), post);
                         }
                         
                         set_free(&func_regs);

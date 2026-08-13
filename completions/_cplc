@@ -57,6 +57,7 @@ _arguments -s -S \
   '--emit-lir[Emit LIR dump]' \
   '--emit-lir-cfg[Emit LIR CFG dump for function]:function:' \
   '--emit-asm[Emit produced assembly code]' \
+  '--emit-symtab[Emit symtable dump]:type:(var vars v fn func funcs fntb function functions sec sect section sections)' \
   '--ast-output[Set AST dump output path]:file:_files' \
   '--ir-output[Set HIR dump output path]:file:_files' \
   '--lir-output[Set LIR dump output path]:file:_files' \
