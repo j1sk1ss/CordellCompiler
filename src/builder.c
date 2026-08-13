@@ -97,6 +97,7 @@ static int _print_help_message() {
         { OPTION_LIR_OUTPUT, "<file>", "Set LIR dump output path" },
         { OPTION_EMIT_ASM, NULL, "Emit produced assembly code" },
         { OPTION_ASM_OUTPUT, "<file>", "Set assembly output path" },
+        { OPTION_EMIT_SYMTAB, "<type>", "Emit symtable dump (var, fn, sec)" },
     };
 
     _print_version(stdout);
@@ -358,6 +359,75 @@ static inline const char* _output_path_or_default(const char* path, const char* 
     return path ? path : fallback;
 }
 
+static const char* _normalize_symtab_type(const char* type) {
+    if (!type) return NULL;
+
+    if (
+        !strcmp(type, "var")  ||
+        !strcmp(type, "vars") ||
+        !strcmp(type, "v")
+    ) return "var";
+
+    if (
+        !strcmp(type, "fn")        ||
+        !strcmp(type, "func")      ||
+        !strcmp(type, "funcs")     ||
+        !strcmp(type, "fntb")      ||
+        !strcmp(type, "function")  ||
+        !strcmp(type, "functions")
+    ) return "fn";
+
+    if (
+        !strcmp(type, "sec")      ||
+        !strcmp(type, "sect")     ||
+        !strcmp(type, "section")  ||
+        !strcmp(type, "sections")
+    ) return "sec";
+
+    return NULL;
+}
+
+static int _add_symtab_type_arg(options_t* out, const char* type) {
+    if (!out) return 0;
+    const char* normalized = _normalize_symtab_type(type);
+    return normalized && list_push_back(&out->locations.symtab_types, (void*)normalized);
+}
+
+static const char* _symtab_output_path(const char* type) {
+    if (!strcmp(type, "var")) return "output.var.symtab";
+    if (!strcmp(type, "fn"))  return "output.fn.symtab";
+    if (!strcmp(type, "sec")) return "output.sec.symtab";
+    return NULL;
+}
+
+static int _emit_symtab(sym_table_t* smt, const char* type) {
+    const char* output_path = _symtab_output_path(type);
+    if (!output_path) return 0;
+
+    FILE* output = fopen(output_path, "w");
+    if (!output) {
+        fprintf(stderr, "Can't open symtab output file %s: %s\n", output_path, strerror(errno));
+        return 0;
+    }
+
+    int ok = 0;
+    if (!strcmp(type, "var"))      ok = DUMP_format_vartb(smt, output);
+    else if (!strcmp(type, "fn"))  ok = DUMP_format_fntb(smt, output);
+    else if (!strcmp(type, "sec")) ok = DUMP_format_sectb(smt, output);
+
+    fclose(output);
+    return ok;
+}
+
+static int _emit_requested_symtabs(sym_table_t* smt, list_t* types) {
+    char* type = NULL;
+    foreach (type, types) {
+        if (!_emit_symtab(smt, type)) return 0;
+    }
+
+    return 1;
+}
+
 static inline int _parse_long_arg(const char* s, long* out) {
     if (!s || !out) return 0;
     char* end = NULL;
@@ -589,6 +659,7 @@ static void _unload_options(options_t* options) {
     if (!options) return;
     list_free(&options->locations.files);
     list_free_force_op(&options->locations.defines, (int (*)(void*))_unload_cli_define);
+    list_free(&options->locations.symtab_types);
     list_free_force(&options->tools.linker_args);
 }
 
@@ -609,6 +680,7 @@ static void _set_default_options(options_t* out) {
     memset(out, 0, sizeof(options_t));
     list_init(&out->locations.files);
     list_init(&out->locations.defines);
+    list_init(&out->locations.symtab_types);
     list_init(&out->tools.linker_args);
     out->build_mode                = BUILD_MODE_EXECUTABLE;
     out->tools.asm_compiler        = "nasm";
@@ -805,6 +877,10 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
             out->locations.asm_output = argv[++i];
             out->config.emit_asm = 1;
         }
+        else if (!strcmp(argv[i], OPTION_EMIT_SYMTAB)) {
+            if (i + 1 >= argc || !_add_symtab_type_arg(out, argv[i + 1])) goto _fail;
+            i++;
+        }
         else if (!strcmp(argv[i], OPTION_DEBUG))                out->config.debug       = 1;
         else if (!strcmp(argv[i], OPTION_NO_DEBUG))             out->config.debug       = 0;
         else if (!strcmp(argv[i], OPTION_NO_STRICT))            out->config.strict      = 0;
@@ -987,6 +1063,11 @@ int main(int argc, char* argv[]) {
 
         if (!AST_finalize_parse(&sctx, &smt)) {
             fprintf(stderr, "AST finalization error!\n");
+            return 1;
+        }
+
+        if (list_size(&options.locations.symtab_types) && !_emit_requested_symtabs(&smt, &options.locations.symtab_types)) {
+            fprintf(stderr, "Symtab dump emission failed\n");
             return 1;
         }
 

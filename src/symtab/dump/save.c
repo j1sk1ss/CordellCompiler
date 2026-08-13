@@ -1,4 +1,5 @@
 #include <symtab/dump.h>
+#include <stdarg.h>
 
 static char* _format_type(symbol_id_t id, typetab_ctx_t* ctx) {
     type_info_t ti;
@@ -9,28 +10,24 @@ static char* _format_type(symbol_id_t id, typetab_ctx_t* ctx) {
     return "NULL";
 }
 
-static int _format_varinfo(variable_info_t* vi, sym_table_t* smt, char* output) {
-    sprintf(
+static inline const char* _format_flag(int flag) {
+    return flag ? "+" : "";
+}
+
+static int _format_varinfo(variable_info_t* vi, sym_table_t* smt, FILE* output) {
+    fprintf(
         output,
-        // 5id       20t    20n     5algn  5par    5scp   5ptr    ro    glb    ext
-        "| %-5li | %-20s | %-20s | %-5i | %-5li | %-5li | %-5i | %-3s | %-3s | %-3s |",
+        "var id=%li type=%s name=%s align=%i par=%li scope=%li ptr=%i ro=%s glb=%s ext=%s\n",
         vi->v_id, _format_type(vi->t_id, &smt->t), vi->name->body, vi->vmi.align,
-        vi->p_id, vi->s_id, vi->vfs.ptr, 
-        vi->vfs.ro ? "+" : " ", vi->vfs.glob ? "+" : " ", vi->vfs.ext ? "+" : " "
+        vi->p_id, vi->s_id, vi->vfs.ptr,
+        _format_flag(vi->vfs.ro), _format_flag(vi->vfs.glob), _format_flag(vi->vfs.ext)
     );
     return 1;
 }
 
 int DUMP_format_vartb(sym_table_t* smt, FILE* output) {
-    fprintf(
-        output,
-        "| %-5s | %-20s | %-20s | %-5s | %-5s | %-5s | %-5s | %-3s | %-3s | %-3s |\n",
-        "id", "type", "name", "align", "par", "scope", "ptr", "ro", "glb", "ext"
-    );
     map_foreach (variable_info_t* vi, &smt->v.vartb) {
-        char line[512] = { 0 };
-        _format_varinfo(vi, smt, line);
-        fprintf(output, "%s\n", line);
+        _format_varinfo(vi, smt, output);
     }
     return 1;
 }
@@ -127,28 +124,20 @@ static int _format_funcinfo(func_info_t* fi, FILE* output) {
 
     fprintf(
         output,
-        "| %-5li | %-20s | %-20s | %-5li | %-36s | %-16s | %-18s | %-18s | %-18s |"
-        " %-3s | %-3s | %-3s | %-3s | %-3s | %-3s | %-3s | %-3s | %-3s | %-3s | %-3s | %-3s | %-3s | %-3s |\n",
+        "fn id=%li name=%s virt=%s scope=%li args=%s ret=%s locals=%s generic_types=%s resolutions=%s "
+        "ext=%s glb=%s entry=%s used=%s local=%s vargs=%s generic=%s abi=%s weak=%s self=%s naked=%s inline=%s onlybody=%s vname=%s\n",
         fi->id, _format_str(fi->name), _format_str(fi->virt), fi->s_id,
         args, rtype, locals, generic_types, resolutions,
-        fi->flags.external ? "+" : " ", fi->flags.global   ? "+" : " ", fi->flags.entry    ? "+" : " ",
-        fi->flags.used     ? "+" : " ", fi->flags.local    ? "+" : " ", fi->flags.vargs    ? "+" : " ",
-        fi->flags.generic  ? "+" : " ", fi->flags.abi      ? "+" : " ", fi->flags.weak     ? "+" : " ",
-        fi->flags.self     ? "+" : " ", fi->flags.naked    ? "+" : " ", fi->flags.inln     ? "+" : " ",
-        fi->flags.onlybody ? "+" : " ", fi->flags.vname    ? "+" : " "
+        _format_flag(fi->flags.external), _format_flag(fi->flags.global), _format_flag(fi->flags.entry),
+        _format_flag(fi->flags.used), _format_flag(fi->flags.local), _format_flag(fi->flags.vargs),
+        _format_flag(fi->flags.generic), _format_flag(fi->flags.abi), _format_flag(fi->flags.weak),
+        _format_flag(fi->flags.self), _format_flag(fi->flags.naked), _format_flag(fi->flags.inln),
+        _format_flag(fi->flags.onlybody), _format_flag(fi->flags.vname)
     );
     return 1;
 }
 
 int DUMP_format_fntb(sym_table_t* smt, FILE* output) {
-    fprintf(
-        output,
-        "| %-5s | %-20s | %-20s | %-5s | %-36s | %-16s | %-18s | %-18s | %-18s |"
-        " %-3s | %-3s | %-3s | %-3s | %-3s | %-3s | %-3s | %-3s | %-3s | %-3s | %-3s | %-3s | %-3s | %-3s |\n",
-        "id", "name", "virt", "scope", "args", "ret", "locals", "generic types", "resolutions",
-        "ext", "glb", "ent", "use", "loc", "var", "gen", "abi", "wek", "slf", "nkd", "inl", "bod", "vnm"
-    );
-
     map_foreach (func_info_t* fi, &smt->f.functb) {
         _format_funcinfo(fi, output);
     }
@@ -156,11 +145,7 @@ int DUMP_format_fntb(sym_table_t* smt, FILE* output) {
     return 1;
 }
 
-#define SECTION_ALIGN_WIDTH 5
-#define SECTION_VARS_WIDTH  64
-#define SECTION_FUNCS_WIDTH 64
-
-static int _format_secinfo(section_info_t* si, FILE* output, int name_width) {
+static int _format_secinfo(section_info_t* si, FILE* output) {
     const char* name = si->name ? si->name->body : "NULL";
     char vars[512]  = { 0 };
     char funcs[512] = { 0 };
@@ -170,28 +155,15 @@ static int _format_secinfo(section_info_t* si, FILE* output, int name_width) {
 
     fprintf(
         output,
-        "| %-*s | %-*i | %-*s | %-*s |\n",
-        name_width, name, SECTION_ALIGN_WIDTH, si->align,
-        SECTION_VARS_WIDTH, vars, SECTION_FUNCS_WIDTH, funcs
+        "sec name=%s align=%i vars=%s funcs=%s\n",
+        name, si->align, vars, funcs
     );
     return 1;
 }
 
 int DUMP_format_sectb(sym_table_t* smt, FILE* output) {
-    int name_width = 20;
     foreach (section_info_t* si, &smt->c.sorted.sectb) {
-        if (!si->name || !si->name->body) continue;
-        name_width = MAX(name_width, (int)strlen(si->name->body));
-    }
-
-    fprintf(
-        output,
-        "| %-*s | %-*s | %-*s | %-*s |\n",
-        name_width, "section", SECTION_ALIGN_WIDTH, "align", SECTION_VARS_WIDTH, "vars", SECTION_FUNCS_WIDTH, "funcs"
-    );
-
-    foreach (section_info_t* si, &smt->c.sorted.sectb) {
-        _format_secinfo(si, output, name_width);
+        _format_secinfo(si, output);
     }
 
     return 1;

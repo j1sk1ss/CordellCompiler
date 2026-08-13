@@ -2,8 +2,6 @@
 #define SMT_DUMP_H_
 
 #include <stdio.h>
-#include <stdarg.h>
-#include <string.h>
 #include <symtab/symtab.h>
 
 int DUMP_format_vartb(sym_table_t* smt, FILE* output);

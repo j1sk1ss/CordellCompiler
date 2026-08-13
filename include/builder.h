@@ -79,6 +79,9 @@
 #include <asm/i386_gnu_nasm_asmgen.h>
 #include <asm/x86_64_macho_nasm_asmgen.h>
 
+/* Symtable dump                                */
+#include <symtab/dump.h>
+
 #include <gem_data.h>
 #define CCPL_VERSION                 "3.6.16:1208.26" // major.minor<.patch> (old version style):ddmm.yy (new version style)
 /* Version logic is next: We have the old style and the new style:
@@ -169,6 +172,7 @@ according you system requirements. */
 #define OPTION_EMIT_LIR              "--emit-lir"
 #define OPTION_EMIT_LIR_CFG          "--emit-lir-cfg"
 #define OPTION_EMIT_ASM              "--emit-asm"
+#define OPTION_EMIT_SYMTAB           "--emit-symtab"
 #define OPTION_AST_OUTPUT            "--ast-output"
 #define OPTION_IR_OUTPUT             "--ir-output"
 #define OPTION_LIR_OUTPUT            "--lir-output"
@@ -194,6 +198,7 @@ typedef struct {
         char*        runtime;
         list_t       files;
         list_t       defines;
+        list_t       symtab_types;
         char*        output;
         char*        ast_output;
         char*        ir_output;
