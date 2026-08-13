@@ -16,6 +16,27 @@ static int _register_node(dag_ctx_t* dctx, dag_node_t* dst, dag_node_t* farg, da
     return 1;
 }
 
+static int _replace_duplicate_node(dag_ctx_t* dctx, dag_node_t* duplicate, dag_node_t* canonical) {
+    if (!dctx || !duplicate || !canonical || duplicate == canonical) return 0;
+    set_foreach (dag_node_t* user, &duplicate->users) {
+        set_remove(&user->args, duplicate);
+        set_add(&user->args, canonical);
+        set_add(&canonical->users, user);
+    }
+
+    set_foreach (dag_node_t* arg, &duplicate->args) {
+        set_remove(&arg->users, duplicate);
+    }
+
+    set_foreach (void* link, &duplicate->link) {
+        set_add(&canonical->link, link);
+    }
+
+    map_remove(&dctx->dag, HIR_hash_subject(duplicate->src));
+    HIR_DAG_unload_node(duplicate);
+    return 1;
+}
+
 int HIR_DAG_init(dag_ctx_t* dctx) {
     if (!dctx) return 0;
     dctx->memory_version = 0;
@@ -90,9 +111,7 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
                             if (!set_has(&dst->home->dom, existed->home)) _register_node(dctx, dst, farg, sarg);
                             else {
                                 if (dst != existed) {
-                                    map_remove(&dctx->dag, HIR_hash_subject(dst->src));
-                                    if (!set_size(&dst->users)) HIR_DAG_unload_node(dst);
-                                    set_add(&existed->link, (void*)HIR_hash_subject(hh->farg));
+                                    _replace_duplicate_node(dctx, dst, existed);
                                 }
                             }
                         }

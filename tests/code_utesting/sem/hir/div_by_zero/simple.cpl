@@ -4,6 +4,8 @@ start() {
 }
 
 :/ OUTPUT
-[WARNING] [{X}.cpl:3:10] Division by zero error! (variable 'a' is '0')!
-          [{X}.cpl:2:9]     Variable 'a' is assigned with '0' here
+[WARNING] Division by zero error! (variable 'a' is '0')!
+    at: {X}.cpl:3:10
+    trace: Variable 'a' is assigned with '0' here
+      at: {X}.cpl:2:9
 /:

@@ -21,13 +21,22 @@ function foo() {
 }
 
 :/ OUTPUT
-[WARNING] [{X}5{X}] 'If' with a constant value 'true'!
-[WARNING] [{X}8{X}] Condition with a constant value (variable 'tmp' is equals 'true' (1))!
-          [{X}8{X}]     Variable 'tmp' declared as a constant here!
-[WARNING] [{X}8{X}] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
-          [{X}8{X}]     Variable 'tmp' declared as a constant here!
-[WARNING] [{X}19{X}] NULL-dereference error (variable 'c' is NULL)!
-          [{X}9{X}]     Variable 'a' becomes NULL-value
-          [{X}13{X}]     Variable 'b' is assigned with the 'a' here
-          [{X}18{X}]     Variable 'c' is assigned with the 'b' here
+[WARNING] 'If' with a constant value 'true'!
+    at: /private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmp3ki58brc.cpl:5:8
+[WARNING] Condition with a constant value (variable 'tmp' is equals 'true' (1))!
+    at: /private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmp3ki58brc.cpl:8:19
+    trace: Variable 'tmp' declared as a constant here!
+      at: /private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmp3ki58brc.cpl:8:19
+[WARNING] Possible NULL-dereference error (variable 'c' is NULL)!
+    at: /private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmp3ki58brc.cpl:19:10
+    trace: Variable 'c' is assigned with 'b' here
+      at: /private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmp3ki58brc.cpl:18:14
+    trace: Variable 'b' is assigned with 'a' here
+      at: /private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmp3ki58brc.cpl:13:14
+    trace: Variable 'a' becomes NULL
+      at: /private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmp3ki58brc.cpl:9:29
+[WARNING] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
+    at: /private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmp3ki58brc.cpl:19:10
+    trace: Variable 'tmp' declared as a constant here!
+      at: /private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmp3ki58brc.cpl:8:19
 /:

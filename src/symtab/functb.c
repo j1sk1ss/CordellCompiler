@@ -133,18 +133,6 @@ int FNTB_add_local(symbol_id_t f_id, symbol_id_t l_id, functab_ctx_t* ctx) {
     return 0;
 }
 
-int FNTB_update_virt_name(symbol_id_t id, string_t* vname, functab_ctx_t* ctx) {
-    print_log("FNTB_update_virt_name(id=%li, name=%s)", id, vname->body);
-    func_info_t* fi;
-    if (map_get(&ctx->functb, id, (void**)&fi)) {
-        destroy_string(fi->virt);
-        fi->virt = vname->copy(vname);
-        return 1;
-    }
-
-    return 0;
-}
-
 int FNTB_update_func(
     symbol_id_t id, string_t* name, func_info_flags_t flags, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
 ) {

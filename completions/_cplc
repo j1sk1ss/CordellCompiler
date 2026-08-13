@@ -1,0 +1,67 @@
+#compdef cplc
+
+_arguments -s -S \
+  '(-h --help)'{-h,--help}'[Show this help message]' \
+  '(-v --version)'{-v,--version}'[Show compiler version]' \
+  '(-s --smth)'{-s,--smth}'[Show something]' \
+  '-E[Run preprocessor only]' \
+  '-I[Add include directory]:directory:_directories' \
+  '-D[Define preprocessor variable]:define:' \
+  '--print-stdlib-path[Print the standard library directory]' \
+  '--output[Set output file]:file:_files' \
+  '--ast-analysis[Enable AST analysis]' \
+  '--ir-analysis[Enable IR analysis]' \
+  '--analysis-only[Run AST and HIR analysis, then stop before code generation]' \
+  '--debug[Enable debug mode]' \
+  '--no-debug[Disable debug mode]' \
+  '--i-know-what-i-am-doing[Keep compiling after static analysis warnings]' \
+  '-O0[Disable optimizations]' \
+  '-O1[Rough optimization level]' \
+  '-O2[Good optimization level]' \
+  '-O3[Maximum optimization level]' \
+  '--arch[Set target architecture]:arch:(x86_64 amd64 x86 i386 ia32)' \
+  '--asm-compiler[Set assembler compiler]:compiler:_command_names -e' \
+  '--asm-format[Set assembler format]:format:(macho64 elf64 elf32 win64)' \
+  '--linker[Set linker]:linker:_command_names -e' \
+  '--linker-mode[Set linker mode]:mode:(c driver raw ld)' \
+  '(-Xlinker --linker-arg)'{-Xlinker,--linker-arg}'[Pass one raw argument to the linker command]:argument:' \
+  '(-c --compile-only)'{-c,--compile-only}'[Build an object file and skip linking]' \
+  '--linker-no-pie[Disable PIE]' \
+  '--linker-pie[Enable PIE]' \
+  '--linker-m32[Enable m32 mode]' \
+  '--linker-no-m32[Disable m32 mode]' \
+  '--entry-name[Set entry symbol name]:name:' \
+  '--ro-section[Set read-only section name]:name:' \
+  '--glob-section[Set global section name]:name:' \
+  '--code-section[Set code section name]:name:' \
+  '--full-bytness[Set full bytness]:size:(1 2 4 8)' \
+  '--half-bytness[Set half bytness]:size:(1 2 4 8)' \
+  '--quart-bytness[Set quart bytness]:size:(1 2 4 8)' \
+  '--eight-bytness[Set eight bytness]:size:(1 2 4 8)' \
+  '--sys-type[Set system type]:type:(unknown macho64 linux64 i386 windows64)' \
+  '--tre[Enable TRE]' \
+  '--no-tre[Disable TRE]' \
+  '--finline[Enable function inlining]' \
+  '--no-finline[Disable function inlining]' \
+  '--licm[Enable LICM]' \
+  '--no-licm[Disable LICM]' \
+  '--constant[Enable constant propagation/folding]' \
+  '--no-constant[Disable constant propagation/folding]' \
+  '--copyprop[Enable LIR copy propagation]' \
+  '--no-copyprop[Disable LIR copy propagation]' \
+  '--peephole[Enable peephole optimization]' \
+  '--no-peephole[Disable peephole optimization]' \
+  '--emit-ast[Emit AST dump]' \
+  '--emit-ir[Emit HIR dump]' \
+  '--emit-hir-cfg[Emit HIR CFG dump for function]:function:' \
+  '--emit-lir[Emit LIR dump]' \
+  '--emit-lir-cfg[Emit LIR CFG dump for function]:function:' \
+  '--emit-asm[Emit produced assembly code]' \
+  '--ast-output[Set AST dump output path]:file:_files' \
+  '--ir-output[Set HIR dump output path]:file:_files' \
+  '--lir-output[Set LIR dump output path]:file:_files' \
+  '--asm-output[Set assembly output path]:file:_files' \
+  '-L[Add linker library search directory]:directory:_directories' \
+  '-l[Link library]:library:' \
+  '-Wl,*[Pass comma-separated arguments to the linker]' \
+  '*:CPL source:_files -g "*.cpl(-.)"'

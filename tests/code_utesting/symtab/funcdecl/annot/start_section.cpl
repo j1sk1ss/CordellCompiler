@@ -2,6 +2,8 @@
 start() {}
 
 :/ OUTPUT
-[ENTRY] id: 0, name: _main (virt: _main), ext=0, glob=-1, used=0, local=0, naked=0, sid=1
-section='.bss', 0
+| id    | name                 | virt                 | scope | args                                 | ret              | locals             | generic types      | resolutions        | ext | glb | ent | use | loc | var | gen | abi | wek | slf | nkd | inl | bod | vnm |
+| 0     | _main                | _main                | 1     | ()                                   | NULL             | {}                 | {}                 | {}                 |     | +   | +   | +   |     |     |     |     |     |     |     |     |     |     |
+| section              | align | vars                                                             | funcs                                                            |
+| .bss                 | -1    | {}                                                               | {0}                                                              |
 /:

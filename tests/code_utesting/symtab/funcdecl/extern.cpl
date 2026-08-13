@@ -4,7 +4,8 @@ extern function bar();
 function baz();
 
 :/ OUTPUT
-{id: 0, name: foo (virt: foo0), ext=-1, glob=-1, used=0, local=0, sid=1}
-{id: 1, name: bar (virt: bar1), ext=-1, glob=-1, used=0, local=0, sid=1}
-{[ENTRY] id: 2, name: baz (virt: _main), ext=0, glob=0, used=0, local=0, sid=1}
+| id    | name                 | virt                 | scope | args                                 | ret              | locals             | generic types      | resolutions        | ext | glb | ent | use | loc | var | gen | abi | wek | slf | nkd | inl | bod | vnm |
+| 1     | bar                  | bar1                 | 1     | ()                                   | NULL             | {}                 | {}                 | {}                 | +   |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| 0     | foo                  | foo0                 | 1     | ()                                   | NULL             | {}                 | {}                 | {}                 | +   |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| 2     | baz                  | _main                | 1     | ()                                   | NULL             | {}                 | {}                 | {}                 | +   |     | +   |     |     |     |     |     |     |     |     |     |     |     |
 /:

@@ -17,19 +17,31 @@
 #include <hir/cfg.h>
 #include <hir/dag.h>
 
-/* Check whether a dereferenced subject can be equal to NULL and report an error
-trace when it can.
+typedef enum {
+    HIR_VALUE_TRACE_POSSIBLE,
+    HIR_VALUE_TRACE_EXACT
+} hir_value_trace_mode_t;
+
+/* Check whether a subject can be equal to a value and report an error trace
+when it can.
 Params:
-    - `hb` - HIR block where dereference is performed.
-    - `s` - Dereferenced subject.
-    - `f` - Function virtual form for Z3 checks.
+    - `hb` - HIR block where the checked operation is performed.
+    - `s` - Checked subject.
     - `smt` - Symtable.
     - `ctx` - HIR visitors context.
+    - `value` - Value to compare with.
+    - `value_name` - User-facing value name. Pass NULL to use `value`.
+    - `mode` - Whether possible equality is enough, or exact equality is required.
 
 Returns 1 if the check succeeds, otherwise 0 */
+int HIR_SEM_check_subject_value_and_provide_trace_ex(
+    hir_block_t* hb, cfg_block_t* bb, hir_subject_t* s, sym_table_t* smt, hir_visitors_ctx_t* ctx,
+    long long value, const char* value_name, hir_value_trace_mode_t mode, const char* error
+);
+
 int HIR_SEM_check_subject_value_and_provide_trace(
     hir_block_t* hb, cfg_block_t* bb, hir_subject_t* s, sym_table_t* smt, hir_visitors_ctx_t* ctx,
-    long long value, char* error
+    long long value, const char* error
 );
 
 /* general */

@@ -9,10 +9,12 @@ function baz() {
 }
 
 :/ OUTPUT
-{id: 1, name: bar (virt: bar1), ext=0, glob=0, used=0, local=0, naked=0, sid=1}
-{id: 0, name: foo (virt: foo0), ext=0, glob=0, used=0, local=0, naked=0, sid=1}
-{[ENTRY] id: 2, name: baz (virt: _main), ext=0, glob=0, used=0, local=0, naked=0, sid=1}
-{section='.bss', 0}
-{section='.test', 1}
-{section='.text', 2}
+| id    | name                 | virt                 | scope | args                                 | ret              | locals             | generic types      | resolutions        | ext | glb | ent | use | loc | var | gen | abi | wek | slf | nkd | inl | bod | vnm |
+| 1     | bar                  | bar1                 | 1     | ()                                   | NULL             | {}                 | {}                 | {}                 |     |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| 0     | foo                  | foo0                 | 1     | ()                                   | NULL             | {}                 | {}                 | {}                 |     |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| 2     | baz                  | _main                | 1     | ()                                   | NULL             | {}                 | {}                 | {}                 |     |     | +   |     |     |     |     |     |     |     |     |     |     |     |
+| section              | align | vars                                                             | funcs                                                            |
+| .bss                 | -1    | {}                                                               | {0}                                                              |
+| .test                | -1    | {}                                                               | {1}                                                              |
+| .text                | -1    | {}                                                               | {2}                                                              |
 /:

@@ -6,7 +6,9 @@ function foo() -> i32 {
 }
 
 :/ OUTPUT
-{id: 1, name: foo (virt: foo1), ext=0, glob=0, used=0, local=0, naked=0, sid=1}
-{[ENTRY] id: 0, name: bar (virt: _main), ext=0, glob=0, used=0, local=0, naked=0, sid=1}
-{section='.text', <<0 1>>}
+| id    | name                 | virt                 | scope | args                                 | ret              | locals             | generic types      | resolutions        | ext | glb | ent | use | loc | var | gen | abi | wek | slf | nkd | inl | bod | vnm |
+| 1     | foo                  | foo1                 | 1     | ()                                   | i32              | {}                 | {}                 | {}                 |     |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| 0     | bar                  | _main                | 1     | (i32 a)                              | NULL             | {}                 | {}                 | {}                 |     |     | +   |     |     |     |     |     |     |     |     |     |     |     |
+| section              | align | vars                                                             | funcs                                                            |
+| .text                | -1    | {}                                                               | {0, 1}                                                           |
 /:

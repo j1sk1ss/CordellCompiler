@@ -68,7 +68,7 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
             ) EMIT_COMMAND("extern %s", vi.name->body); 
             break;
         }
-        case LIR_BREAKPOINT: EMIT_COMMAND("int3 ; %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                 break;
+        case LIR_BREAKPOINT: if (CONF_is_debug_compilation()) EMIT_COMMAND("int3 ; %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                break;
         case LIR_BB:         EMIT_COMMAND("\n; BB%ld:", b->farg->storage.cnst.value);                                                                                            break;
         case LIR_TST:        EMIT_COMMAND("test %s, %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));      break;
         case LIR_XCHG:       EMIT_COMMAND("xchg %s, %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));      break;

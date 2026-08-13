@@ -13,6 +13,8 @@ start() {
 }
 
 :/ OUTPUT
-[WARNING] [{X}cpl:2:10] NULL-dereference error (variable 'msg' is NULL)!
-          [{X}cpl:2:10]     Variable 'msg' is assigned with NULL here
+[WARNING] NULL-dereference error (variable 'msg' is NULL)!
+    at: {X}.cpl:2:10
+    trace: Variable 'msg' is assigned with NULL here
+      at: {X}.cpl:2:10
 /:

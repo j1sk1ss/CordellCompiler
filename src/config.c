@@ -65,3 +65,7 @@ arch_type_t CONF_get_system_type() {
 config_flag_field_t CONF_is_debug_compilation() {
     return _config.compilation_flags.debug;
 }
+
+config_flag_field_t   CONF_is_strict_compilation() {
+    return _config.compilation_flags.strict;
+}

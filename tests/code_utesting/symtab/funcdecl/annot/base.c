@@ -10,7 +10,7 @@
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
 #include <sem/misc/restore.h>
-#include "../../../../misc/symtb_helper.h"
+#include <symtab/dump.h>
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -62,24 +62,8 @@ int main(int argc, char* argv[]) {
 
     AST_finalize_parse(&sctx, &smt);
 
-    map_foreach (func_info_t* fi, &smt.f.functb) {
-        printf(
-            "%sid: %li, name: %s (virt: %s), ext=%i, glob=%i, used=%i, local=%i, naked=%i, sid=%li\n", 
-            fi->flags.entry ? "[ENTRY] " : "", fi->id, fi->name->body, fi->virt->body, 
-            fi->flags.external, fi->flags.global, fi->flags.used, fi->flags.local, fi->flags.naked, fi->s_id
-        );
-    }
-
-    map_foreach (section_info_t* ti, &smt.c.sectb) {
-        printf("section='%s'", ti->name->body);
-        if (set_size(&ti->func)) {
-            printf(", ");
-            set_foreach (symbol_id_t id, &ti->func) {
-                printf("%li ", id);
-            }
-        }
-        printf("\n");
-    }
+    DUMP_format_fntb(&smt, stdout);
+    DUMP_format_sectb(&smt, stdout);
 
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);
     AST_unload_ctx(&sctx);

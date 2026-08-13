@@ -37,6 +37,7 @@ static int _print_help_message() {
         { OPTION_ANALYSIS_ONLY, NULL, "Run AST and HIR analysis, then stop before code generation" },
         { OPTION_DEBUG, NULL, "Enable debug mode" },
         { OPTION_NO_DEBUG, NULL, "Disable debug mode" },
+        { OPTION_NO_STRICT, NULL, "Keep compiling after static analysis warnings" },
     };
     static const cli_help_option_t optimization_options[] = {
         { OPTION_NO_OPTIMIZATION, NULL, "Disable optimizations" },
@@ -96,6 +97,7 @@ static int _print_help_message() {
         { OPTION_LIR_OUTPUT, "<file>", "Set LIR dump output path" },
         { OPTION_EMIT_ASM, NULL, "Emit produced assembly code" },
         { OPTION_ASM_OUTPUT, "<file>", "Set assembly output path" },
+        { OPTION_EMIT_SYMTAB, "<type>", "Emit symtable dump (var, fn, sec)" },
     };
 
     _print_version(stdout);
@@ -199,10 +201,26 @@ static char* _make_temp_path(void) {
     return strdup(template);
 }
 
-static int _run_tool(const char* tool, char* const argv[]) {
+static int _push_cmd_arg(list_t* cmd, const char* arg) {
+    return list_push_back(cmd, (void*)arg);
+}
+
+static char** _make_argv(list_t* args) {
+    if (!args) return NULL;
+    if (!list_push_back(args, NULL)) return NULL;
+    char** argv = (char**)list_flatten(args);
+    list_remove(args, NULL);
+    return argv;
+}
+
+static int _run_tool(const char* tool, list_t* args) {
+    char** argv = _make_argv(args);
+    if (!argv) return 0;
+
     pid_t pid = fork();
     if (pid < 0) {
         perror("fork");
+        mm_free(argv);
         return 0;
     }
 
@@ -220,9 +238,11 @@ static int _run_tool(const char* tool, char* const argv[]) {
 
     if (waited < 0) {
         perror("waitpid");
+        mm_free(argv);
         return 0;
     }
 
+    mm_free(argv);
     return WIFEXITED(status) && !WEXITSTATUS(status);
 }
 
@@ -281,52 +301,131 @@ static int _move_file_path(const char* src, const char* dst) {
 }
 
 static inline int _compile_asm_to_object(const options_t* options, const char* asm_path, const char* obj_path) {
-    char* const cmd[] = {
-        (char*)options->tools.asm_compiler, "-f",
-        (char*)options->tools.asm_format, (char*)asm_path, "-o",
-        (char*)obj_path, NULL
-    };
+    list_t cmd;
+    list_init(&cmd);
 
-    return _run_tool(options->tools.asm_compiler, cmd);
+    int ok =
+        _push_cmd_arg(&cmd, options->tools.asm_compiler) &&
+        _push_cmd_arg(&cmd, "-f")                       &&
+        _push_cmd_arg(&cmd, options->tools.asm_format)   &&
+        _push_cmd_arg(&cmd, asm_path)                    &&
+        _push_cmd_arg(&cmd, "-o")                       &&
+        _push_cmd_arg(&cmd, obj_path);
+
+    if (ok) ok = _run_tool(options->tools.asm_compiler, &cmd);
+    list_free(&cmd);
+    return ok;
 }
 
-static int _link_objects(const options_t* options, char* const objects[], int objects_count) {
-    int extra            = (options->tools.linker_use_c_driver ? 1 : 0) + (options->tools.linker_no_pie ? 1 : 0) + (options->tools.linker_m32 ? 1 : 0);
-    int runtime_count    = options->locations.runtime ? 1 : 0;
-    int linker_arg_count = list_size((list_t*)&options->tools.linker_args);
-    char** cmd           = (char**)mm_malloc((objects_count + runtime_count + linker_arg_count + 5 + extra) * sizeof(char*));
-    if (!cmd) return 0;
+static int _link_objects(const options_t* options, list_t* objects) {
+    list_t cmd;
+    list_init(&cmd);
 
-    int j = 0;
-    cmd[j++] = (char*)options->tools.linker;
+    if (!_push_cmd_arg(&cmd, options->tools.linker)) goto _fail;
     if (options->tools.linker_use_c_driver) {
-        if (options->tools.linker_no_pie) cmd[j++] = "-no-pie";
-        if (options->tools.linker_m32)    cmd[j++] = "-m32";
+        if (options->tools.linker_no_pie && !_push_cmd_arg(&cmd, "-no-pie")) goto _fail;
+        if (options->tools.linker_m32    && !_push_cmd_arg(&cmd, "-m32"))    goto _fail;
     }
-    
-    cmd[j++] = "-o";
-    cmd[j++] = options->locations.output ? options->locations.output : "a.out";
-    for (int i = 0; i < objects_count; i++) {
-        cmd[j++] = objects[i];
+
+    if (
+        !_push_cmd_arg(&cmd, "-o") ||
+        !_push_cmd_arg(&cmd, options->locations.output ? options->locations.output : "a.out")
+    ) goto _fail;
+
+    char* object = NULL;
+    foreach (object, objects) {
+        if (!_push_cmd_arg(&cmd, object)) goto _fail;
     }
 
     if (options->locations.runtime) {
-        cmd[j++] = (char*)options->locations.runtime;
-    }
-    
-    char* linker_arg = NULL;
-    foreach (linker_arg, (list_t*)&options->tools.linker_args) {
-        cmd[j++] = linker_arg;
+        if (!_push_cmd_arg(&cmd, options->locations.runtime)) goto _fail;
     }
 
-    cmd[j] = NULL;
-    int ok = _run_tool(options->tools.linker, cmd);
-    mm_free(cmd);
+    char* linker_arg = NULL;
+    foreach (linker_arg, (list_t*)&options->tools.linker_args) {
+        if (!_push_cmd_arg(&cmd, linker_arg)) goto _fail;
+    }
+
+    int ok = _run_tool(options->tools.linker, &cmd);
+    list_free(&cmd);
     return ok;
+
+_fail:
+    list_free(&cmd);
+    return 0;
 }
 
 static inline const char* _output_path_or_default(const char* path, const char* fallback) {
     return path ? path : fallback;
+}
+
+static const char* _normalize_symtab_type(const char* type) {
+    if (!type) return NULL;
+
+    if (
+        !strcmp(type, "var")  ||
+        !strcmp(type, "vars") ||
+        !strcmp(type, "v")
+    ) return "var";
+
+    if (
+        !strcmp(type, "fn")        ||
+        !strcmp(type, "func")      ||
+        !strcmp(type, "funcs")     ||
+        !strcmp(type, "fntb")      ||
+        !strcmp(type, "function")  ||
+        !strcmp(type, "functions")
+    ) return "fn";
+
+    if (
+        !strcmp(type, "sec")      ||
+        !strcmp(type, "sect")     ||
+        !strcmp(type, "section")  ||
+        !strcmp(type, "sections")
+    ) return "sec";
+
+    return NULL;
+}
+
+static int _add_symtab_type_arg(options_t* out, const char* type) {
+    if (!out) return 0;
+    const char* normalized = _normalize_symtab_type(type);
+    return normalized && list_push_back(&out->locations.symtab_types, (void*)normalized);
+}
+
+static const char* _symtab_output_path(const char* type) {
+    if (!strcmp(type, "var")) return "output.var.symtab";
+    if (!strcmp(type, "fn"))  return "output.fn.symtab";
+    if (!strcmp(type, "sec")) return "output.sec.symtab";
+    return NULL;
+}
+
+static int _emit_symtab(sym_table_t* smt, const char* type) {
+    const char* output_path = _symtab_output_path(type);
+    if (!output_path) return 0;
+
+    FILE* output = fopen(output_path, "w");
+    if (!output) {
+        fprintf(stderr, "Can't open symtab output file %s: %s\n", output_path, strerror(errno));
+        return 0;
+    }
+
+    int ok = 0;
+    if (!strcmp(type, "var"))      ok = DUMP_format_vartb(smt, output);
+    else if (!strcmp(type, "fn"))  ok = DUMP_format_fntb(smt, output);
+    else if (!strcmp(type, "sec")) ok = DUMP_format_sectb(smt, output);
+
+    fclose(output);
+    return ok;
+}
+
+static int _emit_requested_symtabs(sym_table_t* smt, list_t* types) {
+    char* type = NULL;
+    foreach (type, types) {
+        if (!_emit_symtab(smt, type)) return 0;
+    }
+
+    return 1;
 }
 
 static inline int _parse_long_arg(const char* s, long* out) {
@@ -458,7 +557,8 @@ static config_t _make_config(const options_t* options) {
             .peephole       = options->config.peephole ? 1 : 0,
         },
         .compilation_flags  = {
-            .debug          = options->config.debug ? 1 : 0,
+            .debug          = options->config.debug  ? 1 : 0,
+            .strict         = options->config.strict ? 1 : 0,
         },
     };
 
@@ -555,9 +655,32 @@ static inline void _apply_cli_defines(pp_ctx_t* ppctx, list_t* defines) {
     }
 }
 
+static void _unload_options(options_t* options) {
+    if (!options) return;
+    list_free(&options->locations.files);
+    list_free_force_op(&options->locations.defines, (int (*)(void*))_unload_cli_define);
+    list_free(&options->locations.symtab_types);
+    list_free_force(&options->tools.linker_args);
+}
+
+static int _unload_token_list(void* data) {
+    list_t* tokens = (list_t*)data;
+    if (!tokens) return 1;
+    list_free_force_op(tokens, (int (*)(void *))TKN_unload_token);
+    mm_free(tokens);
+    return 1;
+}
+
+static void _unload_token_lists(list_t* token_lists) {
+    if (!token_lists) return;
+    list_free_force_op(token_lists, _unload_token_list);
+}
+
 static void _set_default_options(options_t* out) {
     memset(out, 0, sizeof(options_t));
+    list_init(&out->locations.files);
     list_init(&out->locations.defines);
+    list_init(&out->locations.symtab_types);
     list_init(&out->tools.linker_args);
     out->build_mode                = BUILD_MODE_EXECUTABLE;
     out->tools.asm_compiler        = "nasm";
@@ -587,14 +710,13 @@ static void _set_default_options(options_t* out) {
     out->config.quart_bytness      = 2;
     out->config.eight_bytness      = 1;
     out->config.debug              = 0;
+    out->config.strict             = 1;
     _set_optimization_profile(out, 0);
 }
 
 static int _parse_input_args(char* argv[], int argc, options_t* out) {
     if (!argv || argc <= 0 || !out) return 0;
     _set_default_options(out);
-    out->locations.files = (char**)mm_malloc(argc * sizeof(char*));
-    if (!out->locations.files) return 0;
 
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], OPTION_HELP_SHORT) || !strcmp(argv[i], OPTION_HELP))                out->flags.show_help           = 1;
@@ -755,14 +877,19 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
             out->locations.asm_output = argv[++i];
             out->config.emit_asm = 1;
         }
+        else if (!strcmp(argv[i], OPTION_EMIT_SYMTAB)) {
+            if (i + 1 >= argc || !_add_symtab_type_arg(out, argv[i + 1])) goto _fail;
+            i++;
+        }
         else if (!strcmp(argv[i], OPTION_DEBUG))                out->config.debug       = 1;
         else if (!strcmp(argv[i], OPTION_NO_DEBUG))             out->config.debug       = 0;
+        else if (!strcmp(argv[i], OPTION_NO_STRICT))            out->config.strict      = 0;
         else if (!strcmp(argv[i], OPTION_NO_OPTIMIZATION))      _set_optimization_profile(out, 0);
         else if (!strcmp(argv[i], OPTION_ROUGHT_OPTIMIZATION))  _set_optimization_profile(out, 1);
         else if (!strcmp(argv[i], OPTION_GOOD_OPTIMIZATION))    _set_optimization_profile(out, 2);
         else if (!strcmp(argv[i], OPTION_MAX_OPTIMIZATION))     _set_optimization_profile(out, 3);
         else if (argv[i][0] == '-') goto _fail;
-        else out->locations.files[out->locations.files_count++] = argv[i];
+        else if (!list_push_back(&out->locations.files, argv[i])) goto _fail;
     }
 
     if (out->flags.preprocess_only && out->build_mode != BUILD_MODE_EXECUTABLE) goto _fail;
@@ -774,10 +901,7 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
     return 1;
 
 _fail: {}
-    list_free_force_op(&out->locations.defines, (int (*)(void*))_unload_cli_define);
-    list_free_force(&out->tools.linker_args);
-    mm_free((void*)out->locations.files);
-    out->locations.files = NULL;
+    _unload_options(out);
     return 0;
 }
 
@@ -805,25 +929,19 @@ int main(int argc, char* argv[]) {
 
     if (options.flags.show_help) {
         _print_help_message();
-        list_free_force_op(&options.locations.defines, (int (*)(void*))_unload_cli_define);
-        list_free_force(&options.tools.linker_args);
-        mm_free((void*)options.locations.files);
+        _unload_options(&options);
         return EXIT_SUCCESS;
     }
 
     if (options.flags.show_something) {
         _print_gem(stdout);
-        list_free_force_op(&options.locations.defines, (int (*)(void*))_unload_cli_define);
-        list_free_force(&options.tools.linker_args);
-        mm_free((void*)options.locations.files);
+        _unload_options(&options);
         return EXIT_SUCCESS;
     }
 
     if (options.flags.show_version) {
         _print_version(stdout);
-        list_free_force_op(&options.locations.defines, (int (*)(void*))_unload_cli_define);
-        list_free_force(&options.tools.linker_args);
-        mm_free((void*)options.locations.files);
+        _unload_options(&options);
         return EXIT_SUCCESS;
     }
 
@@ -834,44 +952,29 @@ int main(int argc, char* argv[]) {
     if (options.flags.print_stdlib) {
         if (options.locations.stdlib) {
             puts(options.locations.stdlib);
-            list_free_force_op(&options.locations.defines, (int (*)(void*))_unload_cli_define);
-            list_free_force(&options.tools.linker_args);
-            mm_free((void*)options.locations.files);
+            _unload_options(&options);
             return EXIT_SUCCESS;
         }
 
         fprintf(stderr, "CPL standard library isn't found\n");
-        list_free_force_op(&options.locations.defines, (int (*)(void*))_unload_cli_define);
-        list_free_force(&options.tools.linker_args);
-        mm_free((void*)options.locations.files);
+        _unload_options(&options);
         return EXIT_FAILURE;
     }
 
-    if (!options.locations.files_count) {
+    int files_left = list_size(&options.locations.files);
+    if (!files_left) {
         fprintf(stderr, "No input files\n");
-        list_free_force_op(&options.locations.defines, (int (*)(void*))_unload_cli_define);
-        list_free_force(&options.tools.linker_args);
-        mm_free((void*)options.locations.files);
+        _unload_options(&options);
         return EXIT_FAILURE;
     }
 
     CONF_set_config(_make_config(&options));
 
-    char** object_files = (char**)mm_malloc(options.locations.files_count * sizeof(char*));
-    if (!object_files && options.locations.files_count > 0) {
-        fprintf(stderr, "Can't allocate object files array\n");
-        return EXIT_FAILURE;
-    }
-    memset(object_files, 0, options.locations.files_count * sizeof(char*));
+    list_t object_files;
+    list_init(&object_files);
 
-    list_t* token_lists = mm_malloc(options.locations.files_count * sizeof(list_t));
-    if (!token_lists) {
-        fprintf(stderr, "Can't allocate token lists array\n");
-        return EXIT_FAILURE;
-    }
-
-    memset(token_lists, 0, options.locations.files_count * sizeof(list_t));
-    int token_lists_count = 0;
+    list_t token_lists;
+    list_init(&token_lists);
 
     sym_table_t smt;
     SMT_init(&smt);
@@ -879,10 +982,13 @@ int main(int argc, char* argv[]) {
     ast_ctx_t sctx;
     AST_init_ctx(&sctx);
 
-    for (int i = 0; i < options.locations.files_count; i++) {
-        int fd = open(options.locations.files[i], O_RDONLY);
+    char* input_file = NULL;
+    foreach (input_file, &options.locations.files) {
+        files_left--;
+
+        int fd = open(input_file, O_RDONLY);
         if (fd < 0) {
-            fprintf(stderr, "File %s isn't found!\n", options.locations.files[i]);
+            fprintf(stderr, "File %s isn't found!\n", input_file);
             return 1;
         }
 
@@ -897,7 +1003,7 @@ int main(int argc, char* argv[]) {
 
         fd = PP_perform(fd, &finctx, &ppctx);
         if (fd < 0) {
-            fprintf(stderr, "Failed to preprocess %s\n", options.locations.files[i]);
+            fprintf(stderr, "Failed to preprocess %s\n", input_file);
             return 1;
         }
 
@@ -913,7 +1019,7 @@ int main(int argc, char* argv[]) {
             }
 
             if (!_copy_fd_to_stream(fd, output)) {
-                fprintf(stderr, "Can't write preprocessed output for %s\n", options.locations.files[i]);
+                fprintf(stderr, "Can't write preprocessed output for %s\n", input_file);
                 if (output != stdout) fclose(output);
                 close(fd);
                 return 1;
@@ -924,9 +1030,19 @@ int main(int argc, char* argv[]) {
             continue;
         }
 
-        list_t* tokens = &token_lists[i];
+        list_t* tokens = (list_t*)mm_malloc(sizeof(list_t));
+        if (!tokens) {
+            fprintf(stderr, "Can't allocate token list\n");
+            return 1;
+        }
+
         list_init(tokens);
-        token_lists_count = i + 1;
+        if (!list_push_back(&token_lists, tokens)) {
+            mm_free(tokens);
+            fprintf(stderr, "Can't save token list\n");
+            return 1;
+        }
+
         if (!TKN_tokenize(fd, tokens) || !list_size(tokens)) {
             fprintf(stderr, "ERROR! tkn == NULL!\n");
             return 1;
@@ -940,13 +1056,18 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        if (i + 1 < options.locations.files_count) {
+        if (files_left > 0) {
             close(fd);
             continue;
         }
 
         if (!AST_finalize_parse(&sctx, &smt)) {
             fprintf(stderr, "AST finalization error!\n");
+            return 1;
+        }
+
+        if (list_size(&options.locations.symtab_types) && !_emit_requested_symtabs(&smt, &options.locations.symtab_types)) {
+            fprintf(stderr, "Symtab dump emission failed\n");
             return 1;
         }
 
@@ -963,7 +1084,10 @@ int main(int argc, char* argv[]) {
         }
 
         if (options.flags.ast_analysis) {
-            SEM_perform_ast_check(&sctx, &smt);
+            if (SEM_perform_ast_check(&sctx, &smt) <= 0 && CONF_is_strict_compilation()) {
+                fprintf(stderr, "AST semantic analysis failed\n");
+                return 1;
+            }
         }
 
         hir_ctx_t hirctx = { 0 };
@@ -1040,7 +1164,10 @@ int main(int argc, char* argv[]) {
         HIR_CFG_squeeze_blocks(&cfgctx);
 
         if (needs_hir_analysis) {
-            SEM_perform_hir_check(&cfgctx, &dagctx, &hirctx, &smt);
+            if (SEM_perform_hir_check(&cfgctx, &dagctx, &hirctx, &smt) <= 0 && CONF_is_strict_compilation()) {
+                fprintf(stderr, "HIR semantic analysis failed\n");
+                return 1;
+            }
         }
 
         if (options.config.emit_ir) {
@@ -1056,7 +1183,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (options.config.emit_hir_cfg) {
-            const char* hir_cfg_output = _output_path_or_default(options.locations.ir_output, "output.dot");
+            const char* hir_cfg_output = "output.dot";
             FILE* hir_cfg_file = fopen(hir_cfg_output, "w");
             if (!hir_cfg_file) {
                 fprintf(stderr, "Can't open HIR CFG output file %s: %s\n", hir_cfg_output, strerror(errno));
@@ -1073,9 +1200,7 @@ int main(int argc, char* argv[]) {
             HIR_CG_unload(&callctx);
             HIR_CFG_unload(&cfgctx);
             HIR_unload_blocks(hirctx.hot.h);
-            for (int j = 0; j < token_lists_count; j++) {
-                list_free_force_op(&token_lists[j], (int (*)(void *))TKN_unload_token);
-            }
+            _unload_token_lists(&token_lists);
             AST_unload_ctx(&sctx);
             SMT_unload(&smt);
             close(fd);
@@ -1144,7 +1269,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (options.config.emit_lir_cfg) {
-            const char* lir_cfg_output = _output_path_or_default(options.locations.lir_output, "output.dot");
+            const char* lir_cfg_output = "output.dot";
             FILE* lir_cfg_file = fopen(lir_cfg_output, "w");
             if (!lir_cfg_file) {
                 fprintf(stderr, "Can't open LIR CFG output file %s: %s\n", lir_cfg_output, strerror(errno));
@@ -1180,7 +1305,7 @@ int main(int argc, char* argv[]) {
         char* asm_path = _make_temp_path();
         char* obj_path = _make_temp_path();
         if (!asm_path || !obj_path) {
-            fprintf(stderr, "Can't create temporary files for %s\n", options.locations.files[i]);
+            fprintf(stderr, "Can't create temporary files for %s\n", input_file);
             return 1;
         }
 
@@ -1214,13 +1339,19 @@ int main(int argc, char* argv[]) {
         fclose(asm_file);
 
         if (!_compile_asm_to_object(&options, asm_path, obj_path)) {
-            fprintf(stderr, "ASM compilation failed for %s\n", options.locations.files[i]);
+            fprintf(stderr, "ASM compilation failed for %s\n", input_file);
             return 1;
         }
 
         unlink(asm_path);
         mm_free(asm_path);
-        if (options.build_mode != BUILD_MODE_OBJECT) object_files[0] = obj_path;
+        if (options.build_mode != BUILD_MODE_OBJECT) {
+            if (!list_push_back(&object_files, obj_path)) {
+                mm_free(obj_path);
+                fprintf(stderr, "Can't save object file path\n");
+                return 1;
+            }
+        }
         else {
             const char* object_output = _output_path_or_default(options.locations.output, "output.o");
             if (!_move_file_path(obj_path, object_output)) {
@@ -1239,9 +1370,7 @@ int main(int argc, char* argv[]) {
         HIR_CG_unload(&callctx);
         HIR_CFG_unload(&cfgctx);
         HIR_unload_blocks(hirctx.hot.h);
-        for (int j = 0; j < token_lists_count; j++) {
-            list_free_force_op(&token_lists[j], (int (*)(void *))TKN_unload_token);
-        }
+        _unload_token_lists(&token_lists);
         AST_unload_ctx(&sctx);
 
         SMT_unload(&smt);
@@ -1251,25 +1380,24 @@ int main(int argc, char* argv[]) {
     if (
         options.build_mode == BUILD_MODE_EXECUTABLE &&
         !options.flags.preprocess_only              &&
-        options.locations.files_count > 0
+        list_size(&object_files) > 0
     ) {
-        if (!_link_objects(&options, object_files, 1)) {
+        if (!_link_objects(&options, &object_files)) {
             fprintf(stderr, "Linking failed\n");
             return 1;
         }
     }
 
-    for (int i = 0; i < options.locations.files_count; i++) {
-        if (object_files[i]) {
-            unlink(object_files[i]);
-            mm_free(object_files[i]);
+    char* object_file = NULL;
+    foreach (object_file, &object_files) {
+        if (object_file) {
+            unlink(object_file);
+            mm_free(object_file);
         }
     }
 
-    mm_free(object_files);
-    mm_free(token_lists);
-    list_free_force_op(&options.locations.defines, (int (*)(void*))_unload_cli_define);
-    list_free_force(&options.tools.linker_args);
-    mm_free((void*)options.locations.files);
+    list_free(&object_files);
+    _unload_token_lists(&token_lists);
+    _unload_options(&options);
     return EXIT_SUCCESS;
 }

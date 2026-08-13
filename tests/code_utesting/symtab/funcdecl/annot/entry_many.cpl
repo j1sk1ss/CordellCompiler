@@ -6,8 +6,10 @@ function bar() {
 function baz();
 
 :/ OUTPUT
-{[ENTRY] id: 1, name: bar (virt: _main), ext=0, glob=0, used=0, local=0, naked=0, sid=1}
-{id: 0, name: foo (virt: foo0), ext=0, glob=0, used=0, local=0, naked=0, sid=1}
-{id: 2, name: baz (virt: baz2), ext=0, glob=0, used=0, local=0, naked=0, sid=1}
-{section='.text', <<0 1 2>>}
+| id    | name                 | virt                 | scope | args                                 | ret              | locals             | generic types      | resolutions        | ext | glb | ent | use | loc | var | gen | abi | wek | slf | nkd | inl | bod | vnm |
+| 1     | bar                  | _main                | 1     | ()                                   | NULL             | {}                 | {}                 | {}                 |     |     | +   |     |     |     |     |     |     |     |     |     |     |     |
+| 0     | foo                  | foo0                 | 1     | ()                                   | NULL             | {}                 | {}                 | {}                 |     |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| 2     | baz                  | baz2                 | 1     | ()                                   | NULL             | {}                 | {}                 | {}                 | +   |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| section              | align | vars                                                             | funcs                                                            |
+| .text                | -1    | {}                                                               | {0, 1, 2}                                                        |
 /:

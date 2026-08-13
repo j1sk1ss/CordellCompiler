@@ -110,7 +110,6 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
                 case HIR_GDREF: {
                     if (!nd->src->home || !nd->src->home->farg) break;
                     set_t slaves;
-                    set_init(&slaves, SET_NO_CMP);
                     
                     if (
                         nd->src->home->sarg && 

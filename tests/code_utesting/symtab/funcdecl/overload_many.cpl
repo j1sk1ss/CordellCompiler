@@ -11,15 +11,16 @@ function foo(i8 a, u8 b);
 function foo(u8 a, i8 b);
 
 :/ OUTPUT
-{id: 2, name: foo (virt: foo2), ext=0, glob=0, used=0, local=0, sid=1}
-{id: 9, name: foo (virt: foo9), ext=0, glob=0, used=0, local=0, sid=1}
-{id: 1, name: foo (virt: foo1), ext=0, glob=0, used=0, local=0, sid=1}
-{id: 4, name: foo (virt: foo4), ext=0, glob=0, used=0, local=0, sid=1}
-{id: 3, name: foo (virt: foo3), ext=0, glob=0, used=0, local=0, sid=1}
-{id: 7, name: foo (virt: foo7), ext=0, glob=0, used=0, local=0, sid=1}
-{id: 10, name: foo (virt: foo10), ext=0, glob=0, used=0, local=0, sid=1}
-{id: 0, name: foo (virt: foo0), ext=0, glob=0, used=0, local=0, sid=1}
-{id: 5, name: foo (virt: foo5), ext=0, glob=0, used=0, local=0, sid=1}
-{id: 6, name: foo (virt: foo6), ext=0, glob=0, used=0, local=0, sid=1}
-{id: 8, name: foo (virt: foo8), ext=0, glob=0, used=0, local=0, sid=1}
+| id    | name                 | virt                 | scope | args                                 | ret              | locals             | generic types      | resolutions        | ext | glb | ent | use | loc | var | gen | abi | wek | slf | nkd | inl | bod | vnm |
+| 2     | foo                  | foo2                 | 1     | (u32 a)                              | NULL             | {}                 | {}                 | {}                 | +   |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| 9     | foo                  | foo9                 | 1     | (i8 a, u8 b)                         | NULL             | {}                 | {}                 | {}                 | +   |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| 1     | foo                  | foo1                 | 1     | (i32 a)                              | NULL             | {}                 | {}                 | {}                 | +   |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| 4     | foo                  | foo4                 | 1     | (u16 a)                              | NULL             | {}                 | {}                 | {}                 | +   |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| 3     | foo                  | foo3                 | 1     | (i16 a)                              | NULL             | {}                 | {}                 | {}                 | +   |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| 7     | foo                  | foo7                 | 1     | (u8 a)                               | NULL             | {}                 | {}                 | {}                 | +   |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| 10    | foo                  | foo10                | 1     | (u8 a, i8 b)                         | NULL             | {}                 | {}                 | {}                 | +   |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| 0     | foo                  | foo0                 | 1     | ()                                   | NULL             | {}                 | {}                 | {}                 | +   |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| 5     | foo                  | foo5                 | 1     | (i8 a)                               | NULL             | {}                 | {}                 | {}                 | +   |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| 6     | foo                  | foo6                 | 1     | (i8 a, i8 b)                         | NULL             | {}                 | {}                 | {}                 | +   |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| 8     | foo                  | foo8                 | 1     | (u8 a, u8 b)                         | NULL             | {}                 | {}                 | {}                 | +   |     |     |     |     |     |     |     |     |     |     |     |     |     |
 /:

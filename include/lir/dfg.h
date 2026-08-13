@@ -24,7 +24,7 @@ int LIR_DFG_compute_usedef(cfg_ctx_t* cctx);
 Compute IN and OUT sets.
 ```
 IN  = union(USE, (OUT - DEF))
-OUT = union(IN successors)
+OUT = union(IN.successors)
 ```
 Params:
     - `cctx` - CFG context.

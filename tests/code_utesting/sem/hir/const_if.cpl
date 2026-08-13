@@ -7,6 +7,8 @@ function foo() {
 }
 
 :/ OUTPUT
-[WARNING] [{X}3:8] Condition with a constant value (variable 'a' is equals 'true' (1))!
-          [{X}3:8]     Variable 'a' declared as a constant here!
+[WARNING] Condition with a constant value (variable 'a' is equals 'true' (1))!
+    at: {X}.cpl:3:8
+    trace: Variable 'a' declared as a constant here!
+      at: {X}.cpl:3:8
 /:

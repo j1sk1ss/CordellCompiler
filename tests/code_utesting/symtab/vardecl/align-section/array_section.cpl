@@ -4,12 +4,14 @@
 glob arr d[10, i32];
 
 :/ OUTPUT
-{id: 1, b, arr, s_id: 1, align: 8}
-{id: 3, d, arr, s_id: 1, align: 8}
-{id: 0, a, arr, s_id: 1, align: 8}
-{id: 2, c, arr, s_id: 1, align: 8}
-{section='.data', 3}
-{section='.test', 0}
-{section='.ro', 1}
-{section='.text', 2}
+| id    | type                 | name                 | align | par   | scope | ptr   | ro  | glb | ext |
+| 1     | arr                  | b                    | 8     | -1    | 1     | 0     | +   |     |     |
+| 3     | arr                  | d                    | 8     | -1    | 1     | 0     |     | +   |     |
+| 0     | arr                  | a                    | 8     | -1    | 1     | 0     |     | +   |     |
+| 2     | arr                  | c                    | 8     | -1    | 1     | 0     | +   | +   |     |
+| section              | align | vars                                                             |
+| .test                | -1    | {0}                                                              |
+| .ro                  | -1    | {1}                                                              |
+| .text                | -1    | {2}                                                              |
+| .data                | -1    | {3}                                                              |
 /:

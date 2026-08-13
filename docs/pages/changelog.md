@@ -3,6 +3,22 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Compact switches
+<div class="change-date">Date: 2026-08-12</div>
+Switches now can be compact, especially with annotations:
+
+```cpl
+function foo(i32 b) -> i0 {
+    i32 a;
+    @[no_fall] @[straight]
+    switch b; {
+        case 1; a = 1;
+        case 2; a = 2;
+        default a = 3;
+    }
+}
+```
+
 ## Local and Global globals
 <div class="change-date">Date: 2026-08-08</div>
 Local `glob`s now act like a static variable from C. For instance, you can create multiple local globals in differenct functions:

@@ -17,10 +17,20 @@ start(i32 a) {
 }
 
 :/ OUTPUT
-[WARNING] [{X}:5:8] 'If' with a constant value 'true'!
-[WARNING] [{X}:8:8] 'If' with a constant value 'false'!
-[WARNING] [{X}:14:16] NULL-dereference error (variable 'p' is NULL)!
-          [{X}:6:14]     Variable 'p' becomes NULL-value
-[WARNING] [{X}:16:16] Possible NULL-dereference error (variable 'b' is NULL)!
-          [{X}:12:14]     Variable 'b' becomes NULL-value
+[WARNING] 'If' with a constant value 'true'!
+    at: {X}.cpl:5:8
+[WARNING] 'If' with a constant value 'false'!
+    at: {X}.cpl:8:8
+[WARNING] Possible NULL-dereference error (variable 'p' is NULL)!
+    at: {X}.cpl:14:16
+    trace: Variable 'p' becomes NULL
+      at: {X}.cpl:6:14
+[WARNING] Possible NULL-dereference error (variable 'l' is NULL)!
+    at: {X}.cpl:15:16
+    trace: Variable 'l' becomes NULL
+      at: {X}.cpl:9:14
+[WARNING] Possible NULL-dereference error (variable 'b' is NULL)!
+    at: {X}.cpl:16:16
+    trace: Variable 'b' becomes NULL
+      at: {X}.cpl:12:14
 /:

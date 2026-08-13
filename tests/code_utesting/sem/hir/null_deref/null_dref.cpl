@@ -3,5 +3,6 @@ function foo() {
 }
 
 :/ OUTPUT
-[WARNING] [{X}cpl:2{X}] NULL-dereference error!
+[WARNING] NULL-dereference error
+    at: {X}.cpl:2:9
 /:
