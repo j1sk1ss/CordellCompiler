@@ -267,12 +267,24 @@ static cfg_dfs_action_t _instruction_selection_block(
                 lh->sarg = a_entry;
                 break;
             }
-            case LIR_FRET:
-            case LIR_EXITOP: {
-                if (!lh->farg) break;
-                lir_subject_t* a = x86_64_gnu_nasm_create_tmp(lh->op == LIR_FRET ? RAX : RDI, lh->farg, smt, -1);
-                _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->farg, NULL), lh);
-                lh->farg = a;
+            case LIR_EXITOP:
+            case LIR_FRET: {
+                if (lh->farg) {
+                    lir_subject_t* a = x86_64_gnu_nasm_create_tmp(lh->op == LIR_FRET ? RAX : RDI, lh->farg, smt, -1);
+                    _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->farg, NULL), lh);
+                    lh->farg = a;
+                }
+
+                if (
+                    lh->op == LIR_FRET &&
+                    fi->flags.abi && !fi->flags.entry
+                ) {
+                    lir_registers_t saved[] = { RBX, R12, R13, R14, R15 };
+                    for (int i = (int)(sizeof(saved) / sizeof(saved[0])) - 1; i >= 0; i--) {
+                        _insert_instruction_before(bb, LIR_create_block(LIR_POP, LIR_SUBJ_REG(saved[i], 8), NULL, NULL), lh);
+                    }
+                }
+
                 break;
             }
             case LIR_iDIV:
@@ -373,9 +385,29 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
         func_info_t fi;
         if (!FNTB_get_info_id(fb->f_id, &fi, &smt->f)) continue;
 
-        if (!CFG_DFS_WALK(list_get_head(&fb->blocks), _instruction_selection_block, fb, &fi, &dirty_regs, &ctx, smt)) {
-            queue_free(&dirty_regs);
-            return 0;
+        cfg_block_t* hb = list_get_head(&fb->blocks);
+        if (hb) {
+            if (fi.flags.abi && !fi.flags.entry) {
+                lir_registers_t saved[] = { RBX, R12, R13, R14, R15 };
+                if (
+                    hb->lmap.entry &&
+                    (hb->lmap.entry->op == LIR_STRT || hb->lmap.entry->op == LIR_FDCL)
+                ) {
+                    for (int i = (int)(sizeof(saved) / sizeof(saved[0])) - 1; i >= 0; i--) {
+                        _insert_instruction_after(hb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(saved[i], 8), NULL, NULL), hb->lmap.entry);
+                    }
+                }
+                else if (hb->lmap.entry) {
+                    for (int i = 0; i < (int)(sizeof(saved) / sizeof(saved[0])); i++) {
+                        _insert_instruction_before(hb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(saved[i], 8), NULL, NULL), hb->lmap.entry);
+                    }
+                }
+            }
+
+            if (!CFG_DFS_WALK(list_get_head(&fb->blocks), _instruction_selection_block, fb, &fi, &dirty_regs, &ctx, smt)) {
+                queue_free(&dirty_regs);
+                return 0;
+            }
         }
     }
 

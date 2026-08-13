@@ -11,22 +11,19 @@ Returns 1 on success, otherwise 0. */
 static void _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f, symbol_id_t f_id, sym_table_t* smt) {
     if (!f) {
         func_info_t fi;
-        if (FNTB_get_info_id(f_id, &fi, &smt->f)) {
-            // if (fi.flags.external && fi.flags.abi) {
-            //     lir_registers_t dirty_regs[] = { EAX, ECX, EDX };
-            //     for (int i = 0; i < (int)(sizeof(dirty_regs) / sizeof(RBX)); i++) {
-            //         set_add(dirty, (void*)dirty_regs[i]);
-            //     }
-            // } TODO
-            // else {
-_unknown_call: {}
-                lir_registers_t dirty_regs[] = { EBX, ECX, EDX, ESI, EDI, EBP };
-                for (int i = 0; i < (int)(sizeof(dirty_regs) / sizeof(RBX)); i++) {
-                    set_add(dirty, (void*)dirty_regs[i]);
-                }
-            // }
+        if (FNTB_get_info_id(f_id, &fi, &smt->f) && fi.flags.abi) {
+            lir_registers_t dirty_regs[] = { EAX, ECX, EDX };
+            for (int i = 0; i < (int)(sizeof(dirty_regs) / sizeof(dirty_regs[0])); i++) {
+                set_add(dirty, (void*)dirty_regs[i]);
+            }
         }
-        else goto _unknown_call;
+        else {
+_unknown_call: {}
+            lir_registers_t dirty_regs[] = { EBX, ECX, EDX, ESI, EDI, EBP };
+            for (int i = 0; i < (int)(sizeof(dirty_regs) / sizeof(dirty_regs[0])); i++) {
+                set_add(dirty, (void*)dirty_regs[i]);
+            }
+        }
     }
     else {
         foreach (cfg_block_t* bb, &f->blocks) {
