@@ -9,7 +9,9 @@ function start_entry() -> i8 {
 }
 
 :/ OUTPUT
-{[ENTRY] id: 1, name: start_entry (virt: start), ext=0, glob=0, used=0, local=0, naked=0, sid=1}
-{[ENTRY] id: 0, name: main_entry (virt: _main), ext=0, glob=0, used=0, local=0, naked=0, sid=1}
-{section='.text', <<0 1>>}
+| id    | name                 | virt                 | scope | args                                 | ret              | locals             | generic types      | resolutions        | ext | glb | ent | use | loc | var | gen | abi | wek | slf | nkd | inl | bod | vnm |
+| 1     | start_entry          | start                | 1     | ()                                   | i8               | {}                 | {}                 | {}                 |     |     | +   |     |     |     |     |     |     |     |     |     |     |     |
+| 0     | main_entry           | _main                | 1     | ()                                   | i8               | {}                 | {}                 | {}                 |     |     | +   |     |     |     |     |     |     |     |     |     |     |     |
+| section              | align | vars                                                             | funcs                                                            |
+| .text                | -1    | {}                                                               | {0, 1}                                                           |
 /:

@@ -4,6 +4,8 @@ function foo(i32 a) {
 }
 
 :/ OUTPUT
-[ENTRY] id: 0, name: foo (virt: _main), ext=0, glob=0, used=0, local=0, naked=0, sid=1
-section='.text', 0
+| id    | name                 | virt                 | scope | args                                 | ret              | locals             | generic types      | resolutions        | ext | glb | ent | use | loc | var | gen | abi | wek | slf | nkd | inl | bod | vnm |
+| 0     | foo                  | _main                | 1     | (i32 a)                              | NULL             | {}                 | {}                 | {}                 |     |     | +   |     |     |     |     |     |     |     |     |     |     |     |
+| section              | align | vars                                                             | funcs                                                            |
+| .text                | -1    | {}                                                               | {0}                                                              |
 /:

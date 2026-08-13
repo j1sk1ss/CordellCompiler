@@ -4,7 +4,9 @@ function foo() {
 }
 
 :/ OUTPUT
-{id: 0, name: foo (virt: foo0), ext=0, glob=0, used=0, local=0, naked=0, sid=1}
-{section='.bss', 0}
-{section='.text'}
+| id    | name                 | virt                 | scope | args                                 | ret              | locals             | generic types      | resolutions        | ext | glb | ent | use | loc | var | gen | abi | wek | slf | nkd | inl | bod | vnm |
+| 0     | foo                  | foo0                 | 1     | ()                                   | NULL             | {}                 | {}                 | {}                 |     |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| section              | align | vars                                                             | funcs                                                            |
+| .text                | -1    | {}                                                               | {}                                                               |
+| .bss                 | -1    | {}                                                               | {0}                                                              |
 /:

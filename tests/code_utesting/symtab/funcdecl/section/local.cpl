@@ -8,7 +8,9 @@ function foo() {
 }
 
 :/ OUTPUT
-{id: 1, name: bar (virt: bar1), ext=0, glob=0, used=0, local=-1, sid=3}
-{[ENTRY] id: 0, name: foo (virt: _main), ext=0, glob=0, used=0, local=0, sid=1}
-{section='.bss', 0}
+| id    | name                 | virt                 | scope | args                                 | ret              | locals             | generic types      | resolutions        | ext | glb | ent | use | loc | var | gen | abi | wek | slf | nkd | inl | bod | vnm |
+| 1     | bar                  | bar1                 | 3     | ()                                   | NULL             | {}                 | {}                 | {}                 |     |     |     |     | +   |     |     |     |     |     |     |     |     |     |
+| 0     | foo                  | _main                | 1     | ()                                   | NULL             | {1}                | {}                 | {}                 |     |     | +   |     |     |     |     |     |     |     |     |     |     |     |
+| section              | align | vars                                                             | funcs                                                            |
+| .bss                 | -1    | {}                                                               | {0}                                                              |
 /:

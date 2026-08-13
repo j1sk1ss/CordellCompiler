@@ -8,10 +8,12 @@ start() {
 }
 
 :/ OUTPUT
-{id: 1, name: baz (virt: baz1), ext=0, glob=0, used=0, local=0, sid=1}
-{[ENTRY] id: 3, name: _main (virt: _main), ext=0, glob=-1, used=0, local=0, sid=1}
-{id: 0, name: foo (virt: foo0), ext=0, glob=0, used=0, local=0, sid=1}
-{id: 2, name: bar (virt: bar2), ext=0, glob=0, used=0, local=0, sid=1}
-{section='.bss', 2}
-{section='.text', <<0 1 3>>}
+| id    | name                 | virt                 | scope | args                                 | ret              | locals             | generic types      | resolutions        | ext | glb | ent | use | loc | var | gen | abi | wek | slf | nkd | inl | bod | vnm |
+| 1     | baz                  | baz1                 | 1     | ()                                   | NULL             | {}                 | {}                 | {}                 |     |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| 3     | _main                | _main                | 1     | ()                                   | NULL             | {}                 | {}                 | {}                 |     | +   | +   | +   |     |     |     |     |     |     |     |     |     |     |
+| 0     | foo                  | foo0                 | 1     | ()                                   | NULL             | {}                 | {}                 | {}                 |     |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| 2     | bar                  | bar2                 | 1     | ()                                   | NULL             | {}                 | {}                 | {}                 |     |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| section              | align | vars                                                             | funcs                                                            |
+| .text                | -1    | {}                                                               | {0, 1, 3}                                                        |
+| .bss                 | -1    | {}                                                               | {2}                                                              |
 /:

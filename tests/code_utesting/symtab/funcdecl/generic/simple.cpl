@@ -11,11 +11,12 @@ start() {
 }
 
 :/ OUTPUT
-{id: 1, name: bar (virt: bar1), ext=0, glob=0, used=0, local=0, sid=1, generic=-1}
-{id: 4, name: bar (virt: bar4__i0), ext=0, glob=0, used=0, local=0, sid=1, generic=0}
-{id: 3, name: bar (virt: bar3__f64), ext=0, glob=0, used=0, local=0, sid=1, generic=0}
-{id: 0, name: foo (virt: foo0), ext=0, glob=0, used=0, local=0, sid=1, generic=-1}
-{id: 5, name: foo (virt: foo5__i8), ext=0, glob=0, used=0, local=0, sid=1, generic=0}
-{id: 6, name: foo (virt: foo6__i32), ext=0, glob=0, used=0, local=0, sid=1, generic=0}
-{[ENTRY] id: 2, name: _main (virt: _main), ext=0, glob=-1, used=0, local=0, sid=1, generic=0}
+| id    | name                 | virt                 | scope | args                                 | ret              | locals             | generic types      | resolutions        | ext | glb | ent | use | loc | var | gen | abi | wek | slf | nkd | inl | bod | vnm |
+| 1     | bar                  | bar1                 | 1     | ()                                   | NULL             | {}                 | {1}                | {3, 4}             |     |     |     |     |     |     | +   |     |     |     |     |     |     |     |
+| 4     | bar                  | bar4__i0             | 1     | ()                                   | NULL             | {}                 | {}                 | {}                 |     |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| 3     | bar                  | bar3__f64            | 1     | ()                                   | NULL             | {}                 | {}                 | {}                 |     |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| 0     | foo                  | foo0                 | 1     | (T a, T b)                           | T                | {}                 | {0}                | {5, 6}             |     |     |     |     |     |     | +   |     |     |     |     |     |     |     |
+| 5     | foo                  | foo5__i8             | 1     | (T a, T b)                           | T                | {}                 | {}                 | {}                 |     |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| 6     | foo                  | foo6__i32            | 1     | (T a, T b)                           | T                | {}                 | {}                 | {}                 |     |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| 2     | _main                | _main                | 1     | ()                                   | NULL             | {}                 | {}                 | {}                 |     | +   | +   | +   |     |     |     |     |     |     |     |     |     |     |
 /:

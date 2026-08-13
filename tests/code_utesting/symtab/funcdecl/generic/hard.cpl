@@ -12,8 +12,9 @@ start() {
 }
 
 :/ OUTPUT
-id: 1, name: foo (virt: foo1), ext=0, glob=0, used=0, local=0, sid=1, generic=1
-id: 3, name: foo (virt: foo3__i32), ext=0, glob=0, used=0, local=0, sid=1, generic=0
-id: 0, name: foo (virt: foo0), ext=0, glob=0, used=0, local=0, sid=1, generic=1
-[ENTRY] id: 2, name: _main (virt: _main), ext=0, glob=1, used=1, local=0, sid=1, generic=0
+| id    | name                 | virt                 | scope | args                                 | ret              | locals             | generic types      | resolutions        | ext | glb | ent | use | loc | var | gen | abi | wek | slf | nkd | inl | bod | vnm |
+| 1     | foo                  | foo1                 | 1     | (T a, i64 b)                         | T                | {}                 | {3}                | {3}                |     |     |     |     |     |     | +   |     |     |     |     |     |     |     |
+| 3     | foo                  | foo3__i32            | 1     | (T a, i64 b)                         | T                | {}                 | {}                 | {}                 |     |     |     |     |     |     |     |     |     |     |     |     |     |     |
+| 0     | foo                  | foo0                 | 1     | (T a, i32 b)                         | T                | {}                 | {0}                | {}                 |     |     |     |     |     |     | +   |     |     |     |     |     |     |     |
+| 2     | _main                | _main                | 1     | ()                                   | NULL             | {}                 | {}                 | {}                 |     | +   | +   | +   |     |     |     |     |     |     |     |     |     |     |
 /:
