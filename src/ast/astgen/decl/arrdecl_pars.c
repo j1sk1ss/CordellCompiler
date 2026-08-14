@@ -180,6 +180,11 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     
     long array_size  = _get_array_field_size(const_length, type, ctx, smt);
     name->sinfo.v_id = VRTB_add_info(name->t->body, ARRAY_TYPE_TOKEN, name->sinfo.s_id, base->t->flags, &smt->v); /* register as a variable                   */ 
+    if (CONF_is_symtab_error()) {
+        PARSE_ERROR("Can't register an array with the name '%s'", name->t->body->body);
+        CONF_set_parser_error();
+    }
+
     base->sinfo.t_id = TPTB_add_info_from_token(name->sinfo.s_id, base->t, name->sinfo.v_id, &smt->t);            /* register as a type                       */
     ARTB_add_info(name->sinfo.v_id, const_length, base->t->flags.vla, type->t->t_type, type->t->flags, &smt->a);  /* register as an array                     */
     TPTB_set_memory_size_id(base->sinfo.t_id, array_size, &smt->t);                                               /* select the type of the array             */

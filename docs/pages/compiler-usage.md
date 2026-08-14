@@ -167,5 +167,3 @@ The compiler has optional static analysis passes:
 ```
 
 AST analysis checks source-level semantic issues. IR analysis runs after HIR and CFG construction and can report lower-level problems such as suspicious control flow and invalid memory patterns. `--analysis-only` enables both analysis passes and stops before code generation.
-
-Blocking analysis issues stop compilation by default. Use `--i-know-what-i-am-doing` to keep compiling after static analysis warnings.

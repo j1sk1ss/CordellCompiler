@@ -462,7 +462,7 @@ class BuilderCLITests(unittest.TestCase):
                 "-O3",
                 "--debug",
                 "--no-debug",
-                "--i-know-what-i-am-doing",
+                "--i-dont-know-what-i-am-doing",
                 "--ast-analysis",
                 "--ir-analysis",
                 "--emit-ast",
@@ -991,7 +991,7 @@ class BuilderCLITests(unittest.TestCase):
             _minimal_source(source)
 
             result = self.run_cplc(
-                "--i-know-what-i-am-doing",
+                "--i-dont-know-what-i-am-doing",
                 "--ast-analysis",
                 "-c",
                 "--output", output,

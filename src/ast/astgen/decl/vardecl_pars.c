@@ -35,6 +35,11 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
        from the carry, if we're working with a dynamic type. */
     stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
     name->sinfo.v_id = VRTB_add_info(name->t->body, base->t->t_type, name->sinfo.s_id, base->t->flags, &smt->v);
+    if (CONF_is_symtab_error()) {
+        PARSE_ERROR("Can't register a variable with the name '%s'", name->t->body->body);
+        CONF_set_parser_error();
+    }
+    
     VRTB_update_type(name->sinfo.v_id, FIELD_NO_CHANGE, carry, &smt->v);
 
     /* If this is a custom type variable, register it as an array as well. */

@@ -41,7 +41,7 @@ _cplc()
         --analysis-only
         --debug
         --no-debug
-        --i-know-what-i-am-doing
+        --i-dont-know-what-i-am-doing
         -O0 -O1 -O2 -O3
         --arch
         --asm-compiler

@@ -47,6 +47,8 @@ typedef struct {
     struct {
         FLAG(debug);                         /* Debug flag                            */
         FLAG(strict);                        /* The compiler stops on casts or not    */
+        FLAG(parser_error);                  /* If there is a parser error            */
+        FLAG(symtab_error);                  /* If there is a symtab error            */ 
     } compilation_flags;
 } config_t;
 #undef FLAG
@@ -66,5 +68,17 @@ config_int_field_t    CONF_get_attention_level();
 config_flag_field_t   CONF_is_debug_compilation();
 arch_type_t           CONF_get_system_type();
 config_flag_field_t   CONF_is_strict_compilation();
+
+/* Perform an action with a logic output with respect of the current
+strict status in the compiler.
+Provide it with an action which produces fail logic output as 'true'. 
+Note: Must be as a source of a logic output. Otherwise it is redundant - It
+      won't stop compilation by its own. */
+#define STRICT_ACTION(fail_action) fail_action && CONF_is_strict_compilation()
+
+config_flag_field_t CONF_is_parser_error();
+void                CONF_set_parser_error();
+config_flag_field_t CONF_is_symtab_error();
+void                CONF_set_symtab_error();
 
 #endif

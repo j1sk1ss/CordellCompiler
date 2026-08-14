@@ -37,7 +37,7 @@ static int _print_help_message() {
         { OPTION_ANALYSIS_ONLY, NULL, "Run AST and HIR analysis, then stop before code generation" },
         { OPTION_DEBUG, NULL, "Enable debug mode" },
         { OPTION_NO_DEBUG, NULL, "Disable debug mode" },
-        { OPTION_NO_STRICT, NULL, "Keep compiling after static analysis warnings" },
+        { OPTION_STRICT, NULL, "Enable compiler errors, strict typing and static analysis" },
     };
     static const cli_help_option_t optimization_options[] = {
         { OPTION_NO_OPTIMIZATION, NULL, "Disable optimizations" },
@@ -559,6 +559,8 @@ static config_t _make_config(const options_t* options) {
         .compilation_flags  = {
             .debug          = options->config.debug  ? 1 : 0,
             .strict         = options->config.strict ? 1 : 0,
+            .parser_error   = 0,
+            .symtab_error   = 0
         },
     };
 
@@ -710,7 +712,7 @@ static void _set_default_options(options_t* out) {
     out->config.quart_bytness      = 2;
     out->config.eight_bytness      = 1;
     out->config.debug              = 0;
-    out->config.strict             = 1;
+    out->config.strict             = 0;
     _set_optimization_profile(out, 0);
 }
 
@@ -883,11 +885,15 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
         }
         else if (!strcmp(argv[i], OPTION_DEBUG))                out->config.debug       = 1;
         else if (!strcmp(argv[i], OPTION_NO_DEBUG))             out->config.debug       = 0;
-        else if (!strcmp(argv[i], OPTION_NO_STRICT))            out->config.strict      = 0;
         else if (!strcmp(argv[i], OPTION_NO_OPTIMIZATION))      _set_optimization_profile(out, 0);
         else if (!strcmp(argv[i], OPTION_ROUGHT_OPTIMIZATION))  _set_optimization_profile(out, 1);
         else if (!strcmp(argv[i], OPTION_GOOD_OPTIMIZATION))    _set_optimization_profile(out, 2);
         else if (!strcmp(argv[i], OPTION_MAX_OPTIMIZATION))     _set_optimization_profile(out, 3);
+        else if (!strcmp(argv[i], OPTION_STRICT)) {
+            out->flags.ast_analysis = 1;
+            out->flags.hir_analysis = 1;
+            out->config.strict      = 1;
+        }
         else if (argv[i][0] == '-') goto _fail;
         else if (!list_push_back(&out->locations.files, argv[i])) goto _fail;
     }
@@ -1084,7 +1090,7 @@ int main(int argc, char* argv[]) {
         }
 
         if (options.flags.ast_analysis) {
-            if (SEM_perform_ast_check(&sctx, &smt) <= 0 && CONF_is_strict_compilation()) {
+            if (STRICT_ACTION(SEM_perform_ast_check(&sctx, &smt) <= 0)) {
                 fprintf(stderr, "AST semantic analysis failed\n");
                 return 1;
             }
@@ -1164,7 +1170,7 @@ int main(int argc, char* argv[]) {
         HIR_CFG_squeeze_blocks(&cfgctx);
 
         if (needs_hir_analysis) {
-            if (SEM_perform_hir_check(&cfgctx, &dagctx, &hirctx, &smt) <= 0 && CONF_is_strict_compilation()) {
+            if (STRICT_ACTION(SEM_perform_hir_check(&cfgctx, &dagctx, &hirctx, &smt) <= 0)) {
                 fprintf(stderr, "HIR semantic analysis failed\n");
                 return 1;
             }

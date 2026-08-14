@@ -14,7 +14,7 @@ _arguments -s -S \
   '--analysis-only[Run AST and HIR analysis, then stop before code generation]' \
   '--debug[Enable debug mode]' \
   '--no-debug[Disable debug mode]' \
-  '--i-know-what-i-am-doing[Keep compiling after static analysis warnings]' \
+  '--i-dont-know-what-i-am-doing[What are you doing here if you want to have an assistance from the compiler? Enables compiler errors and strict typing]' \
   '-O0[Disable optimizations]' \
   '-O1[Rough optimization level]' \
   '-O2[Good optimization level]' \

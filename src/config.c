@@ -66,6 +66,22 @@ config_flag_field_t CONF_is_debug_compilation() {
     return _config.compilation_flags.debug;
 }
 
-config_flag_field_t   CONF_is_strict_compilation() {
+config_flag_field_t CONF_is_strict_compilation() {
     return _config.compilation_flags.strict;
+}
+
+config_flag_field_t CONF_is_parser_error() {
+    return _config.compilation_flags.parser_error;
+}
+
+void CONF_set_parser_error() {
+    _config.compilation_flags.parser_error = 1;
+}
+
+config_flag_field_t CONF_is_symtab_error() {
+    return _config.compilation_flags.symtab_error;
+}
+
+void CONF_set_symtab_error() {
+    _config.compilation_flags.symtab_error = 1;
 }

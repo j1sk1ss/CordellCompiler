@@ -133,6 +133,13 @@ ast_node_t* cpl_parse_block(PARSER_ARGS) {
     stack_top(&ctx->scopes.stack, (void**)&base->sinfo.s_id);
     while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != carry) {
         ast_node_t* block = cpl_parse_element(it, ctx, smt, carry);
+        if (CONF_is_parser_error()) {
+            PARSE_ERROR("There is a critical error during the block parsing!");
+            AST_unload(block);
+            AST_unload(base);
+            return NULL;
+        }
+
         if (block) AST_add_node(base, block);  /* If parsing succeeds, add the parsed node to the body */
         else if (!forward_token(it, 1)) break; /* If there is an error, advance to the next token      */
     }
