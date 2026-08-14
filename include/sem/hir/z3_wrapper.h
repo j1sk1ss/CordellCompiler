@@ -51,6 +51,38 @@ z3_result_t Z3_check_subject_eq_llong_at_block(
     long long value
 );
 z3_result_t Z3_check_subject_ne_llong(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* subject, long long value);
+z3_result_t Z3_check_subject_gt_llong(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* subject, long long value);
+z3_result_t Z3_check_subject_ge_llong(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* subject, long long value);
+z3_result_t Z3_check_subject_lt_llong(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* subject, long long value);
+z3_result_t Z3_check_subject_le_llong(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* subject, long long value);
+z3_result_t Z3_check_subject_gt_llong_at_block(
+    z3_analyzer_t* analyzer,
+    cfg_func_t* function,
+    cfg_block_t* block,
+    hir_subject_t* subject,
+    long long value
+);
+z3_result_t Z3_check_subject_ge_llong_at_block(
+    z3_analyzer_t* analyzer,
+    cfg_func_t* function,
+    cfg_block_t* block,
+    hir_subject_t* subject,
+    long long value
+);
+z3_result_t Z3_check_subject_lt_llong_at_block(
+    z3_analyzer_t* analyzer,
+    cfg_func_t* function,
+    cfg_block_t* block,
+    hir_subject_t* subject,
+    long long value
+);
+z3_result_t Z3_check_subject_le_llong_at_block(
+    z3_analyzer_t* analyzer,
+    cfg_func_t* function,
+    cfg_block_t* block,
+    hir_subject_t* subject,
+    long long value
+);
 z3_result_t Z3_check_subjects_equal(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* lhs, hir_subject_t* rhs);
 z3_result_t Z3_check_subjects_not_equal(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* lhs, hir_subject_t* rhs);
 
@@ -63,6 +95,14 @@ z3_result_t Z3_is_subject_maybe_false(z3_analyzer_t* analyzer, cfg_func_t* funct
 z3_result_t Z3_is_subject_maybe_zero(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* subject);
 z3_result_t Z3_is_subject_always_zero(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* subject);
 z3_result_t Z3_is_subject_always_nonzero(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* subject);
+z3_result_t Z3_is_subject_always_greater_llong(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* subject, long long value);
+z3_result_t Z3_is_subject_maybe_greater_llong(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* subject, long long value);
+z3_result_t Z3_is_subject_always_greater_or_equal_llong(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* subject, long long value);
+z3_result_t Z3_is_subject_maybe_greater_or_equal_llong(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* subject, long long value);
+z3_result_t Z3_is_subject_always_less_llong(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* subject, long long value);
+z3_result_t Z3_is_subject_maybe_less_llong(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* subject, long long value);
+z3_result_t Z3_is_subject_always_less_or_equal_llong(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* subject, long long value);
+z3_result_t Z3_is_subject_maybe_less_or_equal_llong(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* subject, long long value);
 z3_result_t Z3_is_divisor_maybe_zero(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* divisor);
 
 z3_result_t Z3_is_label_reachable(z3_analyzer_t* analyzer, cfg_func_t* function, long l_id);

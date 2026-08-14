@@ -73,25 +73,6 @@ static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* col
     return 1;
 }
 
-/* Get the size of a token type.
-Params:
-    - `t` - Token type.
-
-Returns the size of a token type depends on the target arch. */
-static inline int _get_ast_type_size(token_type_t t) {
-    switch (t) {
-        case TMP_I64_TYPE_TOKEN: case TMP_U64_TYPE_TOKEN: case TMP_F64_TYPE_TOKEN:
-        case I64_TYPE_TOKEN:     case U64_TYPE_TOKEN:     case F64_TYPE_TOKEN:
-        case TMP_I32_TYPE_TOKEN: case TMP_U32_TYPE_TOKEN: case TMP_F32_TYPE_TOKEN:
-        case I32_TYPE_TOKEN:     case U32_TYPE_TOKEN:     case F32_TYPE_TOKEN: return 4;
-        case TMP_I16_TYPE_TOKEN: case TMP_U16_TYPE_TOKEN:
-        case I16_TYPE_TOKEN:     case U16_TYPE_TOKEN:                          return 2;
-        case TMP_I8_TYPE_TOKEN:  case TMP_U8_TYPE_TOKEN:
-        case I8_TYPE_TOKEN:      case U8_TYPE_TOKEN:                           return 1;
-        default: return 4;
-    }
-}
-
 /* Pack up to `sizeof(unsigned long)` bytes from `p` into an integer using
 little-endian byte order.
 Params:
@@ -197,7 +178,8 @@ int i386_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t* 
                             else {
                                 long reserve_size = TPTB_get_memory_size_id(vi.t_id, &smt->t);
                                 if (reserve_size == FIELD_NO_CHANGE) {
-                                    int el_size  = ai.elements_info.el_flags.ptr ? 4 : _get_ast_type_size(ai.elements_info.el_type);
+                                    token_t elem_token = { .t_type = ai.elements_info.el_type, .flags = ai.elements_info.el_flags };
+                                    int el_size  = TKN_convert_type_size(TKN_variable_bitness(&elem_token, ai.elements_info.el_flags.ptr));
                                     reserve_size = ai.size * el_size;
                                 }
 

@@ -747,3 +747,91 @@ int HIRWLKR_division_by_one(HIR_VISITOR_ARGS) {
     )) return 0;
     return 1;
 }
+
+static int _resolve_array_source(hir_subject_t* subject, sym_table_t* smt, symbol_id_t* array_id, array_info_t* ai) {
+    if (!subject || !HIR_is_vartype(subject->t)) return 0;
+
+    symbol_id_t source_id = subject->storage.var.v_id;
+    if (ARTB_get_info(source_id, ai, &smt->a)) {
+        if (array_id) *array_id = source_id;
+        return 1;
+    }
+
+    set_t slaves;
+    int found = 0;
+    ALLIAS_get_slaves(source_id, &slaves, &smt->m);
+    set_foreach (symbol_id_t slave, &slaves) {
+        if (ARTB_get_info(slave, ai, &smt->a)) {
+            if (array_id) *array_id = slave;
+            found = 1;
+            break;
+        }
+    }
+
+    set_free(&slaves);
+    return found;
+}
+
+static int _subject_can_be_ge_llong_at_block(
+    z3_analyzer_t* z3, cfg_func_t* function, cfg_block_t* block, hir_subject_t* subject, sym_table_t* smt, long long value
+) {
+    defined_variable_t di;
+    if (_resolve_subject_value(subject, smt, &di)) {
+        if (di.defined_value == 1 || di.defined_value == 2) {
+            return di.const_value >= value;
+        }
+    }
+
+    int z3_answer = Z3_check_subject_ge_llong_at_block(z3, function, block, subject, value);
+    return z3_answer == Z3A_YES || z3_answer == Z3A_MAYBE;
+}
+
+int HIRWLKR_bad_buffer_move(HIR_VISITOR_ARGS) {
+    HIR_VISITOR_ARGS_USE;
+    if (
+        b->op != HIR_iADD || 
+        !b->sarg || !b->targ || !HIR_is_vartype(b->sarg->t)
+    ) return 1;
+
+    symbol_id_t buffer_id = NO_SYMBOL_ID;
+    array_info_t ai;
+    if (!_resolve_array_source(b->sarg, smt, &buffer_id, &ai)) return 1;
+
+    token_t elem_token = { .t_type = ai.elements_info.el_type, .flags = ai.elements_info.el_flags };
+    long long buffer_size = ai.size * TKN_convert_type_size(TKN_variable_bitness(&elem_token, 1));
+    if (
+        _subject_can_be_ge_llong_at_block(ctx->z3, bb->pfunc, bb, b->targ, smt, buffer_size) ||
+        Z3_check_subject_lt_llong_at_block(ctx->z3, bb->pfunc, bb, b->targ, 0)
+    ) {
+        char move_buffer[32];
+        const char* move_repr = HIR_is_vartype(b->targ->t) ? _resolve_variable_name(b->targ->storage.var.v_id, smt) : "Value";
+        defined_variable_t di;
+        if (
+            _resolve_subject_value(b->targ, smt, &di) &&
+            (di.defined_value == 1 || di.defined_value == 2)
+        ) move_repr = _value_name_or_numeric(di.const_value, NULL, move_buffer, sizeof(move_buffer));
+
+        trace_t trace;
+        TRACE_init_trace(&trace);
+
+        trace_id_t base = TRACE_create_root(
+            &trace, TRACE_SEVERITY_ERROR, &ctx->curr_location, 
+            "Possible buffer overflow! Current buffer '%s' is moved by %s which is not in [0, %lli)",
+            _resolve_variable_name(buffer_id, smt), move_repr, buffer_size
+        );
+
+        if (HIR_is_vartype(b->targ->t)) {
+            file_position_t loc;
+            str_memcpy(&loc, &ctx->curr_location, sizeof(file_position_t));
+            _sparce_find_variable_define_location(b, b->targ->storage.var.v_id, &loc);
+            TRACE_add_note(
+                &trace, base, &loc, "Variable '%s' declared here!",
+                _resolve_variable_name(b->targ->storage.var.v_id, smt)
+            );
+        }
+
+        TRACE_print_and_free_trace(&trace);        
+    }
+
+    return 1;
+}

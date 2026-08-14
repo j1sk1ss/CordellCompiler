@@ -1,0 +1,22 @@
+@[section(".bss")]
+glob arr _buffer[10, i8];
+
+start(i32 argc, ptr ptr i8 argv) {
+    i8 value = _buffer[argc];
+    ptr i8 head = ref _buffer;
+    head += argc;
+
+    if argc < 0 || argc > 10; exit 0;
+    head += argc;
+}
+
+:/ OUTPUT
+[ERROR] Possible buffer overflow! Current buffer '_buffer' is moved by tmp which is not in [0, 10)
+    at: {X}.cpl:5:8
+    trace: Variable 'tmp' declared here!
+      at: {X}.cpl:5:8
+[ERROR] Possible buffer overflow! Current buffer '_buffer' is moved by tmp which is not in [0, 10)
+    at: {X}.cpl:7:14
+    trace: Variable 'tmp' declared here!
+      at: {X}.cpl:7:14
+/:
