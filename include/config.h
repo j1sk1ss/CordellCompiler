@@ -18,7 +18,7 @@ typedef char  config_flag_field_t;
 #define FLAG(name) config_flag_field_t name : 1
 typedef struct {
     struct {
-        config_int_field_t     attention; /* 1, 2, 3 ...                 */
+        config_int_field_t     attention;    /* 1, 2, 3 ...                           */
     } csa; /* CordellStaticAnalyzer */
 
     struct {

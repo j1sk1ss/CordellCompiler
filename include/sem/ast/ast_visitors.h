@@ -126,21 +126,6 @@ Returns 1 if the node is correct, otherwise 0.
 int ASTWLKR_wrong_arg_type(AST_VISITOR_ARGS);
 
 /*
-ASTWLKR_illegal_array_access checks out-bound array access.
-Example: 
-```cpl
-    arr a[i32, 10];
-    a[-1]; a[11];
-```
-
-Params:
-    - AST_VISITOR_ARGS - Default AST visitor args.
-
-Returns 1 if the node is correct, otherwise 0.
-*/
-int ASTWLKR_illegal_array_access(AST_VISITOR_ARGS);
-
-/*
 ASTWLKR_duplicated_branches checks if branches are similar to each other.
 Note: This approach mostly bases on the Merkle Tree approache.
       See: https://en.wikipedia.org/wiki/Merkle_tree

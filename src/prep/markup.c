@@ -104,13 +104,11 @@ static const markup_token_t _lexems[] = {
     LEXEM(BREAKPOINT_COMMAND,     BREAKPOINT_TOKEN),
 };
 
-/*
-Convert the lexem list to the lexem map.
+/* Convert the lexem list to the lexem map.
 Params:
     - `m` - Output map.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds. */
 static int _build_lexems_map(map_t* m) {
     for (int i = 0; i < (int)(sizeof(_lexems) / sizeof(_lexems[0])); i++) {
         map_put(m, crc64((unsigned char*)_lexems[i].value, str_strlen(_lexems[i].value), 0), (void*)_lexems[i].type);
@@ -134,19 +132,16 @@ int MRKP_mnemonics(list_t* tkn) {
     return map_free(&lexems);
 }
 
-/*
-Remove token from a list and unload it.
+/* Remove token from a list and unload it.
 Params:
     - `tkns` - Target list.
-    - `tkn` - Targe token.
-*/
+    - `tkn` - Targe token. */
 static inline void _remove_token(list_t* tkns, token_t* tkn) {
     list_remove(tkns, tkn);
     TKN_unload_token(tkn);
 }
 
-/*
-Apply modifiers in a token list.
+/* Apply modifiers in a token list.
 How it works:
 ```cpl
     glob ro ptr i32 a;
@@ -157,8 +152,7 @@ information and apply it on the 'i32' token.
 Params:
     - `tkn` - Token list.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds. */
 static int _apply_modifiers(list_t* tkn) {
     basic_object_info_t cflags = { 0 };
 

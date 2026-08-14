@@ -803,7 +803,7 @@ int HIRWLKR_bad_buffer_move(HIR_VISITOR_ARGS) {
         _subject_can_be_ge_llong_at_block(ctx->z3, bb->pfunc, bb, b->targ, smt, buffer_size) ||
         Z3_check_subject_lt_llong_at_block(ctx->z3, bb->pfunc, bb, b->targ, 0)
     ) {
-        char move_buffer[32];
+        char move_buffer[32] = { 0 };
         const char* move_repr = HIR_is_vartype(b->targ->t) ? _resolve_variable_name(b->targ->storage.var.v_id, smt) : "Value";
         defined_variable_t di;
         if (
@@ -816,7 +816,7 @@ int HIRWLKR_bad_buffer_move(HIR_VISITOR_ARGS) {
 
         trace_id_t base = TRACE_create_root(
             &trace, TRACE_SEVERITY_ERROR, &ctx->curr_location, 
-            "Possible buffer overflow! Current buffer '%s' is moved by %s which is not in [0, %lli)",
+            "Possible buffer overflow! Current buffer '%s' is moved by %s that can be not in [0, %lli)",
             _resolve_variable_name(buffer_id, smt), move_repr, buffer_size
         );
 
