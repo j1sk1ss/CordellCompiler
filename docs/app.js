@@ -463,9 +463,16 @@ window.$docsify = {
     function(hook) {
       const folderIcon = 'icons/win95-folder.png';
       const docIcon = 'icons/win95-list.png';
+      const installIcon = 'icons/win95-install-cpl.png';
+      const installShortcut = {
+        href: '#/pages/build-install-package',
+        title: 'Install.cpl',
+        section: 'Desktop',
+        icon: installIcon
+      };
       let shellReady = false;
       const windowState = {
-        explorer: { x: 18, y: 18, minimized: false, maximized: false, closed: false, zIndex: 20 },
+        explorer: { x: window.innerWidth > 720 ? 116 : 7, y: window.innerWidth > 720 ? 18 : 7, minimized: false, maximized: false, closed: false, zIndex: 20 },
         monkey: { x: null, y: 34, minimized: false, maximized: false, closed: false, zIndex: 21 }
       };
       const docWindows = new Map();
@@ -1037,6 +1044,13 @@ window.$docsify = {
         const desktop = document.querySelector('.win95-desktop');
         if (!desktop) return;
 
+        const desktopShortcut = `
+          <a class="win95-file-icon win95-desktop-shortcut" href="${installShortcut.href}" data-doc-route="${installShortcut.href}" data-doc-title="${escapeHtml(installShortcut.title)}" title="${escapeHtml(installShortcut.section + ': ' + installShortcut.title)}">
+            <img src="${installShortcut.icon}" alt="" />
+            <span>${escapeHtml(installShortcut.title)}</span>
+          </a>
+        `;
+
         const icons = items.map(item => `
           <a class="win95-file-icon" href="${item.href}" data-doc-route="${item.href}" data-doc-title="${escapeHtml(item.title)}" title="${escapeHtml(item.section + ': ' + item.title)}">
             <img src="${docIcon}" alt="" />
@@ -1045,6 +1059,7 @@ window.$docsify = {
         `).join('');
 
         desktop.innerHTML = `
+          ${desktopShortcut}
           <div class="win95-explorer win95-window" data-window="explorer" role="region" aria-label="CPL Explorer window">
             <div class="win95-window-titlebar">
               <img src="${folderIcon}" alt="" />

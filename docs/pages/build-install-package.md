@@ -1,25 +1,54 @@
 # Build, install, and package
 
-## Build from source
+## Install basics from the source
 
-Build an optimized compiler and run it directly from the repository:
-
-```bash
-make release
-./builds/$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m)/cplc --version
-```
-
-The development binary automatically finds the `cpllib` submodule directory in the repository. </br>
-Clone with submodules, or initialize them after cloning:
+To instal the complier, the first thing you need to do is to download it from the source:
 
 ```bash
 git clone --recurse-submodules https://github.com/j1sk1ss/CordellCompiler.git
+```
+
+Then, if you want to use the `VSCode` extension and standart CPL library, you'll need to run the next command:
+
+```bash
 make submodules
+```
+
+### Dependencies
+
+After this you'll see a folder which contains all important code. But before we can continue, you need to be sure that your system has all essential packages. If you're working on Ubuntu, use the next command:
+
+```bash
+sudo apt install gcc nasm
+```
+
+For Fedora:
+
+```bash
+sudo dnf install gcc nasm
+```
+
+*P.S.:* Additionally, you can include the `z3` package. It will improve overall performance of the static analyzer. Hovewer, it's optional step.
+
+## Build the compiler
+
+Now, when you have all essentials for further work, we can proceed further and move on to the building part. To build the compiler you need to run the next command:
+
+```bash
+make all
+```
+
+*P.S.:* This command will create the `build` directory.
+
+To run the compiler you can use the next command:
+
+```bash
+./builds/$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m)/cplc --version
 ```
 
 ## Build the standard library from the Makefile
 
-The root `Makefile` has a separate target for the CPL runtime library:
+To install CPL standart library you'll (despite the `make submodules` command) need to run the next command: 
 
 ```bash
 make cpllib
@@ -27,25 +56,8 @@ make cpllib
 
 This builds the compiler if needed, compiles the implementation files from the standard-library source directory, and writes the static archive here:
 
-```text
+```
 builds/<platform>/cpllib/libcpl.a
-```
-
-For a release-mode runtime archive, pass the same build settings used by the package target:
-
-```bash
-make BUILD=release PRINT_PARSE=0 cpllib
-```
-
-`make print-config` shows the resolved library paths and inputs:
-
-```text
-CPLLIBDIR
-CPLLIB_SRC_DIR
-CPLRUNTIMEDIR
-CPLLIB_SOURCES
-CPLLIB_IMPLS
-CPLLIB_ARCHIVE
 ```
 
 `CPLLIB_SRC_DIR` defaults to the `cpllib` submodule. Sibling checkouts can still be selected explicitly:
@@ -56,11 +68,10 @@ make CPLLIB_SRC_DIR=../cpllib cpllib
 
 ## Install
 
-Install both `cplc` and its CPL standard library:
+And finally, if you want to use `cplc` command instead of the absolute path, you can use the next command:
 
 ```bash
-make release
-sudo make install PREFIX=/usr/local
+sudo make install
 ```
 
 The default installation layout is:
@@ -80,8 +91,8 @@ The default installation layout is:
 make install PREFIX=/usr DESTDIR=/tmp/cpl-package-root
 ```
 
-The compiler discovers installed headers automatically, so applications can use `#include <stdio_h.cpl>` without passing `-I cpllib`. </br>
-See the [`cpllib` reference](cpllib-reference.md) for header groups, containers, and usage examples. </br>
+The compiler discovers installed headers automatically, so applications can use `#include <stdio_h.cpl>` without passing `-I cpllib`. </br> 
+See the [`cpllib` reference](cpllib-reference.md) for header groups, containers, and usage examples. </br> 
 Use `CPL_INCLUDE_PATH` to override the standard-library directory. The `-I` option adds a project include directory without disabling the standard library:
 
 ```bash
@@ -127,21 +138,3 @@ The Docker targets use `VSCODE_DIR`, which defaults to `vscode`:
 make vscode-docker-package
 make VSCODE_DIR=../cordell-vscode vscode-docker-package
 ```
-
-When `vscode` is a submodule and has not been initialized, the Makefile prints the matching `git submodule update` command instead of failing later inside Docker.
-
-## Create a relocatable package
-
-Create an archive containing the compiler, matching headers, runtime archive, and license:
-
-```bash
-make package
-```
-
-The archive is written to:
-
-```text
-builds/cpl-<version>-<platform>.tar.gz
-```
-
-Its `bin/cplc` executable discovers the adjacent `share/cpl/include` directory, so the extracted tree can be moved to another prefix without rebuilding.
