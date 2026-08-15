@@ -35,7 +35,7 @@ annotation_t* ANNOT_create_annotation(annotation_type_t t, annotation_param_t* f
             break;
         }
         case SECTION_ANNOTATION: {
-            annot->data.section.align = FIELD_NO_CHANGE;
+            annot->data.section.align = SMT_NULL;
             if (fp->filled) annot->data.section.section = fp->string->copy(fp->string);
             if (sp->filled) annot->data.section.align   = (int)sp->value;
             break;

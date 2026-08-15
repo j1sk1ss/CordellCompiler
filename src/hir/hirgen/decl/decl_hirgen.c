@@ -103,7 +103,7 @@ static int _arr_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) 
         ) alloc_size = HIR_generate_elem(size, ctx, smt);
         else {
             long type_size = TPTB_get_memory_size_id(vi.t_id, &smt->t);
-            if (type_size == FIELD_NO_CHANGE) type_size = 0;
+            if (type_size == SMT_NULL) type_size = 0;
             alloc_size = HIR_SUBJ_CONST(type_size);
         }
 

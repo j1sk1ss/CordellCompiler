@@ -60,16 +60,16 @@ static ast_node_t* _parse_array_type(PARSER_ARGS) {
 static symbol_id_t _resolve_array_type(ast_node_t* type, ast_ctx_t* ctx, sym_table_t* smt);
 
 static long _get_array_field_size(long length, ast_node_t* type, ast_ctx_t* ctx, sym_table_t* smt) {
-    if (!type || length < 0) return FIELD_NO_CHANGE;
+    if (!type || length < 0) return SMT_NULL;
     if (type->sinfo.t_id == NO_SYMBOL_ID) type->sinfo.t_id = _resolve_array_type(type, ctx, smt);
 
     long element_size = TPTB_get_memory_size_id(type->sinfo.t_id, &smt->t);
-    if (element_size == FIELD_NO_CHANGE) {
+    if (element_size == SMT_NULL) {
         type->sinfo.t_id = TPTB_add_info_from_token(type->sinfo.s_id, type->t, NO_SYMBOL_ID, &smt->t);
         element_size = TPTB_get_memory_size_id(type->sinfo.t_id, &smt->t);
     }
 
-    return element_size == FIELD_NO_CHANGE ? FIELD_NO_CHANGE : length * element_size;
+    return element_size == SMT_NULL ? SMT_NULL : length * element_size;
 }
 
 static symbol_id_t _resolve_array_type(ast_node_t* type, ast_ctx_t* ctx, sym_table_t* smt) {

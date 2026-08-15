@@ -1,0 +1,12 @@
+start() {
+    i32 a = 100;
+    i8 b = a;
+    b = 100000;
+    a = 1;
+    exit 0;
+}
+
+:/ OUTPUT
+[WARNING] The variable b has a store operation which will cut the source value of '100000'
+    at: {X}.cpl:4:10
+/:

@@ -205,7 +205,7 @@ Returns 1 if traversal finished without CFG_DFS_STOP, otherwise 0 */
     - `CFG_DFS_CONTINUE` - visit children.
     - `CFG_DFS_SKIP` - stop the current path as successful.
     - `CFG_DFS_STOP` - abort traversal and return 0 */
-#define CFG_DFS_WALK(head, logic, ...)                                                  \
+#define CFG_DFS_WALK(head, logic, ...) \
     CFG_DFS_WALK_COUNTER((head), -1, CFG_get_unique_counter(), logic, ##__VA_ARGS__)
 
 /* Walk CFG blocks in depth-first order with a per-path state copy.

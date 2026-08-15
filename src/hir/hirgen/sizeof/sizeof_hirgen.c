@@ -8,14 +8,14 @@ hir_subject_t* _get_size_as_constant(hir_subject_t* s, sym_table_t* smt) {
         if (HIR_is_arrtype(s->t)) {
             array_info_t ai;
             if (ARTB_get_info(s->storage.var.v_id, &ai, &smt->a)) {
-                long type_size = has_vi ? TPTB_get_memory_size_id(vi.t_id, &smt->t) : FIELD_NO_CHANGE;
-                if (type_size == FIELD_NO_CHANGE && has_vi) {
+                long type_size = has_vi ? TPTB_get_memory_size_id(vi.t_id, &smt->t) : SMT_NULL;
+                if (type_size == SMT_NULL && has_vi) {
                     symbol_id_t elem_type = TPTB_get_first_child(vi.t_id, &smt->t);
                     type_size = TPTB_get_memory_size_id(elem_type, &smt->t);
-                    if (type_size != FIELD_NO_CHANGE) type_size *= ai.size;
+                    if (type_size != SMT_NULL) type_size *= ai.size;
                 }
 
-                if (type_size != FIELD_NO_CHANGE) size = type_size;
+                if (type_size != SMT_NULL) size = type_size;
             }
         }
 

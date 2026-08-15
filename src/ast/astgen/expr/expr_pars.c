@@ -327,7 +327,7 @@ _primary_resolve_complete: {}
         case STRING_VALUE_TOKEN: {
             node->sinfo.v_id  = STTB_add_info(node->t->body, STR_INDEPENDENT, &smt->s);
             string_t* section = create_string(CONF_get_ro_section());
-            SCTB_move_to_section(section, FIELD_NO_CHANGE, node->sinfo.v_id, SECTION_ELEMENT_STRING, &smt->c);
+            SCTB_move_to_section(section, SMT_NULL, node->sinfo.v_id, SECTION_ELEMENT_STRING, &smt->c);
             destroy_string(section);
             break;
         }

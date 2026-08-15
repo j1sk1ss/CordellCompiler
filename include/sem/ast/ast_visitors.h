@@ -77,21 +77,6 @@ Returns 1 if the node is correct, otherwise 0.
 int ASTWLKR_not_init(AST_VISITOR_ARGS);
 
 /*
-ASTWLKR_illegal_declaration checks initial value of declaration node. 
-If value has different with declaration type, will file a warning.
-```cpl
-    i8 a = 123123; : <= Will fire a warning :
-    i8 b = 123;
-```
-
-Params:
-    - AST_VISITOR_ARGS - Default AST visitor args.
-
-Returns 1 if the node is correct, otherwise 0.
-*/
-int ASTWLKR_illegal_declaration(AST_VISITOR_ARGS);
-
-/*
 ASTWLKR_no_exit checks if start block has exit statement at every path.
 Example:
 ```cpl

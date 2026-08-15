@@ -50,10 +50,10 @@ static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* col
             color >= 0 && _is_regular_register(_convert_color_to_register(color)) /* And if this a valid register */
         ) {
             vi.vmi.reg    = _convert_color_to_register(color);
-            vi.vmi.offset = FIELD_NO_CHANGE;
+            vi.vmi.offset = SMT_NULL;
         }
         else {
-            vi.vmi.reg    = FIELD_NO_CHANGE;
+            vi.vmi.reg    = SMT_NULL;
             vi.vmi.offset = stack_map_alloc(ALIGN(vi.vmi.size, vi.vmi.align), smp);
         }
 
@@ -169,7 +169,7 @@ int x86_64_macho_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table
                             }
                             else {
                                 long reserve_size = TPTB_get_memory_size_id(vi.t_id, &smt->t);
-                                if (reserve_size == FIELD_NO_CHANGE) {
+                                if (reserve_size == SMT_NULL) {
                                     token_t elem_token = { .t_type = ai.elements_info.el_type, .flags = ai.elements_info.el_flags };
                                     int el_size  = TKN_convert_type_size(TKN_variable_bitness(&elem_token, ai.elements_info.el_flags.ptr));
                                     reserve_size = ai.size * el_size;

@@ -100,7 +100,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         case LOWER_TOKEN: {
             forward_token(it, 1);
             do {
-                symbol_id_t t_id = TPTB_add_info(CURRENT_TOKEN->body, args_scope, TYPE_GENERICS, FIELD_NO_CHANGE, 0, &smt->t);
+                symbol_id_t t_id = TPTB_add_info(CURRENT_TOKEN->body, args_scope, TYPE_GENERICS, SMT_NULL, 0, &smt->t);
                 if (t_id != NO_SYMBOL_ID) list_add(&generic_types, (void*)t_id);
                 if (consume_token(it, COMMA_TOKEN)) forward_token(it, 1);
             } while (CURRENT_TOKEN->t_type != LARGER_TOKEN);
@@ -204,7 +204,7 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     
     if (preserved_tid != NO_SYMBOL_ID) {
         symbol_id_t type = TPTB_add_info_from_token(base->sinfo.s_id, base->t, base->c->sinfo.v_id, &smt->t);
-        TPTB_add_as_child(preserved_tid, type, name->t->body, FIELD_NO_CHANGE, &smt->t);
+        TPTB_add_as_child(preserved_tid, type, name->t->body, SMT_NULL, &smt->t);
     }
 
     if (local) FNTB_add_local(ctx->carry.pfunc, name->sinfo.v_id, &smt->f);

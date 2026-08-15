@@ -61,7 +61,6 @@ int is_same_dir(string_t* a, string_t* b) {
     char da[PATH_BUF_SIZE] = { 0 };
     char db[PATH_BUF_SIZE] = { 0 };
     struct stat sa, sb;
-
     if (!_get_parent_dir(a, da, sizeof(da))) return 0;
     if (!_get_parent_dir(b, db, sizeof(db))) return 0;
     if (stat(da, &sa)) return 0;

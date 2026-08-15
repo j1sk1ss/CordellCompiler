@@ -295,35 +295,6 @@ static int _check_assign_types(const char* msg, ast_node_t* l, ast_node_t* r, sy
     return 1;
 }
 
-int ASTWLKR_illegal_declaration(AST_VISITOR_ARGS) {
-    AST_VISITOR_ARGS_USE;
-    if (nd->t->t_type == ARRAY_TYPE_TOKEN) {
-        ast_node_t* name = nd->c;
-        ast_node_t* size = name->siblings.n;
-        ast_node_t* type = size->siblings.n;
-        ast_node_t* init = type->siblings.n;
-        for (; init; init = init->siblings.n) {
-            if (!_check_assign_types("Illegal declaration", type, init, smt)) {
-                REBUILD_CODE_1TRG(nd, init);
-                return 0;
-            }
-        }
-
-        return 1;
-    }
-
-    ast_node_t* larg = nd->c;
-    if (!larg) return 1;
-    ast_node_t* rarg = larg->siblings.n;
-    if (!rarg) return 1;
-    if (!_check_assign_types("Illegal declaration", larg, rarg, smt)) {
-        REBUILD_CODE_1TRG(nd, rarg);
-        return 0;
-    }
-
-    return 1;
-}
-
 /* Search for the 'return' or for the 'exit' statement in the provided AST node.
 Params:
     - `nd` - Target AST node.

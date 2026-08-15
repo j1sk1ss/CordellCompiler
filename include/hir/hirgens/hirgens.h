@@ -14,20 +14,17 @@
    Params:
         - `t` - Target annotation Type.
         - `nd` - Source node.
-        - `act` - Action if the annotation found.
- */
-#define HAS_ANNOTATION(type, nd, act)             \
-    foreach (annotation_t* annot, &nd->annots) {  \
-        if (annot->t == type) { act; break; }     \
-    }                                            \
+        - `act` - Action if the annotation found */
+#define HAS_ANNOTATION(type, nd, act)            \
+    foreach (annotation_t* annot, &nd->annots) { \
+        if (annot->t == type) { act; break; }    \
+    }
 
-/*
-Dump and load information for the 'poparg' keyword.
+/* Dump and load information for the 'poparg' keyword.
 Params:
     - `op` - poparg operation
     - `args` - Current popped arguments number.
-    - `logic` - Wrapped logic. 
-*/
+    - `logic` - Wrapped logic */
 #define SET_AND_DUMP_POPARG(r, vargs, logic) \
     void *prtype = ctx->carry.rtype,         \
          *pvargs = ctx->carry.varg;          \
@@ -37,14 +34,12 @@ Params:
     ctx->carry.rtype = prtype;               \
     ctx->carry.varg = pvargs;
 
-/*
-Fire a HIRGEN error.
+/* Fire a HIRGEN error.
 Params:
     - `ctx` - HIR ctx.
-    - `msg` - Message to fire. 
-*/
-#define HIRGEN_ERROR(ctx, msg, ...) \
-    fprintf( \
+    - `msg` - Message to fire */
+#define HIRGEN_ERROR(ctx, msg, ...)                   \
+    fprintf(                                          \
         stderr,                                       \
         "[%s:%li:%li] " msg "\n",                     \
         ctx->pos.file ? ctx->pos.file->body : "base", \

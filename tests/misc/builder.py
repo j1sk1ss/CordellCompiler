@@ -1,4 +1,5 @@
 import subprocess
+import shlex
 
 from enum import Enum
 from pathlib import Path
@@ -45,11 +46,38 @@ class CCBuilder:
             
         return source_files
 
+    def _pkg_config_flags(self, packages: list[str], flag: str) -> list[str] | None:
+        flags: list[str] = []
+        for package in packages:
+            try:
+                result = subprocess.run(
+                    ['pkg-config', flag, package],
+                    capture_output=True,
+                    text=True
+                )
+            except Exception as e:
+                print(f"Error while querying pkg-config for {package}: {e}")
+                return None
+
+            if result.returncode != 0:
+                print(f"pkg-config failed for {package}:")
+                print(result.stderr)
+                return None
+
+            flags.extend(shlex.split(result.stdout))
+
+        return flags
+
     def build(
         self, test_file: str, output_dir: str, extra_flags: list = [], show_logs: bool = True
     ) -> str | None:
         macros = [ f"-D{macro}" for macro in self.settings.config.get('macros', []) ] + [ f"-{flag}" for flag in extra_flags ]
         source_files = self._expand_sources(self.settings.config.get('sources', []))
+        pkg_config_packages = self.settings.config.get('pkg_config', [])
+        pkg_cflags = self._pkg_config_flags(pkg_config_packages, '--cflags')
+        pkg_ldflags = self._pkg_config_flags(pkg_config_packages, '--libs')
+        if pkg_cflags is None or pkg_ldflags is None:
+            return None
         
         if show_logs:
             print(f"CCBuilder.build, macro={macros}, source_files={' '.join(source_files[:3])} ... [{len(source_files) - 4} more files]") 
@@ -72,7 +100,7 @@ class CCBuilder:
             print(f"Macros: {', '.join(self.settings.config.get('macros', []))}")
             print(f"Sources: {len(source_files)} files")
         
-        command: list = [ self.settings.compiler.value ] + base_flags + macros + [ test_file ] + source_files + [ '-o', str(output_file) ]
+        command: list = [ self.settings.compiler.value ] + base_flags + pkg_cflags + macros + [ test_file ] + source_files + [ '-o', str(output_file) ] + pkg_ldflags
         
         if show_logs:
             print(f"Command: {' '.join(command[:5])} ... [{len(command) - 6} more args]")

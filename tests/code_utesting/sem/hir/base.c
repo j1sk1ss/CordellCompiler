@@ -93,14 +93,6 @@ int main(int argc, char* argv[]) {
     dag_ctx_t dagctx = { .curr_id = 0 };
     HIR_DAG_init(&dagctx);                    // Analyzation
     HIR_DAG_generate(&cfgctx, &dagctx, &smt); // Analyzation
-    HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);    // Analyzation
-    int folded = 0;
-    do {
-        folded = 0;
-        HIR_sparse_const_propagation(&dagctx, &smt);
-        folded = HIR_sparse_const_funcall_propagation(&cfgctx, &smt) || folded;
-        folded = HIR_sparce_const_fret_propagation(&cfgctx, &smt)    || folded;
-    } while (folded);
 
     SEM_perform_hir_check(&cfgctx, &dagctx, &hirctx, &smt);
 

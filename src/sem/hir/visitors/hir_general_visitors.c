@@ -783,7 +783,18 @@ static int _subject_can_be_ge_llong_at_block(
     }
 
     int z3_answer = Z3_check_subject_ge_llong_at_block(z3, function, block, subject, value);
-    return z3_answer == Z3A_YES || z3_answer == Z3A_MAYBE;
+    return z3_answer == Z3A_YES || 
+           z3_answer == Z3A_MAYBE;
+}
+
+static inline const char* _format_subject_name(hir_subject_t* s, sym_table_t* smt, char* buff, int  buff_size) {
+    const char* move_repr = HIR_is_vartype(s->t) ? _resolve_variable_name(s->storage.var.v_id, smt) : "Value";
+    defined_variable_t di;
+    if (
+        _resolve_subject_value(s, smt, &di) &&
+        (di.defined_value == 1 || di.defined_value == 2)
+    ) move_repr = _value_name_or_numeric(di.const_value, NULL, buff, buff_size);
+    return move_repr;
 }
 
 int HIRWLKR_bad_buffer_move(HIR_VISITOR_ARGS) {
@@ -801,15 +812,10 @@ int HIRWLKR_bad_buffer_move(HIR_VISITOR_ARGS) {
     long long buffer_size = ai.size * TKN_convert_type_size(TKN_variable_bitness(&elem_token, 1));
     if (
         _subject_can_be_ge_llong_at_block(ctx->z3, bb->pfunc, bb, b->targ, smt, buffer_size) ||
-        Z3_check_subject_lt_llong_at_block(ctx->z3, bb->pfunc, bb, b->targ, 0)
+        Z3_check_subject_lt_llong_at_block(ctx->z3, bb->pfunc, bb, b->targ, 0) == Z3A_YES
     ) {
-        char move_buffer[32] = { 0 };
-        const char* move_repr = HIR_is_vartype(b->targ->t) ? _resolve_variable_name(b->targ->storage.var.v_id, smt) : "Value";
-        defined_variable_t di;
-        if (
-            _resolve_subject_value(b->targ, smt, &di) &&
-            (di.defined_value == 1 || di.defined_value == 2)
-        ) move_repr = _value_name_or_numeric(di.const_value, NULL, move_buffer, sizeof(move_buffer));
+        char _[64] = { 0 };
+        const char* move_repr = _format_subject_name(b->targ, smt, _, sizeof(_));
 
         trace_t trace;
         TRACE_init_trace(&trace);
@@ -831,6 +837,49 @@ int HIRWLKR_bad_buffer_move(HIR_VISITOR_ARGS) {
         }
 
         TRACE_print_and_free_trace(&trace);        
+    }
+
+    return 1;
+}
+
+int HIRWLKR_illegal_store(HIR_VISITOR_ARGS) {
+    HIR_VISITOR_ARGS_USE;
+    if (b->op != HIR_STORE) return 1;
+
+    int 
+        dst_size = b->farg->ptr ? CONF_get_full_bytness() : HIR_get_type_size(HIR_get_tmp_type(b->farg->t)),
+        src_size = b->sarg->ptr ? CONF_get_full_bytness() : HIR_get_type_size(HIR_get_tmp_type(b->sarg->t));
+    
+    unsigned long long limits[] = { CHAR_MAX, UCHAR_MAX, SHRT_MAX, USHRT_MAX, INT_MAX, UINT_MAX, LONG_MAX, ULONG_MAX };
+    int sizes[]                 = { 
+        CONF_get_eight_bytness(), CONF_get_eight_bytness(), 
+        CONF_get_quart_bytness(), CONF_get_quart_bytness(),
+        CONF_get_half_bytness(),  CONF_get_half_bytness(),
+        CONF_get_full_bytness(),  CONF_get_full_bytness() 
+    };
+    for (int i = 0; i < (int)(sizeof(limits) / sizeof(unsigned long long)); i++) {
+        if (Z3_check_subject_lt_llong_at_block(ctx->z3, bb->pfunc, bb, b->sarg, limits[i]) == Z3A_YES) {
+            src_size = sizes[i];
+            break;
+        }
+    }
+    
+    if (dst_size < src_size) {
+        trace_t trace;
+        TRACE_init_trace(&trace);
+
+        char _[64] = { 0 };
+        const char 
+            *source      = _format_subject_name(b->farg, smt, _, sizeof(_)), 
+            *destination = _format_subject_name(b->sarg, smt, _, sizeof(_));
+
+        TRACE_create_root(
+            &trace, TRACE_SEVERITY_WARNING, &ctx->curr_location, 
+            "The variable %s has a store operation which will cut the source value of %s",
+            source, destination
+        );
+
+        TRACE_print_and_free_trace(&trace);
     }
 
     return 1;

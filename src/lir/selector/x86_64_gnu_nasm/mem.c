@@ -50,10 +50,10 @@ static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* col
             color >= 0 && _is_regular_register(_convert_color_to_register(color)) /* And if this a valid register */
         ) {
             vi.vmi.reg    = _convert_color_to_register(color);
-            vi.vmi.offset = FIELD_NO_CHANGE;
+            vi.vmi.offset = SMT_NULL;
         }
         else {
-            vi.vmi.reg    = FIELD_NO_CHANGE;
+            vi.vmi.reg    = SMT_NULL;
             vi.vmi.offset = stack_map_alloc(ALIGN(vi.vmi.size, vi.vmi.align), smp);
         }
 

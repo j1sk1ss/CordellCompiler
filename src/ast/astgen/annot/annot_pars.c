@@ -21,7 +21,7 @@ static int _extract_params_from_brackets(list_iter_t* it, token_t** first, token
 
 static void _pack_param(token_t* tkn, ast_ctx_t* ctx, sym_table_t* smt, int allow_variable, annotation_param_t* box) {
     str_memset(box, 0, sizeof(annotation_param_t));
-    box->value = FIELD_NO_CHANGE;
+    box->value = SMT_NULL;
     box->t     = ANNOTATION_VALUE_PARAM;
     if (!tkn) return;
 
@@ -47,7 +47,7 @@ static void _pack_param(token_t* tkn, ast_ctx_t* ctx, sym_table_t* smt, int allo
     }
 
     box->string = tkn->body;
-    box->value  = tkn->body ? tkn->body->to_llong(tkn->body) : FIELD_NO_CHANGE;
+    box->value  = tkn->body ? tkn->body->to_llong(tkn->body) : SMT_NULL;
 }
 
 #define ADD_ANNOTATION_HANDLER(n, t)                                                \
