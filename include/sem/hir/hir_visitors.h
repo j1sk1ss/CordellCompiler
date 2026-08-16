@@ -47,6 +47,7 @@ int HIR_SEM_check_subject_value_and_provide_trace(
 /* general */
 int HIRWLKR_visit_setpos_instruction(HIR_VISITOR_ARGS);
 int HIRWLKR_visit_phi_instruction(HIR_VISITOR_ARGS);
+int HIRWLKR_null_notnull(HIR_VISITOR_ARGS);
 int HIRWLKR_visit_gdref_instruction(HIR_VISITOR_ARGS);
 int HIRWLKR_visit_ldref_instruction(HIR_VISITOR_ARGS);
 int HIRWLKR_visit_ifop2_instruction(HIR_VISITOR_ARGS);

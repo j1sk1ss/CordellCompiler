@@ -227,12 +227,11 @@ static hir_subject_t* _get_call_arg_at(hir_block_t* call, long index) {
     return NULL;
 }
 
-static int _is_direct_call_to(hir_block_t* h, symbol_id_t f_id) {
-    return h &&
-        (h->op == HIR_FCLL || h->op == HIR_STORE_FCLL) &&
-        h->sarg &&
-        h->sarg->t == HIR_FNAME &&
-        h->sarg->storage.str.s_id == f_id;
+static inline int _is_direct_call_to(hir_block_t* h, symbol_id_t f_id) {
+    return (
+        h && (h->op == HIR_FCLL || h->op == HIR_STORE_FCLL || h->op == HIR_ECLL || h->op == HIR_STORE_ECLL) &&
+        h->sarg && h->sarg->t == HIR_FNAME && (h->sarg->storage.str.s_id == f_id || f_id == NO_SYMBOL_ID)
+    );
 }
 
 static int _find_formal_argument_index(cfg_func_t* function, hir_subject_t* subject, long* index) {
@@ -254,6 +253,25 @@ static int _find_formal_argument_index(cfg_func_t* function, hir_subject_t* subj
     }
 
     return 0;
+}
+
+static symbol_id_t _formal_argument_variable_id(ast_node_t* arg) {
+    if (!arg) return NO_SYMBOL_ID;
+    if (arg->c && arg->c->sinfo.v_id != NO_SYMBOL_ID) return arg->c->sinfo.v_id;
+    return arg->sinfo.v_id;
+}
+
+static int _formal_argument_is_not_null(ast_node_t* arg, sym_table_t* smt, variable_info_t* out) {
+    symbol_id_t v_id = _formal_argument_variable_id(arg);
+    variable_info_t vi;
+    if (
+        v_id == NO_SYMBOL_ID ||
+        !VRTB_get_info_id(v_id, &vi, &smt->v) ||
+        !vi.csa.not_null
+    ) return 0;
+
+    if (out) str_memcpy(out, &vi, sizeof(variable_info_t));
+    return 1;
 }
 
 static const char* _z3_answer_phrase(int z3_answer) {
@@ -279,15 +297,9 @@ static int _add_interprocedural_value_notes_rec(
     hir_visitors_ctx_t* ctx, long long value, const char* value_repr, int depth
 ) {
     if (
-        !trace ||
-        trace_id == TRACE_NO_ID ||
-        !bb ||
-        !bb->pfunc ||
-        !subject ||
-        !ctx ||
-        !ctx->z3 ||
-        !ctx->z3->cfg_ctx ||
-        depth >= HIR_TRACE_INTERPROC_MAX_DEPTH
+        !trace || trace_id == TRACE_NO_ID || !bb || 
+        !bb->pfunc || !subject || !ctx || !ctx->z3 || 
+        !ctx->z3->cfg_ctx || depth >= HIR_TRACE_INTERPROC_MAX_DEPTH
     ) return 1;
 
     long arg_index = -1;
@@ -472,6 +484,41 @@ int HIR_SEM_check_subject_value_and_provide_trace(
     return HIR_SEM_check_subject_value_and_provide_trace_ex(
         hb, bb, s, smt, ctx, value, NULL, HIR_VALUE_TRACE_POSSIBLE, error
     );
+}
+
+int HIRWLKR_null_notnull(HIR_VISITOR_ARGS) {
+    HIR_VISITOR_ARGS_USE;
+    if (!_is_direct_call_to(b, NO_SYMBOL_ID)) return 1;
+
+    func_info_t fi;
+    if (!FNTB_get_info_id(b->sarg->storage.str.s_id, &fi, &smt->f) || !fi.args) {
+        return 1;
+    }
+
+    int arg_index = 0;
+    fn_iterate_args (&fi) {
+        if (arg->t->t_type == VAR_ARGUMENTS_TOKEN) break;
+
+        variable_info_t formal;
+        if (_formal_argument_is_not_null(arg, smt, &formal)) {
+            hir_subject_t* actual = _get_call_arg_at(b, arg_index);
+            if (actual) {
+                char error[192] = { 0 };
+                snprintf(
+                    error, sizeof(error),
+                    "not_null argument violation in call to '%s': argument #%i ('%s') can be NULL",
+                    fi.name ? fi.name->body : "function", arg_index + 1, formal.name ? formal.name->body : "argument"
+                );
+                HIR_SEM_check_subject_value_and_provide_trace_ex(
+                    b, bb, actual, smt, ctx, 0, "NULL", HIR_VALUE_TRACE_POSSIBLE, error
+                );
+            }
+        }
+
+        arg_index++;
+    }
+
+    return 1;
 }
 
 int HIRWLKR_visit_gdref_instruction(HIR_VISITOR_ARGS) {

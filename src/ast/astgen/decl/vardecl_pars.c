@@ -40,6 +40,7 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
         CONF_set_parser_error();
     }
     
+    if (annots.is_notnull) VRTB_set_not_null(name->sinfo.v_id, &smt->v);
     VRTB_update_type(name->sinfo.v_id, FIELD_NO_CHANGE, carry, &smt->v);
 
     /* If this is a custom type variable, register it as an array as well. */

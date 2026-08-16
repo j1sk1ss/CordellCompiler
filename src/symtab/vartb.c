@@ -1,5 +1,16 @@
 #include <symtab/vartb.h>
 
+int VRTB_set_not_null(symbol_id_t id, vartab_ctx_t* ctx) {
+    print_log("VRTB_set_not_null(id=%li)", id);
+    variable_info_t* vi;
+    if (map_get(&ctx->vartb, id, (void**)&vi)) {
+        vi->csa.not_null = 1;
+        return 1;
+    }
+
+    return 0;
+}
+
 int VRTB_set_used(symbol_id_t id, vartab_ctx_t* ctx) {
     print_log("VRTB_set_unused(id=%li)", id);
     variable_info_t* vi;
