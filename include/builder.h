@@ -124,7 +124,7 @@ according you system requirements. */
 #define OPTION_OUTPUT                "--output"
 #define OPTION_ENABLE_AST_ANALYSIS   "--ast-analysis"
 #define OPTION_ENABLE_IR_ANALYSIS    "--ir-analysis"
-#define OPTION_ANALYSIS_ONLY         "--analysis-only"
+#define OPTION_ANALYSIS_ONLY         "--CSA"
 #define OPTION_DEBUG                 "--debug"
 #define OPTION_NO_DEBUG              "--no-debug"
 #define OPTION_STRICT                "--i-dont-know-what-i-am-doing"

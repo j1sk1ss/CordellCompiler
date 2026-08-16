@@ -9,10 +9,10 @@ The compiler has two optional analysis stages:
 ./builds/<platform>/cplc --ast-analysis --ir-analysis main.cpl
 ```
 
-Use `--analysis-only` when you want both passes without producing LIR, assembly, objects, or an executable:
+Use `--CSA` to run Cordell Static Analyzer only:
 
 ```bash
-./builds/<platform>/cplc --analysis-only main.cpl
+./builds/<platform>/cplc --CSA main.cpl
 ```
 
 These checks are intentionally lightweight. They help catch mistakes before or during lowering, but CPL is still an unsafe low-level language.

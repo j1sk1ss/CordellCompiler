@@ -107,7 +107,16 @@ static int _cfg_walk(cfg_ctx_t* cctx, hir_walker_t* ctx) {
         }
     }
 
+    int has_usage_marks = 0;
     foreach (cfg_func_t* fb, &cctx->funcs) {
+        if (fb->used) {
+            has_usage_marks = 1;
+            break;
+        }
+    }
+
+    foreach (cfg_func_t* fb, &cctx->funcs) {
+        if (has_usage_marks && !fb->used) continue;
         if (_cfg_block_walk(list_get_head(&fb->blocks), ctx) < 0) return -1;
     }
 

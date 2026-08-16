@@ -3,6 +3,23 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## CSA
+<div class="change-date">Date: 2026-08-16</div>
+Cordell Static Analyzer now has its own parameter in the compiler - `--CSA`. Also it now able to find edge cases respectfully to function calls. For instance:
+
+```cpl
+function foo(ptr i32 a) -> i0 {
+    i32 b = dref a;
+}
+
+i32 a = 0;
+ptr i32 b = ref a;
+foo(b); :/ Won't fire a warning that foo will dereference 0 /:
+
+b = 0;
+foo(b); :/ Will fire a warning /:
+```
+
 ## Compact switches
 <div class="change-date">Date: 2026-08-12</div>
 Switches now can be compact, especially with annotations:

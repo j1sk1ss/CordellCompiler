@@ -21,6 +21,14 @@ typedef struct {
     int         complete;
 } z3_func_ctx_t;
 
+typedef struct {
+    cfg_func_t* caller;
+    cfg_block_t* block;
+    hir_block_t* call;
+} z3_callsite_t;
+
+#define Z3_INTERPROC_MAX_DEPTH 8
+
 static void _z3c_error_handler(Z3_context ctx, Z3_error_code error) {
     fprintf(
         stderr,
@@ -623,6 +631,40 @@ static int _z3c_assert_assign(z3_func_ctx_t* fctx, hir_subject_t* dst_subject, Z
     return 1;
 }
 
+static Z3_ast _z3c_subject_value_pred_op(z3_func_ctx_t* fctx, hir_subject_t* subject, long long value, int op) {
+    if (!fctx || !subject) return NULL;
+
+    Z3_ast expr = _z3c_expr(fctx, subject);
+    if (!expr) return NULL;
+
+    Z3_sort sort = Z3_get_sort(fctx->ctx, expr);
+    Z3_ast val = _z3c_value_for_sort(fctx, value, sort);
+    if (!val) return NULL;
+
+    int subject_signed = _z3c_is_signed_subject(subject);
+
+    switch (op) {
+        case HIR_iCMP:
+            return _z3c_mk_eq_safe(fctx, expr, val, subject_signed, subject_signed);
+        case HIR_iNMP:
+            return _z3c_mk_ne_safe(fctx, expr, val, subject_signed, subject_signed);
+        case HIR_iLRG:
+        case HIR_iLGE:
+        case HIR_iLWR:
+        case HIR_iLRE:
+            return _z3c_mk_order_safe(fctx, expr, val, subject_signed, subject_signed, op);
+        default:
+            return NULL;
+    }
+}
+
+static int _z3c_assert_subject_nonzero(z3_func_ctx_t* fctx, hir_subject_t* subject) {
+    Z3_ast nonzero = _z3c_subject_value_pred_op(fctx, subject, 0, HIR_iNMP);
+    if (!nonzero) return 0;
+    Z3_solver_assert(fctx->ctx, fctx->solver, nonzero);
+    return 1;
+}
+
 static int _z3c_lower_instruction(z3_func_ctx_t* fctx, hir_block_t* h) {
     if (!h || h->unused) return 1;
     switch (h->op) {
@@ -659,13 +701,18 @@ static int _z3c_lower_instruction(z3_func_ctx_t* fctx, hir_block_t* h) {
         case HIR_VARDECL:
         case HIR_ARRDECL:
         case HIR_STRDECL:
-        case HIR_REF: case HIR_GDREF:
+        case HIR_GDREF:
         case HIR_LDREF:
         case HIR_UFCLL: case HIR_FCLL: case HIR_ECLL:
         case HIR_STORE_UFCLL: case HIR_STORE_FCLL: case HIR_STORE_ECLL:
         case HIR_SYSC: case HIR_STORE_SYSC: {
             if (h->farg && HIR_is_vartype(h->farg->t)) _z3c_var(fctx, h->farg);
             return 1;
+        }
+        case HIR_REF: {
+            if (!h->farg || !HIR_is_vartype(h->farg->t)) return 1;
+            _z3c_var(fctx, h->farg);
+            return _z3c_assert_subject_nonzero(fctx, h->farg);
         }
         case HIR_IFOP2:
         case HIR_JMP:
@@ -722,6 +769,102 @@ static int _z3c_unload_function(z3_func_ctx_t* fctx) {
     return mm_free(fctx);
 }
 
+static int _z3c_unload_callsite_list(void* ptr) {
+    list_t* callsites = (list_t*)ptr;
+    if (!callsites) return 1;
+    list_free_force(callsites);
+    return mm_free(callsites);
+}
+
+static int _z3c_register_callsite(
+    z3_analyzer_t* analyzer,
+    symbol_id_t callee_id,
+    cfg_func_t* caller,
+    cfg_block_t* block,
+    hir_block_t* call
+) {
+    list_t* callsites = NULL;
+    if (!map_get(&analyzer->callsites, (long)callee_id, (void**)&callsites)) {
+        callsites = (list_t*)mm_malloc(sizeof(list_t));
+        if (!callsites) return 0;
+        list_init(callsites);
+        if (!map_put(&analyzer->callsites, (long)callee_id, callsites)) {
+            list_free(callsites);
+            mm_free(callsites);
+            return 0;
+        }
+    }
+
+    z3_callsite_t* site = (z3_callsite_t*)mm_malloc(sizeof(z3_callsite_t));
+    if (!site) return 0;
+    site->caller = caller;
+    site->block  = block;
+    site->call   = call;
+    return list_add(callsites, site);
+}
+
+static int _z3c_direct_internal_call_target(hir_block_t* h, symbol_id_t* out) {
+    if (
+        !h ||
+        (h->op != HIR_FCLL && h->op != HIR_STORE_FCLL) ||
+        !h->sarg ||
+        h->sarg->t != HIR_FNAME
+    ) return 0;
+
+    if (out) *out = h->sarg->storage.str.s_id;
+    return 1;
+}
+
+static int _z3c_build_callsite_index(z3_analyzer_t* analyzer) {
+    if (!analyzer) return 0;
+    if (analyzer->callsites_ready) return 1;
+
+    foreach (cfg_func_t* fb, &analyzer->cfg_ctx->funcs) {
+        foreach (cfg_block_t* bb, &fb->blocks) {
+            iterate_hir_instructions (bb) {
+                if (!hh || hh->unused) continue;
+
+                symbol_id_t callee_id = NO_SYMBOL_ID;
+                if (_z3c_direct_internal_call_target(hh, &callee_id)) {
+                    if (!_z3c_register_callsite(analyzer, callee_id, fb, bb, hh)) return 0;
+                }
+                else if (
+                    hh->op == HIR_REF &&
+                    hh->sarg &&
+                    hh->sarg->t == HIR_FNAME
+                ) {
+                    map_put(&analyzer->addr_taken, (long)hh->sarg->storage.str.s_id, (void*)1);
+                }
+            }
+        }
+    }
+
+    analyzer->callsites_ready = 1;
+    return 1;
+}
+
+static int _z3c_function_has_unknown_callers(z3_analyzer_t* analyzer, cfg_func_t* function) {
+    if (!analyzer || !function) return 1;
+
+    func_info_t fi;
+    if (!FNTB_get_info_id(function->f_id, &fi, &analyzer->smt->f)) return 1;
+    if (fi.flags.entry || fi.flags.global || fi.flags.external) return 1;
+    if (!_z3c_build_callsite_index(analyzer)) return 1;
+    return map_get(&analyzer->addr_taken, (long)function->f_id, NULL);
+}
+
+static hir_subject_t* _z3c_call_arg_at(hir_block_t* call, long idx) {
+    if (!call || !call->targ || call->targ->t != HIR_ARGLIST || idx < 0) return NULL;
+
+    long curr = 0;
+    foreach (hir_subject_t* arg, &call->targ->storage.list.h) {
+        if (curr == idx) return arg;
+        curr++;
+    }
+
+    return NULL;
+}
+
 z3_analyzer_t* Z3A_create(cfg_ctx_t* cfg, sym_table_t* smt) {
     if (!cfg || !smt) return NULL;
     z3_analyzer_t* analyzer = (z3_analyzer_t*)mm_malloc(sizeof(z3_analyzer_t));
@@ -733,6 +876,8 @@ z3_analyzer_t* Z3A_create(cfg_ctx_t* cfg, sym_table_t* smt) {
     analyzer->ctx = Z3_mk_context(analyzer->cfg);
     Z3_set_error_handler(analyzer->ctx, _z3c_error_handler);
     map_init(&analyzer->funcs, MAP_NO_CMP);
+    map_init(&analyzer->callsites, MAP_NO_CMP);
+    map_init(&analyzer->addr_taken, MAP_NO_CMP);
     return analyzer;
 }
 
@@ -743,6 +888,8 @@ int Z3A_unload(z3_analyzer_t* analyzer) {
     }
 
     map_free(&analyzer->funcs);
+    map_free_force_op(&analyzer->callsites, _z3c_unload_callsite_list);
+    map_free(&analyzer->addr_taken);
     Z3_del_context(analyzer->ctx);
     Z3_del_config(analyzer->cfg);
     return mm_free(analyzer);
@@ -969,45 +1116,7 @@ static int _z3c_predicate_for_vid_value(z3_analyzer_t* analyzer, cfg_func_t* fun
     return _z3c_predicate_state(fctx, function, negate ? Z3_mk_not(fctx->ctx, eq) : eq);
 }
 
-static int _z3c_predicate_for_subject_value(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* subject, long long value, int negate) {
-    z3_func_ctx_t* fctx = _z3c_get_function(analyzer, function);
-    if (!fctx || !fctx->complete) return Z3A_UNKNOWN;
-
-    Z3_ast expr = _z3c_expr(fctx, subject);
-    if (!expr) return Z3A_UNKNOWN;
-
-    Z3_sort sort = Z3_get_sort(fctx->ctx, expr);
-    Z3_ast val = _z3c_value_for_sort(fctx, value, sort);
-    if (!val) return Z3A_UNKNOWN;
-
-    Z3_ast eq = _z3c_mk_eq_safe(fctx, expr, val, _z3c_is_signed_subject(subject), _z3c_is_signed_subject(subject));
-    if (!eq) return Z3A_UNKNOWN;
-    return _z3c_predicate_state(fctx, function, negate ? Z3_mk_not(fctx->ctx, eq) : eq);
-}
-
-static int _z3c_predicate_for_subject_value_at_block(
-    z3_analyzer_t* analyzer,
-    cfg_func_t* function,
-    cfg_block_t* block,
-    hir_subject_t* subject,
-    long long value
-) {
-    z3_func_ctx_t* fctx = _z3c_get_function(analyzer, function);
-    if (!fctx || !fctx->complete || !block) return Z3A_UNKNOWN;
-
-    Z3_ast expr = _z3c_expr(fctx, subject);
-    if (!expr) return Z3A_UNKNOWN;
-
-    Z3_sort sort = Z3_get_sort(fctx->ctx, expr);
-    Z3_ast val = _z3c_value_for_sort(fctx, value, sort);
-    if (!val) return Z3A_UNKNOWN;
-
-    Z3_ast eq = _z3c_mk_eq_safe(fctx, expr, val, _z3c_is_signed_subject(subject), _z3c_is_signed_subject(subject));
-    if (!eq) return Z3A_UNKNOWN;
-    return _z3c_predicate_state_at_block(fctx, function, block, eq);
-}
-
-static int _z3c_predicate_for_subject_order_value(
+static int _z3c_predicate_for_subject_op_value_local(
     z3_analyzer_t* analyzer,
     cfg_func_t* function,
     hir_subject_t* subject,
@@ -1017,20 +1126,12 @@ static int _z3c_predicate_for_subject_order_value(
     z3_func_ctx_t* fctx = _z3c_get_function(analyzer, function);
     if (!fctx || !fctx->complete) return Z3A_UNKNOWN;
 
-    Z3_ast expr = _z3c_expr(fctx, subject);
-    if (!expr) return Z3A_UNKNOWN;
-
-    Z3_sort sort = Z3_get_sort(fctx->ctx, expr);
-    Z3_ast val = _z3c_value_for_sort(fctx, value, sort);
-    if (!val) return Z3A_UNKNOWN;
-
-    int subject_signed = _z3c_is_signed_subject(subject);
-    Z3_ast pred = _z3c_mk_order_safe(fctx, expr, val, subject_signed, subject_signed, op);
+    Z3_ast pred = _z3c_subject_value_pred_op(fctx, subject, value, op);
     if (!pred) return Z3A_UNKNOWN;
     return _z3c_predicate_state(fctx, function, pred);
 }
 
-static int _z3c_predicate_for_subject_order_value_at_block(
+static int _z3c_predicate_for_subject_op_value_at_block_local(
     z3_analyzer_t* analyzer,
     cfg_func_t* function,
     cfg_block_t* block,
@@ -1041,17 +1142,174 @@ static int _z3c_predicate_for_subject_order_value_at_block(
     z3_func_ctx_t* fctx = _z3c_get_function(analyzer, function);
     if (!fctx || !fctx->complete || !block) return Z3A_UNKNOWN;
 
-    Z3_ast expr = _z3c_expr(fctx, subject);
-    if (!expr) return Z3A_UNKNOWN;
-
-    Z3_sort sort = Z3_get_sort(fctx->ctx, expr);
-    Z3_ast val = _z3c_value_for_sort(fctx, value, sort);
-    if (!val) return Z3A_UNKNOWN;
-
-    int subject_signed = _z3c_is_signed_subject(subject);
-    Z3_ast pred = _z3c_mk_order_safe(fctx, expr, val, subject_signed, subject_signed, op);
+    Z3_ast pred = _z3c_subject_value_pred_op(fctx, subject, value, op);
     if (!pred) return Z3A_UNKNOWN;
     return _z3c_predicate_state_at_block(fctx, function, block, pred);
+}
+
+static void _z3c_accumulate_result(int result, int* can_true, int* can_false) {
+    if (!can_true || !can_false) return;
+    switch (result) {
+        case Z3A_YES:
+            *can_true = 1;
+            break;
+        case Z3A_NO:
+            *can_false = 1;
+            break;
+        case Z3A_MAYBE:
+        case Z3A_UNKNOWN:
+        default:
+            *can_true = 1;
+            *can_false = 1;
+            break;
+    }
+}
+
+static int _z3c_result_from_possibility(int can_true, int can_false) {
+    if (can_true && !can_false) return Z3A_YES;
+    if (can_true && can_false)  return Z3A_MAYBE;
+    if (!can_true && can_false) return Z3A_NO;
+    return Z3A_UNKNOWN;
+}
+
+static int _z3c_predicate_for_subject_op_value_at_block_rec(
+    z3_analyzer_t* analyzer,
+    cfg_func_t* function,
+    cfg_block_t* block,
+    hir_subject_t* subject,
+    long long value,
+    int op,
+    int depth
+);
+
+static int _z3c_assert_callsite_formal_facts(
+    z3_analyzer_t* analyzer,
+    z3_func_ctx_t* callee_fctx,
+    cfg_func_t* callee,
+    z3_callsite_t* site,
+    long long value,
+    int depth
+) {
+    if (!analyzer || !callee_fctx || !callee || !site || !site->call) return 0;
+
+    int ops[] = { HIR_iCMP, HIR_iNMP, HIR_iLRG, HIR_iLGE, HIR_iLWR, HIR_iLRE };
+
+    foreach (cfg_block_t* bb, &callee->blocks) {
+        iterate_hir_instructions (bb) {
+            if (!hh || hh->unused || hh->op != HIR_FARGLD || !hh->farg || !hh->sarg) continue;
+
+            hir_subject_t* actual = _z3c_call_arg_at(site->call, hh->sarg->storage.cnst.value);
+            if (!actual) continue;
+
+            for (int i = 0; i < (int)(sizeof(ops) / sizeof(ops[0])); ++i) {
+                int actual_result = _z3c_predicate_for_subject_op_value_at_block_rec(
+                    analyzer,
+                    site->caller,
+                    site->block,
+                    actual,
+                    value,
+                    ops[i],
+                    depth + 1
+                );
+                if (actual_result != Z3A_YES && actual_result != Z3A_NO) continue;
+
+                Z3_ast pred = _z3c_subject_value_pred_op(callee_fctx, hh->farg, value, ops[i]);
+                if (!pred) continue;
+                Z3_solver_assert(
+                    callee_fctx->ctx,
+                    callee_fctx->solver,
+                    actual_result == Z3A_YES ? pred : Z3_mk_not(callee_fctx->ctx, pred)
+                );
+            }
+        }
+    }
+
+    return 1;
+}
+
+static int _z3c_predicate_for_subject_op_value_at_callsite(
+    z3_analyzer_t* analyzer,
+    cfg_func_t* function,
+    cfg_block_t* block,
+    hir_subject_t* subject,
+    long long value,
+    int op,
+    z3_callsite_t* site,
+    int depth
+) {
+    z3_func_ctx_t* fctx = _z3c_get_function(analyzer, function);
+    if (!fctx || !fctx->complete || !block) return Z3A_UNKNOWN;
+    if (!site || !site->caller || site->caller == function) return Z3A_MAYBE;
+
+    Z3_ast pred = _z3c_subject_value_pred_op(fctx, subject, value, op);
+    if (!pred) return Z3A_UNKNOWN;
+
+    Z3_solver_push(fctx->ctx, fctx->solver);
+    int result = Z3A_MAYBE;
+    if (_z3c_assert_callsite_formal_facts(analyzer, fctx, function, site, value, depth)) {
+        result = _z3c_predicate_state_at_block(fctx, function, block, pred);
+    }
+    Z3_solver_pop(fctx->ctx, fctx->solver, 1);
+
+    return result == Z3A_UNKNOWN ? Z3A_MAYBE : result;
+}
+
+static int _z3c_predicate_for_subject_op_value_at_block_rec(
+    z3_analyzer_t* analyzer,
+    cfg_func_t* function,
+    cfg_block_t* block,
+    hir_subject_t* subject,
+    long long value,
+    int op,
+    int depth
+) {
+    int local = _z3c_predicate_for_subject_op_value_at_block_local(
+        analyzer, function, block, subject, value, op
+    );
+
+    if (
+        !analyzer ||
+        !function ||
+        !block ||
+        depth >= Z3_INTERPROC_MAX_DEPTH ||
+        _z3c_function_has_unknown_callers(analyzer, function)
+    ) return local;
+
+    list_t* callsites = NULL;
+    if (
+        !_z3c_build_callsite_index(analyzer) ||
+        !map_get(&analyzer->callsites, (long)function->f_id, (void**)&callsites) ||
+        !callsites ||
+        !list_size(callsites)
+    ) return local;
+
+    int can_true = 0, can_false = 0;
+    foreach (z3_callsite_t* site, callsites) {
+        int site_result = _z3c_predicate_for_subject_op_value_at_callsite(
+            analyzer,
+            function,
+            block,
+            subject,
+            value,
+            op,
+            site,
+            depth
+        );
+        _z3c_accumulate_result(site_result, &can_true, &can_false);
+    }
+
+    return _z3c_result_from_possibility(can_true, can_false);
+}
+
+static int _z3c_predicate_for_subject_op_value_at_block(
+    z3_analyzer_t* analyzer,
+    cfg_func_t* function,
+    cfg_block_t* block,
+    hir_subject_t* subject,
+    long long value,
+    int op
+) {
+    return _z3c_predicate_for_subject_op_value_at_block_rec(analyzer, function, block, subject, value, op, 0);
 }
 
 static int _z3c_predicate_for_subjects_eq(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* lhs, hir_subject_t* rhs, int negate) {
@@ -1102,7 +1360,7 @@ int Z3_is_vid_always_nonzero(z3_analyzer_t* analyzer, cfg_func_t* function, symb
 }
 
 int Z3_check_subject_eq_llong(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* subject, long long value) {
-    return _z3c_predicate_for_subject_value(analyzer, function, subject, value, 0);
+    return _z3c_predicate_for_subject_op_value_local(analyzer, function, subject, value, HIR_iCMP);
 }
 
 int Z3_check_subject_eq_llong_at_block(
@@ -1112,27 +1370,37 @@ int Z3_check_subject_eq_llong_at_block(
     hir_subject_t* subject,
     long long value
 ) {
-    return _z3c_predicate_for_subject_value_at_block(analyzer, function, block, subject, value);
+    return _z3c_predicate_for_subject_op_value_at_block(analyzer, function, block, subject, value, HIR_iCMP);
 }
 
 int Z3_check_subject_ne_llong(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* subject, long long value) {
-    return _z3c_predicate_for_subject_value(analyzer, function, subject, value, 1);
+    return _z3c_predicate_for_subject_op_value_local(analyzer, function, subject, value, HIR_iNMP);
+}
+
+int Z3_check_subject_ne_llong_at_block(
+    z3_analyzer_t* analyzer,
+    cfg_func_t* function,
+    cfg_block_t* block,
+    hir_subject_t* subject,
+    long long value
+) {
+    return _z3c_predicate_for_subject_op_value_at_block(analyzer, function, block, subject, value, HIR_iNMP);
 }
 
 int Z3_check_subject_gt_llong(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* subject, long long value) {
-    return _z3c_predicate_for_subject_order_value(analyzer, function, subject, value, HIR_iLRG);
+    return _z3c_predicate_for_subject_op_value_local(analyzer, function, subject, value, HIR_iLRG);
 }
 
 int Z3_check_subject_ge_llong(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* subject, long long value) {
-    return _z3c_predicate_for_subject_order_value(analyzer, function, subject, value, HIR_iLGE);
+    return _z3c_predicate_for_subject_op_value_local(analyzer, function, subject, value, HIR_iLGE);
 }
 
 int Z3_check_subject_lt_llong(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* subject, long long value) {
-    return _z3c_predicate_for_subject_order_value(analyzer, function, subject, value, HIR_iLWR);
+    return _z3c_predicate_for_subject_op_value_local(analyzer, function, subject, value, HIR_iLWR);
 }
 
 int Z3_check_subject_le_llong(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* subject, long long value) {
-    return _z3c_predicate_for_subject_order_value(analyzer, function, subject, value, HIR_iLRE);
+    return _z3c_predicate_for_subject_op_value_local(analyzer, function, subject, value, HIR_iLRE);
 }
 
 int Z3_check_subject_gt_llong_at_block(
@@ -1142,7 +1410,7 @@ int Z3_check_subject_gt_llong_at_block(
     hir_subject_t* subject,
     long long value
 ) {
-    return _z3c_predicate_for_subject_order_value_at_block(analyzer, function, block, subject, value, HIR_iLRG);
+    return _z3c_predicate_for_subject_op_value_at_block(analyzer, function, block, subject, value, HIR_iLRG);
 }
 
 int Z3_check_subject_ge_llong_at_block(
@@ -1152,7 +1420,7 @@ int Z3_check_subject_ge_llong_at_block(
     hir_subject_t* subject,
     long long value
 ) {
-    return _z3c_predicate_for_subject_order_value_at_block(analyzer, function, block, subject, value, HIR_iLGE);
+    return _z3c_predicate_for_subject_op_value_at_block(analyzer, function, block, subject, value, HIR_iLGE);
 }
 
 int Z3_check_subject_lt_llong_at_block(
@@ -1162,7 +1430,7 @@ int Z3_check_subject_lt_llong_at_block(
     hir_subject_t* subject,
     long long value
 ) {
-    return _z3c_predicate_for_subject_order_value_at_block(analyzer, function, block, subject, value, HIR_iLWR);
+    return _z3c_predicate_for_subject_op_value_at_block(analyzer, function, block, subject, value, HIR_iLWR);
 }
 
 int Z3_check_subject_le_llong_at_block(
@@ -1172,7 +1440,7 @@ int Z3_check_subject_le_llong_at_block(
     hir_subject_t* subject,
     long long value
 ) {
-    return _z3c_predicate_for_subject_order_value_at_block(analyzer, function, block, subject, value, HIR_iLRE);
+    return _z3c_predicate_for_subject_op_value_at_block(analyzer, function, block, subject, value, HIR_iLRE);
 }
 
 int Z3_check_subjects_equal(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* lhs, hir_subject_t* rhs) {
@@ -1342,11 +1610,7 @@ int Z3_check_subject_eq_llong(z3_analyzer_t* analyzer, cfg_func_t* function, hir
 }
 
 int Z3_check_subject_eq_llong_at_block(
-    z3_analyzer_t* analyzer,
-    cfg_func_t* function,
-    cfg_block_t* block,
-    hir_subject_t* subject,
-    long long value
+    z3_analyzer_t* analyzer, cfg_func_t* function, cfg_block_t* block, hir_subject_t* subject, long long value
 ) {
     (void)analyzer; (void)function; (void)block; (void)subject; (void)value;
     return Z3A_MAYBE;
@@ -1354,6 +1618,13 @@ int Z3_check_subject_eq_llong_at_block(
 
 int Z3_check_subject_ne_llong(z3_analyzer_t* analyzer, cfg_func_t* function, hir_subject_t* subject, long long value) {
     (void)analyzer; (void)function; (void)subject; (void)value;
+    return Z3A_MAYBE;
+}
+
+int Z3_check_subject_ne_llong_at_block(
+    z3_analyzer_t* analyzer, cfg_func_t* function, cfg_block_t* block, hir_subject_t* subject, long long value
+) {
+    (void)analyzer; (void)function; (void)block; (void)subject; (void)value;
     return Z3A_MAYBE;
 }
 
@@ -1378,44 +1649,28 @@ int Z3_check_subject_le_llong(z3_analyzer_t* analyzer, cfg_func_t* function, hir
 }
 
 int Z3_check_subject_gt_llong_at_block(
-    z3_analyzer_t* analyzer,
-    cfg_func_t* function,
-    cfg_block_t* block,
-    hir_subject_t* subject,
-    long long value
+    z3_analyzer_t* analyzer, cfg_func_t* function, cfg_block_t* block, hir_subject_t* subject, long long value
 ) {
     (void)analyzer; (void)function; (void)block; (void)subject; (void)value;
     return Z3A_MAYBE;
 }
 
 int Z3_check_subject_ge_llong_at_block(
-    z3_analyzer_t* analyzer,
-    cfg_func_t* function,
-    cfg_block_t* block,
-    hir_subject_t* subject,
-    long long value
+    z3_analyzer_t* analyzer, cfg_func_t* function, cfg_block_t* block, hir_subject_t* subject, long long value
 ) {
     (void)analyzer; (void)function; (void)block; (void)subject; (void)value;
     return Z3A_MAYBE;
 }
 
 int Z3_check_subject_lt_llong_at_block(
-    z3_analyzer_t* analyzer,
-    cfg_func_t* function,
-    cfg_block_t* block,
-    hir_subject_t* subject,
-    long long value
+    z3_analyzer_t* analyzer, cfg_func_t* function, cfg_block_t* block, hir_subject_t* subject, long long value
 ) {
     (void)analyzer; (void)function; (void)block; (void)subject; (void)value;
     return Z3A_MAYBE;
 }
 
 int Z3_check_subject_le_llong_at_block(
-    z3_analyzer_t* analyzer,
-    cfg_func_t* function,
-    cfg_block_t* block,
-    hir_subject_t* subject,
-    long long value
+    z3_analyzer_t* analyzer, cfg_func_t* function, cfg_block_t* block, hir_subject_t* subject, long long value
 ) {
     (void)analyzer; (void)function; (void)block; (void)subject; (void)value;
     return Z3A_MAYBE;

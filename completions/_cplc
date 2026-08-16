@@ -11,7 +11,7 @@ _arguments -s -S \
   '--output[Set output file]:file:_files' \
   '--ast-analysis[Enable AST analysis]' \
   '--ir-analysis[Enable IR analysis]' \
-  '--analysis-only[Run AST and HIR analysis, then stop before code generation]' \
+  '--CSA[Run Cordell Static Analyser only]' \
   '--debug[Enable debug mode]' \
   '--no-debug[Disable debug mode]' \
   '--i-dont-know-what-i-am-doing[What are you doing here if you want to have an assistance from the compiler? Enables compiler errors and strict typing]' \
