@@ -4,11 +4,11 @@
 #include <stdio.h>
 
 typedef enum {
-    ATTENTION_UNKNOWN_LEVEL, /* Unknown attention level. Will fire a warning only with all warns enabled  */
-    ATTENTION_LOW_LEVEL,     /* Low level of an attantion. Will fire a warning with a low level enabled   */
-    ATTENTION_MEDIUM_LEVEL,  /* Mid level of an attantion. Will fire a warning with a mid level enabled   */
-    ATTENTION_HIGH_LEVEL,    /* High level of an attantion. Will fire a warning with a high level enabled */
-    ATTENTION_BLOCK_LEVEL    /* Will block the code compilation if it fires                               */
+    ATTENTION_UNKNOWN_LEVEL = 0, /* Unknown attention level. Will fire a warning only with all warns enabled  */
+    ATTENTION_LOW_LEVEL     = 1, /* Low level of an attantion. Will fire a warning with a low level enabled   */
+    ATTENTION_MEDIUM_LEVEL  = 2, /* Mid level of an attantion. Will fire a warning with a mid level enabled   */
+    ATTENTION_HIGH_LEVEL    = 3, /* High level of an attantion. Will fire a warning with a high level enabled */
+    ATTENTION_BLOCK_LEVEL   = 4  /* Will block the code compilation if it fires                               */
 } attention_level_t;
 
 #define EMMIT_MESSAGE(message, ...)    fprintf(stdout, "         " message "\n", ##__VA_ARGS__)

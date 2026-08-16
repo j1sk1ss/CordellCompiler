@@ -21,7 +21,10 @@
 #include <sem/semantic.h>
 
 int main(int argc, char* argv[]) {
-    config_t cfg = { 0 };
+    config_t cfg = { 
+        .system.sys_type = MACHO64, .compilation_flags.strict = 0, 
+        .csa.acceptance = 2, .csa.attention = ATTENTION_UNKNOWN_LEVEL 
+    };
     CONF_set_config(cfg);
 
     if (argc != 3) {

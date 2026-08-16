@@ -529,6 +529,16 @@ int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
     return 1;
 }
 
+static inline const char* _format_subject_name(hir_subject_t* s, sym_table_t* smt, char* buff, int  buff_size) {
+    const char* move_repr = HIR_is_vartype(s->t) ? _resolve_variable_name(s->storage.var.v_id, smt) : "Value";
+    defined_variable_t di;
+    if (
+        _resolve_subject_value(s, smt, &di) &&
+        (di.defined_value == 1 || di.defined_value == 2)
+    ) move_repr = _value_name_or_numeric(di.const_value, NULL, buff, buff_size);
+    return move_repr;
+}
+
 int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
     if (b->op != HIR_SYSC && b->op != HIR_STORE_SYSC) return 1;
@@ -583,7 +593,7 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
             "Syscall %i (%s, %s) has security level %i and is dangerous for this acceptance level (%i). Consider deleting this call or reducing the acceptance level.",
             di.const_value, syscall.name, syscall.description, syscall.security, ctx->acceptable_level
         );
-        goto _force_exit_syscall_checker;
+        // goto _force_exit_syscall_checker;
     }
 
     trace_id_t wrong_args_trace_id = TRACE_NO_ID;
@@ -617,9 +627,16 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
 
         }
 
-        if (syscall.types[sarg_index].dereference) {
-            HIR_SEM_check_subject_value_and_provide_trace_ex(
-                b, bb, flatten_input[arg_index], smt, ctx, 0, "NULL", HIR_VALUE_TRACE_POSSIBLE, "NULL-dereference error"
+        if (
+            syscall.types[sarg_index].dereference && 
+            Z3_check_subject_eq_llong(ctx->z3, bb->pfunc, flatten_input[arg_index], 0)
+        ) {
+            char _[64] = { 0 };
+            const char* source = _format_subject_name(flatten_input[arg_index], smt, _, sizeof(_));
+            TRACE_create_root(
+                &trace, TRACE_SEVERITY_WARNING, &ctx->curr_location, 
+                "Syscall will dereference the %i argument, but the %s is NULL!",
+                sarg_index + 1, source
             );
         }
     }
@@ -785,16 +802,6 @@ static int _subject_can_be_ge_llong_at_block(
     int z3_answer = Z3_check_subject_ge_llong_at_block(z3, function, block, subject, value);
     return z3_answer == Z3A_YES || 
            z3_answer == Z3A_MAYBE;
-}
-
-static inline const char* _format_subject_name(hir_subject_t* s, sym_table_t* smt, char* buff, int  buff_size) {
-    const char* move_repr = HIR_is_vartype(s->t) ? _resolve_variable_name(s->storage.var.v_id, smt) : "Value";
-    defined_variable_t di;
-    if (
-        _resolve_subject_value(s, smt, &di) &&
-        (di.defined_value == 1 || di.defined_value == 2)
-    ) move_repr = _value_name_or_numeric(di.const_value, NULL, buff, buff_size);
-    return move_repr;
 }
 
 int HIRWLKR_bad_buffer_move(HIR_VISITOR_ARGS) {

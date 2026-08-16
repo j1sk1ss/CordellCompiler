@@ -18,7 +18,12 @@ typedef char  config_flag_field_t;
 #define FLAG(name) config_flag_field_t name : 1
 typedef struct {
     struct {
+        /* How many errors we're planning to find. The lower value - than more sensitive 
+           static analyser will be */
         config_int_field_t     attention;    /* 1, 2, 3 ...                           */
+        /* How we tolerate dangerous syscalls and other things. The lower value - we less
+           tolerant and block more compilations */
+        config_int_field_t     acceptance;   /* 1, 2, 3 ...                           */
     } csa; /* CordellStaticAnalyzer */
 
     struct {
@@ -65,6 +70,7 @@ config_int_field_t    CONF_get_half_bytness();
 config_int_field_t    CONF_get_quart_bytness();
 config_int_field_t    CONF_get_eight_bytness();
 config_int_field_t    CONF_get_attention_level();
+config_int_field_t    CONF_get_acceptance_level();
 config_flag_field_t   CONF_is_debug_compilation();
 arch_type_t           CONF_get_system_type();
 config_flag_field_t   CONF_is_strict_compilation();

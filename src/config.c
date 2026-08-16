@@ -58,6 +58,10 @@ config_int_field_t CONF_get_attention_level() {
     return _config.csa.attention;
 }
 
+config_int_field_t CONF_get_acceptance_level() {
+    return _config.csa.acceptance;
+}
+
 arch_type_t CONF_get_system_type() {
     return _config.system.sys_type;
 }

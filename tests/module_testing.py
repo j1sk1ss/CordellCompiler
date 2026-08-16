@@ -684,19 +684,19 @@ def _append_log_section(sections: list[tuple[str, str]], title: str, content: ob
     sections.append((title, text.rstrip("\n")))
 
 
-def _write_failure_log(test_file: Path, sections: list[tuple[str, str]]) -> str:
-    log_path = test_file.with_suffix(test_file.suffix + ".full.log")
-    lines: list[str] = []
+# def _write_failure_log(test_file: Path, sections: list[tuple[str, str]]) -> str:
+#     log_path = test_file.with_suffix(test_file.suffix + ".full.log")
+#     lines: list[str] = []
 
-    for index, (title, content) in enumerate(sections):
-        if index > 0:
-            lines.append("")
-        lines.append(f"===== {title} =====")
-        if content:
-            lines.append(content)
+#     for index, (title, content) in enumerate(sections):
+#         if index > 0:
+#             lines.append("")
+#         lines.append(f"===== {title} =====")
+#         if content:
+#             lines.append(content)
 
-    log_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
-    return str(log_path)
+#     log_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
+#     return str(log_path)
 
 
 def _attach_failure_log(result: dict, test_file: Path, sections: list[tuple[str, str]]) -> dict:
@@ -714,14 +714,14 @@ def _attach_failure_log(result: dict, test_file: Path, sections: list[tuple[str,
     if result.get("diff"):
         _append_log_section(sections, "FAILURE REASON", result["diff"])
 
-    log_path = _write_failure_log(test_file, sections)
-    result["failure_log"] = log_path
+    # log_path = _write_failure_log(test_file, sections)
+    # result["failure_log"] = log_path
 
-    note = f"Full log: {log_path}"
+    # note = f"Full log: {log_path}"
     if result.get("diff"):
-        result["diff"] = f"{result['diff']}\n\n{note}"
-    else:
-        result["diff"] = note
+        result["diff"] = f"{result['diff']}\n"
+    # else:
+    #     result["diff"] = note
 
     return result
 
