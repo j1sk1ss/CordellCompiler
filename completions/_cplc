@@ -15,6 +15,7 @@ _arguments -s -S \
   '--debug[Enable debug mode]' \
   '--no-debug[Disable debug mode]' \
   '--i-dont-know-what-i-am-doing[What are you doing here if you want to have an assistance from the compiler? Enables compiler errors and strict typing]' \
+  '--i-know-what-i-am-doing[Disables compiler errors and strict typing (Is a default option)]' \
   '-O0[Disable optimizations]' \
   '-O1[Rough optimization level]' \
   '-O2[Good optimization level]' \

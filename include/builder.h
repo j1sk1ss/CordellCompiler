@@ -129,6 +129,7 @@ according you system requirements. */
 #define OPTION_DEBUG                 "--debug"
 #define OPTION_NO_DEBUG              "--no-debug"
 #define OPTION_STRICT                "--i-dont-know-what-i-am-doing"
+#define OPTION_NON_STRICT            "--i-know-what-i-am-doing"
 #define OPTION_NO_OPTIMIZATION       "-O0"
 #define OPTION_ROUGHT_OPTIMIZATION   "-O1"
 #define OPTION_GOOD_OPTIMIZATION     "-O2"

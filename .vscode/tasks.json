@@ -1,0 +1,206 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build compiler and CPL runtime (debug)",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "BUILD=debug",
+                "all",
+                "cpllib"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "Build compiler and CPL runtime (release)",
+            "type": "shell",
+            "command": "make",
+            "args": [
+                "BUILD=release",
+                "PRINT_PARSE=0",
+                "all",
+                "cpllib"
+            ],
+            "group": "build",
+            "problemMatcher": "$gcc"
+        },
+        {
+            "label": "Compile active CPL file (debug)",
+            "type": "shell",
+            "command": "${workspaceFolder}/builds/darwin-x86_64/cplc",
+            "args": [
+                "--debug",
+                "-O0",
+                "--arch",
+                "x86_64",
+                "--sys-type",
+                "macho64",
+                "--asm-format",
+                "macho64",
+                "--linker",
+                "clang",
+                "--linker-arg",
+                "-g",
+                "--emit-asm",
+                "--asm-output",
+                "${workspaceFolder}/builds/darwin-x86_64/${fileBasenameNoExtension}.s",
+                "--output",
+                "${workspaceFolder}/builds/darwin-x86_64/${fileBasenameNoExtension}",
+                "${file}"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "CPL_INCLUDE_PATH": "${workspaceFolder}/cpllib"
+                }
+            },
+            "dependsOn": [
+                "Build compiler and CPL runtime (debug)"
+            ],
+            "dependsOrder": "sequence",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Compile active CPL file (O2 debug)",
+            "type": "shell",
+            "command": "${workspaceFolder}/builds/darwin-x86_64/cplc",
+            "args": [
+                "--debug",
+                "-O2",
+                "--arch",
+                "x86_64",
+                "--sys-type",
+                "macho64",
+                "--asm-format",
+                "macho64",
+                "--linker",
+                "clang",
+                "--linker-arg",
+                "-g",
+                "--emit-asm",
+                "--asm-output",
+                "${workspaceFolder}/builds/darwin-x86_64/${fileBasenameNoExtension}.s",
+                "--output",
+                "${workspaceFolder}/builds/darwin-x86_64/${fileBasenameNoExtension}",
+                "${file}"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "CPL_INCLUDE_PATH": "${workspaceFolder}/cpllib"
+                }
+            },
+            "dependsOn": [
+                "Build compiler and CPL runtime (debug)"
+            ],
+            "dependsOrder": "sequence",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Compile active CPL file (O3 debug)",
+            "type": "shell",
+            "command": "${workspaceFolder}/builds/darwin-x86_64/cplc",
+            "args": [
+                "--debug",
+                "-O3",
+                "--arch",
+                "x86_64",
+                "--sys-type",
+                "macho64",
+                "--asm-format",
+                "macho64",
+                "--linker",
+                "clang",
+                "--linker-arg",
+                "-g",
+                "--emit-asm",
+                "--asm-output",
+                "${workspaceFolder}/builds/darwin-x86_64/${fileBasenameNoExtension}.s",
+                "--output",
+                "${workspaceFolder}/builds/darwin-x86_64/${fileBasenameNoExtension}",
+                "${file}"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "CPL_INCLUDE_PATH": "${workspaceFolder}/cpllib"
+                }
+            },
+            "dependsOn": [
+                "Build compiler and CPL runtime (debug)"
+            ],
+            "dependsOrder": "sequence",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Analyze active CPL file (static analyzer)",
+            "type": "shell",
+            "command": "${workspaceFolder}/builds/darwin-x86_64/cplc",
+            "args": [
+                "--debug",
+                "-O0",
+                "--CSA",
+                "--arch",
+                "x86_64",
+                "--sys-type",
+                "macho64",
+                "--asm-format",
+                "macho64",
+                "${file}"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}",
+                "env": {
+                    "CPL_INCLUDE_PATH": "${workspaceFolder}/cpllib"
+                }
+            },
+            "dependsOn": [
+                "Build compiler and CPL runtime (debug)"
+            ],
+            "dependsOrder": "sequence",
+            "group": "build",
+            "problemMatcher": []
+        },
+        {
+            "label": "Run current CPL module test",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "module_testing.py",
+                "--path",
+                "${file}"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/tests"
+            },
+            "group": {
+                "kind": "test",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        },
+        {
+            "label": "Run CPL module tests in current folder",
+            "type": "shell",
+            "command": "python3",
+            "args": [
+                "module_testing.py",
+                "--path",
+                "${fileDirname}"
+            ],
+            "options": {
+                "cwd": "${workspaceFolder}/tests"
+            },
+            "group": "test",
+            "problemMatcher": []
+        }
+    ]
+}

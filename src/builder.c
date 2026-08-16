@@ -41,6 +41,7 @@ static int _print_help_message() {
         { OPTION_DEBUG, NULL, "Enable debug mode" },
         { OPTION_NO_DEBUG, NULL, "Disable debug mode" },
         { OPTION_STRICT, NULL, "Enable compiler errors, strict typing and static analysis" },
+        { OPTION_NON_STRICT, NULL, "Disables compiler errors, strict typing and static analysis" },
     };
     static const cli_help_option_t optimization_options[] = {
         { OPTION_NO_OPTIMIZATION, NULL, "Disable optimizations" },
@@ -888,6 +889,7 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
         }
         else if (!strcmp(argv[i], OPTION_DEBUG))                out->config.debug       = 1;
         else if (!strcmp(argv[i], OPTION_NO_DEBUG))             out->config.debug       = 0;
+        else if (!strcmp(argv[i], OPTION_NON_STRICT))           out->config.strict      = 0;
         else if (!strcmp(argv[i], OPTION_NO_OPTIMIZATION))      _set_optimization_profile(out, 0);
         else if (!strcmp(argv[i], OPTION_ROUGHT_OPTIMIZATION))  _set_optimization_profile(out, 1);
         else if (!strcmp(argv[i], OPTION_GOOD_OPTIMIZATION))    _set_optimization_profile(out, 2);
