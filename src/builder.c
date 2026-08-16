@@ -5,7 +5,10 @@ static inline void _print_gem(FILE* stream) {
 }
 
 static inline void _print_version(FILE* stream) {
-    fprintf(stream, "cplc %s\n", CCPL_VERSION);
+    fprintf(
+        stream, "cplc %s%s%s\n", CCPL_VERSION, 
+        CCPL_SPLASH ? "\n" : "", CCPL_SPLASH ? CCPL_SPLASH : ""
+    );
 }
 
 static inline void _print_help_row(FILE* stream, const cli_help_option_t* row) {
@@ -34,7 +37,7 @@ static int _print_help_message() {
         { OPTION_OUTPUT, "<file>", "Set output file" },
         { OPTION_ENABLE_AST_ANALYSIS, NULL, "Enable AST analysis" },
         { OPTION_ENABLE_IR_ANALYSIS, NULL, "Enable IR analysis" },
-        { OPTION_ANALYSIS_ONLY, NULL, "Run AST and HIR analysis, then stop before code generation" },
+        { OPTION_ANALYSIS_ONLY, NULL, "Run Cordell Static Analyzer only" },
         { OPTION_DEBUG, NULL, "Enable debug mode" },
         { OPTION_NO_DEBUG, NULL, "Disable debug mode" },
         { OPTION_STRICT, NULL, "Enable compiler errors, strict typing and static analysis" },
