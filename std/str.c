@@ -1,5 +1,11 @@
 #include <std/str.h>
 
+unsigned long str_pack_str_le(char* p, unsigned long n) {
+    unsigned long x = 0;
+    for (unsigned long i = 0; i < n; i++) x |= (unsigned long)p[i] << (8 * i);
+    return x;
+}
+
 unsigned int str_strlen(const char* str) {
     unsigned int len = 0;
     while (*str) {

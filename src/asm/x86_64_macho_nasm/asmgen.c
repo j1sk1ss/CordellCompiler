@@ -183,10 +183,18 @@ Returns 1 if succeeds. */
 static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {
     str_info_t si;
     if (STTB_get_info_id(id, &si, &smt->s) && si.t == STR_INDEPENDENT) {
-        EMIT_PART_COMMAND("_str_%li_ db ", si.id);
-        char* data = si.value->body;
-        while (*data) {
-            fprintf(output, "%i,", *(data++));
+        EMIT_PART_COMMAND("_str_%li_ dd ", si.id);
+
+        unsigned long block_size = CONF_get_half_bytness();
+        unsigned long string_pos = 0;
+        
+        while (block_size > 0) {
+            while (string_pos + block_size <= si.value->size) {
+                fprintf(output, "%lu,", str_pack_str_le(si.value->body + string_pos, block_size));
+                string_pos += block_size;
+            }
+
+            block_size /= 2;
         }
 
         fprintf(output, "0\n");

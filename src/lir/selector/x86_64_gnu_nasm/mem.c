@@ -73,19 +73,6 @@ static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* col
     return 1;
 }
 
-/* Pack up to `sizeof(unsigned long)` bytes from `p` into an integer using
-little-endian byte order.
-Params:
-    - `p` - Source byte buffer.
-    - `n` - Number of bytes to pack.
-
-Returns the packed integer value. */
-static unsigned long _pack_str_le(char* p, unsigned long n) {
-    unsigned long x = 0;
-    for (unsigned long i = 0; i < n; i++) x |= (unsigned long)p[i] << (8 * i);
-    return x;
-}
-
 /* Check whether a memory stack is used in a function.
 Params:
     - `fb` - Function block.
@@ -135,7 +122,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                             VRTB_update_memory(lh->farg->storage.var.v_id, str_off, ai.size, vi.vmi.reg, FIELD_NO_CHANGE, &smt->v);
                             
                             int curr_offset = str_off;
-                            unsigned long block_size  = 4;
+                            unsigned long block_size  = CONF_get_half_bytness();
                             unsigned long  string_pos = 0;
 
                             while (block_size > 0) {
@@ -144,7 +131,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                                         LIR_create_block(
                                             LIR_aMOV, 
                                             LIR_SUBJ_OFF(RBP, curr_offset, block_size), 
-                                            LIR_SUBJ_CONST(_pack_str_le(si.value->body + string_pos, block_size)), NULL
+                                            LIR_SUBJ_CONST(str_pack_str_le(si.value->body + string_pos, block_size)), NULL
                                         ), lh
                                     );
 
