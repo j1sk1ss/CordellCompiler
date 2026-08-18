@@ -46,27 +46,12 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     SAVE_TOKEN_POINT;
 
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
-    if (!base) {
-        PARSE_ERROR("Can't create a base for the function!");
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
-
-    if (!consume_token(it, UNKNOWN_STRING_TOKEN)) {
-        PARSE_ERROR("Expected 'UNKNOWN_STRING_TOKEN' token!");
-        AST_unload(base);
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
+    PARSER_DO_OR_THROW(!base, NULL, "Can't create a base for the function!");
+    PARSER_DO_OR_THROW(!consume_token(it, UNKNOWN_STRING_TOKEN), base, "Expected 'UNKNOWN_STRING_TOKEN' token!");
 
     string_t* base_type = NULL;
     ast_node_t* name = AST_create_node(CURRENT_TOKEN);
-    if (!name) {
-        PARSE_ERROR("Can't create a base for the function's name!");
-        AST_unload(base);
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
+    PARSER_DO_OR_THROW(!name, base, "Can't create a base for the function's name!");
     
     if (
         consume_token(it, STAT_TOKEN) && 
@@ -78,16 +63,9 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
         forward_token(it, 1);
     }
     
-    if (name) {
-        name->t->t_type = FUNC_NAME_TOKEN;
-        AST_add_node(base, name);
-    }
-    else {
-        PARSE_ERROR("Can't create a base for the function's name!");
-        AST_unload(base);
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
+    PARSER_DO_OR_THROW(!name, base, "Can't create a base for the function's name!");
+    name->t->t_type = FUNC_NAME_TOKEN;
+    AST_add_node(base, name);
 
     stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
     symbol_id_t args_scope = SCPTB_push_scope(&smt->sc, &ctx->scopes.stack);
@@ -118,18 +96,13 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     }
 
     ast_node_t* args = AST_create_node_bt(CREATE_SCOPE_TOKEN);
-    if (args) {
-        AST_add_node(base, args);
-        args->sinfo.s_id = args_scope;
-    }
-    else {
-        PARSE_ERROR("Can't create a base for the function's arguments!");
-        AST_unload(base);
-        list_free(&generic_types);
-        stack_pop(&ctx->scopes.stack, NULL);
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
+    PARSER_DO_OR_THROW_DO(
+        !args, "Can't create a base for the function's arguments!", 
+        { AST_unload(base); list_free(&generic_types); stack_pop(&ctx->scopes.stack, NULL); }
+    );
+
+    AST_add_node(base, args);
+    args->sinfo.s_id = args_scope;
 
     annotations_summary_t annots = { .section = NULL, .salign = -1, .is_entry = 0, .is_naked = 0 };
     ANNOT_read_annotations(&ctx->annots, &annots);
@@ -138,16 +111,10 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
     ctx->t_id = NO_SYMBOL_ID;
 
     forward_token(it, 1);
-    if (!cpl_parse_funcdef_args(it, ctx, smt, (long)args)) {
-        PARSE_ERROR("Can't parse function's arguments!");
-        AST_unload(base);
-        list_free(&generic_types);
-        ANNOT_destroy_summary(&annots);
-        stack_pop(&ctx->scopes.stack, NULL);
-        ctx->t_id = preserved_tid;
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
+    PARSER_DO_OR_THROW_DO(
+        !cpl_parse_funcdef_args(it, ctx, smt, (long)args), "Can't parse function's arguments!",
+        { AST_unload(base); list_free(&generic_types); ANNOT_destroy_summary(&annots); stack_pop(&ctx->scopes.stack, NULL); }
+    );
 
     if (consume_token(it, RETURN_TYPE_TOKEN)) {
         forward_token(it, 1);
@@ -241,16 +208,11 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
 
     ast_node_t* body = NULL;
     PRESERVE_AST_CARRY_ARG({ body = cpl_parse_scope(it, ctx, smt, 1); }, name->sinfo.v_id);
-    if (body) AST_add_node(args, body);
-    else {
-        PARSE_ERROR("Error during the function's body parsing!");
-        AST_unload(base);
-        list_free(&generic_types);
-        stack_pop(&ctx->scopes.stack, NULL);
-        ctx->t_id = preserved_tid;
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
+    PARSER_DO_OR_THROW_DO(
+        !body, "Error during the function's body parsing!", 
+        { AST_unload(base); list_free(&generic_types); stack_pop(&ctx->scopes.stack, NULL); }
+    );
+    AST_add_node(args, body);
 
     ctx->t_id = preserved_tid;
     list_free(&generic_types);

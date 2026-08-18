@@ -25,6 +25,25 @@
 #define CREATE_LAMBDA_TOKEN TKN_create_token(LAMBDA_FUNCTION_TOKEN, NULL, &CURRENT_TOKEN->finfo)
 #define CREATE_ACCESS_TOKEN TKN_create_token(MEMBER_ACCESS_TOKEN, NULL, &CURRENT_TOKEN->finfo)
 
+#define PARSER_DO_OR_THROW(action, backup, message) \
+    do {                                            \
+        if (action) {                               \
+            PARSE_ERROR(message);                   \
+            if (backup) AST_unload(backup);         \
+            RESTORE_TOKEN_POINT;                    \
+            return NULL;                            \
+        }                                           \
+    } while (0)
+#define PARSER_DO_OR_THROW_DO(action, message, then) \
+    do {                                             \
+        if (action) {                                \
+            PARSE_ERROR(message);                    \
+            then;                                    \
+            RESTORE_TOKEN_POINT;                     \
+            return NULL;                             \
+        }                                            \
+    } while (0)
+
 #define PARSE_ERROR(msg, ...)                                                                    \
     fprintf(                                                                                     \
         stderr,                                                                                  \

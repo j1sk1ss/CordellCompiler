@@ -5,11 +5,7 @@ ast_node_t* cpl_parse_extern(PARSER_ARGS) {
     SAVE_TOKEN_POINT;
 
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
-    if (!base) {
-        PARSE_ERROR("Can't create a base for the extern statement!");
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
+    PARSER_DO_OR_THROW(!base, NULL, "Can't create a base for the extern statement!");
     
     forward_token(it, 1);
     ast_node_t* arg = NULL;
@@ -22,13 +18,10 @@ ast_node_t* cpl_parse_extern(PARSER_ARGS) {
     }
     else if (CURRENT_TOKEN->t_type == FUNC_TOKEN) {
         arg = cpl_parse_function(it, ctx, smt, carry);
-        if (!FNTB_update_func(arg->c->sinfo.v_id, FNTB_ONLY_FLAGS(FNTB_SET_EXTERNAL(FNTB_EXPLICIT_EXTERN)), &smt->f)) {
-            PARSE_ERROR("Function update error!");
-            AST_unload(arg);
-            AST_unload(base);
-            RESTORE_TOKEN_POINT;
-            return NULL;
-        }
+        PARSER_DO_OR_THROW_DO(
+            !FNTB_update_func(arg->c->sinfo.v_id, FNTB_ONLY_FLAGS(FNTB_SET_EXTERNAL(FNTB_EXPLICIT_EXTERN)), &smt->f), "Function update error!",
+            { AST_unload(arg); AST_unload(base); }
+        );
     }
     else {
         PARSE_ERROR("Extern unknown token error! extern <[type]/function>!");
@@ -37,13 +30,7 @@ ast_node_t* cpl_parse_extern(PARSER_ARGS) {
         return NULL;
     }
 
-    if (arg) AST_add_node(base, arg);
-    else {
-        PARSE_ERROR("Extern declaration error! extern <[type]/function>!");
-        AST_unload(base);
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
-
+    PARSER_DO_OR_THROW(!arg, base, "Extern declaration error! extern <[type]/function>!");
+    AST_add_node(base, arg);
     return base;
 }

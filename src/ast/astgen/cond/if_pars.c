@@ -5,35 +5,22 @@ ast_node_t* cpl_parse_if(PARSER_ARGS) {
     SAVE_TOKEN_POINT;
     
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
-    if (!base) {
-        PARSE_ERROR("Can't create a base for the 'if' statement!");
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
+    PARSER_DO_OR_THROW(!base, NULL, "Can't create a base for the 'if' statement!");
     
     stack_top(&ctx->scopes.stack, (void**)&base->sinfo.s_id);
     DUMP_ANNOTATION_TO_NODE(ctx, base);
     
     forward_token(it, 1);
     ast_node_t* cond = cpl_parse_expression(it, ctx, smt, 1);
-    if (cond) AST_add_node(base, cond);
-    else {
-        PARSE_ERROR("Error during condition parsing in the 'if' structure!");
-        AST_unload(base);
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
+    PARSER_DO_OR_THROW(!cond, base, "Error during condition parsing in the 'if' structure!");
+    AST_add_node(base, cond);
 
     ast_node_t* tbranch = NULL;
     if (!consume_token(it, OPEN_BLOCK_TOKEN)) tbranch = cpl_parse_line_scope(it, ctx, smt, 1);
-    else tbranch = cpl_parse_scope(it, ctx, smt, 1);
-    if (tbranch) AST_add_node(base, tbranch);
-    else {
-        PARSE_ERROR("Error during the 'then' branch parsing in the 'if' statement!");
-        AST_unload(base);
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
+    else                                      tbranch = cpl_parse_scope(it, ctx, smt, 1);
+    
+    PARSER_DO_OR_THROW(!tbranch, base, "Error during the 'then' branch parsing in the 'if' statement!");
+    AST_add_node(base, tbranch);
 
     if (CURRENT_TOKEN && CURRENT_TOKEN->t_type == ELSE_TOKEN) {
         ast_node_t* fbranch = NULL;
@@ -44,13 +31,8 @@ ast_node_t* cpl_parse_if(PARSER_ARGS) {
             default:               fbranch = cpl_parse_line_scope(it, ctx, smt, carry); break;
         }
         
-        if (fbranch) AST_add_node(base, fbranch);
-        else {
-            PARSE_ERROR("Error during the 'else' branch parsing in the 'if' statement!");
-            AST_unload(base);
-            RESTORE_TOKEN_POINT;
-            return NULL;
-        }
+        PARSER_DO_OR_THROW(!fbranch, base, "Error during the 'else' branch parsing in the 'if' statement!");
+        AST_add_node(base, fbranch);
     }
     
     return base;
