@@ -3,12 +3,11 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#include "../../../misc/symtb_helper.h"
-
 #include <preproc/pp.h>
 #include <prep/token.h>
 #include <prep/markup.h>
 #include <ast/ast.h>
+#include <ast/dump.h>
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
 
@@ -110,8 +109,11 @@ int main(int argc, char* argv[]) {
     map_foreach (variable_info_t* vi, &smt.v.vartb) {
         printf("id: %li, %s, ", vi->v_id, vi->name->body);
         for (int i = 0; i < vi->vfs.ptr; i++) printf("ptr ");
-        printf("%s, s_id: %li", format_tkntype(vi->type), vi->s_id);
-        if (vi->vdi.defined == DEFINED_VARIABLE) printf(", value=%ld", vi->vdi.definition);
+        printf("%s, s_id: %li", DUMP_format_token_type(vi->type), vi->s_id);
+        if (vi->vdi.defined == DEFINED_VARIABLE) {
+            printf(", value=%ld", vi->vdi.definition);
+        }
+        
         printf("\n");
     }
 

@@ -14,52 +14,55 @@
 #include <ast/astgen.h>
 #include <ast/astgen/annot.h>
 
-#define SAVE_TOKEN_POINT    void* __dump_tkn = it->curr;
+#define SAVE_TOKEN_POINT    void* __dump_tkn = it->curr; (void)__dump_tkn;
 #define RESTORE_TOKEN_POINT it->curr = __dump_tkn;
 
 /* Support macro for getting the current token from the iterator. */
 #define CURRENT_TOKEN       ((token_t*)list_iter_current(it))
-#define CREATE_SCOPE_TOKEN  TKN_create_token(SCOPE_TOKEN, NULL, &CURRENT_TOKEN->finfo)
-#define CREATE_INDEX_TOKEN  TKN_create_token(INDEXATION_TOKEN, NULL, &CURRENT_TOKEN->finfo)
-#define CREATE_CALL_TOKEN   TKN_create_token(CALLING_TOKEN, NULL, &CURRENT_TOKEN->finfo)
+#define CREATE_SCOPE_TOKEN  TKN_create_token(SCOPE_TOKEN,           NULL, &CURRENT_TOKEN->finfo)
+#define CREATE_INDEX_TOKEN  TKN_create_token(INDEXATION_TOKEN,      NULL, &CURRENT_TOKEN->finfo)
+#define CREATE_CALL_TOKEN   TKN_create_token(CALLING_TOKEN,         NULL, &CURRENT_TOKEN->finfo)
 #define CREATE_LAMBDA_TOKEN TKN_create_token(LAMBDA_FUNCTION_TOKEN, NULL, &CURRENT_TOKEN->finfo)
-#define CREATE_ACCESS_TOKEN TKN_create_token(MEMBER_ACCESS_TOKEN, NULL, &CURRENT_TOKEN->finfo)
+#define CREATE_ACCESS_TOKEN TKN_create_token(MEMBER_ACCESS_TOKEN,   NULL, &CURRENT_TOKEN->finfo)
 
-#define PARSER_DO_OR_THROW(action, backup, message)                                              \
-    do {                                                                                         \
-        if (action) {                                                                            \
-            PARSE_ERROR(message);                                                                \
-            if (backup) AST_unload(backup);                                                      \
-            RESTORE_TOKEN_POINT;                                                                 \
-            return NULL;                                                                         \
-        }                                                                                        \
-    } while (0)
-#define PARSER_DO_OR_THROW_DO(action, message, then)                                             \
-    do {                                                                                         \
-        if (action) {                                                                            \
-            PARSE_ERROR(message);                                                                \
-            then;                                                                                \
-            RESTORE_TOKEN_POINT;                                                                 \
-            return NULL;                                                                         \
-        }                                                                                        \
-    } while (0)
-
-#define DEFINE_PARSER(name, ...)                                                                 \
-    ast_node_t* name(PARSER_ARGS) {                                                              \
-        PARSER_ARGS_USE;                                                                         \
-        SAVE_TOKEN_POINT;                                                                        \
-        __VA_ARGS__                                                                              \
+#define PARSE_ERROR(msg, ...)                                                                        \
+    {                                                                                                \
+        token_t* __error_token = CURRENT_TOKEN;                                                      \
+        fprintf(                                                                                     \
+            stderr,                                                                                  \
+            "[%s:%li:%li] " msg "\n",                                                                \
+            (__error_token && __error_token->finfo.file) ? __error_token->finfo.file->body : "base", \
+            __error_token ? __error_token->finfo.line : 0,                                           \
+            __error_token ? __error_token->finfo.column : 0,                                         \
+            ##__VA_ARGS__                                                                            \
+        );                                                                                           \
     }
 
-#define PARSE_ERROR(msg, ...)                                                                    \
-    fprintf(                                                                                     \
-        stderr,                                                                                  \
-        "[%s:%li:%li] " msg "\n",                                                                \
-        (CURRENT_TOKEN && CURRENT_TOKEN->finfo.file) ? CURRENT_TOKEN->finfo.file->body : "base", \
-        CURRENT_TOKEN ? CURRENT_TOKEN->finfo.line : 0,                                           \
-        CURRENT_TOKEN ? CURRENT_TOKEN->finfo.column : 0,                                         \
-        ##__VA_ARGS__                                                                            \
-    )
+/* Do something in a parser and thrown the message if there is a error (to mark a error, 
+   the `action` must return `true`). 
+   Sometimes we need to unload a `node`. To do this, use the backup. The backup can be
+   NULL. */
+#define PARSER_DO_OR_THROW(action, backup, message)                                                  \
+    do {                                                                                             \
+        if (action) {                                                                                \
+            PARSE_ERROR(message);                                                                    \
+            if (backup) AST_unload(backup);                                                          \
+            RESTORE_TOKEN_POINT;                                                                     \
+            return NULL;                                                                             \
+        }                                                                                            \
+    } while (0)
+/* Do something in a parser and thrown the message if there is a error (to mark a error, 
+   the `action` must return `true`). 
+   Sometimes we need to unload do something on a error. To do this, use the backup action. */
+#define PARSER_DO_OR_THROW_DO(action, message, then)                                                 \
+    do {                                                                                             \
+        if (action) {                                                                                \
+            PARSE_ERROR(message);                                                                    \
+            then;                                                                                    \
+            RESTORE_TOKEN_POINT;                                                                     \
+            return NULL;                                                                             \
+        }                                                                                            \
+    } while (0)
 
 /*
 Pop all avaliable annotations from the current stack and link them to a node.
@@ -67,10 +70,10 @@ Params:
     - `ctx` - AST context (ast_ctx_t).
     - `nd` - AST node (ast_node_t).
 */
-#define DUMP_ANNOTATION_TO_NODE(ctx, nd)                                                   \
-    annotation_t* annot;                                                                   \
-    while (ctx->annots.top > ctx->an_off - 1 && stack_pop(&ctx->annots, (void**)&annot)) { \
-        list_add(&nd->annots, annot);                                                      \
+#define DUMP_ANNOTATION_TO_NODE(ctx, nd)                                                             \
+    annotation_t* annot;                                                                             \
+    while (ctx->annots.top > ctx->an_off - 1 && stack_pop(&ctx->annots, (void**)&annot)) {           \
+        list_add(&nd->annots, annot);                                                                \
     }
 
 /*
@@ -122,17 +125,24 @@ int annotation_unreserve(ast_ctx_t* ctx, int off);
 #define PARSER_ARGS     list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, long carry
 #define PARSER_ARGS_USE (void)it; (void)ctx; (void)smt; (void)carry;
 
+#define DEFINE_PARSER(name, ...)                                                                     \
+    ast_node_t* name(PARSER_ARGS) {                                                                  \
+        PARSER_ARGS_USE;                                                                             \
+        SAVE_TOKEN_POINT;                                                                            \
+        __VA_ARGS__                                                                                  \
+    }
+
 /*
 Save the target pointer and update it with a new one.
 Params:
     - `l` - Action that will be invoked with a new pointer.
     - `n` - A new function parent.
 */
-#define PRESERVE_AST_CARRY_ARG(l, n)  \
-    long __dumped = ctx->carry.pfunc; \
-    ctx->carry.pfunc = n;             \
-    l;                                \
-    ctx->carry.pfunc = __dumped;      \
+#define PRESERVE_AST_CARRY_ARG(l, n)                                                                 \
+    long __dumped = ctx->carry.pfunc;                                                                \
+    ctx->carry.pfunc = n;                                                                            \
+    l;                                                                                               \
+    ctx->carry.pfunc = __dumped;                                                                     \
 
 /*
 Parse `.cpl` element with input tokens.

@@ -106,20 +106,22 @@ static const char* _name_tkn_type(token_type_t t) {
 const char* DUMP_format_token_type(token_type_t t) {
     const char* base;
     switch (t) {
-        case I0_TYPE_TOKEN:  base = "i0";  break;
-        case I8_TYPE_TOKEN:  base = "i8";  break;
+        case I0_TYPE_TOKEN:    base = "i0";  break;
+        case I8_TYPE_TOKEN:    base = "i8";  break;
         case CUSTOM_TYPE_TOKEN:
-        case U8_TYPE_TOKEN:  base = "u8";  break;
-        case I16_TYPE_TOKEN: base = "i16"; break;
-        case U16_TYPE_TOKEN: base = "u16"; break;
-        case I32_TYPE_TOKEN: base = "i32"; break;
-        case U32_TYPE_TOKEN: base = "u32"; break;
-        case F32_TYPE_TOKEN: base = "f32"; break;
-        case I64_TYPE_TOKEN: base = "i64"; break;
-        case U64_TYPE_TOKEN: base = "u64"; break;
-        case F64_TYPE_TOKEN: base = "f64"; break;
-        default:             base = "";    break;
+        case U8_TYPE_TOKEN:    base = "u8";  break;
+        case I16_TYPE_TOKEN:   base = "i16"; break;
+        case U16_TYPE_TOKEN:   base = "u16"; break;
+        case I32_TYPE_TOKEN:   base = "i32"; break;
+        case U32_TYPE_TOKEN:   base = "u32"; break;
+        case F32_TYPE_TOKEN:   base = "f32"; break;
+        case I64_TYPE_TOKEN:   base = "i64"; break;
+        case U64_TYPE_TOKEN:   base = "u64"; break;
+        case F64_TYPE_TOKEN:   base = "f64"; break;
+        case ARRAY_TYPE_TOKEN: base = "arr"; break;
+        default:               base = "";    break;
     }
+    
     return base;
 }
 

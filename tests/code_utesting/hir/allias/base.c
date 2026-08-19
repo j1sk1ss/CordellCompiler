@@ -3,8 +3,6 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#include "../../../misc/symtb_helper.h"
-
 #include <preproc/pp.h>
 #include <prep/token.h>
 #include <prep/markup.h>
