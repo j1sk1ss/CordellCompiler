@@ -3,6 +3,38 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## NotNull
+<div class="change-date">Date: 2026-08-17</div>
+CSA allows us to track a lot of things. For example - nullables in extern functions where there is no information about the body. For instance:
+
+```cpl
+function malloc(i32 size) -> ptr i0;
+function free(@[not_null] ptr i0 p) -> i0;
+
+start() {
+    ptr i0 buffer = malloc(10);
+    buffer = 0;
+    free(buffer); :/ <- NULL! /:
+}
+```
+
+## CSA
+<div class="change-date">Date: 2026-08-16</div>
+Cordell Static Analyzer now has its own parameter in the compiler - `--CSA`. Also it now able to find edge cases respectfully to function calls. For instance:
+
+```cpl
+function foo(ptr i32 a) -> i0 {
+    i32 b = dref a;
+}
+
+i32 a = 0;
+ptr i32 b = ref a;
+foo(b); :/ Won't fire a warning that foo will dereference 0 /:
+
+b = 0;
+foo(b); :/ Will fire a warning /:
+```
+
 ## Compact switches
 <div class="change-date">Date: 2026-08-12</div>
 Switches now can be compact, especially with annotations:

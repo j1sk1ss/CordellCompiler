@@ -27,9 +27,10 @@ int HIRWLK_init_ctx(hir_walker_t* ctx, dag_ctx_t* dctx, hir_ctx_t* hctx, sym_tab
     ctx->vctx.dump = tmpfile();
     if (!ctx->vctx.dump) return 0;
     map_init(&ctx->vctx.definitions, MAP_NO_CMP);
-    ctx->smt       = smt;
-    ctx->vctx.dctx = dctx;
-    ctx->vctx.z3   = NULL;
+    ctx->smt                   = smt;
+    ctx->vctx.dctx             = dctx;
+    ctx->vctx.z3               = NULL;
+    ctx->vctx.acceptable_level = CONF_get_acceptance_level();
     DUMP_format_hirctx(hctx, smt, 0, 0, ctx->vctx.dump);
     return list_init(&ctx->visitors);
 }
@@ -106,7 +107,16 @@ static int _cfg_walk(cfg_ctx_t* cctx, hir_walker_t* ctx) {
         }
     }
 
+    int has_usage_marks = 0;
     foreach (cfg_func_t* fb, &cctx->funcs) {
+        if (fb->used) {
+            has_usage_marks = 1;
+            break;
+        }
+    }
+
+    foreach (cfg_func_t* fb, &cctx->funcs) {
+        if (has_usage_marks && !fb->used) continue;
         if (_cfg_block_walk(list_get_head(&fb->blocks), ctx) < 0) return -1;
     }
 

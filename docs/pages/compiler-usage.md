@@ -88,7 +88,7 @@ Build modes:
 | Flag | Behavior |
 |---|---|
 | `-E` | preprocess input and stop |
-| `--analysis-only` | run AST and HIR analysis, then stop before LIR/code generation |
+| `--CSA` | run Cordell Static Analyzer |
 | `-c`, `--compile-only` | build an object file and skip linking |
 | no build-mode flag | assemble and link an executable |
 
@@ -163,9 +163,7 @@ The compiler has optional static analysis passes:
 ```bash
 --ast-analysis
 --ir-analysis
---analysis-only
+--CSA
 ```
 
-AST analysis checks source-level semantic issues. IR analysis runs after HIR and CFG construction and can report lower-level problems such as suspicious control flow and invalid memory patterns. `--analysis-only` enables both analysis passes and stops before code generation.
-
-Blocking analysis issues stop compilation by default. Use `--i-know-what-i-am-doing` to keep compiling after static analysis warnings.
+AST analysis checks source-level semantic issues. IR analysis runs after HIR and CFG construction and can report lower-level problems such as suspicious control flow and invalid memory patterns. `--CSA` enables both analysis passes and stops before code generation.

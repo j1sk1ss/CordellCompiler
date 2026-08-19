@@ -12,14 +12,14 @@
 #include <symtab/scopetb.h>
 
 typedef struct {
-    vartab_ctx_t   v; /* Variables' symtable    */
-    arrtab_ctx_t   a; /* Arrays' symtable       */
-    functab_ctx_t  f; /* Functions' symtable    */
-    strtb_ctx_t    s; /* Strings' symtable      */
-    allias_ctx_t   m; /* alliases' Map symtable */
-    sectb_ctx_t    c; /* seCtions' symtable     */
-    typetab_ctx_t  t; /* Types' symtable        */
-    scopetab_ctx_t sc; /* Scopes' symtable     */
+    vartab_ctx_t   v;  /* Variables' symtable    */
+    arrtab_ctx_t   a;  /* Arrays' symtable       */
+    functab_ctx_t  f;  /* Functions' symtable    */
+    strtb_ctx_t    s;  /* Strings' symtable      */
+    allias_ctx_t   m;  /* alliases' Map symtable */
+    sectb_ctx_t    c;  /* seCtions' symtable     */
+    typetab_ctx_t  t;  /* Types' symtable        */
+    scopetab_ctx_t sc; /* Scopes' symtable       */
 } sym_table_t;
 
 /*

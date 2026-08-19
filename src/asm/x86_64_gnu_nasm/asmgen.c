@@ -184,9 +184,8 @@ static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {
     str_info_t si;
     if (STTB_get_info_id(id, &si, &smt->s) && si.t == STR_INDEPENDENT) {
         EMIT_PART_COMMAND("_str_%li_ db ", si.id);
-        char* data = si.value->body;
-        while (*data) {
-            fprintf(output, "%i,", *(data++));
+        for (unsigned long i = 0; i < si.value->size; ++i) {
+            fprintf(output, "%u,", (unsigned int)(unsigned char)si.value->body[i]);
         }
 
         fprintf(output, "0\n");
@@ -197,7 +196,7 @@ static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {
 
 static inline long _array_reserve_size(variable_info_t* vi, array_info_t* ai, token_t* elem_tkn, sym_table_t* smt) {
     long type_size = TPTB_get_memory_size_id(vi->t_id, &smt->t);
-    if (type_size != FIELD_NO_CHANGE) return type_size;
+    if (type_size != SMT_NULL) return type_size;
     switch (TKN_variable_bitness(elem_tkn, 1)) {
         case TYPE_FULL_SIZE:    return ai->size * 8;
         case TYPE_HALF_SIZE:    return ai->size * 4;
@@ -431,7 +430,7 @@ int x86_64_gnu_nasm_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* output
     foreach (section_info_t* section, &smt->c.sorted.sectb) {
         if (!section->name->requals(section->name, CONF_get_no_section())) {
             EMIT_COMMAND("section %s", section->name->body);
-            if (section->align != FIELD_NO_CHANGE) {
+            if (section->align != SMT_NULL) {
                 EMIT_COMMAND("align %i", section->align);
             }
         }

@@ -59,18 +59,11 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                 do {
                     ast_node_t* type_node = AST_create_node(CURRENT_TOKEN);
                     type = type_lookup(type_node->t, ctx, smt);
-                    if (type_node) {
-                        AST_add_node(left, type_node);
-                        if (type != NO_SYMBOL_ID) {
-                            type_node->sinfo.t_id = type;
-                            type_node->t->t_type  = EXTRACT_TYPE_TYPE(type, smt);
-                        }
-                    }
-                    else {
-                        PARSE_ERROR("Error during a generic type operation parsing!");
-                        AST_unload(left);
-                        RESTORE_TOKEN_POINT;
-                        return NULL;
+                    PARSER_DO_OR_THROW(!type_node, left, "Error during a generic type operation parsing!");
+                    AST_add_node(left, type_node);
+                    if (type != NO_SYMBOL_ID) {
+                        type_node->sinfo.t_id = type;
+                        type_node->t->t_type  = EXTRACT_TYPE_TYPE(type, smt);
                     }
 
                     if (consume_token(it, COMMA_TOKEN)) forward_token(it, 1);
@@ -84,22 +77,13 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
             case DOT_TOKEN: {
                 forward_token(it, 1);
                 symbol_id_t field_type = TPTB_resolve_child(left->sinfo.t_id, CURRENT_TOKEN->body, &smt->t);
-                if (
-                    left->sinfo.t_id == NO_SYMBOL_ID || 
-                    field_type == NO_SYMBOL_ID
-                ) {
-                    PARSE_ERROR("Unknown container or a container's field!");
-                    AST_unload(left);
-                    RESTORE_TOKEN_POINT;
-                    return NULL;
-                }
+                PARSER_DO_OR_THROW(
+                    left->sinfo.t_id == NO_SYMBOL_ID || field_type == NO_SYMBOL_ID, left, 
+                    "Unknown container or a container's field!"
+                );
 
                 ast_node_t* member = AST_create_node(CURRENT_TOKEN);
-                if (!member) {
-                    AST_unload(left);
-                    RESTORE_TOKEN_POINT;
-                    return NULL;
-                }
+                PARSER_DO_OR_THROW(!member, left, "Can't create a member!");
 
                 type_info_t c_ti;
                 TPTB_get_info_id(field_type, &c_ti, &smt->t);
@@ -188,25 +172,20 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                     default: break;
                 }
 
-                if (target) {
-                    ast_node_t* tmp = left;
-                    left = target;
-                    if (tmp) AST_add_node(left, tmp);
-                    if (
-                        tmp && left->t->t_type == INDEXATION_TOKEN
-                    ) left->sinfo.t_id = TPTB_get_indexed_type(tmp->sinfo.t_id, &smt->t);
-                    if (data) {
-                        AST_add_node(left, data);
-                        forward_token(it, 1);
-                    }
-                }
-                else {
-                    PARSE_ERROR("Error during a postfix operation parsing!");
-                    AST_unload(left);
-                    AST_unload(target);
-                    AST_unload(data);
-                    RESTORE_TOKEN_POINT;
-                    return NULL;
+                PARSER_DO_OR_THROW_DO(
+                    !target, "Error during a postfix operation parsing!", 
+                    { AST_unload(left); AST_unload(target); AST_unload(data); }
+                );
+                
+                ast_node_t* tmp = left;
+                left = target;
+                if (tmp) AST_add_node(left, tmp);
+                if (
+                    tmp && left->t->t_type == INDEXATION_TOKEN
+                ) left->sinfo.t_id = TPTB_get_indexed_type(tmp->sinfo.t_id, &smt->t);
+                if (data) {
+                    AST_add_node(left, data);
+                    forward_token(it, 1);
                 }
 
                 annotation_unreserve(ctx, annot_off);
@@ -230,23 +209,12 @@ _default_operator: {}
                 }
 
                 ast_node_t* op_node = AST_create_node(CURRENT_TOKEN);
-                if (!op_node) {
-                    PARSE_ERROR("Can't create the expression's base!");
-                    AST_unload(left);
-                    RESTORE_TOKEN_POINT;
-                    return NULL;
-                }
+                PARSER_DO_OR_THROW(!op_node, left, "Can't create the expression's base!");
 
                 forward_token(it, 1);
                 int annot_off = annotation_reserve(ctx);
                 ast_node_t* right = _parse_binary_expression(it, ctx, smt, next_mp, na);
-                if (!right) {
-                    PARSE_ERROR("Error during the right part parse!");
-                    AST_unload(op_node);
-                    AST_unload(left);
-                    RESTORE_TOKEN_POINT;
-                    return NULL;
-                }
+                PARSER_DO_OR_THROW_DO(!right, "Error during the right part parse!", { AST_unload(op_node); AST_unload(left); });
 
                 annotation_unreserve(ctx, annot_off);
                 DUMP_ANNOTATION_TO_NODE(ctx, left);
@@ -294,14 +262,12 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
                     node = _parse_binary_expression(it, ctx, smt, 0, na == 2 ? 1 : na);
                     forward_token(it, 1);
                 }
-                
                 if (!node) {
                     PARSE_ERROR("Error during a bracket expression parsing!");
-                    AST_unload(node);
                     RESTORE_TOKEN_POINT;
                     return NULL;
                 }
-                
+
                 annotation_unreserve(ctx, annot_off);
                 return node;
             }
@@ -317,17 +283,13 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
 _primary_resolve_complete: {}
 
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
-    if (!node) {
-        PARSE_ERROR("Can't create a base for a value!");
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
+    PARSER_DO_OR_THROW(!node, NULL, "Can't create a base for a value!");
 
     switch (node->t->t_type) {
         case STRING_VALUE_TOKEN: {
             node->sinfo.v_id  = STTB_add_info(node->t->body, STR_INDEPENDENT, &smt->s);
             string_t* section = create_string(CONF_get_ro_section());
-            SCTB_move_to_section(section, FIELD_NO_CHANGE, node->sinfo.v_id, SECTION_ELEMENT_STRING, &smt->c);
+            SCTB_move_to_section(section, SMT_NULL, node->sinfo.v_id, SECTION_ELEMENT_STRING, &smt->c);
             destroy_string(section);
             break;
         }
@@ -339,7 +301,6 @@ _primary_resolve_complete: {}
     return node;
 }
 
-ast_node_t* cpl_parse_expression(PARSER_ARGS) {
-    PARSER_ARGS_USE;
+DEFINE_PARSER(cpl_parse_expression, {
     return _parse_binary_expression(it, ctx, smt, 0, carry);
-}
+})

@@ -50,10 +50,10 @@ static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* col
             color >= 0 && _is_regular_register(_convert_color_to_register(color)) /* And if this a valid register */
         ) {
             vi.vmi.reg    = _convert_color_to_register(color);
-            vi.vmi.offset = FIELD_NO_CHANGE;
+            vi.vmi.offset = SMT_NULL;
         }
         else {
-            vi.vmi.reg    = FIELD_NO_CHANGE;
+            vi.vmi.reg    = SMT_NULL;
             vi.vmi.offset = stack_map_alloc(ALIGN(vi.vmi.size, vi.vmi.align), smp);
         }
 
@@ -71,38 +71,6 @@ static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* col
     }
 
     return 1;
-}
-
-/* Get the size of a token type.
-Params:
-    - `t` - Token type.
-
-Returns the size of a token type depends on the target arch. */
-static inline int _get_ast_type_size(token_type_t t) {
-    switch (t) {
-        case TMP_I64_TYPE_TOKEN: case TMP_U64_TYPE_TOKEN: case TMP_F64_TYPE_TOKEN:
-        case I64_TYPE_TOKEN:     case U64_TYPE_TOKEN:     case F64_TYPE_TOKEN:     return 8;
-        case TMP_I32_TYPE_TOKEN: case TMP_U32_TYPE_TOKEN: case TMP_F32_TYPE_TOKEN:
-        case I32_TYPE_TOKEN:     case U32_TYPE_TOKEN:     case F32_TYPE_TOKEN:     return 4;
-        case TMP_I16_TYPE_TOKEN: case TMP_U16_TYPE_TOKEN:
-        case I16_TYPE_TOKEN:     case U16_TYPE_TOKEN:                              return 2;
-        case TMP_I8_TYPE_TOKEN:  case TMP_U8_TYPE_TOKEN:
-        case I8_TYPE_TOKEN:      case U8_TYPE_TOKEN:                               return 1;
-        default: return 8;
-    }
-}
-
-/* Pack up to `sizeof(unsigned long)` bytes from `p` into an integer using
-little-endian byte order.
-Params:
-    - `p` - Source byte buffer.
-    - `n` - Number of bytes to pack.
-
-Returns the packed integer value. */
-static unsigned long _pack_str_le(char* p, unsigned long n) {
-    unsigned long x = 0;
-    for (unsigned long i = 0; i < n; i++) x |= (unsigned long)p[i] << (8 * i);
-    return x;
 }
 
 /* Check whether a memory stack is used in a function.
@@ -154,7 +122,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                             VRTB_update_memory(lh->farg->storage.var.v_id, str_off, ai.size, vi.vmi.reg, FIELD_NO_CHANGE, &smt->v);
                             
                             int curr_offset = str_off;
-                            unsigned long block_size  = 4;
+                            unsigned long block_size  = CONF_get_half_bytness();
                             unsigned long  string_pos = 0;
 
                             while (block_size > 0) {
@@ -163,7 +131,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                                         LIR_create_block(
                                             LIR_aMOV, 
                                             LIR_SUBJ_OFF(RBP, curr_offset, block_size), 
-                                            LIR_SUBJ_CONST(_pack_str_le(si.value->body + string_pos, block_size)), NULL
+                                            LIR_SUBJ_CONST(str_pack_str_le(si.value->body + string_pos, block_size)), NULL
                                         ), lh
                                     );
 
@@ -196,7 +164,8 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                             else {
                                 long reserve_size = TPTB_get_memory_size_id(vi.t_id, &smt->t);
                                 if (reserve_size == FIELD_NO_CHANGE) {
-                                    int el_size  = ai.elements_info.el_flags.ptr ? 8 : _get_ast_type_size(ai.elements_info.el_type);
+                                    token_t elem_token = { .t_type = ai.elements_info.el_type, .flags = ai.elements_info.el_flags };
+                                    int el_size  = TKN_convert_type_size(TKN_variable_bitness(&elem_token, ai.elements_info.el_flags.ptr));
                                     reserve_size = ai.size * el_size;
                                 }
 

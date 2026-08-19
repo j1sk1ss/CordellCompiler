@@ -1,5 +1,27 @@
 #include <sem/hir/hir_visitors.h>
 
+#define HIR_TRACE_INTERPROC_MAX_DEPTH 8
+
+static int _is_tmp_variable(variable_info_t* vi) {
+    return !vi || TKN_is_tmp_type(vi->type) || !vi->name || vi->name->requals(vi->name, "tmp");
+}
+
+static int _resolve_named_variable_info(symbol_id_t id, sym_table_t* smt, variable_info_t* out) {
+    variable_info_t vi;
+    int found = 0;
+    while (VRTB_get_info_id(id, &vi, &smt->v)) {
+        if (!_is_tmp_variable(&vi)) {
+            if (out) str_memcpy(out, &vi, sizeof(variable_info_t));
+            found = 1;
+        }
+
+        if (vi.p_id == NO_SYMBOL_ID) break;
+        id = vi.p_id;
+    }
+
+    return found;
+}
+
 /* Resolve the original variable name by walking through parent variable ids.
 Params:
     - `id` - Variable symbol id.
@@ -8,11 +30,8 @@ Params:
 Returns variable name if it was found. Otherwise returns "no-name" */
 static const char* _resolve_variable_name(symbol_id_t id, sym_table_t* smt) {
     variable_info_t vi;
-    do {
-        if (VRTB_get_info_id(id, &vi, &smt->v)) id = vi.p_id;
-        else return "no-name";
-    } while (id != NO_SYMBOL_ID);
-    return vi.name->body;
+    if (_resolve_named_variable_info(id, smt, &vi)) return vi.name->body;
+    return "no-name";
 }
 
 int HIRWLKR_visit_setpos_instruction(HIR_VISITOR_ARGS) {
@@ -103,9 +122,7 @@ static int _sparce_find_variable_define_location(hir_block_t* b, symbol_id_t v_i
     return found;
 }
 
-static file_position_t _find_variable_define_location_or_current(
-    hir_block_t* b, symbol_id_t v_id, file_position_t* current
-) {
+static file_position_t _find_variable_define_location_or_current(hir_block_t* b, symbol_id_t v_id, file_position_t* current) {
     file_position_t loc;
     str_memcpy(&loc, current, sizeof(file_position_t));
     _sparce_find_variable_define_location(b, v_id, &loc);
@@ -116,50 +133,6 @@ static const char* _value_name_or_numeric(long long value, const char* value_nam
     if (value_name) return value_name;
     snprintf(buffer, buffer_size, "'%lli'", value);
     return buffer;
-}
-
-typedef struct {
-    file_position_t location;
-    string_t*       message;
-} pending_trace_note_t;
-
-static int _unload_pending_trace_note(pending_trace_note_t* note) {
-    if (!note) return 1;
-    destroy_string(note->message);
-    mm_free(note);
-    return 1;
-}
-
-static int _add_pending_note(list_t* notes, file_position_t* loc, const char* fmt, ...) {
-    char buffer[512] = { 0 };
-    va_list args;
-    va_start(args, fmt);
-    vsnprintf(buffer, sizeof(buffer), fmt, args);
-    va_end(args);
-
-    pending_trace_note_t* note = (pending_trace_note_t*)mm_malloc(sizeof(pending_trace_note_t));
-    if (!note) return 0;
-    str_memcpy(&note->location, loc, sizeof(file_position_t));
-    note->message = create_string(buffer);
-    if (!note->message) {
-        mm_free(note);
-        return 0;
-    }
-
-    if (!list_add(notes, note)) {
-        _unload_pending_trace_note(note);
-        return 0;
-    }
-
-    return 1;
-}
-
-static int _attach_pending_notes(trace_t* trace, trace_id_t id, list_t* notes) {
-    foreach (pending_trace_note_t* note, notes) {
-        TRACE_add_note(trace, id, &note->location, "%s", note->message->body);
-    }
-
-    return 1;
 }
 
 /* Get parent variable symbol id.
@@ -174,15 +147,221 @@ static inline symbol_id_t _get_parent_id(symbol_id_t v_id, sym_table_t* smt) {
     return NO_SYMBOL_ID;
 }
 
+static int _format_dag_subject_name_rec(hir_subject_t* s, sym_table_t* smt, dag_ctx_t* dctx, char* buff, int buff_size, int depth) {
+    if (!s || !dctx || !buff || buff_size <= 0 || depth > 8) return 0;
+    dag_node_t* nd = DAG_ACQUIRE_NODE(dctx, s);
+    if (!nd) return 0;
+
+    switch (nd->op) {
+        case HIR_REF: {
+            set_foreach (dag_node_t* arg, &nd->args) {
+                if (!arg || !arg->src || !HIR_is_vartype(arg->src->t)) continue;
+                variable_info_t vi;
+                if (_resolve_named_variable_info(arg->src->storage.var.v_id, smt, &vi)) {
+                    snprintf(buff, buff_size, "&%s", vi.name->body);
+                    return 1;
+                }
+            }
+
+            break;
+        }
+        case HIR_STORE:
+        case HIR_TPTR:
+        case HIR_TF64: case HIR_TF32:
+        case HIR_TI64: case HIR_TI32: case HIR_TI16: case HIR_TI8:
+        case HIR_TU64: case HIR_TU32: case HIR_TU16: case HIR_TU8: {
+            set_foreach (dag_node_t* arg, &nd->args) {
+                if (arg && _format_dag_subject_name_rec(arg->src, smt, dctx, buff, buff_size, depth + 1)) {
+                    return 1;
+                }
+            }
+
+            break;
+        }
+        default: break;
+    }
+
+    return 0;
+}
+
+static inline const char* _format_subject_name(hir_subject_t* s, sym_table_t* smt, dag_ctx_t* dctx, char* buff, int buff_size) {
+    if (!s) return "Value";
+    defined_variable_t di;
+    if (
+        _resolve_subject_value(s, smt, &di) &&
+        (di.defined_value == 1 || di.defined_value == 2)
+    ) return _value_name_or_numeric(di.const_value, NULL, buff, buff_size);
+
+    if (HIR_is_vartype(s->t)) {
+        variable_info_t vi;
+        if (_resolve_named_variable_info(s->storage.var.v_id, smt, &vi)) return vi.name->body;
+        if (_format_dag_subject_name_rec(s, smt, dctx, buff, buff_size, 0)) return buff;
+    }
+
+    return "Value";
+}
+
+static file_position_t _find_instruction_location_or_current(hir_block_t* b, file_position_t* current) {
+    file_position_t loc;
+    str_memcpy(&loc, current, sizeof(file_position_t));
+    while (b) {
+        if (b->op == HIR_SETPOS && b->farg) {
+            str_memcpy(&loc, &b->farg->storage.pos, sizeof(file_position_t));
+            break;
+        }
+        b = b->prev;
+    }
+
+    return loc;
+}
+
+static hir_subject_t* _get_call_arg_at(hir_block_t* call, long index) {
+    if (!call || !call->targ || call->targ->t != HIR_ARGLIST || index < 0) return NULL;
+
+    long curr = 0;
+    foreach (hir_subject_t* arg, &call->targ->storage.list.h) {
+        if (curr == index) return arg;
+        curr++;
+    }
+
+    return NULL;
+}
+
+static inline int _is_direct_call_to(hir_block_t* h, symbol_id_t f_id) {
+    return (
+        h && (h->op == HIR_FCLL || h->op == HIR_STORE_FCLL || h->op == HIR_ECLL || h->op == HIR_STORE_ECLL) &&
+        h->sarg && h->sarg->t == HIR_FNAME && (h->sarg->storage.str.s_id == f_id || f_id == NO_SYMBOL_ID)
+    );
+}
+
+static int _find_formal_argument_index(cfg_func_t* function, hir_subject_t* subject, long* index) {
+    if (!function || !subject || !HIR_is_vartype(subject->t) || !index) return 0;
+
+    foreach (cfg_block_t* bb, &function->blocks) {
+        iterate_hir_instructions (bb) {
+            if (
+                hh->op == HIR_FARGLD &&
+                hh->farg &&
+                HIR_is_vartype(hh->farg->t) &&
+                hh->farg->storage.var.v_id == subject->storage.var.v_id &&
+                hh->sarg
+            ) {
+                *index = hh->sarg->storage.cnst.value;
+                return 1;
+            }
+        }
+    }
+
+    return 0;
+}
+
+static symbol_id_t _formal_argument_variable_id(ast_node_t* arg) {
+    if (!arg) return NO_SYMBOL_ID;
+    if (arg->c && arg->c->sinfo.v_id != NO_SYMBOL_ID) return arg->c->sinfo.v_id;
+    return arg->sinfo.v_id;
+}
+
+static int _formal_argument_is_not_null(ast_node_t* arg, sym_table_t* smt, variable_info_t* out) {
+    symbol_id_t v_id = _formal_argument_variable_id(arg);
+    variable_info_t vi;
+    if (
+        v_id == NO_SYMBOL_ID ||
+        !VRTB_get_info_id(v_id, &vi, &smt->v) ||
+        !vi.csa.not_null
+    ) return 0;
+
+    if (out) str_memcpy(out, &vi, sizeof(variable_info_t));
+    return 1;
+}
+
+static const char* _z3_answer_phrase(int z3_answer) {
+    switch (z3_answer) {
+        case Z3A_YES: return "is";
+        case Z3A_NO:  return "cannot be";
+        default:      return "may be";
+    }
+}
+
+static int _raw_streq(const char* a, const char* b) {
+    if (!a || !b) return 0;
+    while (*a && *b && *a == *b) {
+        a++;
+        b++;
+    }
+
+    return *a == *b;
+}
+
+static int _add_interprocedural_value_notes_rec(
+    trace_t* trace, trace_id_t trace_id, cfg_block_t* bb, hir_subject_t* subject, sym_table_t* smt,
+    hir_visitors_ctx_t* ctx, long long value, const char* value_repr, int depth
+) {
+    if (
+        !trace || trace_id == TRACE_NO_ID || !bb || 
+        !bb->pfunc || !subject || !ctx || !ctx->z3 || 
+        !ctx->z3->cfg_ctx || depth >= HIR_TRACE_INTERPROC_MAX_DEPTH
+    ) return 1;
+
+    long arg_index = -1;
+    if (!_find_formal_argument_index(bb->pfunc, subject, &arg_index)) return 1;
+
+    func_info_t callee_info;
+    const char* function_name = "function";
+    if (FNTB_get_info_id(bb->pfunc->f_id, &callee_info, &smt->f) && callee_info.name) {
+        function_name = callee_info.name->body;
+    }
+
+    int found = 0;
+    foreach (cfg_func_t* caller, &ctx->z3->cfg_ctx->funcs) {
+        foreach (cfg_block_t* call_bb, &caller->blocks) {
+            iterate_hir_instructions (call_bb) {
+                if (!_is_direct_call_to(hh, bb->pfunc->f_id)) continue;
+                hir_subject_t* actual = _get_call_arg_at(hh, arg_index);
+                if (!actual) continue;
+
+                int actual_answer = Z3_check_subject_eq_llong_at_block(ctx->z3, caller, call_bb, actual, value);
+                char arg_name[96] = { 0 };
+                const char* actual_name = _format_subject_name(actual, smt, ctx->dctx, arg_name, sizeof(arg_name));
+                if (actual_answer == Z3A_YES && _raw_streq(actual_name, "Value")) actual_name = value_repr;
+                file_position_t call_loc = _find_instruction_location_or_current(hh, &ctx->curr_location);
+                TRACE_add_note(
+                    trace,
+                    trace_id,
+                    &call_loc,
+                    "Call to '%s' passes argument #%li as %s, which %s %s here",
+                    function_name, arg_index + 1, actual_name, _z3_answer_phrase(actual_answer), value_repr
+                );
+                found = 1;
+                if (caller != bb->pfunc) {
+                    _add_interprocedural_value_notes_rec(
+                        trace, trace_id, call_bb, actual, smt, ctx, value, value_repr, depth + 1
+                    );
+                }
+            }
+        }
+    }
+
+    if (!found) {
+        file_position_t loc = _find_instruction_location_or_current(bb->hmap.entry, &ctx->curr_location);
+        TRACE_add_note(trace, trace_id, &loc, "No direct call site for this argument was found");
+    }
+
+    return 1;
+}
+
+static int _add_interprocedural_value_notes(
+    trace_t* trace, trace_id_t trace_id, cfg_block_t* bb, hir_subject_t* subject, sym_table_t* smt,
+    hir_visitors_ctx_t* ctx, long long value, const char* value_repr
+) {
+    return _add_interprocedural_value_notes_rec(trace, trace_id, bb, subject, smt, ctx, value, value_repr, 0);
+}
+
 int HIR_SEM_check_subject_value_and_provide_trace_ex(
     hir_block_t* hb, cfg_block_t* bb, hir_subject_t* s, sym_table_t* smt, hir_visitors_ctx_t* ctx,
     long long value, const char* value_name, hir_value_trace_mode_t mode, const char* error
 ) {
     if (!s) return 1;
     if (HIR_is_arrtype(s->t) || s->t == HIR_STRING) return 1;
-
-    defined_variable_t di;
-    if (!_resolve_subject_value(s, smt, &di)) return 1;
 
     char value_buffer[32];
     const char* value_repr = _value_name_or_numeric(value, value_name, value_buffer, sizeof(value_buffer));
@@ -193,55 +372,61 @@ int HIR_SEM_check_subject_value_and_provide_trace_ex(
     trace_t trace;
     TRACE_init_trace(&trace);
 
-    list_t pending_notes;
-    list_init(&pending_notes);
+    defined_variable_t di;
+    if (_resolve_subject_value(s, smt, &di)) {
+        switch (di.defined_value) {
+            /* Number defined   */
+            case 1: {
+                if (di.const_value == value) {
+                    TRACE_create_root(&trace, TRACE_SEVERITY_WARNING, &ctx->curr_location, "%s", error);
+                    TRACE_print_and_free_trace(&trace);
+                    queue_free(&work_vars);
+                    return 0;
+                }
 
-    switch (di.defined_value) {
-        /* Number defined   */
-        case 1: {
-            if (di.const_value == value) {
-                TRACE_create_root(&trace, TRACE_SEVERITY_WARNING, &ctx->curr_location, "%s", error);
-                TRACE_print_and_free_trace(&trace);
-                list_free_force_op(&pending_notes, (int (*)(void*))_unload_pending_trace_note);
-                queue_free(&work_vars);
-                return 0;
-            }
-
-            TRACE_unload_trace(&trace);
-            list_free_force_op(&pending_notes, (int (*)(void*))_unload_pending_trace_note);
-            queue_free(&work_vars);
-            return 1;
-        }
-        /* Variable defined */
-        case 2: {
-            if (di.const_value != value) {
                 TRACE_unload_trace(&trace);
-                list_free_force_op(&pending_notes, (int (*)(void*))_unload_pending_trace_note);
                 queue_free(&work_vars);
                 return 1;
             }
+            /* Variable defined */
+            case 2: {
+                if (di.const_value != value) {
+                    TRACE_unload_trace(&trace);
+                    queue_free(&work_vars);
+                    return 1;
+                }
 
-            file_position_t loc = _find_variable_define_location_or_current(hb, s->storage.var.v_id, &ctx->curr_location);
-            trace_id_t trace_id = TRACE_create_root(&trace, TRACE_SEVERITY_WARNING, &ctx->curr_location,
-                "%s (variable '%s' is %s)!",
-                error, _resolve_variable_name(s->storage.var.v_id, smt), value_repr
-            );
-            TRACE_add_note(
-                &trace, trace_id, &loc, "Variable '%s' is assigned with %s here",
-                _resolve_variable_name(s->storage.var.v_id, smt), value_repr
-            );
-            TRACE_print_and_free_trace(&trace);
-            list_free_force_op(&pending_notes, (int (*)(void*))_unload_pending_trace_note);
-            queue_free(&work_vars);
-            return 0;
+                file_position_t loc = _find_variable_define_location_or_current(hb, s->storage.var.v_id, &ctx->curr_location);
+                trace_id_t trace_id = TRACE_create_root(&trace, TRACE_SEVERITY_WARNING, &ctx->curr_location,
+                    "%s (variable '%s' is %s)!",
+                    error, _resolve_variable_name(s->storage.var.v_id, smt), value_repr
+                );
+                TRACE_add_note(
+                    &trace, trace_id, &loc, "Variable '%s' is assigned with %s here",
+                    _resolve_variable_name(s->storage.var.v_id, smt), value_repr
+                );
+                TRACE_print_and_free_trace(&trace);
+                queue_free(&work_vars);
+                return 0;
+            }
+            /* Overdefined */
+            case 3: {
+                queue_push(&work_vars, (void*)di.const_value);
+                break;
+            }
+            default: break;
         }
-        /* Overdefined */
-        case 3: {
-            queue_push(&work_vars, (void*)di.const_value);
-            break;
-        }
-        default: break;
     }
+
+    int z3_answer = Z3_check_subject_eq_llong_at_block(ctx->z3, bb->pfunc, bb, s, value);
+    char subject_name[96] = { 0 };
+    const char* display_name = _format_subject_name(s, smt, ctx->dctx, subject_name, sizeof(subject_name));
+    trace_id_t trace_id = TRACE_create_root(
+        &trace, TRACE_SEVERITY_WARNING, &ctx->curr_location,
+        "%s%s (variable '%s' is %s)!",
+        z3_answer == Z3A_MAYBE ? "Possible " : "", error,
+        display_name, value_repr
+    );
 
     int has_static_possible_match = 0;
     if (!queue_isempty(&work_vars)) {
@@ -252,8 +437,8 @@ int HIR_SEM_check_subject_value_and_provide_trace_ex(
                 file_position_t loc = _find_variable_define_location_or_current(hb, prev_id, &ctx->curr_location);
                 if (
                     _get_parent_id(prev_id, smt) != _get_parent_id(v_id, smt)
-                ) _add_pending_note(
-                    &pending_notes, &loc, "Variable '%s' is assigned with '%s' here",
+                ) TRACE_add_note(
+                    &trace, trace_id, &loc, "Variable '%s' is assigned with '%s' here",
                     _resolve_variable_name(prev_id, smt), _resolve_variable_name(v_id, smt)
                 );
 
@@ -272,31 +457,22 @@ int HIR_SEM_check_subject_value_and_provide_trace_ex(
                 else if (vi.vdi.defined == DEFINED_VARIABLE && vi.vdi.definition == value) {
                     has_static_possible_match = 1;
                     file_position_t loc = _find_variable_define_location_or_current(hb, vi.v_id, &ctx->curr_location);
-                    _add_pending_note(&pending_notes, &loc, "Variable '%s' becomes %s", vi.name->body, value_repr);
+                    TRACE_add_note(&trace, trace_id, &loc, "Variable '%s' becomes %s", vi.name->body, value_repr);
                 }
             }
         }
     }
 
-    int z3_answer = Z3_check_subject_eq_llong_at_block(ctx->z3, bb->pfunc, bb, s, value);
     int should_report = mode == HIR_VALUE_TRACE_EXACT
         ? z3_answer == Z3A_YES
         : has_static_possible_match || z3_answer == Z3A_YES || z3_answer == Z3A_MAYBE;
 
     if (!should_report) TRACE_unload_trace(&trace);
     else {
-        trace_id_t trace_id = TRACE_create_root(
-            &trace, TRACE_SEVERITY_WARNING, &ctx->curr_location,
-            "%s%s (variable '%s' is %s)!",
-            z3_answer == Z3A_MAYBE ? "Possible " : "", error,
-            _resolve_variable_name(s->storage.var.v_id, smt), value_repr
-        );
-        _attach_pending_notes(&trace, trace_id, &pending_notes);
-
+        _add_interprocedural_value_notes(&trace, trace_id, bb, s, smt, ctx, value, value_repr);
         TRACE_print_and_free_trace(&trace);
     }
 
-    list_free_force_op(&pending_notes, (int (*)(void*))_unload_pending_trace_note);
     queue_free(&work_vars);
     return 1;
 }
@@ -310,9 +486,44 @@ int HIR_SEM_check_subject_value_and_provide_trace(
     );
 }
 
+int HIRWLKR_null_notnull(HIR_VISITOR_ARGS) {
+    HIR_VISITOR_ARGS_USE;
+    if (!_is_direct_call_to(b, NO_SYMBOL_ID)) return 1;
+
+    func_info_t fi;
+    if (!FNTB_get_info_id(b->sarg->storage.str.s_id, &fi, &smt->f) || !fi.args) {
+        return 1;
+    }
+
+    int arg_index = 0;
+    fn_iterate_args (&fi) {
+        if (arg->t->t_type == VAR_ARGUMENTS_TOKEN) break;
+
+        variable_info_t formal;
+        if (_formal_argument_is_not_null(arg, smt, &formal)) {
+            hir_subject_t* actual = _get_call_arg_at(b, arg_index);
+            if (actual) {
+                char error[192] = { 0 };
+                snprintf(
+                    error, sizeof(error),
+                    "not_null argument violation in call to '%s': argument #%i ('%s') can be NULL",
+                    fi.name ? fi.name->body : "function", arg_index + 1, formal.name ? formal.name->body : "argument"
+                );
+                HIR_SEM_check_subject_value_and_provide_trace_ex(
+                    b, bb, actual, smt, ctx, 0, "NULL", HIR_VALUE_TRACE_POSSIBLE, error
+                );
+            }
+        }
+
+        arg_index++;
+    }
+
+    return 1;
+}
+
 int HIRWLKR_visit_gdref_instruction(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
-    if (b->op == HIR_SYSC || b->op == HIR_STORE_SYSC) return 1;
+    if (b->op != HIR_GDREF) return 1;
     func_info_t fi;
     if (!FNTB_get_info_id(bb->pfunc->f_id, &fi, &smt->f)) {
         return 1;
@@ -325,7 +536,7 @@ int HIRWLKR_visit_gdref_instruction(HIR_VISITOR_ARGS) {
 
 int HIRWLKR_visit_ldref_instruction(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
-    if (b->op == HIR_SYSC || b->op == HIR_STORE_SYSC) return 1;
+    if (b->op != HIR_LDREF) return 1;
     func_info_t fi;
     if (!FNTB_get_info_id(bb->pfunc->f_id, &fi, &smt->f)) {
         return 1;
@@ -583,7 +794,7 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
             "Syscall %i (%s, %s) has security level %i and is dangerous for this acceptance level (%i). Consider deleting this call or reducing the acceptance level.",
             di.const_value, syscall.name, syscall.description, syscall.security, ctx->acceptable_level
         );
-        goto _force_exit_syscall_checker;
+        // goto _force_exit_syscall_checker;
     }
 
     trace_id_t wrong_args_trace_id = TRACE_NO_ID;
@@ -617,9 +828,16 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
 
         }
 
-        if (syscall.types[sarg_index].dereference) {
-            HIR_SEM_check_subject_value_and_provide_trace_ex(
-                b, bb, flatten_input[arg_index], smt, ctx, 0, "NULL", HIR_VALUE_TRACE_POSSIBLE, "NULL-dereference error"
+        if (
+            syscall.types[sarg_index].dereference && 
+            Z3_check_subject_eq_llong(ctx->z3, bb->pfunc, flatten_input[arg_index], 0)
+        ) {
+            char _[64] = { 0 };
+            const char* source = _format_subject_name(flatten_input[arg_index], smt, ctx->dctx, _, sizeof(_));
+            TRACE_create_root(
+                &trace, TRACE_SEVERITY_WARNING, &ctx->curr_location, 
+                "Syscall will dereference the %i argument, but the %s is NULL!",
+                sarg_index + 1, source
             );
         }
     }
@@ -745,5 +963,132 @@ int HIRWLKR_division_by_one(HIR_VISITOR_ARGS) {
         b, bb, b->targ, smt, ctx, 1, NULL, HIR_VALUE_TRACE_EXACT,
         "Division by one! This expression won't change anything!"
     )) return 0;
+    return 1;
+}
+
+static int _resolve_array_source(hir_subject_t* subject, sym_table_t* smt, symbol_id_t* array_id, array_info_t* ai) {
+    if (!subject || !HIR_is_vartype(subject->t)) return 0;
+
+    symbol_id_t source_id = subject->storage.var.v_id;
+    if (ARTB_get_info(source_id, ai, &smt->a)) {
+        if (array_id) *array_id = source_id;
+        return 1;
+    }
+
+    set_t slaves;
+    int found = 0;
+    ALLIAS_get_slaves(source_id, &slaves, &smt->m);
+    set_foreach (symbol_id_t slave, &slaves) {
+        if (ARTB_get_info(slave, ai, &smt->a)) {
+            if (array_id) *array_id = slave;
+            found = 1;
+            break;
+        }
+    }
+
+    set_free(&slaves);
+    return found;
+}
+
+static int _subject_can_be_ge_llong_at_block(
+    z3_analyzer_t* z3, cfg_func_t* function, cfg_block_t* block, hir_subject_t* subject, sym_table_t* smt, long long value
+) {
+    defined_variable_t di;
+    if (_resolve_subject_value(subject, smt, &di)) {
+        if (di.defined_value == 1 || di.defined_value == 2) {
+            return di.const_value >= value;
+        }
+    }
+
+    int z3_answer = Z3_check_subject_ge_llong_at_block(z3, function, block, subject, value);
+    return z3_answer == Z3A_YES || 
+           z3_answer == Z3A_MAYBE;
+}
+
+int HIRWLKR_bad_buffer_move(HIR_VISITOR_ARGS) {
+    HIR_VISITOR_ARGS_USE;
+    if (
+        b->op != HIR_iADD || 
+        !b->sarg || !b->targ || !HIR_is_vartype(b->sarg->t)
+    ) return 1;
+
+    symbol_id_t buffer_id = NO_SYMBOL_ID;
+    array_info_t ai;
+    if (!_resolve_array_source(b->sarg, smt, &buffer_id, &ai)) return 1;
+
+    token_t elem_token = { .t_type = ai.elements_info.el_type, .flags = ai.elements_info.el_flags };
+    long long buffer_size = ai.size * TKN_convert_type_size(TKN_variable_bitness(&elem_token, 1));
+    if (
+        _subject_can_be_ge_llong_at_block(ctx->z3, bb->pfunc, bb, b->targ, smt, buffer_size) ||
+        Z3_check_subject_lt_llong_at_block(ctx->z3, bb->pfunc, bb, b->targ, 0) == Z3A_YES
+    ) {
+        char _[64] = { 0 };
+        const char* move_repr = _format_subject_name(b->targ, smt, ctx->dctx, _, sizeof(_));
+
+        trace_t trace;
+        TRACE_init_trace(&trace);
+
+        trace_id_t base = TRACE_create_root(
+            &trace, TRACE_SEVERITY_ERROR, &ctx->curr_location, 
+            "Possible buffer overflow! Current buffer '%s' is moved by %s that can be not in [0, %lli)",
+            _resolve_variable_name(buffer_id, smt), move_repr, buffer_size
+        );
+
+        if (HIR_is_vartype(b->targ->t)) {
+            file_position_t loc;
+            str_memcpy(&loc, &ctx->curr_location, sizeof(file_position_t));
+            _sparce_find_variable_define_location(b, b->targ->storage.var.v_id, &loc);
+            TRACE_add_note(
+                &trace, base, &loc, "Variable '%s' declared here!",
+                _resolve_variable_name(b->targ->storage.var.v_id, smt)
+            );
+        }
+
+        TRACE_print_and_free_trace(&trace);        
+    }
+
+    return 1;
+}
+
+int HIRWLKR_illegal_store(HIR_VISITOR_ARGS) {
+    HIR_VISITOR_ARGS_USE;
+    if (b->op != HIR_STORE) return 1;
+
+    int 
+        dst_size = b->farg->ptr ? CONF_get_full_bytness() : HIR_get_type_size(HIR_get_tmp_type(b->farg->t)),
+        src_size = b->sarg->ptr ? CONF_get_full_bytness() : HIR_get_type_size(HIR_get_tmp_type(b->sarg->t));
+    
+    unsigned long long limits[] = { CHAR_MAX, UCHAR_MAX, SHRT_MAX, USHRT_MAX, INT_MAX, UINT_MAX, LONG_MAX, ULONG_MAX };
+    int sizes[]                 = { 
+        CONF_get_eight_bytness(), CONF_get_eight_bytness(), 
+        CONF_get_quart_bytness(), CONF_get_quart_bytness(),
+        CONF_get_half_bytness(),  CONF_get_half_bytness(),
+        CONF_get_full_bytness(),  CONF_get_full_bytness() 
+    };
+    for (int i = 0; i < (int)(sizeof(limits) / sizeof(unsigned long long)); i++) {
+        if (Z3_check_subject_lt_llong_at_block(ctx->z3, bb->pfunc, bb, b->sarg, limits[i]) == Z3A_YES) {
+            src_size = sizes[i];
+            break;
+        }
+    }
+    
+    if (dst_size < src_size) {
+        trace_t trace;
+        TRACE_init_trace(&trace);
+
+        char source_buffer[64] = { 0 }, destination_buffer[64] = { 0 };
+        const char
+            *source      = _format_subject_name(b->farg, smt, ctx->dctx, source_buffer, sizeof(source_buffer)),
+            *destination = _format_subject_name(b->sarg, smt, ctx->dctx, destination_buffer, sizeof(destination_buffer));
+
+        TRACE_create_root(
+            &trace, TRACE_SEVERITY_WARNING, &ctx->curr_location, 
+            "The variable %s has a store operation which will cut the source value of %s",
+            source, destination
+        );
+
+        TRACE_print_and_free_trace(&trace);
+    }
+
     return 1;
 }

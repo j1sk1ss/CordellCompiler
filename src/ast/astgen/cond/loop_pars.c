@@ -1,15 +1,8 @@
 #include <ast/astgen/astgen.h>
 
-ast_node_t* cpl_parse_loop(PARSER_ARGS) {
-    PARSER_ARGS_USE;
-    SAVE_TOKEN_POINT;
-
+DEFINE_PARSER(cpl_parse_loop, {
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
-    if (!base) {
-        PARSE_ERROR("Can't create a base for the 'loop' statement!");
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
+    PARSER_DO_OR_THROW(!base, NULL, "Can't create a base for the 'loop' statement!");
     
     stack_top(&ctx->scopes.stack, (void**)&base->sinfo.s_id);
     DUMP_ANNOTATION_TO_NODE(ctx, base);
@@ -18,13 +11,7 @@ ast_node_t* cpl_parse_loop(PARSER_ARGS) {
     if (!consume_token(it, OPEN_BLOCK_TOKEN)) body = cpl_parse_line_scope(it, ctx, smt, 1);
     else                                      body = cpl_parse_scope(it, ctx, smt, 1);
     
-    if (body) AST_add_node(base, body);
-    else {
-        PARSE_ERROR("Error during parsing in the 'loop' statement body!");
-        AST_unload(base);
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
-
+    PARSER_DO_OR_THROW(!body, base, "Error during parsing in the 'loop' statement body!");
+    AST_add_node(base, body);
     return base;
-}
+})

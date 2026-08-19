@@ -21,7 +21,7 @@ static int _extract_params_from_brackets(list_iter_t* it, token_t** first, token
 
 static void _pack_param(token_t* tkn, ast_ctx_t* ctx, sym_table_t* smt, int allow_variable, annotation_param_t* box) {
     str_memset(box, 0, sizeof(annotation_param_t));
-    box->value = FIELD_NO_CHANGE;
+    box->value = SMT_NULL;
     box->t     = ANNOTATION_VALUE_PARAM;
     if (!tkn) return;
 
@@ -47,7 +47,7 @@ static void _pack_param(token_t* tkn, ast_ctx_t* ctx, sym_table_t* smt, int allo
     }
 
     box->string = tkn->body;
-    box->value  = tkn->body ? tkn->body->to_llong(tkn->body) : FIELD_NO_CHANGE;
+    box->value  = tkn->body ? tkn->body->to_llong(tkn->body) : SMT_NULL;
 }
 
 #define ADD_ANNOTATION_HANDLER(n, t)                                                \
@@ -85,33 +85,16 @@ static annotation_t* _parse_annotation_content(list_iter_t* it, ast_ctx_t* ctx, 
     ADD_ANNOTATION_HANDLER(ABICC_ANNOTATION_COMMAND, ABI_ANNOTATION);
     ADD_ANNOTATION_HANDLER(BODYO_ANNOTATION_COMMAND, ONLYBODY_ANNOTATION);
     ADD_ANNOTATION_HANDLER(VNAME_ANNOTATION_COMMAND, VNAME_ANNOTATION);
+    ADD_ANNOTATION_HANDLER(NNULL_ANNOTATION_COMMAND, NOTNULL_ANNOTATION);
     return ANNOT_create_annotation(UNKNOWN_ANNOTATION, NULL, NULL);
 }
 #undef ADD_ANNOTATION_HANDLER
 
-ast_node_t* cpl_parse_annot(PARSER_ARGS) {
-    PARSER_ARGS_USE;
-    SAVE_TOKEN_POINT;
-    
-    if (!consume_token(it, OPEN_INDEX_TOKEN)) {
-        PARSE_ERROR("'@' should be followed by '['!");
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
-
-    if (!consume_token(it, UNKNOWN_STRING_TOKEN)) {
-        PARSE_ERROR("Expected a string token after the annotation's start!");
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
-
+DEFINE_PARSER(cpl_parse_annot, {
+    PARSER_DO_OR_THROW(!consume_token(it, OPEN_INDEX_TOKEN), NULL, "'@' should be followed by '['!");
+    PARSER_DO_OR_THROW(!consume_token(it, UNKNOWN_STRING_TOKEN), NULL, "Expected a string token after the annotation's start!");
     annotation_t* annot = _parse_annotation_content(it, ctx, smt);
-    if (annot) stack_push(&ctx->annots, annot);
-    else {
-        PARSE_ERROR("Annotation parse error!");
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
-
+    PARSER_DO_OR_THROW(!annot, NULL, "Annotation parse error!");
+    stack_push(&ctx->annots, annot);
     return NULL;
-}
+})

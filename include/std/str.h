@@ -34,6 +34,7 @@ typedef struct string {
     struct string*     (*from_number)(str_self, int*);
 } string_t;
 
+unsigned long str_pack_str_le(char* p, unsigned long n);
 string_t* create_string(const char* s);
 string_t* create_string_from_part(const char* s, unsigned int off, int len);
 string_t* create_string_from_int(int c);

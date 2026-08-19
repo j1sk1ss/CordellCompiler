@@ -38,9 +38,10 @@ _cplc()
         --output
         --ast-analysis
         --ir-analysis
-        --analysis-only
+        --CSA
         --debug
         --no-debug
+        --i-dont-know-what-i-am-doing
         --i-know-what-i-am-doing
         -O0 -O1 -O2 -O3
         --arch
@@ -81,10 +82,14 @@ _cplc()
         --emit-lir
         --emit-lir-cfg
         --emit-asm
+        --emit-symtab
         --ast-output
         --ir-output
         --lir-output
         --asm-output
+        -L
+        -l
+        -Wl,
     "
 
     case "$prev" in
@@ -106,6 +111,10 @@ _cplc()
             ;;
         --full-bytness|--half-bytness|--quart-bytness|--eight-bytness)
             COMPREPLY=( $(compgen -W "1 2 4 8" -- "$cur") )
+            return
+            ;;
+        --emit-symtab)
+            COMPREPLY=( $(compgen -W "var vars v fn func funcs fntb function functions sec sect section sections" -- "$cur") )
             return
             ;;
         -I|-L)

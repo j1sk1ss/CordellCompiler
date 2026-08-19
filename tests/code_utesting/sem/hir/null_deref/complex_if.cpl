@@ -4,7 +4,7 @@ function foo() {
     if 1; {
         a = 0;
     }
-    ptr i32 b = a as ptr i32;
+    ptr i32 b = (ref a) as ptr i32;
     exit dref b;
 }
 

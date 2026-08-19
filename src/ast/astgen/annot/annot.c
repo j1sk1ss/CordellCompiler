@@ -35,7 +35,7 @@ annotation_t* ANNOT_create_annotation(annotation_type_t t, annotation_param_t* f
             break;
         }
         case SECTION_ANNOTATION: {
-            annot->data.section.align = FIELD_NO_CHANGE;
+            annot->data.section.align = SMT_NULL;
             if (fp->filled) annot->data.section.section = fp->string->copy(fp->string);
             if (sp->filled) annot->data.section.align   = (int)sp->value;
             break;
@@ -89,6 +89,7 @@ _set_vname: {}
             case WEAK_ANNOTATION:      summary->is_weak     = 1;                   break;
             case ABI_ANNOTATION:       summary->is_abi      = 1;                   break;
             case ONLYBODY_ANNOTATION:  summary->is_onlybody = 1;                   break;
+            case NOTNULL_ANNOTATION:   summary->is_notnull  = 1;                   break;
             case REGISTER_ANNOTATION:  summary->reg         = annot->data.regval;  break;
             case COUNTER_ANNOTATION:   summary->counter     = annot->data.counter; break;
             default: break;

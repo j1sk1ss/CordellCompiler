@@ -9,7 +9,7 @@ Params:
 Returns the element size of the pointed data in bytes. */
 static int _get_pointed_element_size(symbol_id_t index_type, hir_subject_t* base, sym_table_t* smt) {
     long type_size = TPTB_get_memory_size_id(index_type, &smt->t);
-    if (type_size != FIELD_NO_CHANGE) return type_size;
+    if (type_size != SMT_NULL) return type_size;
 
     array_info_t ai;
     int el_size = (base->ptr - 1) > 0 ? CONF_get_full_bytness() : HIR_get_type_size(base->t);
@@ -30,7 +30,7 @@ static int _get_pointed_element_size(symbol_id_t index_type, hir_subject_t* base
     ) {
         symbol_id_t elem_type = TPTB_get_first_child(vi.t_id, &smt->t);
         long type_size = TPTB_get_memory_size_id(elem_type, &smt->t);
-        if (type_size != FIELD_NO_CHANGE) el_size = type_size;
+        if (type_size != SMT_NULL) el_size = type_size;
     }
 
     return el_size;

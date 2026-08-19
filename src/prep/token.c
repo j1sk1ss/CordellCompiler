@@ -22,13 +22,11 @@ typedef enum {
     CHAR_SIGN,       /* Signs: -, +                      */
 } char_type_t;
 
-/*
-Give a character type depends on the input character.
+/* Give a character type depends on the input character.
 Params:
     - `ch` - Input character.
 
-Returns character type.
-*/
+Returns character type */
 static char_type_t _get_char_type(unsigned char ch) {
     if (str_isalpha(ch) || ch == '_') return CHAR_ALPHA;
     else if (str_isdigit(ch))         return CHAR_DIGIT;
@@ -124,11 +122,9 @@ token_t* TKN_create_token(token_type_t type, const char* value, file_position_t*
     return tkn;
 }
 
-/*
-Reset the input ctx to zero.
+/* Reset the input ctx to zero.
 Params:
-    - `ctx` - Token's context.
-*/
+    - `ctx` - Token's context */
 static inline void _reset_tkn_ctx(tkn_ctx_t* ctx) {
     ctx->in_token  = 0;
     ctx->token_len = 0;

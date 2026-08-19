@@ -14,8 +14,6 @@ long x86_64_gnu_precolored_reg_to_color(lir_registers_t reg) {
         case R12: return 9;
         case R13: return 10;
         case R14: return 11;
-        default: break;
+        default:  return reg;
     }
-
-    return reg;
 }

@@ -77,21 +77,6 @@ Returns 1 if the node is correct, otherwise 0.
 int ASTWLKR_not_init(AST_VISITOR_ARGS);
 
 /*
-ASTWLKR_illegal_declaration checks initial value of declaration node. 
-If value has different with declaration type, will file a warning.
-```cpl
-    i8 a = 123123; : <= Will fire a warning :
-    i8 b = 123;
-```
-
-Params:
-    - AST_VISITOR_ARGS - Default AST visitor args.
-
-Returns 1 if the node is correct, otherwise 0.
-*/
-int ASTWLKR_illegal_declaration(AST_VISITOR_ARGS);
-
-/*
 ASTWLKR_no_exit checks if start block has exit statement at every path.
 Example:
 ```cpl
@@ -124,21 +109,6 @@ Params:
 Returns 1 if the node is correct, otherwise 0.
 */
 int ASTWLKR_wrong_arg_type(AST_VISITOR_ARGS);
-
-/*
-ASTWLKR_illegal_array_access checks out-bound array access.
-Example: 
-```cpl
-    arr a[i32, 10];
-    a[-1]; a[11];
-```
-
-Params:
-    - AST_VISITOR_ARGS - Default AST visitor args.
-
-Returns 1 if the node is correct, otherwise 0.
-*/
-int ASTWLKR_illegal_array_access(AST_VISITOR_ARGS);
 
 /*
 ASTWLKR_duplicated_branches checks if branches are similar to each other.

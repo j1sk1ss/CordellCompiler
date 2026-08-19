@@ -1,7 +1,9 @@
-: BUG :
 start() {
     syscall(0x2000004, 1 as i32, 0 as ptr i0, 12);
+    exit 0;
 }
 
 :/ OUTPUT
+[WARNING] Syscall will dereference the 2 argument, but the tmp is NULL!
+    at: {X}.cpl:2:13
 /:

@@ -1,0 +1,84 @@
+{
+    "version": "0.3.0",
+    "configurations": [
+        {
+            "name": "Debug compiler",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/builds/darwin-x86_64/cplc",
+            "args": [
+                "--debug",
+                "${input:cplOptimizationProfile}",
+                "${input:cplStrictProfile}",
+                "--arch",
+                "x86_64",
+                "--sys-type",
+                "macho64",
+                "--asm-format",
+                "macho64",
+                "-c",
+                "--emit-asm",
+                "--asm-output",
+                "${workspaceFolder}/builds/darwin-x86_64/${fileBasenameNoExtension}.s",
+                "--output",
+                "${workspaceFolder}/builds/darwin-x86_64/${fileBasenameNoExtension}.o",
+                "${file}"
+            ],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "CPL_INCLUDE_PATH": "${workspaceFolder}/cpllib"
+            },
+            "preLaunchTask": "Build compiler and CPL runtime (debug)",
+            "terminal": "integrated"
+        },
+        {
+            "name": "Debug CSA",
+            "type": "lldb",
+            "request": "launch",
+            "program": "${workspaceFolder}/builds/darwin-x86_64/cplc",
+            "args": [
+                "--debug",
+                "${input:cplOptimizationProfile}",
+                "${input:cplStrictProfile}",
+                "--CSA",
+                "--arch",
+                "x86_64",
+                "--sys-type",
+                "macho64",
+                "--asm-format",
+                "macho64",
+                "${file}"
+            ],
+            "cwd": "${workspaceFolder}",
+            "env": {
+                "CPL_INCLUDE_PATH": "${workspaceFolder}/cpllib"
+            },
+            "preLaunchTask": "Build compiler and CPL runtime (debug)",
+            "terminal": "integrated"
+        }
+    ],
+    "inputs": [
+        {
+            "id": "cplOptimizationProfile",
+            "type": "pickString",
+            "description": "CPL optimizer profile for this debug run",
+            "options": [
+                "-O0",
+                "-O1",
+                "-O2",
+                "-O3"
+            ],
+            "default": "-O0"
+        },
+        {
+            "id": "cplStrictProfile",
+            "type": "pickString",
+            "description": "CPL strict or not profile",
+            "options": [
+                "--i-know-what-i-am-doing",
+                "--i-dont-know-what-i-am-doing"
+            ],
+            "default": ""
+        }
+    ]
+}

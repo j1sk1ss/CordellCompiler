@@ -10,17 +10,18 @@ static char* _format_type(symbol_id_t id, typetab_ctx_t* ctx) {
     return "NULL";
 }
 
-static inline const char* _format_flag(int flag) {
-    return flag ? "+" : "";
+static inline const char* _format_flag(const char* base, int flag) {
+    return flag ? base : "";
 }
 
 static int _format_varinfo(variable_info_t* vi, sym_table_t* smt, FILE* output) {
     fprintf(
         output,
-        "var id=%li type=%s name=%s align=%i par=%li scope=%li ptr=%i ro=%s glb=%s ext=%s\n",
+        "var id=%li type=%s name=%s align=%i par=%li scope=%li ptr=%i%s%s%s%s\n",
         vi->v_id, _format_type(vi->t_id, &smt->t), vi->name->body, vi->vmi.align,
         vi->p_id, vi->s_id, vi->vfs.ptr,
-        _format_flag(vi->vfs.ro), _format_flag(vi->vfs.glob), _format_flag(vi->vfs.ext)
+        _format_flag(", ro", vi->vfs.ro),   _format_flag(", glob", vi->vfs.glob), 
+        _format_flag(", ext", vi->vfs.ext), _format_flag(", not_null", vi->csa.not_null)
     );
     return 1;
 }
@@ -125,14 +126,14 @@ static int _format_funcinfo(func_info_t* fi, FILE* output) {
     fprintf(
         output,
         "fn id=%li name=%s virt=%s scope=%li args=%s ret=%s locals=%s generic_types=%s resolutions=%s "
-        "ext=%s glb=%s entry=%s used=%s local=%s vargs=%s generic=%s abi=%s weak=%s self=%s naked=%s inline=%s onlybody=%s vname=%s\n",
+        "%s%s%s%s%s%s%s%s%s%s%s%s%s%s\n",
         fi->id, _format_str(fi->name), _format_str(fi->virt), fi->s_id,
         args, rtype, locals, generic_types, resolutions,
-        _format_flag(fi->flags.external), _format_flag(fi->flags.global), _format_flag(fi->flags.entry),
-        _format_flag(fi->flags.used), _format_flag(fi->flags.local), _format_flag(fi->flags.vargs),
-        _format_flag(fi->flags.generic), _format_flag(fi->flags.abi), _format_flag(fi->flags.weak),
-        _format_flag(fi->flags.self), _format_flag(fi->flags.naked), _format_flag(fi->flags.inln),
-        _format_flag(fi->flags.onlybody), _format_flag(fi->flags.vname)
+        _format_flag(", ext", fi->flags.external),     _format_flag(", glob", fi->flags.global), _format_flag(", entry", fi->flags.entry),
+        _format_flag(", used", fi->flags.used),        _format_flag(", local", fi->flags.local), _format_flag(", vargs", fi->flags.vargs),
+        _format_flag(", gen", fi->flags.generic),      _format_flag(", abi", fi->flags.abi),     _format_flag(", weak", fi->flags.weak),
+        _format_flag(", self", fi->flags.self),        _format_flag(", naked", fi->flags.naked), _format_flag(", inline", fi->flags.inln),
+        _format_flag("only_body", fi->flags.onlybody), _format_flag(", vname", fi->flags.vname)
     );
     return 1;
 }

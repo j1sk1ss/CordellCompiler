@@ -116,7 +116,7 @@ symbol_id_t TPTB_add_info_from_token(symbol_id_t s_id, token_t* t, symbol_id_t v
 
 long TPTB_get_memory_size_id(symbol_id_t id, typetab_ctx_t* ctx) {
     type_info_t* ti;
-    if (!map_get(&ctx->typetb, id, (void**)&ti)) return FIELD_NO_CHANGE;
+    if (!map_get(&ctx->typetb, id, (void**)&ti)) return SMT_NULL;
     return ti->memory.ptr ? CONF_get_full_bytness() : ti->memory.size;
 }
 

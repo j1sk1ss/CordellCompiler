@@ -18,11 +18,12 @@ hir_subject_t* HIR_generate_implconv(hir_ctx_t* ctx, char ptr, hir_subject_type_
     hir_operation_t op = HIR_get_convop(t);
     if (ptr > 0) op = HIR_TPTR;
 
-    if (
-        HIR_get_type_size(src->t) > HIR_get_type_size(t) && op != HIR_TPTR &&
-        CONF_is_strict_compilation()
-    ) {
-        HIRGEN_ERROR(ctx, "Narrow implicit cast is forbidden!");
+    if (HIR_get_type_size(src->t) > HIR_get_type_size(t) && op != HIR_TPTR) {
+        if (CONF_is_strict_compilation()) {
+            HIRGEN_ERROR(ctx, "Narrow implicit cast is forbidden!");
+            return NULL;
+        }
+        
         return src;
     }
 

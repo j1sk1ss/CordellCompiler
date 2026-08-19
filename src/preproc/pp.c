@@ -189,6 +189,19 @@ static int _count_newlines(const char* s) {
     return count;
 }
 
+static int _is_skipping(sstack_t* skips) {
+    if (!skips) return 0;
+    for (int i = 0; i <= skips->top; i++) {
+        if ((long)skips->data[i].d) return 1;
+    }
+
+    return 0;
+}
+
+static int _push_skip(sstack_t* skips, int skip) {
+    return stack_push(skips, (void*)((long)(skip ? 1 : 0)));
+}
+
 /* Check whether this is a permitted character.
 Params:
     - `p` - Input character (1 byte or more than 1 byte size).
@@ -293,8 +306,7 @@ int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx) {
         /* Figure out which directive is presented in the line.
            If there is no directive, just copy the line into the output. */
         char* d = PP_get_directive_from_line(ppctx->clean);
-        long skip = 0;
-        stack_top(&inf->cst.skips, (void**)&skip);
+        int skip = _is_skipping(&inf->cst.skips);
         int needs_comment_line_macro = 0;
         if (!d) {
             if (!skip) {
@@ -374,7 +386,11 @@ int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx) {
                     return -1;
                 }
 
-                stack_push(&inf->cst.skips, (void*)((long)!MCTB_get_define(defname, NULL, &ppctx->defines)));
+                if (!_push_skip(&inf->cst.skips, skip || !MCTB_get_define(defname, NULL, &ppctx->defines))) {
+                    _unload_pp_ctx(ppctx);
+                    return -1;
+                }
+
                 _put_line_macro(inf, ppctx->out);
             }
             else if (IS_PP_DERICTIVE(d, PP_IFNDEF_DIRECTIVE)) {
@@ -384,11 +400,19 @@ int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx) {
                     return -1;
                 }
 
-                stack_push(&inf->cst.skips, (void*)((long)MCTB_get_define(defname, NULL, &ppctx->defines)));
+                if (!_push_skip(&inf->cst.skips, skip || MCTB_get_define(defname, NULL, &ppctx->defines))) {
+                    _unload_pp_ctx(ppctx);
+                    return -1;
+                }
+
                 _put_line_macro(inf, ppctx->out);
             }
             else if (IS_PP_DERICTIVE(d, PP_ENDIF_DIRECTIVE)) {
-                stack_pop(&inf->cst.skips, NULL);
+                if (!stack_pop(&inf->cst.skips, NULL)) {
+                    _unload_pp_ctx(ppctx);
+                    return -1;
+                }
+
                 _put_line_macro(inf, ppctx->out);
             }
         }

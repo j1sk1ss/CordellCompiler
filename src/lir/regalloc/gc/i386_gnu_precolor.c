@@ -6,6 +6,4 @@ long i386_gnu_precolored_reg_to_color(lir_registers_t reg) {
         case EDX: return 1;
         default:  return reg;
     }
-
-    return reg;
 }

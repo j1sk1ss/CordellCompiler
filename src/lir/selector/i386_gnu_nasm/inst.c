@@ -57,13 +57,13 @@ static cfg_dfs_action_t _instruction_selection_block(
                 if (lh->sarg->storage.cnst.value >= (long)(sizeof(sys_regs) / sizeof(EAX))) break;
                 if (sys_regs[lh->sarg->storage.cnst.value] != EAX) {
                     _insert_instruction_before(
-                        bb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(sys_regs[lh->sarg->storage.cnst.value], 4), NULL, NULL), 
+                        bb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(sys_regs[lh->sarg->storage.cnst.value], CONF_get_full_bytness()), NULL, NULL), 
                         lh
                     );
                     queue_push(dirty_regs, (void*)((long)sys_regs[lh->sarg->storage.cnst.value]));
                 }
 
-                lir_subject_t* nfarg = i386_gnu_nasm_create_tmp(sys_regs[lh->sarg->storage.cnst.value], lh->farg, smt, 4);
+                lir_subject_t* nfarg = i386_gnu_nasm_create_tmp(sys_regs[lh->sarg->storage.cnst.value], lh->farg, smt, CONF_get_full_bytness());
                 LIR_unload_subject(lh->sarg);
                 lh->op   = LIR_aMOV;
                 lh->sarg = lh->farg;
@@ -72,13 +72,13 @@ static cfg_dfs_action_t _instruction_selection_block(
             }
             case LIR_REF_ARGS: {
                 lh->op   = LIR_REF;
-                lh->sarg = LIR_SUBJ_OFF(EBP, (!fi->flags.naked + _count_presented_args(fb->f_id, smt) + 1) * -4, 4);
+                lh->sarg = LIR_SUBJ_OFF(EBP, (!fi->flags.naked + _count_presented_args(fb->f_id, smt) + 1) * -4, CONF_get_full_bytness());
                 break;
             }
             case LIR_ECLL:
             case LIR_FCLL: {
                 if (ctx->clean_stack) {
-                    _insert_instruction_after(bb, LIR_create_block(LIR_iADD, LIR_SUBJ_REG(ESP, 4), LIR_SUBJ_REG(ESP, 4), LIR_SUBJ_CONST(ctx->clean_stack)), lh);
+                    _insert_instruction_after(bb, LIR_create_block(LIR_iADD, LIR_SUBJ_REG(ESP, CONF_get_full_bytness()), LIR_SUBJ_REG(ESP, CONF_get_full_bytness()), LIR_SUBJ_CONST(ctx->clean_stack)), lh);
                     ctx->clean_stack = 0;
                 }
                 __attribute__ ((fallthrough));
@@ -86,7 +86,7 @@ static cfg_dfs_action_t _instruction_selection_block(
             case LIR_SYSC: {
                 long dirty;
                 while (queue_pop(dirty_regs, (void**)&dirty)) {
-                    _insert_instruction_after(bb, LIR_create_block(LIR_POP, LIR_SUBJ_REG(dirty, 4), NULL, NULL), lh);
+                    _insert_instruction_after(bb, LIR_create_block(LIR_POP, LIR_SUBJ_REG(dirty, CONF_get_full_bytness()), NULL, NULL), lh);
                 }
 
                 break;
@@ -95,12 +95,12 @@ static cfg_dfs_action_t _instruction_selection_block(
                 lir_subject_t* src;
                 switch (lh->sarg->storage.cnst.value) {
                     case 0: {
-                        src = LIR_SUBJ_OFF(EBP, -4, 4);
+                        src = LIR_SUBJ_OFF(EBP, -4, CONF_get_full_bytness());
                         lh->op = LIR_iMOV; 
                         break;
                     }
                     default: {
-                        src = LIR_SUBJ_OFF(EBP, -8, 4);
+                        src = LIR_SUBJ_OFF(EBP, -8, CONF_get_full_bytness());
                         lh->op = LIR_REF;  
                         break;
                     }
@@ -186,7 +186,7 @@ static cfg_dfs_action_t _instruction_selection_block(
                 ) {
                     lir_registers_t saved[] = { EBX, ESI, EDI };
                     for (int i = (int)(sizeof(saved) / sizeof(saved[0])) - 1; i >= 0; i--) {
-                        _insert_instruction_before(bb, LIR_create_block(LIR_POP, LIR_SUBJ_REG(saved[i], 4), NULL, NULL), lh);
+                        _insert_instruction_before(bb, LIR_create_block(LIR_POP, LIR_SUBJ_REG(saved[i], CONF_get_full_bytness()), NULL, NULL), lh);
                     }
                 }
 
@@ -194,17 +194,17 @@ static cfg_dfs_action_t _instruction_selection_block(
             }
             case LIR_iDIV:
             case LIR_iMOD: {
-                lir_subject_t* a_entry = i386_gnu_nasm_create_tmp(EAX, lh->sarg, smt, 4);
+                lir_subject_t* a_entry = i386_gnu_nasm_create_tmp(EAX, lh->sarg, smt, CONF_get_full_bytness());
                 _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a_entry, lh->sarg, NULL), lh);
 
                 lir_subject_t* oldres = lh->farg;
                 lh->sarg = a_entry;
 
-                lir_subject_t* b = i386_gnu_nasm_create_tmp(ECX, lh->targ, smt, 4);
+                lir_subject_t* b = i386_gnu_nasm_create_tmp(ECX, lh->targ, smt, CONF_get_full_bytness());
                 _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, b, lh->targ, NULL), lh);
                 lh->targ = b;
 
-                lir_subject_t* mod = i386_gnu_nasm_create_tmp(EDX, lh->farg, smt, 4);
+                lir_subject_t* mod = i386_gnu_nasm_create_tmp(EDX, lh->farg, smt, CONF_get_full_bytness());
                 _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, mod, NULL, NULL), lh);
                 _insert_instruction_before(bb, LIR_create_block(LIR_CDQ, NULL, NULL, NULL), lh);
                 if (lh->op != LIR_iMOD) {
@@ -276,7 +276,7 @@ static cfg_dfs_action_t _instruction_selection_block(
                 switch (lh->op) {
                     case LIR_CVTTSS2SI:
                     case LIR_CVTTSD2SI: {
-                        lir_subject_t* tmp = i386_gnu_nasm_create_tmp(EAX, dst, smt, 4);
+                        lir_subject_t* tmp = i386_gnu_nasm_create_tmp(EAX, dst, smt, CONF_get_full_bytness());
                         _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, dst, tmp, NULL), lh);
                         lh->farg = tmp;
                         break;
@@ -284,7 +284,7 @@ static cfg_dfs_action_t _instruction_selection_block(
                     case LIR_CVTSI2SS:
                     case LIR_CVTSI2SD: {
                         if (src->size < 4) {
-                            lir_subject_t* tmp = i386_gnu_nasm_create_tmp(EAX, src, smt, 4);
+                            lir_subject_t* tmp = i386_gnu_nasm_create_tmp(EAX, src, smt, CONF_get_full_bytness());
                             lir_operation_t op = i386_gnu_nasm_get_proper_mov(tmp, src, smt, LIR_iMOV);
                             _insert_instruction_before(bb, LIR_create_block(op, tmp, src, NULL), lh);
                             lh->sarg = tmp;
@@ -334,12 +334,12 @@ int i386_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     (hb->lmap.entry->op == LIR_STRT || hb->lmap.entry->op == LIR_FDCL)
                 ) {
                     for (int i = (int)(sizeof(saved) / sizeof(saved[0])) - 1; i >= 0; i--) {
-                        _insert_instruction_after(hb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(saved[i], 4), NULL, NULL), hb->lmap.entry);
+                        _insert_instruction_after(hb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(saved[i], CONF_get_full_bytness()), NULL, NULL), hb->lmap.entry);
                     }
                 }
                 else if (hb->lmap.entry) {
                     for (int i = 0; i < (int)(sizeof(saved) / sizeof(saved[0])); i++) {
-                        _insert_instruction_before(hb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(saved[i], 4), NULL, NULL), hb->lmap.entry);
+                        _insert_instruction_before(hb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(saved[i], CONF_get_full_bytness()), NULL, NULL), hb->lmap.entry);
                     }
                 }
             }

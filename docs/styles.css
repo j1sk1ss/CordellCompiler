@@ -1674,7 +1674,7 @@ body::before,
 }
 
 .win95-explorer {
-  width: min(780px, calc(100vw - 36px));
+  width: min(780px, calc(100vw - 134px));
   min-height: min(560px, calc(100vh - 96px));
   background: #c0c0c0;
   border: 2px solid;
@@ -1885,6 +1885,16 @@ body::before,
   overflow-wrap: anywhere;
 }
 
+.win95-desktop-shortcut {
+  position: absolute;
+  top: 18px;
+  left: 18px;
+  z-index: 8;
+  width: 86px;
+  min-height: 92px;
+  pointer-events: auto;
+}
+
 .win95-taskbar {
   position: fixed;
   left: 0;
@@ -2077,6 +2087,13 @@ body::before,
     gap: 10px 6px;
     min-height: calc(100vh - 154px);
     padding: 12px 8px;
+  }
+
+  .win95-desktop-shortcut {
+    top: auto;
+    right: 14px;
+    bottom: 56px;
+    left: auto;
   }
 
   .cpl-home-route .cpl-home-hero > .cpl-scroll-monkey {

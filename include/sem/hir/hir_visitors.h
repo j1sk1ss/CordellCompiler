@@ -47,6 +47,7 @@ int HIR_SEM_check_subject_value_and_provide_trace(
 /* general */
 int HIRWLKR_visit_setpos_instruction(HIR_VISITOR_ARGS);
 int HIRWLKR_visit_phi_instruction(HIR_VISITOR_ARGS);
+int HIRWLKR_null_notnull(HIR_VISITOR_ARGS);
 int HIRWLKR_visit_gdref_instruction(HIR_VISITOR_ARGS);
 int HIRWLKR_visit_ldref_instruction(HIR_VISITOR_ARGS);
 int HIRWLKR_visit_ifop2_instruction(HIR_VISITOR_ARGS);
@@ -57,6 +58,8 @@ int HIRWLKR_noret_assign(HIR_VISITOR_ARGS);
 int HIRWLKR_ref_to_expression(HIR_VISITOR_ARGS);
 int HIRWLKR_division_by_zero(HIR_VISITOR_ARGS);
 int HIRWLKR_division_by_one(HIR_VISITOR_ARGS);
+int HIRWLKR_bad_buffer_move(HIR_VISITOR_ARGS);
+int HIRWLKR_illegal_store(HIR_VISITOR_ARGS);
 
 /* glibc */
 int HIRWLKR_glibc_arg_checkers(HIR_VISITOR_ARGS);

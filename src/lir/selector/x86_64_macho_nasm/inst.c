@@ -49,7 +49,7 @@ static inline lir_subject_t* _create_tmp_var(token_type_t type, basic_object_inf
 static lir_subject_t* _external_global_addr(cfg_block_t* bb, lir_block_t* pos, lir_subject_t* s, sym_table_t* smt) {
     variable_info_t vi;
     if (!_is_external_global(s, &vi, smt)) return s;
-    lir_subject_t* addr = _create_tmp_var(TMP_U64_TYPE_TOKEN, (basic_object_info_t){ .ptr = 1 }, 8, _external_value_size(s, &vi), smt);
+    lir_subject_t* addr = _create_tmp_var(TMP_U64_TYPE_TOKEN, (basic_object_info_t){ .ptr = 1 }, CONF_get_full_bytness(), _external_value_size(s, &vi), smt);
     _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, addr, s, NULL), pos);
     return addr;
 }
@@ -217,13 +217,13 @@ static cfg_dfs_action_t _instruction_selection_block(
                 if (lh->sarg->storage.cnst.value >= (long)(sizeof(sys_regs) / sizeof(RAX))) break;
                 if (sys_regs[lh->sarg->storage.cnst.value] != RAX) {
                     _insert_instruction_before(
-                        bb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(sys_regs[lh->sarg->storage.cnst.value], 8), NULL, NULL), 
+                        bb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(sys_regs[lh->sarg->storage.cnst.value], CONF_get_full_bytness()), NULL, NULL), 
                         lh
                     );
                     queue_push(dirty_regs, (void*)((long)sys_regs[lh->sarg->storage.cnst.value]));
                 }
 
-                lir_subject_t* nfarg = x86_64_macho_nasm_create_tmp(sys_regs[lh->sarg->storage.cnst.value], lh->farg, smt, 8);
+                lir_subject_t* nfarg = x86_64_macho_nasm_create_tmp(sys_regs[lh->sarg->storage.cnst.value], lh->farg, smt, CONF_get_full_bytness());
                 LIR_unload_subject(lh->sarg);
                 lh->op   = LIR_aMOV;
                 lh->sarg = lh->farg;
@@ -232,28 +232,28 @@ static cfg_dfs_action_t _instruction_selection_block(
             }
             case LIR_REF_ARGS: {
                 lh->op   = LIR_REF;
-                lh->sarg = LIR_SUBJ_OFF(RBP, (!fi->flags.naked + _count_presented_args(fb->f_id, smt) + 1) * -8, 8);
+                lh->sarg = LIR_SUBJ_OFF(RBP, (!fi->flags.naked + _count_presented_args(fb->f_id, smt) + 1) * -8, CONF_get_full_bytness());
                 break;
             }
             case LIR_ECLL:
             case LIR_FCLL: {
                 if (ctx->clean_stack) {
-                    _insert_instruction_after(bb, LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(ctx->clean_stack)), lh);
+                    _insert_instruction_after(bb, LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, CONF_get_full_bytness()), LIR_SUBJ_REG(RSP, CONF_get_full_bytness()), LIR_SUBJ_CONST(ctx->clean_stack)), lh);
                     ctx->clean_stack = 0;
                 }
                 __attribute__ ((fallthrough));
             }
             case LIR_SYSC: {
                 if (lh->op == LIR_SYSC) { /* https://stackoverflow.com/questions/50571275/why-does-a-syscall-clobber-rcx-and-r11 */
-                    _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(RCX, 8), NULL, NULL), lh);
+                    _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(RCX, CONF_get_full_bytness()), NULL, NULL), lh);
                     queue_push(dirty_regs, (void*)((long)RCX));
-                    _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(R11, 8), NULL, NULL), lh);
+                    _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(R11, CONF_get_full_bytness()), NULL, NULL), lh);
                     queue_push(dirty_regs, (void*)((long)R11));
                 }
 
                 long dirty;
                 while (queue_pop(dirty_regs, (void**)&dirty)) {
-                    _insert_instruction_after(bb, LIR_create_block(LIR_POP, LIR_SUBJ_REG(dirty, 8), NULL, NULL), lh);
+                    _insert_instruction_after(bb, LIR_create_block(LIR_POP, LIR_SUBJ_REG(dirty, CONF_get_full_bytness()), NULL, NULL), lh);
                 }
 
                 break;
@@ -287,7 +287,7 @@ static cfg_dfs_action_t _instruction_selection_block(
                 }
                 else {
                     lir_subject_t* nfarg = x86_64_macho_nasm_create_tmp(target.reg, lh->farg, smt, -1);
-                    LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(target.reg, 8), NULL, NULL), lh);
+                    LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(target.reg, CONF_get_full_bytness()), NULL, NULL), lh);
                     queue_push(dirty_regs, (void*)((long)target.reg));
                     LIR_unload_subject(lh->sarg);
                     lh->op   = LIR_aMOV;
@@ -372,7 +372,7 @@ static cfg_dfs_action_t _instruction_selection_block(
                 ) {
                     lir_registers_t saved[] = { RBX, R12, R13, R14, R15 };
                     for (int i = (int)(sizeof(saved) / sizeof(saved[0])) - 1; i >= 0; i--) {
-                        _insert_instruction_before(bb, LIR_create_block(LIR_POP, LIR_SUBJ_REG(saved[i], 8), NULL, NULL), lh);
+                        _insert_instruction_before(bb, LIR_create_block(LIR_POP, LIR_SUBJ_REG(saved[i], CONF_get_full_bytness()), NULL, NULL), lh);
                     }
                 }
 
@@ -380,17 +380,17 @@ static cfg_dfs_action_t _instruction_selection_block(
             }
             case LIR_iDIV:
             case LIR_iMOD: {
-                lir_subject_t* a_entry = x86_64_macho_nasm_create_tmp(RAX, lh->sarg, smt, 8);
+                lir_subject_t* a_entry = x86_64_macho_nasm_create_tmp(RAX, lh->sarg, smt, CONF_get_full_bytness());
                 _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a_entry, lh->sarg, NULL), lh);
 
                 lir_subject_t* oldres = lh->farg;
                 lh->sarg = a_entry;
 
-                lir_subject_t* b = x86_64_macho_nasm_create_tmp(RCX, lh->targ, smt, 8);
+                lir_subject_t* b = x86_64_macho_nasm_create_tmp(RCX, lh->targ, smt, CONF_get_full_bytness());
                 _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, b, lh->targ, NULL), lh);
                 lh->targ = b;
 
-                lir_subject_t* mod = x86_64_macho_nasm_create_tmp(RDX, lh->farg, smt, 8);
+                lir_subject_t* mod = x86_64_macho_nasm_create_tmp(RDX, lh->farg, smt, CONF_get_full_bytness());
                 _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, mod, NULL, NULL), lh);
                 _insert_instruction_before(bb, LIR_create_block(LIR_CQO, NULL, NULL, NULL), lh);
                 if (lh->op != LIR_iMOD) {
@@ -485,12 +485,12 @@ int x86_64_macho_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                     (hb->lmap.entry->op == LIR_STRT || hb->lmap.entry->op == LIR_FDCL)
                 ) {
                     for (int i = (int)(sizeof(saved) / sizeof(saved[0])) - 1; i >= 0; i--) {
-                        _insert_instruction_after(hb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(saved[i], 8), NULL, NULL), hb->lmap.entry);
+                        _insert_instruction_after(hb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(saved[i], CONF_get_full_bytness()), NULL, NULL), hb->lmap.entry);
                     }
                 }
                 else if (hb->lmap.entry) {
                     for (int i = 0; i < (int)(sizeof(saved) / sizeof(saved[0])); i++) {
-                        _insert_instruction_before(hb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(saved[i], 8), NULL, NULL), hb->lmap.entry);
+                        _insert_instruction_before(hb, LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(saved[i], CONF_get_full_bytness()), NULL, NULL), hb->lmap.entry);
                     }
                 }
             }

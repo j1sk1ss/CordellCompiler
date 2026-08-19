@@ -1,5 +1,16 @@
 #include <symtab/vartb.h>
 
+int VRTB_set_not_null(symbol_id_t id, vartab_ctx_t* ctx) {
+    print_log("VRTB_set_not_null(id=%li)", id);
+    variable_info_t* vi;
+    if (map_get(&ctx->vartb, id, (void**)&vi)) {
+        vi->csa.not_null = 1;
+        return 1;
+    }
+
+    return 0;
+}
+
 int VRTB_set_used(symbol_id_t id, vartab_ctx_t* ctx) {
     print_log("VRTB_set_unused(id=%li)", id);
     variable_info_t* vi;
@@ -144,6 +155,7 @@ symbol_id_t VRTB_add_copy(variable_info_t* src, vartab_ctx_t* ctx) {
 
 symbol_id_t VRTB_add_info(string_t* name, token_type_t type, symbol_id_t s_id, basic_object_info_t flags, vartab_ctx_t* ctx) {
     print_log("VRTB_add_info(name=%s, type=%i, s_id=%i)", name ? name->body : "(null)", type, s_id);
+    if (STRICT_ACTION(name && VRTB_get_info(name, s_id, NULL, ctx))) CONF_set_symtab_error(); // silent error btw
     variable_info_t* nnd = _create_variable_info(name, type, s_id, flags);
     if (!nnd) return NO_SYMBOL_ID;
     nnd->v_id = ctx->curr_id++;

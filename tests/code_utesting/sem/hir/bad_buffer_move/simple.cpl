@@ -1,0 +1,22 @@
+start() {
+    arr something[10, i8];
+    i8 a = something[11];
+    i8 b = (ref something) + 11;
+    ptr i8 head = (ref something) + 12;
+    exit 0;
+}
+
+:/ OUTPUT
+[ERROR] Possible buffer overflow! Current buffer 'something' is moved by '11' which is not in [0, 10)
+    at: {X}.cpl:3:8
+    trace: Variable 'tmp' declared here!
+      at: {X}.cpl:3:8
+[ERROR] Possible buffer overflow! Current buffer 'something' is moved by '11' which is not in [0, 10)
+    at: {X}.cpl:4:8
+    trace: Variable 'tmp' declared here!
+      at: {X}.cpl:4:8
+[ERROR] Possible buffer overflow! Current buffer 'something' is moved by '12' which is not in [0, 10)
+    at: {X}.cpl:5:13
+    trace: Variable 'tmp' declared here!
+      at: {X}.cpl:5:13
+/:

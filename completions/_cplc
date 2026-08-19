@@ -11,10 +11,11 @@ _arguments -s -S \
   '--output[Set output file]:file:_files' \
   '--ast-analysis[Enable AST analysis]' \
   '--ir-analysis[Enable IR analysis]' \
-  '--analysis-only[Run AST and HIR analysis, then stop before code generation]' \
+  '--CSA[Run Cordell Static Analyser only]' \
   '--debug[Enable debug mode]' \
   '--no-debug[Disable debug mode]' \
-  '--i-know-what-i-am-doing[Keep compiling after static analysis warnings]' \
+  '--i-dont-know-what-i-am-doing[What are you doing here if you want to have an assistance from the compiler? Enables compiler errors and strict typing]' \
+  '--i-know-what-i-am-doing[Disables compiler errors and strict typing (Is a default option)]' \
   '-O0[Disable optimizations]' \
   '-O1[Rough optimization level]' \
   '-O2[Good optimization level]' \
@@ -57,6 +58,7 @@ _arguments -s -S \
   '--emit-lir[Emit LIR dump]' \
   '--emit-lir-cfg[Emit LIR CFG dump for function]:function:' \
   '--emit-asm[Emit produced assembly code]' \
+  '--emit-symtab[Emit symtable dump]:type:(var vars v fn func funcs fntb function functions sec sect section sections)' \
   '--ast-output[Set AST dump output path]:file:_files' \
   '--ir-output[Set HIR dump output path]:file:_files' \
   '--lir-output[Set LIR dump output path]:file:_files' \

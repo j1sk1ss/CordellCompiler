@@ -293,7 +293,7 @@ static int _restore_annotation(rst_ln_ctx_t* x, int line, annotation_t* annot) {
                 SECTN_ANNOTATION_COMMAND,
                 annot->data.section.section ? annot->data.section.section->body : ""
             );
-            if (annot->data.section.align != FIELD_NO_CHANGE) {
+            if (annot->data.section.align != SMT_NULL) {
                 _rst_ln_printf(x, line, ", %i", annot->data.section.align);
             }
             _rst_ln_puts(x, line, ")");

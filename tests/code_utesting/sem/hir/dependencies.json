@@ -1,4 +1,10 @@
 {
+    "macros": [
+        "CPL_ENABLE_Z3"
+    ],
+    "pkg_config": [
+        "z3"
+    ],
     "sources": [
         "src/config.c",
         "src/symtab/*.c",

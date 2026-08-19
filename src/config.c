@@ -58,6 +58,10 @@ config_int_field_t CONF_get_attention_level() {
     return _config.csa.attention;
 }
 
+config_int_field_t CONF_get_acceptance_level() {
+    return _config.csa.acceptance;
+}
+
 arch_type_t CONF_get_system_type() {
     return _config.system.sys_type;
 }
@@ -66,6 +70,22 @@ config_flag_field_t CONF_is_debug_compilation() {
     return _config.compilation_flags.debug;
 }
 
-config_flag_field_t   CONF_is_strict_compilation() {
+config_flag_field_t CONF_is_strict_compilation() {
     return _config.compilation_flags.strict;
+}
+
+config_flag_field_t CONF_is_parser_error() {
+    return _config.compilation_flags.parser_error;
+}
+
+void CONF_set_parser_error() {
+    _config.compilation_flags.parser_error = 1;
+}
+
+config_flag_field_t CONF_is_symtab_error() {
+    return _config.compilation_flags.symtab_error;
+}
+
+void CONF_set_symtab_error() {
+    _config.compilation_flags.symtab_error = 1;
 }

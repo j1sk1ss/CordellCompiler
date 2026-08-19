@@ -1,15 +1,8 @@
 #include <ast/astgen/astgen.h>
 
-ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
-    PARSER_ARGS_USE;
-    SAVE_TOKEN_POINT;
-
+DEFINE_PARSER(cpl_parse_variable_declaration, {
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
-    if (!base) {
-        PARSE_ERROR("Can't create a base for the variable's declaration type! <type> <name>!");
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
+    PARSER_DO_OR_THROW(!base, NULL, "Can't create a base for the variable's declaration type! <type> <name>!");
 
     annotations_summary_t annots = { .align = CONF_get_full_bytness(), .section = NULL, .salign = -1, .reg = -1 };
     ANNOT_read_annotations(&ctx->annots, &annots);
@@ -17,14 +10,11 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
 
     forward_token(it, 1);
     ast_node_t* name = AST_create_node(CURRENT_TOKEN);
-    if (name) AST_add_node(base, name);
-    else {
-        PARSE_ERROR("Can't create a base for the variable's name! <type> <name>!");
-        AST_unload(base);
-        ANNOT_destroy_summary(&annots);
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
+    PARSER_DO_OR_THROW_DO(
+        !name, "Can't create a base for the variable's name! <type> <name>!", 
+        { ANNOT_destroy_summary(&annots); AST_unload(base); }
+    );
+    AST_add_node(base, name);
 
     if (carry != NO_SYMBOL_ID) {
         base->sinfo.t_id = carry;
@@ -35,6 +25,12 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
        from the carry, if we're working with a dynamic type. */
     stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
     name->sinfo.v_id = VRTB_add_info(name->t->body, base->t->t_type, name->sinfo.s_id, base->t->flags, &smt->v);
+    if (CONF_is_symtab_error()) {
+        PARSE_ERROR("Can't register a variable with the name '%s'", name->t->body->body);
+        CONF_set_parser_error();
+    }
+    
+    if (annots.is_notnull) VRTB_set_not_null(name->sinfo.v_id, &smt->v);
     VRTB_update_type(name->sinfo.v_id, FIELD_NO_CHANGE, carry, &smt->v);
 
     /* If this is a custom type variable, register it as an array as well. */
@@ -66,8 +62,8 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
 
     base->sinfo.t_id = TPTB_add_copy(declared_type, name->sinfo.v_id, base->t->flags.ptr, &smt->t);
     VRTB_update_type(name->sinfo.v_id, FIELD_NO_CHANGE, base->sinfo.t_id, &smt->v);
-    TPTB_add_as_child(ctx->t_id, base->sinfo.t_id, name->t->body, base->t->flags.ptr ? CONF_get_full_bytness() : FIELD_NO_CHANGE, &smt->t);
+    TPTB_add_as_child(ctx->t_id, base->sinfo.t_id, name->t->body, base->t->flags.ptr ? CONF_get_full_bytness() : SMT_NULL, &smt->t);
 
     ANNOT_destroy_summary(&annots);
     return base;
-}
+})

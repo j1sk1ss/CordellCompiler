@@ -26,6 +26,7 @@
 #define POPRG_ANNOTATION_COMMAND "poparg"
 #define SSELF_ANNOTATION_COMMAND "self"
 #define VNAME_ANNOTATION_COMMAND "vname"
+#define NNULL_ANNOTATION_COMMAND "not_null"
 
 #define INLNE_ANNOTATION_COMMAND "inline" /* inline / inline(always) / inline(never) */
 #define INLNE_YES_OPTION         "always"
@@ -90,6 +91,7 @@ typedef struct {
     char                 is_weak     : 1;
     char                 is_abi      : 1;
     char                 is_onlybody : 1;
+    char                 is_notnull  : 1;
 } annotations_summary_t;
 
 typedef enum {
@@ -115,6 +117,7 @@ typedef enum {
     ABI_ANNOTATION,       /* Will mark a function as ABI-compatible         */
     ONLYBODY_ANNOTATION,  /* Will say that the function is just a container */
     VNAME_ANNOTATION,     /* Will set a vartial name for a function         */
+    NOTNULL_ANNOTATION,   /* Will mark a variable as a not Null variable    */
 } annotation_type_t;
 
 typedef struct {

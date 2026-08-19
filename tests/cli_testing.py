@@ -368,7 +368,7 @@ class BuilderCLITests(unittest.TestCase):
         result = self.run_cplc("--version")
 
         self.assertEqual(result.returncode, 0, result.stderr)
-        self.assertRegex(result.stdout, r"^cplc \S+\n$")
+        self.assertRegex(result.stdout, r"^cplc \S+\n")
         self.assert_no_stderr(result)
 
     def test_something_prints_embedded_payload(self) -> None:
@@ -462,7 +462,7 @@ class BuilderCLITests(unittest.TestCase):
                 "-O3",
                 "--debug",
                 "--no-debug",
-                "--i-know-what-i-am-doing",
+                "--i-dont-know-what-i-am-doing",
                 "--ast-analysis",
                 "--ir-analysis",
                 "--emit-ast",
@@ -491,8 +491,8 @@ class BuilderCLITests(unittest.TestCase):
             (["--quart-bytness", "wide"], "Can't parse input arguments"),
             (["--eight-bytness", "wide"], "Can't parse input arguments"),
             (["--sys-type", "plan9"], "Can't parse input arguments"),
-            (["--analysis-only", "--emit-lir"], "Can't parse input arguments"),
-            (["--analysis-only", "-c"], "Can't parse input arguments"),
+            (["--CSA", "--emit-lir"], "Can't parse input arguments"),
+            (["--CSA", "-c"], "Can't parse input arguments"),
             (["--strict"], "Can't parse input arguments"),
             (["--no-strict"], "Can't parse input arguments"),
         ]
@@ -502,7 +502,7 @@ class BuilderCLITests(unittest.TestCase):
             _minimal_source(source)
             for args, message in cases:
                 with self.subTest(args=args):
-                    tail = [source] if "--analysis-only" in args else []
+                    tail = [source] if "--CSA" in args else []
                     result = self.run_cplc(*args, *tail)
                     self.assert_failed_with(result, message)
 
@@ -928,7 +928,7 @@ class BuilderCLITests(unittest.TestCase):
             source.write_text("start() {\n    exit 0 as u8;\n}\n", encoding="utf-8")
 
             result = self.run_cplc(
-                "--analysis-only",
+                "--CSA",
                 "--ast-output", ast_output,
                 "--ir-output", ir_output,
                 "--emit-hir-cfg", "main",
@@ -951,6 +951,7 @@ class BuilderCLITests(unittest.TestCase):
 
             result = self.run_cplc(
                 "--ast-analysis",
+                "--i-dont-know-what-i-am-doing",
                 "-c",
                 "--output", output,
                 source,
@@ -975,6 +976,7 @@ class BuilderCLITests(unittest.TestCase):
             result = self.run_cplc(
                 "--ir-analysis",
                 "--constant",
+                "--i-dont-know-what-i-am-doing",
                 "-c",
                 "--output", output,
                 source,

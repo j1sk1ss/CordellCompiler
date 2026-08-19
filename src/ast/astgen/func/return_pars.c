@@ -1,15 +1,8 @@
 #include <ast/astgen/astgen.h>
 
-ast_node_t* cpl_parse_return(PARSER_ARGS) {
-    PARSER_ARGS_USE;
-    SAVE_TOKEN_POINT;
-
+DEFINE_PARSER(cpl_parse_return, {
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
-    if (!base) {
-        PARSE_ERROR("Can't create a base for a 'return' statement!");
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
+    PARSER_DO_OR_THROW(!base, NULL, "Can't create a base for a 'return' statement!");
     
     stack_top(&ctx->scopes.stack, (void**)&base->sinfo.s_id);
     forward_token(it, 1);
@@ -18,14 +11,8 @@ ast_node_t* cpl_parse_return(PARSER_ARGS) {
     }
 
     ast_node_t* value = cpl_parse_expression(it, ctx, smt, 1);
-    if (value) AST_add_node(base, value);
-    else {
-        PARSE_ERROR("Error during the return statement parsing!");
-        AST_unload(base);
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
-
+    PARSER_DO_OR_THROW(!value, base, "Error during the return statement parsing!");
+    AST_add_node(base, value);
     forward_token(it, 1);
     return base;
-}
+})
