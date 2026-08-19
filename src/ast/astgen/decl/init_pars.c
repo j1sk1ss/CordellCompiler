@@ -1,9 +1,6 @@
 #include <ast/astgen/astgen.h>
 
-ast_node_t* cpl_parse_declaration_value(PARSER_ARGS) {
-    PARSER_ARGS_USE;
-    SAVE_TOKEN_POINT;
-
+DEFINE_PARSER(cpl_parse_declaration_value, {
     long long const_length = -1;
     if (carry) const_length = *((long long*)carry);
     ast_node_t* base = NULL;
@@ -50,4 +47,4 @@ ast_node_t* cpl_parse_declaration_value(PARSER_ARGS) {
 
     if (carry) *((long long*)carry) = const_length;
     return base;
-}
+})

@@ -1,9 +1,6 @@
 #include <ast/astgen/astgen.h>
 
-ast_node_t* cpl_parse_contdef(PARSER_ARGS) {
-    PARSER_ARGS_USE;
-    SAVE_TOKEN_POINT;
-
+DEFINE_PARSER(cpl_parse_contdef, {
     annotations_summary_t annots = { .align = CONF_get_full_bytness(), .section = NULL, .salign = -1, .reg = -1 };
     ANNOT_read_annotations(&ctx->annots, &annots);
 
@@ -30,4 +27,4 @@ ast_node_t* cpl_parse_contdef(PARSER_ARGS) {
     AST_add_node(base, decls);
     ANNOT_destroy_summary(&annots);
     return base;
-}
+})

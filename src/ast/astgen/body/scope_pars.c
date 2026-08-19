@@ -1,8 +1,6 @@
 #include <ast/astgen/astgen.h>
 
-ast_node_t* cpl_parse_line_scope(PARSER_ARGS) {
-    PARSER_ARGS_USE;
-    SAVE_TOKEN_POINT;
+DEFINE_PARSER(cpl_parse_line_scope, {
     ast_node_t* base = AST_create_node_bt(CREATE_SCOPE_TOKEN);
     if (!base) {
         PARSE_ERROR("Can't create a basic block for a scope block!");
@@ -27,11 +25,9 @@ ast_node_t* cpl_parse_line_scope(PARSER_ARGS) {
     }
     
     return base;
-}
+})
 
-ast_node_t* cpl_parse_scope(PARSER_ARGS) {
-    PARSER_ARGS_USE;
-    SAVE_TOKEN_POINT;
+DEFINE_PARSER(cpl_parse_scope, {
     if (carry) SCPTB_push_scope(&smt->sc, &ctx->scopes.stack);
     if (CURRENT_TOKEN->t_type == OPEN_BLOCK_TOKEN) forward_token(it, 1);
     else {
@@ -51,4 +47,4 @@ ast_node_t* cpl_parse_scope(PARSER_ARGS) {
 
     if (carry) stack_pop(&ctx->scopes.stack, NULL);
     return body;
-}
+})

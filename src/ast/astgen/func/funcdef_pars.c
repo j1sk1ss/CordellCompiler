@@ -41,10 +41,7 @@ int cpl_parse_funcdef_args(PARSER_ARGS) {
     return 1;
 }
 
-ast_node_t* cpl_parse_function(PARSER_ARGS) {
-    PARSER_ARGS_USE;
-    SAVE_TOKEN_POINT;
-
+DEFINE_PARSER(cpl_parse_function, {
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
     PARSER_DO_OR_THROW(!base, NULL, "Can't create a base for the function!");
     PARSER_DO_OR_THROW(!consume_token(it, UNKNOWN_STRING_TOKEN), base, "Expected 'UNKNOWN_STRING_TOKEN' token!");
@@ -220,4 +217,4 @@ ast_node_t* cpl_parse_function(PARSER_ARGS) {
 
     FNTB_update_func(name->sinfo.v_id, FNTB_ONLY_FLAGS(FNTB_SET_EXTERNAL(FNTB_NO_EXTERN)), &smt->f);
     return base;
-}
+})

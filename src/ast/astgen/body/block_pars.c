@@ -116,13 +116,11 @@ Params:
     - `smt` - Symtable.
 
 Returns an AST node. */
-ast_node_t* cpl_parse_element(PARSER_ARGS) {
+DEFINE_PARSER(cpl_parse_element, {
     return _navigation_handler(it, ctx, smt, carry);
-}
+})
 
-ast_node_t* cpl_parse_block(PARSER_ARGS) {
-    SAVE_TOKEN_POINT;
-
+DEFINE_PARSER(cpl_parse_block, {
     ast_node_t* base = AST_create_node_bt(CREATE_SCOPE_TOKEN);
     if (!base) {
         PARSE_ERROR("Can't create a basic block for the scope block!");
@@ -146,4 +144,4 @@ ast_node_t* cpl_parse_block(PARSER_ARGS) {
 
     forward_token(it, 1); /* Move past the block terminator */
     return base;
-}
+})

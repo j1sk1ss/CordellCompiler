@@ -1,9 +1,6 @@
 #include <ast/astgen/astgen.h>
 
-ast_node_t* cpl_parse_sizeof(PARSER_ARGS) {
-    PARSER_ARGS_USE;
-    SAVE_TOKEN_POINT;
-
+DEFINE_PARSER(cpl_parse_sizeof, {
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
     PARSER_DO_OR_THROW(!base, NULL, "Can't create a base for the sizeof command!");
     PARSER_DO_OR_THROW(!consume_token(it, OPEN_BRACKET_TOKEN), base, "Expected the 'OPEN_BRACKET_TOKEN'!");
@@ -17,4 +14,4 @@ ast_node_t* cpl_parse_sizeof(PARSER_ARGS) {
 
     forward_token(it, 1);
     return base;
-}
+})

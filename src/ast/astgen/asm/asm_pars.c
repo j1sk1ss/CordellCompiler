@@ -1,9 +1,6 @@
 #include <ast/astgen/astgen.h>
 
-ast_node_t* cpl_parse_asm(PARSER_ARGS) {
-    PARSER_ARGS_USE;
-    SAVE_TOKEN_POINT;
-
+DEFINE_PARSER(cpl_parse_asm, {
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
     PARSER_DO_OR_THROW(!base, NULL, "Can't create a base for the 'asm' structure!");
     PARSER_DO_OR_THROW(
@@ -44,4 +41,4 @@ ast_node_t* cpl_parse_asm(PARSER_ARGS) {
     
     forward_token(it, 1);
     return base;
-}
+})

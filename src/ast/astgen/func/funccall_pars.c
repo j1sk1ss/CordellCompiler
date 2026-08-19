@@ -1,9 +1,6 @@
 #include <ast/astgen/astgen.h>
 
-ast_node_t* cpl_parse_call_arguments(PARSER_ARGS) {
-    PARSER_ARGS_USE;
-    SAVE_TOKEN_POINT;
-
+DEFINE_PARSER(cpl_parse_call_arguments, {
     int* args = (int*)carry;
     ast_node_t* base = AST_create_node_bt(CREATE_SCOPE_TOKEN);
     while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN) {
@@ -20,4 +17,4 @@ ast_node_t* cpl_parse_call_arguments(PARSER_ARGS) {
         }
     } 
     return base;
-}
+})

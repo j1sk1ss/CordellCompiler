@@ -1,9 +1,6 @@
 #include <ast/astgen/astgen.h>
 
-ast_node_t* cpl_parse_if(PARSER_ARGS) {
-    PARSER_ARGS_USE;
-    SAVE_TOKEN_POINT;
-    
+DEFINE_PARSER(cpl_parse_if, {
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
     PARSER_DO_OR_THROW(!base, NULL, "Can't create a base for the 'if' statement!");
     
@@ -36,4 +33,4 @@ ast_node_t* cpl_parse_if(PARSER_ARGS) {
     }
     
     return base;
-}
+})

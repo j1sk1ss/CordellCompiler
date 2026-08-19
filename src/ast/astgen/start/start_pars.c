@@ -1,9 +1,6 @@
 #include <ast/astgen/astgen.h>
 
-ast_node_t* cpl_parse_start(PARSER_ARGS) {
-    PARSER_ARGS_USE;
-    SAVE_TOKEN_POINT;
-
+DEFINE_PARSER(cpl_parse_start, {
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
     PARSER_DO_OR_THROW(!base, NULL, "Can't create a base for the 'start' statement!");
     PARSER_DO_OR_THROW(!consume_token(it, OPEN_BRACKET_TOKEN), base, "Expected the '(' token during a parse of the 'start' statement!");
@@ -52,4 +49,4 @@ ast_node_t* cpl_parse_start(PARSER_ARGS) {
     SCTB_move_to_section(annots.section, annots.salign, base->sinfo.v_id, SECTION_ELEMENT_FUNCTION, &smt->c);
     ANNOT_destroy_summary(&annots);
     return base;
-}
+})

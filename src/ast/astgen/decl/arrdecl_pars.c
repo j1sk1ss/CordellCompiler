@@ -83,10 +83,7 @@ static symbol_id_t _resolve_array_type(ast_node_t* type, ast_ctx_t* ctx, sym_tab
     return type->sinfo.t_id;
 }
 
-ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
-    PARSER_ARGS_USE;
-    SAVE_TOKEN_POINT;
-
+DEFINE_PARSER(cpl_parse_array_declaration, {
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
     PARSER_DO_OR_THROW(!base, NULL, "Can't create a base for the array's declaration!");
 
@@ -165,4 +162,4 @@ ast_node_t* cpl_parse_array_declaration(PARSER_ARGS) {
     ANNOT_destroy_summary(&annots);
     var_lookup(name, ctx, smt);
     return base;
-}
+})

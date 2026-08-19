@@ -1,9 +1,6 @@
 #include <ast/astgen/astgen.h>
 
-ast_node_t* cpl_parse_unary(PARSER_ARGS) {
-    PARSER_ARGS_USE;
-    SAVE_TOKEN_POINT;
-
+DEFINE_PARSER(cpl_parse_unary, {
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
     PARSER_DO_OR_THROW(!base, NULL, "Can't create a base for an unary command!");
 
@@ -12,4 +9,4 @@ ast_node_t* cpl_parse_unary(PARSER_ARGS) {
     PARSER_DO_OR_THROW(!body, base, "Error during the unary's body parse! <unary> <exp>!");
     AST_add_node(base, body);
     return base;
-}
+})

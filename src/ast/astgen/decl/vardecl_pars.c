@@ -1,9 +1,6 @@
 #include <ast/astgen/astgen.h>
 
-ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
-    PARSER_ARGS_USE;
-    SAVE_TOKEN_POINT;
-
+DEFINE_PARSER(cpl_parse_variable_declaration, {
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
     PARSER_DO_OR_THROW(!base, NULL, "Can't create a base for the variable's declaration type! <type> <name>!");
 
@@ -69,4 +66,4 @@ ast_node_t* cpl_parse_variable_declaration(PARSER_ARGS) {
 
     ANNOT_destroy_summary(&annots);
     return base;
-}
+})

@@ -1,9 +1,6 @@
 #include <ast/astgen/astgen.h>
 
-ast_node_t* cpl_parse_extern(PARSER_ARGS) {
-    PARSER_ARGS_USE;
-    SAVE_TOKEN_POINT;
-
+DEFINE_PARSER(cpl_parse_extern, {
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
     PARSER_DO_OR_THROW(!base, NULL, "Can't create a base for the extern statement!");
     
@@ -33,4 +30,4 @@ ast_node_t* cpl_parse_extern(PARSER_ARGS) {
     PARSER_DO_OR_THROW(!arg, base, "Extern declaration error! extern <[type]/function>!");
     AST_add_node(base, arg);
     return base;
-}
+})

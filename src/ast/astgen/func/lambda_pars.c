@@ -1,8 +1,6 @@
 #include <ast/astgen/astgen.h>
 
-ast_node_t* cpl_parse_lambda(PARSER_ARGS) {
-    PARSER_ARGS_USE;
-    SAVE_TOKEN_POINT;
+DEFINE_PARSER(cpl_parse_lambda, {
     ast_node_t* base = AST_create_node_bt(CREATE_LAMBDA_TOKEN);
     PARSER_DO_OR_THROW(!base, NULL, "Can't create a base for the lambda!");
 
@@ -46,4 +44,4 @@ ast_node_t* cpl_parse_lambda(PARSER_ARGS) {
     ctx->t_id = preserved_tid;
     stack_pop(&ctx->scopes.stack, NULL);
     return base;
-}
+})

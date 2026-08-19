@@ -90,29 +90,11 @@ static annotation_t* _parse_annotation_content(list_iter_t* it, ast_ctx_t* ctx, 
 }
 #undef ADD_ANNOTATION_HANDLER
 
-ast_node_t* cpl_parse_annot(PARSER_ARGS) {
-    PARSER_ARGS_USE;
-    SAVE_TOKEN_POINT;
-    
-    if (!consume_token(it, OPEN_INDEX_TOKEN)) {
-        PARSE_ERROR("'@' should be followed by '['!");
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
-
-    if (!consume_token(it, UNKNOWN_STRING_TOKEN)) {
-        PARSE_ERROR("Expected a string token after the annotation's start!");
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
-
+DEFINE_PARSER(cpl_parse_annot, {
+    PARSER_DO_OR_THROW(!consume_token(it, OPEN_INDEX_TOKEN), NULL, "'@' should be followed by '['!");
+    PARSER_DO_OR_THROW(!consume_token(it, UNKNOWN_STRING_TOKEN), NULL, "Expected a string token after the annotation's start!");
     annotation_t* annot = _parse_annotation_content(it, ctx, smt);
-    if (annot) stack_push(&ctx->annots, annot);
-    else {
-        PARSE_ERROR("Annotation parse error!");
-        RESTORE_TOKEN_POINT;
-        return NULL;
-    }
-
+    PARSER_DO_OR_THROW(!annot, NULL, "Annotation parse error!");
+    stack_push(&ctx->annots, annot);
     return NULL;
-}
+})
