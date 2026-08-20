@@ -15,6 +15,7 @@ DEFINE_PARSER(cpl_parse_call_arguments, {
         if (CURRENT_TOKEN->t_type == COMMA_TOKEN) {
             forward_token(it, 1);
         }
-    } 
+    }
+    
     return base;
 })

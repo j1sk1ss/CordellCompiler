@@ -16,10 +16,11 @@ Params:
 Returns an AST node. */
 static ast_node_t* _parse_primary(list_iter_t*, ast_ctx_t*, sym_table_t*, int);
 
-#define WRAP_REFERENCE_NODE(nd) \
-    ast_node_t* __pp = AST_create_node_bt(TKN_create_token(REF_TYPE_TOKEN, "ref", NULL)); \
-    AST_add_node(__pp, nd);                                                               \
-    nd = __pp;                                                                            \
+#define WRAP_REFERENCE_NODE(nd) do {                                                          \
+        ast_node_t* __pp = AST_create_node_bt(TKN_create_token(REF_TYPE_TOKEN, "ref", NULL)); \
+        AST_add_node(__pp, nd);                                                               \
+        nd = __pp;                                                                            \
+    } while (0)
 
 /* Parse expression that looks like: <stmt> <op> <stmt>. 
 Note: <stmt> here can be either a simple <(a..> or a complex sub-stmt.
@@ -159,10 +160,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                                     left->self->t->t_type != INDEXATION_TOKEN && /* Any indexation operation already have referenced */
                                     self_ti.link.p == NO_SYMBOL_ID               /* And this isn't a field in a container            */
                                 )
-                            ) {
-                                WRAP_REFERENCE_NODE(left->self);
-                            }
-
+                            ) WRAP_REFERENCE_NODE(left->self);
                             AST_insert_node(data, left->self);
                             left->self = NULL;
                         }
@@ -230,6 +228,7 @@ _stop_expression_parsing: {}
     DUMP_ANNOTATION_TO_NODE(ctx, left);
     return left;
 }
+#undef WRAP_REFERENCE_NODE
 
 static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int na) {
     SAVE_TOKEN_POINT;

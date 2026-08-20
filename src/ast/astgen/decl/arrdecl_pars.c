@@ -5,10 +5,7 @@ Params:
     - <Parser args> - Arguments.
 
 Returns an AST node of a type. */
-static ast_node_t* _parse_array_type(PARSER_ARGS) {
-    PARSER_ARGS_USE;
-    SAVE_TOKEN_POINT;
-
+static DEFINE_PARSER(_parse_array_type, {
     ast_node_t* type = NULL;
     forward_token(it, 1);
     switch (CURRENT_TOKEN->t_type) {
@@ -39,7 +36,7 @@ static ast_node_t* _parse_array_type(PARSER_ARGS) {
     }
 
     return type;
-}
+})
 
 static symbol_id_t _resolve_array_type(ast_node_t* type, ast_ctx_t* ctx, sym_table_t* smt);
 
