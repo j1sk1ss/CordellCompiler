@@ -70,14 +70,14 @@ static int _generate_counted_loop_block(ast_node_t* node, hir_ctx_t* ctx, annota
         HIR_BLOCK1(ctx, HIR_JMP, body_lb);
 
         HIR_BLOCK1(ctx, HIR_MKLB, body_lb);
-        HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
+        HIR_BLOCK0(ctx, HIR_MKSCOPE);
         
         hir_subject_t* backup = ctx->carry.brk;
         ctx->carry.brk = end_lb;
         HIR_generate_block(lbranch->c, ctx, smt);
         ctx->carry.brk = backup;
 
-        HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(lbranch->sinfo.s_id));
+        HIR_BLOCK0(ctx, HIR_ENDSCOPE);
         if (!counter) HIR_BLOCK1(ctx, HIR_JMP, entry_lb);
         else {
             if (!step) step = HIR_SUBJ_CONST(1);

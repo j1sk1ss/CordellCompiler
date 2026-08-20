@@ -109,7 +109,7 @@ Params:
     - `ctx` - HIR context.
     - `op` - 'HIR_MKSCOPE' or 'HIR_ENDSCOPE' command. */
 static inline void _insert_scope(ast_node_t* t, hir_ctx_t* ctx, hir_operation_t op) {
-    if (t->t && t->t->t_type == SCOPE_TOKEN) HIR_BLOCK1(ctx, op, HIR_SUBJ_CONST(t->sinfo.s_id));
+    if (t->t && t->t->t_type == SCOPE_TOKEN) HIR_BLOCK0(ctx, op);
 }
 
 int HIR_generate_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {

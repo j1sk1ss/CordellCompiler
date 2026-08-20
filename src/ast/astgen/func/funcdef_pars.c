@@ -113,9 +113,10 @@ DEFINE_PARSER(cpl_parse_function, {
         { AST_unload(base); list_free(&generic_types); ANNOT_destroy_summary(&annots); stack_pop(&ctx->scopes.stack, NULL); }
     );
 
+    ast_node_t* ret_type = NULL;
     if (consume_token(it, RETURN_TYPE_TOKEN)) {
         forward_token(it, 1);
-        ast_node_t* ret_type = AST_create_node(CURRENT_TOKEN);
+        ret_type = AST_create_node(CURRENT_TOKEN);
         ret_type->sinfo.t_id = type_lookup(ret_type->t, ctx, smt);
         if (ret_type->sinfo.t_id != NO_SYMBOL_ID) {
             ret_type->t->t_type = EXTRACT_TYPE_TYPE(ret_type->sinfo.t_id, smt);
@@ -163,7 +164,7 @@ DEFINE_PARSER(cpl_parse_function, {
             .generic = list_size(&generic_types) != 0, .inln  = annots.do_inline, .self     = annots.is_self, 
             .abi     = annots.is_abi,                  .weak  = annots.is_weak,   .vname    = annots.is_vname
         },
-        name->sinfo.s_id, args, name->c, &smt->f
+        name->sinfo.s_id, args, ret_type, &smt->f
     );
     
     if (preserved_tid != NO_SYMBOL_ID) {

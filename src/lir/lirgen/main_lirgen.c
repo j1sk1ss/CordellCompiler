@@ -91,8 +91,8 @@ static int _convert_hir_to_lir(sstack_t* params, hir_block_t* h, lir_ctx_t* ctx,
             ) LIR_BLOCK1(ctx, LIR_LOADFRET, _convert_hs_to_ls(h->farg));
             return 1;
         }
-        case HIR_MKSCOPE:  return LIR_BLOCK1(ctx, LIR_MKSCOPE, LIR_SUBJ_CONST(h->farg->storage.cnst.value));
-        case HIR_ENDSCOPE: return LIR_BLOCK1(ctx, LIR_ENDSCOPE, LIR_SUBJ_CONST(h->farg->storage.cnst.value));
+        case HIR_MKSCOPE:  return LIR_BLOCK0(ctx, LIR_MKSCOPE);
+        case HIR_ENDSCOPE: return LIR_BLOCK0(ctx, LIR_ENDSCOPE);
         case HIR_SYSC: 
         case HIR_STORE_SYSC: {
             lir_subject_t* sargs = LIR_SUBJ_LIST();
