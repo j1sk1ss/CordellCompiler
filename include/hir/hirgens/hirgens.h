@@ -449,8 +449,43 @@ Params:
 Return loaded member value.
 */
 hir_subject_t* HIR_generate_load_member_access(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
+
+/*
+Syntheticly move a head towards the field (by sub-type Id).
+Params:
+    - `root` - Container field access node.
+    - `ctx` - HIR ctx.
+    - `field_info` - Ouput field info. Will fill the structure
+                     if it will find the field.
+    - `smt` - Symtable.
+
+Returns a pointer to the field. 
+*/
 hir_subject_t* HIR_point_to_field(ast_node_t* root, hir_ctx_t* ctx, type_info_t* field_info, sym_table_t* smt);
+
+/* 
+Load the pointer stored in an array field header.
+Array fields keep the element buffer head separately from the container field.
+Params:
+    - `head` - Address of the array field header.
+    - `ai` - Array metadata.
+    - `ctx` - HIR context.
+    - `smt` - Symtable.
+
+Returns a temporary subject that points to the first array element. 
+*/
 hir_subject_t* HIR_load_array_field_head(hir_subject_t* head, array_info_t* ai, hir_ctx_t* ctx, sym_table_t* smt);
+
+/*
+Store data to a filed of a container.
+Params:
+    - `node` - Store operation node.
+    - `data` - The data which is stored in the field.
+    - `ctx` - HIR ctx.
+    - `smt` - Symtable.
+
+Returns 1 if there is no errors.
+*/
 int HIR_generate_store_member_access(ast_node_t* node, hir_subject_t* data, hir_ctx_t* ctx, sym_table_t* smt);
 
 #endif

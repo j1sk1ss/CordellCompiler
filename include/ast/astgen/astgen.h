@@ -125,6 +125,11 @@ int annotation_unreserve(ast_ctx_t* ctx, int off);
 #define PARSER_ARGS     list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, long carry
 #define PARSER_ARGS_USE (void)it; (void)ctx; (void)smt; (void)carry;
 
+/* Create a parser with a name. Parser can use several fields:
+   - `carry`:long - A field which contains information about the parent of a node 
+   - `smt`:sym_table_t - Symbol table 
+   - `ctx`:ast_context_t - Context of the current parser iteration 
+   - `it`:list_iterator_t - Current position in a list of tokens */
 #define DEFINE_PARSER(name, ...)                                                                     \
     ast_node_t* name(PARSER_ARGS) {                                                                  \
         PARSER_ARGS_USE;                                                                             \

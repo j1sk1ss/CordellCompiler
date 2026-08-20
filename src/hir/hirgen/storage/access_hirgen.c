@@ -48,15 +48,6 @@ hir_subject_t* HIR_point_to_field(ast_node_t* root, hir_ctx_t* ctx, type_info_t*
     return real_offset;
 }
 
-/* Load the pointer stored in an array field header.
-Array fields keep the element buffer head separately from the container field.
-Params:
-    - `head` - Address of the array field header.
-    - `ai` - Array metadata.
-    - `ctx` - HIR context.
-    - `smt` - Symtable.
-
-Returns a temporary subject that points to the first array element. */
 hir_subject_t* HIR_load_array_field_head(hir_subject_t* head, array_info_t* ai, hir_ctx_t* ctx, sym_table_t* smt) {
     token_t tmp = { .t_type = ai->elements_info.el_type };
     ai->elements_info.el_flags.ptr++;
