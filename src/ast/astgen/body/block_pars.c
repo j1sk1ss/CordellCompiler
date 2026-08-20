@@ -122,12 +122,16 @@ DEFINE_PARSER(cpl_parse_element, {
 
 DEFINE_PARSER(cpl_parse_block, {
     ast_node_t* base = AST_create_node_bt(CREATE_SCOPE_TOKEN);
-    PARSER_DO_OR_THROW(!base, NULL, "Can't create a basic block for the scope block!");
+    PARSER_ASSERT(!base, NULL, "Can't create a basic block for the scope block!");
 
     stack_top(&ctx->scopes.stack, (void**)&base->sinfo.s_id);
     while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != carry) {
         ast_node_t* block = cpl_parse_element(it, ctx, smt, carry);
-        PARSER_DO_OR_THROW_DO(CONF_is_parser_error(), "There is a critical error during the block parsing!", { AST_unload(block); AST_unload(base); });
+        PARSER_ASSERT_DO(
+            CONF_is_parser_error(), "There is a critical error during the block parsing!", 
+            { AST_unload(block); AST_unload(base); }
+        );
+        
         if (block) AST_add_node(base, block);  /* If parsing succeeds, add the parsed node to the body */
         else if (!forward_token(it, 1)) break; /* If there is an error, advance to the next token      */
     }

@@ -43,12 +43,12 @@ int cpl_parse_funcdef_args(PARSER_ARGS) {
 
 DEFINE_PARSER(cpl_parse_function, {
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
-    PARSER_DO_OR_THROW(!base, NULL, "Can't create a base for the function!");
-    PARSER_DO_OR_THROW(!consume_token(it, UNKNOWN_STRING_TOKEN), base, "Expected 'UNKNOWN_STRING_TOKEN' token!");
+    PARSER_ASSERT(!base, NULL, "Can't create a base for the function!");
+    PARSER_ASSERT(!consume_token(it, UNKNOWN_STRING_TOKEN), base, "Expected 'UNKNOWN_STRING_TOKEN' token!");
 
     string_t* base_type = NULL;
     ast_node_t* name = AST_create_node(CURRENT_TOKEN);
-    PARSER_DO_OR_THROW(!name, base, "Can't create a base for the function's name!");
+    PARSER_ASSERT(!name, base, "Can't create a base for the function's name!");
     
     if (
         consume_token(it, STAT_TOKEN) && 
@@ -60,7 +60,7 @@ DEFINE_PARSER(cpl_parse_function, {
         forward_token(it, 1);
     }
     
-    PARSER_DO_OR_THROW(!name, base, "Can't create a base for the function's name!");
+    PARSER_ASSERT(!name, base, "Can't create a base for the function's name!");
     name->t->t_type = FUNC_NAME_TOKEN;
     AST_add_node(base, name);
 
@@ -93,7 +93,7 @@ DEFINE_PARSER(cpl_parse_function, {
     }
 
     ast_node_t* args = AST_create_node_bt(CREATE_SCOPE_TOKEN);
-    PARSER_DO_OR_THROW_DO(
+    PARSER_ASSERT_DO(
         !args, "Can't create a base for the function's arguments!", 
         { AST_unload(base); list_free(&generic_types); stack_pop(&ctx->scopes.stack, NULL); }
     );
@@ -108,7 +108,7 @@ DEFINE_PARSER(cpl_parse_function, {
     ctx->t_id = NO_SYMBOL_ID;
 
     forward_token(it, 1);
-    PARSER_DO_OR_THROW_DO(
+    PARSER_ASSERT_DO(
         !cpl_parse_funcdef_args(it, ctx, smt, (long)args), "Can't parse function's arguments!",
         { AST_unload(base); list_free(&generic_types); ANNOT_destroy_summary(&annots); stack_pop(&ctx->scopes.stack, NULL); }
     );
@@ -205,7 +205,7 @@ DEFINE_PARSER(cpl_parse_function, {
 
     ast_node_t* body = NULL;
     PRESERVE_AST_CARRY_ARG({ body = cpl_parse_scope(it, ctx, smt, 1); }, name->sinfo.v_id);
-    PARSER_DO_OR_THROW_DO(
+    PARSER_ASSERT_DO(
         !body, "Error during the function's body parsing!", 
         { AST_unload(base); list_free(&generic_types); stack_pop(&ctx->scopes.stack, NULL); }
     );

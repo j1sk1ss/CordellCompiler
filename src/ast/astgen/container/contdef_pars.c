@@ -5,11 +5,11 @@ DEFINE_PARSER(cpl_parse_contdef, {
     ANNOT_read_annotations(&ctx->annots, &annots);
 
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
-    PARSER_DO_OR_THROW(!base, NULL, "Can't create a base for a container!");
+    PARSER_ASSERT(!base, NULL, "Can't create a base for a container!");
 
     forward_token(it, 1);
     ast_node_t* name = AST_create_node(CURRENT_TOKEN);
-    PARSER_DO_OR_THROW_DO(!name, "Can't create a name for a container!", { AST_unload(base); ANNOT_destroy_summary(&annots); });
+    PARSER_ASSERT_DO(!name, "Can't create a name for a container!", { AST_unload(base); ANNOT_destroy_summary(&annots); });
 
     AST_add_node(base, name);
     stack_top(&ctx->scopes.stack, (void**)&name->sinfo.s_id);
@@ -21,7 +21,7 @@ DEFINE_PARSER(cpl_parse_contdef, {
     ast_node_t* decls = cpl_parse_scope(it, ctx, smt, 1);
     ctx->t_id = NO_SYMBOL_ID;
 
-    PARSER_DO_OR_THROW_DO(!decls, "Can't parse the container's body!", { AST_unload(base); ANNOT_destroy_summary(&annots); });
+    PARSER_ASSERT_DO(!decls, "Can't parse the container's body!", { AST_unload(base); ANNOT_destroy_summary(&annots); });
     
     TPTB_set_child_scope_id(name->sinfo.t_id, decls->sinfo.s_id, &smt->t);
     AST_add_node(base, decls);

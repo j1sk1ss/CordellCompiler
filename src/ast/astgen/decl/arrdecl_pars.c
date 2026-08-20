@@ -13,13 +13,13 @@ static DEFINE_PARSER(_parse_array_type, {
             type = AST_create_node(CURRENT_TOKEN);
             forward_token(it, 2);
             ast_node_t* arr_size = cpl_parse_expression(it, ctx, smt, carry);
-            PARSER_DO_OR_THROW_DO(
+            PARSER_ASSERT_DO(
                 !type || !arr_size || CURRENT_TOKEN->t_type != COMMA_TOKEN, "Can't parse nested array type! Expected the ',' token!", 
                 { AST_unload(type); AST_unload(arr_size); }
             );
 
             ast_node_t* arr_type = _parse_array_type(it, ctx, smt, carry);
-            PARSER_DO_OR_THROW_DO(
+            PARSER_ASSERT_DO(
                 !consume_token(it, CLOSE_INDEX_TOKEN), "Can't create the size and the type for an array!", 
                 { AST_unload(type); AST_unload(arr_size); AST_unload(arr_type); }
             );
@@ -30,7 +30,7 @@ static DEFINE_PARSER(_parse_array_type, {
         }
         default: {
             type = AST_create_node(CURRENT_TOKEN);
-            PARSER_DO_OR_THROW(!type, NULL, "Can't create a base for the array's type!");
+            PARSER_ASSERT(!type, NULL, "Can't create a base for the array's type!");
             break;
         }
     }
@@ -82,47 +82,47 @@ static symbol_id_t _resolve_array_type(ast_node_t* type, ast_ctx_t* ctx, sym_tab
 
 DEFINE_PARSER(cpl_parse_array_declaration, {
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
-    PARSER_DO_OR_THROW(!base, NULL, "Can't create a base for the array's declaration!");
+    PARSER_ASSERT(!base, NULL, "Can't create a base for the array's declaration!");
 
     annotations_summary_t annots = { .align = CONF_get_full_bytness(), .section = NULL, .salign = -1 };
     ANNOT_read_annotations(&ctx->annots, &annots);
 
     forward_token(it, 1);
     ast_node_t* name = AST_create_node(CURRENT_TOKEN);
-    PARSER_DO_OR_THROW_DO(
+    PARSER_ASSERT_DO(
         !name, "Can't create a base for the array's name!", 
         { AST_unload(base); ANNOT_destroy_summary(&annots); }
     );
     AST_add_node(base, name);
 
-    PARSER_DO_OR_THROW_DO(
+    PARSER_ASSERT_DO(
         !consume_token(it, OPEN_INDEX_TOKEN), "Error during array parsing! arr <name>[<size>, <type>]! Expected the '[' token!", 
         { AST_unload(base); ANNOT_destroy_summary(&annots); }
     );
 
     forward_token(it, 1);
     ast_node_t* length = cpl_parse_expression(it, ctx, smt, 0);
-    PARSER_DO_OR_THROW_DO(
+    PARSER_ASSERT_DO(
         !length, "Can't create a base for the array's size!", 
         { AST_unload(base); ANNOT_destroy_summary(&annots); }
     );
 
     AST_add_node(base, length);
     
-    PARSER_DO_OR_THROW_DO(
+    PARSER_ASSERT_DO(
         CURRENT_TOKEN->t_type != COMMA_TOKEN, "Error during array parsing! arr <name>[<size>, <type>]! Expected the ',' token!", 
         { AST_unload(base); ANNOT_destroy_summary(&annots); }
     );
 
     ast_node_t* type = _parse_array_type(it, ctx, smt, carry);
-    PARSER_DO_OR_THROW_DO(
+    PARSER_ASSERT_DO(
         !type, "Can't create a base for the array's type!", 
         { AST_unload(base); ANNOT_destroy_summary(&annots); }
     );
 
     AST_add_node(base, type);
 
-    PARSER_DO_OR_THROW_DO(
+    PARSER_ASSERT_DO(
         !consume_token(it, CLOSE_INDEX_TOKEN), "Error during array parsing! arr <name>[<size>, <type>]! Expected the ']' token!", 
         { AST_unload(base); ANNOT_destroy_summary(&annots); }
     );

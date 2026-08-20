@@ -2,35 +2,35 @@
 
 DEFINE_PARSER(cpl_parse_asm, {
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
-    PARSER_DO_OR_THROW(!base, NULL, "Can't create a base for the 'asm' structure!");
-    PARSER_DO_OR_THROW(
+    PARSER_ASSERT(!base, NULL, "Can't create a base for the 'asm' structure!");
+    PARSER_ASSERT(
         !consume_token(it, OPEN_BRACKET_TOKEN), base, 
         "Expected the '(' token while parse of the 'asm' statement!"
     );
 
     forward_token(it, 1); 
     ast_node_t* args = cpl_parse_call_arguments(it, ctx, smt, 0);
-    PARSER_DO_OR_THROW(!args, base, "Error during the 'asm' argument value parsing! Provide variables or values.");
+    PARSER_ASSERT(!args, base, "Error during the 'asm' argument value parsing! Provide variables or values.");
     AST_add_node(base, args);
 
     ast_node_t* body = AST_create_node_bt(CREATE_SCOPE_TOKEN);
-    PARSER_DO_OR_THROW(!body, base, "Can't create a body for the 'asm' structure!");
+    PARSER_ASSERT(!body, base, "Can't create a body for the 'asm' structure!");
     AST_add_node(base, body);
 
-    PARSER_DO_OR_THROW(
+    PARSER_ASSERT(
         !consume_token(it, OPEN_BLOCK_TOKEN), base, 
         "Expected the '{' token while parse of the 'asm' statement!"
     );
 
     do {
-        PARSER_DO_OR_THROW(
+        PARSER_ASSERT(
             !consume_token(it, STRING_VALUE_TOKEN), base,
             "Expected a string value in the 'asm's body!"
         );
 
         ast_node_t* arg = AST_create_node(CURRENT_TOKEN);
         if (arg) arg->sinfo.v_id = STTB_add_info(CURRENT_TOKEN->body, STR_RAW_ASM, &smt->s);
-        PARSER_DO_OR_THROW(
+        PARSER_ASSERT(
             !arg || arg->sinfo.v_id == NO_SYMBOL_ID, base, 
             "Can't create a body for the 'asm'-string!"
         );
@@ -38,7 +38,6 @@ DEFINE_PARSER(cpl_parse_asm, {
         AST_add_node(body, arg);
         consume_token(it, COMMA_TOKEN);
     } while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != CLOSE_BLOCK_TOKEN);
-    
     forward_token(it, 1);
     return base;
 })

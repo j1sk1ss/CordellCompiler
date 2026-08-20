@@ -2,10 +2,10 @@
 
 DEFINE_PARSER(cpl_parse_lambda, {
     ast_node_t* base = AST_create_node_bt(CREATE_LAMBDA_TOKEN);
-    PARSER_DO_OR_THROW(!base, NULL, "Can't create a base for the lambda!");
+    PARSER_ASSERT(!base, NULL, "Can't create a base for the lambda!");
 
     ast_node_t* args = AST_create_node_bt(CREATE_SCOPE_TOKEN);
-    PARSER_DO_OR_THROW(!args, base, "Can't create a base for the lambdas's arguments!");
+    PARSER_ASSERT(!args, base, "Can't create a base for the lambdas's arguments!");
     AST_add_node(base, args);
 
     stack_top(&ctx->scopes.stack, (void**)&base->sinfo.s_id);
@@ -14,12 +14,12 @@ DEFINE_PARSER(cpl_parse_lambda, {
     symbol_id_t preserved_tid = ctx->t_id;
     ctx->t_id = NO_SYMBOL_ID;
 
-    PARSER_DO_OR_THROW_DO(
+    PARSER_ASSERT_DO(
         !cpl_parse_funcdef_args(it, ctx, smt, (long)args), "Can't parse lambdas's arguments!", 
         { AST_unload(base); ctx->t_id = preserved_tid; stack_pop(&ctx->scopes.stack, NULL); }
     );
 
-    PARSER_DO_OR_THROW_DO(
+    PARSER_ASSERT_DO(
         !consume_token(it, LAMBDA_TOKEN), "Expected the 'LAMBDA_TOKEN'!",
         { AST_unload(base); ctx->t_id = preserved_tid; stack_pop(&ctx->scopes.stack, NULL); }
     );
@@ -35,7 +35,7 @@ DEFINE_PARSER(cpl_parse_lambda, {
         else body = cpl_parse_scope(it, ctx, smt, 1);
      }, base->sinfo.v_id);
 
-    PARSER_DO_OR_THROW_DO(
+    PARSER_ASSERT_DO(
         !body, "Error during the lambdas's body parsing!", 
         { AST_unload(base); ctx->t_id = preserved_tid; stack_pop(&ctx->scopes.stack, NULL); }
     );

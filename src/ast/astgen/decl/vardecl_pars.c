@@ -2,7 +2,7 @@
 
 DEFINE_PARSER(cpl_parse_variable_declaration, {
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
-    PARSER_DO_OR_THROW(!base, NULL, "Can't create a base for the variable's declaration type! <type> <name>!");
+    PARSER_ASSERT(!base, NULL, "Can't create a base for the variable's declaration type! <type> <name>!");
 
     annotations_summary_t annots = { .align = CONF_get_full_bytness(), .section = NULL, .salign = -1, .reg = -1 };
     ANNOT_read_annotations(&ctx->annots, &annots);
@@ -10,7 +10,7 @@ DEFINE_PARSER(cpl_parse_variable_declaration, {
 
     forward_token(it, 1);
     ast_node_t* name = AST_create_node(CURRENT_TOKEN);
-    PARSER_DO_OR_THROW_DO(
+    PARSER_ASSERT_DO(
         !name, "Can't create a base for the variable's name! <type> <name>!", 
         { ANNOT_destroy_summary(&annots); AST_unload(base); }
     );

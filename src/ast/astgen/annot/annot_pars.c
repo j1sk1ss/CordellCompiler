@@ -91,10 +91,10 @@ static annotation_t* _parse_annotation_content(list_iter_t* it, ast_ctx_t* ctx, 
 #undef ADD_ANNOTATION_HANDLER
 
 DEFINE_PARSER(cpl_parse_annot, {
-    PARSER_DO_OR_THROW(!consume_token(it, OPEN_INDEX_TOKEN), NULL, "'@' should be followed by '['!");
-    PARSER_DO_OR_THROW(!consume_token(it, UNKNOWN_STRING_TOKEN), NULL, "Expected a string token after the annotation's start!");
+    PARSER_ASSERT(!consume_token(it, OPEN_INDEX_TOKEN), NULL, "'@' should be followed by '['!");
+    PARSER_ASSERT(!consume_token(it, UNKNOWN_STRING_TOKEN), NULL, "Expected a string token after the annotation's start!");
     annotation_t* annot = _parse_annotation_content(it, ctx, smt);
-    PARSER_DO_OR_THROW(!annot, NULL, "Annotation parse error!");
+    PARSER_ASSERT(!annot, NULL, "Annotation parse error!");
     stack_push(&ctx->annots, annot);
     return NULL;
 })

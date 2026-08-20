@@ -42,7 +42,7 @@
    the `action` must return `true`). 
    Sometimes we need to unload a `node`. To do this, use the backup. The backup can be
    NULL. */
-#define PARSER_DO_OR_THROW(action, backup, message)                                                  \
+#define PARSER_ASSERT(action, backup, message)                                                  \
     do {                                                                                             \
         if (action) {                                                                                \
             PARSE_ERROR(message);                                                                    \
@@ -54,7 +54,7 @@
 /* Do something in a parser and thrown the message if there is a error (to mark a error, 
    the `action` must return `true`). 
    Sometimes we need to unload do something on a error. To do this, use the backup action. */
-#define PARSER_DO_OR_THROW_DO(action, message, then)                                                 \
+#define PARSER_ASSERT_DO(action, message, then)                                                 \
     do {                                                                                             \
         if (action) {                                                                                \
             PARSE_ERROR(message);                                                                    \
