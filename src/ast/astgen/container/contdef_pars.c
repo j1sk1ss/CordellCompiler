@@ -17,9 +17,9 @@ DEFINE_PARSER(cpl_parse_contdef, {
     name->t->t_type  = CUSTOM_TYPE_TOKEN;
 
     forward_token(it, 1);
-    ctx->t_id = name->sinfo.t_id;
+    stack_push(&ctx->types, (void*)name->sinfo.t_id);
     ast_node_t* decls = cpl_parse_scope(it, ctx, smt, 1);
-    ctx->t_id = NO_SYMBOL_ID;
+    stack_pop(&ctx->types, NULL);
 
     PARSER_ASSERT_DO(!decls, "Can't parse the container's body!", { AST_unload(base); ANNOT_destroy_summary(&annots); });
     

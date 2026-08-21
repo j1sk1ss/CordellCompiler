@@ -3,6 +3,30 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Nested containers
+<div class="change-date">Date: 2026-08-21</div>
+Containers are usefull - this is true. But if we can create them only on top level - we cut their abilities. That's why I've changed it here. Now users can create nested containers:
+
+```cpl
+container outer {
+    container nested {
+        i32 a;
+    }
+    i32 a;
+
+    @[self]
+    function new(ptr outer self, i32 a) {
+        nested n = { a };
+        return a + n.a + self.a;
+    }
+}
+
+start() {
+    outer a = { 1 };
+    exit a.new(1) as u8; :/ 3 /:
+}
+```
+
 ## NotNull
 <div class="change-date">Date: 2026-08-17</div>
 CSA allows us to track a lot of things. For example - nullables in extern functions where there is no information about the body. For instance:

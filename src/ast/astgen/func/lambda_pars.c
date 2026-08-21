@@ -11,17 +11,18 @@ DEFINE_PARSER(cpl_parse_lambda, {
     stack_top(&ctx->scopes.stack, (void**)&base->sinfo.s_id);
     args->sinfo.s_id = SCPTB_push_scope(&smt->sc, &ctx->scopes.stack);
 
-    symbol_id_t preserved_tid = ctx->t_id;
-    ctx->t_id = NO_SYMBOL_ID;
+    symbol_id_t preserved_tid;
+    stack_top(&ctx->types, (void**)&preserved_tid);
+    stack_push(&ctx->types, (void*)NO_SYMBOL_ID);
 
     PARSER_ASSERT_DO(
         !cpl_parse_funcdef_args(it, ctx, smt, (long)args), "Can't parse lambdas's arguments!", 
-        { AST_unload(base); ctx->t_id = preserved_tid; stack_pop(&ctx->scopes.stack, NULL); }
+        { AST_unload(base); stack_pop(&ctx->types, NULL); stack_pop(&ctx->scopes.stack, NULL); }
     );
 
     PARSER_ASSERT_DO(
         !consume_token(it, LAMBDA_TOKEN), "Expected the 'LAMBDA_TOKEN'!",
-        { AST_unload(base); ctx->t_id = preserved_tid; stack_pop(&ctx->scopes.stack, NULL); }
+        { AST_unload(base); stack_pop(&ctx->types, NULL); stack_pop(&ctx->scopes.stack, NULL); }
     );
 
     string_t* anon_name = create_string("__anon_function_lambda");
@@ -37,11 +38,11 @@ DEFINE_PARSER(cpl_parse_lambda, {
 
     PARSER_ASSERT_DO(
         !body, "Error during the lambdas's body parsing!", 
-        { AST_unload(base); ctx->t_id = preserved_tid; stack_pop(&ctx->scopes.stack, NULL); }
+        { AST_unload(base); stack_pop(&ctx->types, NULL); stack_pop(&ctx->scopes.stack, NULL); }
     );
     AST_add_node(args, body);
 
-    ctx->t_id = preserved_tid;
     stack_pop(&ctx->scopes.stack, NULL);
+    stack_pop(&ctx->types, NULL);
     return base;
 })

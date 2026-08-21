@@ -62,7 +62,11 @@ DEFINE_PARSER(cpl_parse_variable_declaration, {
 
     base->sinfo.t_id = TPTB_add_copy(declared_type, name->sinfo.v_id, base->t->flags.ptr, &smt->t);
     VRTB_update_type(name->sinfo.v_id, FIELD_NO_CHANGE, base->sinfo.t_id, &smt->v);
-    TPTB_add_as_child(ctx->t_id, base->sinfo.t_id, name->t->body, base->t->flags.ptr ? CONF_get_full_bytness() : SMT_NULL, &smt->t);
+
+    symbol_id_t pt_id;
+    if (stack_top(&ctx->types, (void**)&pt_id)) {
+        TPTB_add_as_child(pt_id, base->sinfo.t_id, name->t->body, base->t->flags.ptr ? CONF_get_full_bytness() : SMT_NULL, &smt->t);
+    }
 
     ANNOT_destroy_summary(&annots);
     return base;

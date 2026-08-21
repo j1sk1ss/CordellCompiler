@@ -4,7 +4,8 @@ int AST_init_ctx(ast_ctx_t* ctx) {
     str_memset(ctx, 0, sizeof(ast_ctx_t));
     stack_init(&ctx->scopes.stack);
     stack_init(&ctx->annots);
-    ctx->t_id = ctx->carry.pfunc = NO_SYMBOL_ID;
+    ctx->carry.pfunc = NO_SYMBOL_ID;
+    stack_init(&ctx->types);
     return 1;
 }
 
@@ -96,6 +97,7 @@ int AST_finalize_parse(ast_ctx_t* ctx, sym_table_t* smt) {
 int AST_unload_ctx(ast_ctx_t* ctx) {
     AST_unload(ctx->r);
     stack_free(&ctx->scopes.stack);
+    stack_free(&ctx->types);
     stack_free_force_op(&ctx->annots, (int (*)(void*))ANNOT_destroy_annotation);
     return 1;
 }

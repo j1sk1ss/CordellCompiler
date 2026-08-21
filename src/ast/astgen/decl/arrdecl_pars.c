@@ -148,7 +148,11 @@ DEFINE_PARSER(cpl_parse_array_declaration, {
     TPTB_set_memory_size_id(base->sinfo.t_id, array_size, &smt->t);                                               /* select the type of the array             */
     TPTB_link_child(base->sinfo.t_id, type->sinfo.t_id, &smt->t);                                                 /*                                          */
     VRTB_update_type(name->sinfo.v_id, FIELD_NO_CHANGE, base->sinfo.t_id, &smt->v);                               /* link type to the variable's id           */
-    TPTB_add_as_child(ctx->t_id, base->sinfo.t_id, name->t->body, array_size, &smt->t);                           /* ling array to a container (if it exists) */
+    
+    symbol_id_t pt_id;
+    if (stack_top(&ctx->types, (void**)&pt_id)) {
+        TPTB_add_as_child(pt_id, base->sinfo.t_id, name->t->body, array_size, &smt->t);                           /* ling array to a container (if it exists) */
+    }
 
     VRTB_update_memory(name->sinfo.v_id, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, annots.align, &smt->v);
     if (!TKN_in_stack(base->t)) {

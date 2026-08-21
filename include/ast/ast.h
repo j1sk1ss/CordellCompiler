@@ -37,7 +37,7 @@ typedef struct {
     struct {
         sstack_t    stack;  /* Scope id stack.                          */
     } scopes;
-    symbol_id_t     t_id;   /* Current type id.                         */
+    sstack_t        types;  /* Types id stack.                          */
     sstack_t        annots; /* Annotations                              */
     int             an_off; /* Annotations reserved offset              */
     struct {

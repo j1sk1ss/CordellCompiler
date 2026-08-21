@@ -104,8 +104,9 @@ DEFINE_PARSER(cpl_parse_function, {
     annotations_summary_t annots = { .section = NULL, .salign = -1, .is_entry = 0, .is_naked = 0 };
     ANNOT_read_annotations(&ctx->annots, &annots);
 
-    symbol_id_t preserved_tid = ctx->t_id;
-    ctx->t_id = NO_SYMBOL_ID;
+    symbol_id_t preserved_tid;
+    stack_top(&ctx->types, (void**)&preserved_tid);
+    stack_push(&ctx->types, (void*)NO_SYMBOL_ID);
 
     forward_token(it, 1);
     PARSER_ASSERT_DO(
@@ -191,7 +192,7 @@ DEFINE_PARSER(cpl_parse_function, {
         
         base->t->t_type = FUNC_PROT_TOKEN;
         stack_pop(&ctx->scopes.stack, NULL);
-        ctx->t_id = preserved_tid;
+        stack_pop(&ctx->types, NULL);
         list_free(&generic_types);
 
         FNTB_update_func(name->sinfo.v_id, FNTB_ONLY_FLAGS(FNTB_SET_EXTERNAL(FNTB_SHALLOW_EXTERN)), &smt->f);
@@ -211,10 +212,10 @@ DEFINE_PARSER(cpl_parse_function, {
         { AST_unload(base); list_free(&generic_types); stack_pop(&ctx->scopes.stack, NULL); }
     );
     AST_add_node(args, body);
-
-    ctx->t_id = preserved_tid;
+    
     list_free(&generic_types);
     stack_pop(&ctx->scopes.stack, NULL);
+    stack_pop(&ctx->types, NULL);
 
     FNTB_update_func(name->sinfo.v_id, FNTB_ONLY_FLAGS(FNTB_SET_EXTERNAL(FNTB_NO_EXTERN)), &smt->f);
     return base;
