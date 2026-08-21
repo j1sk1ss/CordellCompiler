@@ -212,7 +212,10 @@ _default_operator: {}
                 forward_token(it, 1);
                 int annot_off = annotation_reserve(ctx);
                 ast_node_t* right = _parse_binary_expression(it, ctx, smt, next_mp, na);
-                PARSER_ASSERT_DO(!right, "Error during the right part parse!", { AST_unload(op_node); AST_unload(left); });
+                PARSER_ASSERT_DO(
+                    !right, "Error during the right part parse!", 
+                    { AST_unload(op_node); AST_unload(left); }
+                );
 
                 annotation_unreserve(ctx, annot_off);
                 DUMP_ANNOTATION_TO_NODE(ctx, left);

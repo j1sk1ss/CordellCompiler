@@ -16,9 +16,9 @@ annotation_t* ANNOT_create_annotation(annotation_type_t t, annotation_param_t* f
                 annot->data.counter.has_index = 1;
                 annot->data.counter.idx_t     = fp->t;
                 switch (fp->t) {
-                    case ANNOTATION_VARIABLE_PARAM: annot->data.counter.index.v_id  = fp->v_id;  break;
-                    case ANNOTATION_VALUE_PARAM:    annot->data.counter.index.value = fp->value; break;
-                    default: break;
+                    case ANNOTATION_VARIABLE_PARAM: annot->data.counter.index.v_id  = fp->v_id;           break;
+                    case ANNOTATION_VALUE_PARAM:    annot->data.counter.index.value = fp->value;          break;
+                    default:                                                                              break;
                 }
             }
 
@@ -26,9 +26,9 @@ annotation_t* ANNOT_create_annotation(annotation_type_t t, annotation_param_t* f
                 annot->data.counter.has_step = 1;
                 annot->data.counter.stp_t    = sp->t;
                 switch (sp->t) {
-                    case ANNOTATION_VARIABLE_PARAM: annot->data.counter.step.v_id  = sp->v_id;  break;
-                    case ANNOTATION_VALUE_PARAM:    annot->data.counter.step.value = sp->value; break;
-                    default: break;
+                    case ANNOTATION_VARIABLE_PARAM: annot->data.counter.step.v_id  = sp->v_id;            break;
+                    case ANNOTATION_VALUE_PARAM:    annot->data.counter.step.value = sp->value;           break;
+                    default:                                                                              break;
                 }
             }
 

@@ -30,6 +30,7 @@ int DUMP_format_vartb(sym_table_t* smt, FILE* output) {
     map_foreach (variable_info_t* vi, &smt->v.vartb) {
         _format_varinfo(vi, smt, output);
     }
+
     return 1;
 }
 
@@ -159,6 +160,7 @@ static int _format_secinfo(section_info_t* si, FILE* output) {
         "sec name=%s align=%i vars=%s funcs=%s\n",
         name, si->align, vars, funcs
     );
+    
     return 1;
 }
 

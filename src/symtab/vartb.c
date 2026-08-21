@@ -125,8 +125,8 @@ static variable_info_t* _create_variable_info(string_t* name, token_type_t type,
     var->s_id        = s_id;
     if (name) var->name = name->copy(name);
     var->vfs         = flags;
-    var->vmi.reg     = -1;
-    var->vmi.offset  = -1;
+    var->vmi.reg     = SMT_NULL;
+    var->vmi.offset  = SMT_NULL;
     var->vmi.align   = CONF_get_full_bytness();
     var->vdi.defined = UNDEFINED_VARIABLE;
     var->p_id        = NO_SYMBOL_ID;

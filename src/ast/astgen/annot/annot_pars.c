@@ -50,9 +50,9 @@ static void _pack_param(token_t* tkn, ast_ctx_t* ctx, sym_table_t* smt, int allo
     box->value  = tkn->body ? tkn->body->to_llong(tkn->body) : SMT_NULL;
 }
 
-#define ADD_ANNOTATION_HANDLER(n, t)                                                \
-    if (raw_annot->requals(raw_annot, n)) {                                         \
-        return ANNOT_create_annotation(t, &a, &b);                                  \
+#define ADD_ANNOTATION_HANDLER(n, t)               \
+    if (raw_annot->requals(raw_annot, n)) {        \
+        return ANNOT_create_annotation(t, &a, &b); \
     }
 static annotation_t* _parse_annotation_content(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     token_t *fp = NULL, *sp = NULL;

@@ -5,7 +5,7 @@ DEFINE_PARSER(cpl_parse_start, {
     PARSER_ASSERT(!base, NULL, "Can't create a base for the 'start' statement!");
     PARSER_ASSERT(!consume_token(it, OPEN_BRACKET_TOKEN), base, "Expected the '(' token during a parse of the 'start' statement!");
 
-    annotations_summary_t annots = { .section = NULL, .salign = -1 };
+    annotations_summary_t annots = { .section = NULL, .salign = SMT_NULL };
     ANNOT_read_annotations(&ctx->annots, &annots); 
 
     forward_token(it, 1);
@@ -21,7 +21,7 @@ DEFINE_PARSER(cpl_parse_start, {
 
     string_t* main_name = create_string(CONF_get_entry_name());
     PARSER_ASSERT_DO(
-        FNTB_get_info(main_name, -1, NULL, &smt->f), "The main function already exists!", 
+        FNTB_get_info(main_name, SMT_NULL, NULL, &smt->f), "The main function already exists!", 
         { AST_unload(base); destroy_string(main_name); ANNOT_destroy_summary(&annots); }
     );
 
@@ -34,7 +34,8 @@ DEFINE_PARSER(cpl_parse_start, {
     base->sinfo.v_id = FNTB_add_info(
         main_name, virt_name, 
         (func_info_flags_t){ 
-            .entry = 1, .global = 1, .naked = annots.is_naked ? 1 : 0, .onlybody = annots.is_onlybody, .weak = annots.is_weak, .abi = annots.is_abi
+            .entry    = 1,                  .global = 1,              .naked = annots.is_naked ? 1 : 0, 
+            .onlybody = annots.is_onlybody, .weak   = annots.is_weak, .abi   = annots.is_abi
         }, 
         base->sinfo.s_id, base, NULL, &smt->f
     );
@@ -42,7 +43,10 @@ DEFINE_PARSER(cpl_parse_start, {
 
     ast_node_t* body = NULL;
     PRESERVE_AST_CARRY_ARG({ body = cpl_parse_scope(it, ctx, smt, 1); }, base->sinfo.v_id);
-    PARSER_ASSERT_DO(!body, "Error during the parsing of the 'start' body!", { AST_unload(base); ANNOT_destroy_summary(&annots); });
+    PARSER_ASSERT_DO(
+        !body, "Error during the parsing of the 'start' body!", 
+        { AST_unload(base); ANNOT_destroy_summary(&annots); }
+    );
     AST_add_node(base, body);
 
     if (!annots.section) annots.section = create_string(CONF_get_code_section());

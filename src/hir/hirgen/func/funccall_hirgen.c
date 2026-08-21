@@ -134,7 +134,7 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
         !FNTB_get_info_id(node->c->sinfo.v_id, &fi, &smt->f)
     ) call_subj = HIR_generate_elem(node->c, ctx, smt);
     else {
-        op        = fi.flags.external ? HIR_ECLL : HIR_FCLL;
+        op        = fi.flags.external ? HIR_ECLL       : HIR_FCLL;
         st_op     = fi.flags.external ? HIR_STORE_ECLL : HIR_STORE_FCLL;
         call_subj = HIR_SUBJ_FUNCNAME(node->c);
         if (node->c->sinfo.s_id != NO_SYMBOL_ID) fi.s_id = node->c->sinfo.s_id;

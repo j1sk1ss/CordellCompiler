@@ -67,7 +67,7 @@ static symbol_id_t _resolve_array_type(ast_node_t* type, ast_ctx_t* ctx, sym_tab
 
     ast_node_t* length     = type->c;
     ast_node_t* elem_type  = length ? length->siblings.n : NULL;
-    long long const_length = -1;
+    long long const_length = SMT_NULL;
     if (
         length && 
         length->t->t_type == UNKNOWN_NUMERIC_TOKEN
@@ -84,7 +84,7 @@ DEFINE_PARSER(cpl_parse_array_declaration, {
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
     PARSER_ASSERT(!base, NULL, "Can't create a base for the array's declaration!");
 
-    annotations_summary_t annots = { .align = CONF_get_full_bytness(), .section = NULL, .salign = -1 };
+    annotations_summary_t annots = { .align = CONF_get_full_bytness(), .section = NULL, .salign = SMT_NULL };
     ANNOT_read_annotations(&ctx->annots, &annots);
 
     forward_token(it, 1);
@@ -127,7 +127,7 @@ DEFINE_PARSER(cpl_parse_array_declaration, {
         { AST_unload(base); ANNOT_destroy_summary(&annots); }
     );
 
-    long long const_length = -1;
+    long long const_length = SMT_NULL;
     if (length->t->t_type != UNKNOWN_NUMERIC_TOKEN) base->t->flags.vla = 1;
     else const_length = length->t->body->to_llong(length->t->body);
     ast_node_t* init_values = cpl_parse_declaration_value(it, ctx, smt, &const_length);

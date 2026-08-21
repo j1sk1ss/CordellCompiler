@@ -6,7 +6,11 @@ DEFINE_PARSER(cpl_parse_line_scope, {
 
     if (carry) SCPTB_push_scope(&smt->sc, &ctx->scopes.stack);
     ast_node_t* body = cpl_parse_element(it, ctx, smt, carry);
-    PARSER_ASSERT_DO(!body, "Error during parse of a scope block!", { if (carry) stack_pop(&ctx->scopes.stack, NULL); });
+    PARSER_ASSERT_DO(
+        !body, "Error during parse of a scope block!", 
+        { if (carry) stack_pop(&ctx->scopes.stack, NULL); }
+    );
+    
     AST_add_node(base, body);
 
     stack_top(&ctx->scopes.stack, (void**)&base->sinfo.s_id);
