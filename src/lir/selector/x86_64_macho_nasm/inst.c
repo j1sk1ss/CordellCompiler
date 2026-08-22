@@ -203,6 +203,7 @@ static int _get_call_info(lir_block_t* arg, cfg_block_t* bb, func_info_t* out, s
 
 typedef struct {
     int clean_stack;
+    set_t callee_restored_blocks;
 } lir_translate_ctx_t;
 
 static cfg_dfs_action_t _instruction_selection_block(
@@ -359,18 +360,21 @@ static cfg_dfs_action_t _instruction_selection_block(
                 break;
             }
             case LIR_EXITOP:
+            case LIR_FEND:
             case LIR_FRET: {
-                if (lh->farg) {
+                if (lh->farg && lh->op != LIR_FEND) {
                     lir_subject_t* a = x86_64_macho_nasm_create_tmp(lh->op == LIR_FRET ? RAX : RDI, lh->farg, smt, -1);
                     _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->farg, NULL), lh);
                     lh->farg = a;
                 }
 
                 if (
-                    lh->op == LIR_FRET &&
-                    fi->flags.abi && !fi->flags.entry
+                    (lh->op == LIR_FRET || lh->op == LIR_FEND) &&
+                    fi->flags.abi && !fi->flags.entry &&
+                    !set_has(&ctx->callee_restored_blocks, bb)
                 ) {
                     lir_registers_t saved[] = { RBX, R12, R13, R14, R15 };
+                    if (!set_add(&ctx->callee_restored_blocks, bb)) return CFG_DFS_STOP;
                     for (int i = (int)(sizeof(saved) / sizeof(saved[0])) - 1; i >= 0; i--) {
                         _insert_instruction_before(bb, LIR_create_block(LIR_POP, LIR_SUBJ_REG(saved[i], CONF_get_full_bytness()), NULL, NULL), lh);
                     }
@@ -469,6 +473,7 @@ int x86_64_macho_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
     lir_translate_ctx_t ctx = { 0 };
     queue_t dirty_regs;
     queue_init(&dirty_regs);
+    set_init(&ctx.callee_restored_blocks, SET_NO_CMP);
 
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
@@ -497,11 +502,13 @@ int x86_64_macho_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
 
             if (!CFG_DFS_WALK(list_get_head(&fb->blocks), _instruction_selection_block, fb, &fi, &dirty_regs, &ctx, smt)) {
                 queue_free(&dirty_regs);
+                set_free(&ctx.callee_restored_blocks);
                 return 0;
             }
         }
     }
 
     queue_free(&dirty_regs);
+    set_free(&ctx.callee_restored_blocks);
     return 1;
 }
