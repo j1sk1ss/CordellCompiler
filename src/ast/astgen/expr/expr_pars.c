@@ -91,13 +91,12 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                 /* If this type is a method, we must stop going, remember
                    existed chain in the 'left' as a self pointer. */
                 if (c_ti.t == TYPE_METHOD) {
-                    member->sinfo.v_id = c_ti.link.v_id;
+                    member->sinfo.v_id = c_ti.body.method.f_id;
                     member->t->t_type  = CALL_ADDR_TOKEN;
 
                     func_info_t fi;
                     if (
-                        c_ti.t == TYPE_METHOD && 
-                        FNTB_get_info_id(member->sinfo.v_id, &fi, &smt->f) &&
+                        FNTB_get_info_id(member->sinfo.v_id, &fi, &smt->f) && 
                         fi.flags.self
                     ) member->self = left;
                     else AST_unload(left);
@@ -152,13 +151,13 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                             type_info_t self_ti;
                             TPTB_get_info_id(left->self->sinfo.t_id, &self_ti, &smt->t);
                             variable_info_t self_vi;
-                            VRTB_get_info_id(self_ti.link.v_id, &self_vi, &smt->v);
+                            int has_self_vi = VRTB_find_by_type_id(self_ti.id, &self_vi, &smt->v);
                             if (
-                                (!self_vi.vfs.ptr && self_ti.link.p != NO_SYMBOL_ID) ||
+                                (has_self_vi && !self_vi.vfs.ptr && self_ti.member.p != NO_SYMBOL_ID) ||
                                 (
                                     !left->self->t->flags.ptr &&                 /* If self doesn't referenced                       */
                                     left->self->t->t_type != INDEXATION_TOKEN && /* Any indexation operation already have referenced */
-                                    self_ti.link.p == NO_SYMBOL_ID               /* And this isn't a field in a container            */
+                                    self_ti.member.p == NO_SYMBOL_ID             /* And this isn't a field in a container            */
                                 )
                             ) WRAP_REFERENCE_NODE(left->self);
                             AST_insert_node(data, left->self);

@@ -1,5 +1,24 @@
 #include <hir/hirgens/hirgens.h>
 
+int HIR_find_member_variable(type_info_t* field_info, variable_info_t* var_info, sym_table_t* smt) {
+    if (!field_info) return 0;
+    if (field_info->member.p == NO_SYMBOL_ID || !field_info->member.name) {
+        return VRTB_find_by_type_id(field_info->id, var_info, &smt->v);
+    }
+
+    type_info_t owner_info;
+    symbol_id_t owner_id = TPTB_resolve_parent(field_info->member.p, &smt->t);
+    if (
+        !TPTB_get_info_id(owner_id, &owner_info, &smt->t) ||
+        owner_info.t != TYPE_CUSTOM
+    ) return 0;
+
+    return VRTB_find_by_type_id_name(
+        field_info->id, field_info->member.name,
+        owner_info.body.custom.cs_id, var_info, &smt->v
+    );
+}
+
 hir_subject_t* HIR_point_to_field(ast_node_t* root, hir_ctx_t* ctx, type_info_t* field_info, sym_table_t* smt) {
     hir_subject_t* base = NULL;
     if (
@@ -7,9 +26,9 @@ hir_subject_t* HIR_point_to_field(ast_node_t* root, hir_ctx_t* ctx, type_info_t*
         root->c->t->t_type != MEMBER_ACCESS_TOKEN
     ) {
         type_info_t ti;
-        if (root->c && root->c->t && root->c->t->t_type != INDEXATION_TOKEN)           base = HIR_generate_elem(root->c, ctx, smt);
-        else if (TPTB_get_info_id(root->c->sinfo.t_id, &ti, &smt->t) && ti.memory.ptr) base = HIR_generate_load_indexation(root->c, ctx, smt);
-        else                                                                           base = HIR_generate_ref_indexation(root->c, ctx, smt);
+        if (root->c && root->c->t && root->c->t->t_type != INDEXATION_TOKEN)    base = HIR_generate_elem(root->c, ctx, smt);
+        else if (TPTB_get_info_id(root->c->sinfo.t_id, &ti, &smt->t) && ti.ptr) base = HIR_generate_load_indexation(root->c, ctx, smt);
+        else                                                                    base = HIR_generate_ref_indexation(root->c, ctx, smt);
     }
     else {
         type_info_t parent_field;
@@ -17,7 +36,7 @@ hir_subject_t* HIR_point_to_field(ast_node_t* root, hir_ctx_t* ctx, type_info_t*
         variable_info_t parent_var;
         if (
             parent_field.t != TYPE_ARRAY &&
-            VRTB_get_info_id(parent_field.link.v_id, &parent_var, &smt->v) &&
+            HIR_find_member_variable(&parent_field, &parent_var, smt) &&
             parent_var.vfs.ptr
         ) {
             token_t tmp = { .t_type = parent_var.type, .flags.ptr = parent_var.vfs.ptr };
@@ -65,13 +84,14 @@ hir_subject_t* HIR_generate_load_member_access(ast_node_t* node, hir_ctx_t* ctx,
     hir_subject_t* head = HIR_point_to_field(node, ctx, &ti, smt);
 
     array_info_t ai;
+    variable_info_t vi;
     if (
-        ti.t == TYPE_ARRAY && 
-        ARTB_get_info(ti.link.v_id, &ai, &smt->a)
+        ti.t == TYPE_ARRAY                        && 
+        HIR_find_member_variable(&ti, &vi, smt)   &&
+        ARTB_get_info(vi.v_id, &ai, &smt->a)
     ) return HIR_load_array_field_head(head, &ai, ctx, smt);
     
-    variable_info_t vi;
-    VRTB_get_info_id(ti.link.v_id, &vi, &smt->v);
+    if (!HIR_find_member_variable(&ti, &vi, smt)) return NULL;
     token_t tmp = { .t_type = vi.type, .flags.ptr = vi.vfs.ptr };
 
     hir_subject_t* value = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v));
@@ -87,7 +107,7 @@ int HIR_generate_store_member_access(ast_node_t* node, hir_subject_t* data, hir_
     hir_subject_t* head = HIR_point_to_field(node, ctx, &ti, smt);
 
     variable_info_t vi;
-    if (!VRTB_get_info_id(ti.link.v_id, &vi, &smt->v)) return 0;
+    if (!HIR_find_member_variable(&ti, &vi, smt)) return 0;
     token_t tmp = { .t_type = vi.type, .flags.ptr = vi.vfs.ptr };
 
     /* If we're dealing with a pointer, we add one level of reference,

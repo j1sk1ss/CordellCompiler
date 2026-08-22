@@ -107,6 +107,31 @@ int VRTB_get_info_id(symbol_id_t id, variable_info_t* info, vartab_ctx_t* ctx) {
     return 0;
 }
 
+int VRTB_find_by_type_id(symbol_id_t t_id, variable_info_t* info, vartab_ctx_t* ctx) {
+    map_foreach (variable_info_t* vi, &ctx->vartb) {
+        if (vi->t_id == t_id) {
+            if (info) str_memcpy(info, vi, sizeof(variable_info_t));
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+int VRTB_find_by_type_id_name(symbol_id_t t_id, string_t* name, symbol_id_t s_id, variable_info_t* info, vartab_ctx_t* ctx) {
+    if (!name) return 0;
+    map_foreach (variable_info_t* vi, &ctx->vartb) {
+        if (vi->t_id != t_id) continue;
+        if (s_id != NO_SYMBOL_ID && vi->s_id != s_id) continue;
+        if (!vi->name || !name->equals(name, vi->name)) continue;
+
+        if (info) str_memcpy(info, vi, sizeof(variable_info_t));
+        return 1;
+    }
+
+    return 0;
+}
+
 int VRTB_get_info(string_t* varname, symbol_id_t s_id, variable_info_t* info, vartab_ctx_t* ctx) {
     map_foreach (variable_info_t* vi, &ctx->vartb) {
         if (((s_id == NO_SYMBOL_ID) || s_id == vi->s_id) && varname->equals(varname, vi->name)) {

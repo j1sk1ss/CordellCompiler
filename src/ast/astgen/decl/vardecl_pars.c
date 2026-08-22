@@ -42,7 +42,7 @@ DEFINE_PARSER(cpl_parse_variable_declaration, {
     if (
         base->t->t_type == CUSTOM_TYPE_TOKEN && 
         TPTB_get_info_id(carry, &ti, &smt->t)
-    ) ARTB_add_info(name->sinfo.v_id, ti.memory.size, 0, U8_TYPE_TOKEN, base->t->flags, &smt->a);
+    ) ARTB_add_info(name->sinfo.v_id, TPTB_get_memory_size_id(ti.id, &smt->t), 0, U8_TYPE_TOKEN, base->t->flags, &smt->a);
 
     /* Update variable's memory flags according to the provided annotations
        and move it to a corresponding section. */
@@ -64,7 +64,7 @@ DEFINE_PARSER(cpl_parse_variable_declaration, {
         declared_type = TPTB_add_info_from_token(base->sinfo.s_id, base->t, NO_SYMBOL_ID, &smt->t);
     }
 
-    base->sinfo.t_id = TPTB_add_copy(declared_type, name->sinfo.v_id, base->t->flags.ptr, &smt->t);
+    base->sinfo.t_id = TPTB_add_copy(declared_type, base->t->flags.ptr, &smt->t);
     VRTB_update_type(name->sinfo.v_id, FIELD_NO_CHANGE, base->sinfo.t_id, &smt->v);
 
     symbol_id_t pt_id;

@@ -133,7 +133,11 @@ static unsigned long _hash_ast_node(ast_node_t* n, int s, int no_name, token_typ
     if (!n || !n->t || n->t->t_type == stp) return 0;
     unsigned long hash = 0xF123;
     if (n->t && n->t->t_type == CUSTOM_VARIABLE_TOKEN) {
-        hash *= n->sinfo.t_id;
+        if (
+            no_name && 
+            n->p && n->p->t && n->p->t->body
+        ) hash ^= n->p->t->body->hash;
+        else hash *= n->sinfo.t_id;
     }
 
     if (n->t) hash ^= TKN_hash_token(n->t, no_name);

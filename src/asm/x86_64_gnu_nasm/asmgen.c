@@ -254,8 +254,9 @@ static int _generate_typed_initializer(variable_info_t* vi, array_info_t* ai, sy
         type_info_t slot_ti;
         int for_string = (
             TPTB_get_info_id(slot_info.slot_type, &slot_ti, &smt->t)  &&
-            slot_ti.tt == I8_TYPE_TOKEN                               &&
-            !slot_ti.memory.ptr
+            slot_ti.t == TYPE_PRIMITIVE                               &&
+            slot_ti.body.primitive.token == I8_TYPE_TOKEN             &&
+            !slot_ti.ptr
         );
 
         if (

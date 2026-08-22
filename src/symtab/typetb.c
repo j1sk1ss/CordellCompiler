@@ -1,50 +1,149 @@
 #include <symtab/typetb.h>
 
+static inline token_type_t _default_token_type(type_type_t t) {
+    switch (t) {
+        case TYPE_GENERICS:  return GENERIC_TYPE_TOKEN;
+        case TYPE_CUSTOM:    return CUSTOM_TYPE_TOKEN;
+        case TYPE_METHOD:    return FUNC_TOKEN;
+        case TYPE_ARRAY:     return ARRAY_TYPE_TOKEN;
+        case TYPE_PRIMITIVE:
+        default:             return UNKNOWN_STRING_TOKEN;
+    }
+}
+
 static type_info_t* _create_type_info(string_t* name) {
     type_info_t* info = (type_info_t*)mm_malloc(sizeof(type_info_t));
     if (!info) return NULL;
-    list_init(&info->link.c);
 
-    info->p         = NO_SYMBOL_ID;
-    info->s_id      = NO_SYMBOL_ID;
-    info->cs_id     = NO_SYMBOL_ID;
-    info->link.name = NULL;
-    info->link.p    = NO_SYMBOL_ID;
-    info->link.v_id = NO_SYMBOL_ID;
-    info->tt        = UNKNOWN_STRING_TOKEN;
+    str_memset(info, 0, sizeof(type_info_t));
+    info->id            = NO_SYMBOL_ID;
+    info->p             = NO_SYMBOL_ID;
+    info->s_id          = NO_SYMBOL_ID;
+    info->ptr           = 0;
+    info->member.p      = NO_SYMBOL_ID;
+    info->member.name   = NULL;
 
     if (name) info->name = name->copy(name);
-    else info->name = NULL;
-    
-    str_memset(&info->memory, 0, sizeof(info->memory));
-    info->memory.align = CONF_get_eight_bytness();
+    else      info->name = NULL;
     return info;
+}
+
+static void _init_type_body(type_info_t* info, type_type_t t, token_type_t token) {
+    info->t = t;
+    switch (t) {
+        case TYPE_GENERICS: info->body.generic.token = token; break;
+        case TYPE_CUSTOM: {
+            info->body.custom.cs_id           = NO_SYMBOL_ID;
+            info->body.custom.layout.size     = 0;
+            info->body.custom.layout.align    = CONF_get_eight_bytness();
+            info->body.custom.layout.multiple = 0;
+            list_init(&info->body.custom.layout.children);
+            break;
+        }
+        case TYPE_METHOD: info->body.method.f_id = NO_SYMBOL_ID; break;
+        case TYPE_ARRAY: {
+            info->body.array.element_t_id = NO_SYMBOL_ID;
+            info->body.array.size         = 0;
+            break;
+        }
+        case TYPE_PRIMITIVE:
+        default: {
+            info->body.primitive.token = token;
+            break;
+        }
+    }
+}
+
+static inline list_t* _type_children(type_info_t* info) {
+    if (!info) return NULL;
+    switch (info->t) {
+        case TYPE_CUSTOM: return &info->body.custom.layout.children;
+        default:          return NULL;
+    }
+}
+
+static inline token_type_t _type_token_type(const type_info_t* info) {
+    if (!info) return UNKNOWN_STRING_TOKEN;
+    switch (info->t) {
+        case TYPE_GENERICS:  return info->body.generic.token;
+        case TYPE_CUSTOM:    return CUSTOM_TYPE_TOKEN;
+        case TYPE_METHOD:    return FUNC_TOKEN;
+        case TYPE_ARRAY:     return ARRAY_TYPE_TOKEN;
+        case TYPE_PRIMITIVE: return info->body.primitive.token;
+        default:             return UNKNOWN_STRING_TOKEN;
+    }
+}
+
+static inline void _set_type_size(type_info_t* info, long size) {
+    if (!info) return;
+    switch (info->t) {
+        case TYPE_CUSTOM: info->body.custom.layout.size = size; break;
+        case TYPE_ARRAY:  info->body.array.size         = size; break;
+        default:                                                break;
+    }
+}
+
+static inline long _raw_type_size(const type_info_t* info) {
+    if (!info) return SMT_NULL;
+    switch (info->t) {
+        case TYPE_PRIMITIVE: {
+            token_t token = { .t_type = info->body.primitive.token };
+            return TKN_convert_type_size(TKN_variable_bitness(&token, 0));
+        }
+        case TYPE_CUSTOM: return info->body.custom.layout.size;
+        case TYPE_ARRAY:  return info->body.array.size;
+        case TYPE_METHOD:
+        case TYPE_GENERICS:
+        default:          return SMT_NULL;
+    }
+}
+
+static inline long _type_memory_size(type_info_t* info) {
+    if (!info) return SMT_NULL;
+    return info->ptr ? CONF_get_full_bytness() : _raw_type_size(info);
+}
+
+static void _copy_type_body(type_info_t* dst, const type_info_t* src) {
+    _init_type_body(dst, src->t, _type_token_type(src));
+    switch (src->t) {
+        case TYPE_CUSTOM: {
+            dst->body.custom.cs_id           = src->body.custom.cs_id;
+            dst->body.custom.layout.size     = src->body.custom.layout.size;
+            dst->body.custom.layout.align    = src->body.custom.layout.align;
+            dst->body.custom.layout.multiple = src->body.custom.layout.multiple;
+            break;
+        }
+        case TYPE_METHOD: dst->body.method.f_id = src->body.method.f_id;          break;
+        case TYPE_ARRAY: {
+            dst->body.array.element_t_id = src->body.array.element_t_id;
+            dst->body.array.size         = src->body.array.size;
+            break;
+        }
+        case TYPE_GENERICS:
+        case TYPE_PRIMITIVE:
+        default:                                                                  break;
+    }
 }
 
 symbol_id_t TPTB_add_info(string_t* name, symbol_id_t s_id, type_type_t t, int align, int multiple, typetab_ctx_t* ctx) {
     if (TPTB_get_info(name, s_id, 0, NULL, ctx)) return NO_SYMBOL_ID;
     type_info_t* info = _create_type_info(name);
     if (!info) return NO_SYMBOL_ID;
+
     info->id   = ctx->curr_id++;
     info->s_id = s_id;
-    info->t    = t;
+    _init_type_body(info, t, _default_token_type(t));
 
-    switch (t) {
-        case TYPE_GENERICS:  info->tt = GENERIC_TYPE_TOKEN;   break;
-        case TYPE_CUSTOM:    info->tt = CUSTOM_TYPE_TOKEN;    break;
-        case TYPE_METHOD:    info->tt = FUNC_TOKEN;           break;
-        case TYPE_ARRAY:     info->tt = ARRAY_TYPE_TOKEN;     break;
-        case TYPE_PRIMITIVE:
-        default:             info->tt = UNKNOWN_STRING_TOKEN; break;
+    if (t == TYPE_CUSTOM) {
+        info->body.custom.layout.align    = align;
+        info->body.custom.layout.multiple = multiple;
     }
 
-    info->memory.align    = align;
-    info->memory.multiple = multiple;
     map_put(&ctx->typetb, info->id, info);
     return info->id;
 }
 
-symbol_id_t TPTB_add_copy(symbol_id_t id, symbol_id_t nv_id, int ptr, typetab_ctx_t* ctx) {
+symbol_id_t TPTB_add_copy(symbol_id_t id, int ptr, typetab_ctx_t* ctx) {
     type_info_t* ti;
     if (!map_get(&ctx->typetb, id, (void**)&ti)) return NO_SYMBOL_ID;
     if (ti->t == TYPE_GENERICS) return id;
@@ -52,16 +151,12 @@ symbol_id_t TPTB_add_copy(symbol_id_t id, symbol_id_t nv_id, int ptr, typetab_ct
     type_info_t* info = _create_type_info(ti->name);
     if (!info) return NO_SYMBOL_ID;
 
-    info->p               = id;
-    info->s_id            = ti->s_id;
-    info->t               = ti->t;
-    info->tt              = ti->tt;
-    info->memory.size     = ti->memory.size;
-    info->memory.ptr      = ptr;
-    info->memory.multiple = ti->memory.multiple;
-    info->link.p          = ti->link.p;
-    info->link.v_id       = nv_id;
-    info->memory.align    = ti->memory.align;
+    info->p       = id;
+    info->s_id    = ti->s_id;
+    info->ptr     = ptr;
+    info->member.p = ti->member.p;
+    _copy_type_body(info, ti);
+    if (ti->member.name) info->member.name = ti->member.name->copy(ti->member.name);
 
     info->id = ctx->curr_id++;
     map_put(&ctx->typetb, info->id, info);
@@ -72,43 +167,42 @@ static inline symbol_id_t _get_type_by_token(token_t* t, typetab_ctx_t* ctx) {
     if (!t) return NO_SYMBOL_ID;
     if (t->t_type == ARRAY_TYPE_TOKEN) return NO_SYMBOL_ID;
     map_foreach (type_info_t* ti, &ctx->typetb) {
-        if (ti->tt != t->t_type || ti->memory.ptr != t->flags.ptr)     continue;
-        if (ti->link.v_id != NO_SYMBOL_ID || ti->link.name)            continue;
-        if (!t->body && !ti->name)                                     return ti->id;
-        if (t->body && ti->name && t->body->equals(t->body, ti->name)) return ti->id;
+        if (_type_token_type(ti) != t->t_type || ti->ptr != t->flags.ptr) continue;
+        if (ti->p != NO_SYMBOL_ID || ti->member.name)                     continue;
+        if (ti->t == TYPE_METHOD && ti->body.method.f_id != NO_SYMBOL_ID)  continue;
+        if (!t->body && !ti->name)                                        return ti->id;
+        if (t->body && ti->name && t->body->equals(t->body, ti->name))    return ti->id;
     }
 
     return NO_SYMBOL_ID;
 }
 
-symbol_id_t TPTB_add_info_from_token(symbol_id_t s_id, token_t* t, symbol_id_t v_id, typetab_ctx_t* ctx) {
-    symbol_id_t existed = _get_type_by_token(t, ctx);
+symbol_id_t TPTB_add_info_from_token(symbol_id_t s_id, token_t* t, symbol_id_t f_id, typetab_ctx_t* ctx) {
+    type_type_t type_kind;
+    switch (t->t_type) {
+        case GENERIC_TYPE_TOKEN:
+        case GENERIC_VARIABLE_TOKEN: type_kind = TYPE_GENERICS;  break;
+        case CUSTOM_TYPE_TOKEN:
+        case CUSTOM_VARIABLE_TOKEN:  type_kind = TYPE_CUSTOM;    break;
+        case FUNC_TOKEN:
+        case FUNC_PROT_TOKEN:        type_kind = TYPE_METHOD;    break;
+        case ARRAY_TYPE_TOKEN:       type_kind = TYPE_ARRAY;     break;
+        default:                     type_kind = TYPE_PRIMITIVE; break;
+    }
+
+    int linked_method = type_kind == TYPE_METHOD && f_id != NO_SYMBOL_ID;
+    symbol_id_t existed = linked_method ? NO_SYMBOL_ID : _get_type_by_token(t, ctx);
     if (existed != NO_SYMBOL_ID) return existed;
-    
+
     type_info_t* info = _create_type_info(t->body);
     if (!info) return NO_SYMBOL_ID;
 
-    info->link.v_id  = v_id;
-    info->id         = ctx->curr_id++;
-    info->s_id       = s_id;
-    info->memory.ptr = t->flags.ptr;
-    info->tt         = t->t_type;
+    info->id   = ctx->curr_id++;
+    info->s_id = s_id;
+    info->ptr  = t->flags.ptr;
 
-    switch (t->t_type) {
-        case GENERIC_TYPE_TOKEN:
-        case GENERIC_VARIABLE_TOKEN: info->t = TYPE_GENERICS;  break;
-        case CUSTOM_TYPE_TOKEN:
-        case CUSTOM_VARIABLE_TOKEN:  info->t = TYPE_CUSTOM;    break;
-        case FUNC_TOKEN:
-        case FUNC_PROT_TOKEN:        info->t = TYPE_METHOD;    break;
-        case ARRAY_TYPE_TOKEN:       info->t = TYPE_ARRAY;     break;
-        default:                     info->t = TYPE_PRIMITIVE; break;
-    }
-
-    info->memory.size = 0;
-    if (info->t == TYPE_PRIMITIVE) {
-        info->memory.size = TKN_convert_type_size(TKN_variable_bitness(t, 0));
-    }
+    _init_type_body(info, type_kind, t->t_type);
+    if (type_kind == TYPE_METHOD) info->body.method.f_id = f_id;
 
     map_put(&ctx->typetb, info->id, info);
     return info->id;
@@ -117,20 +211,20 @@ symbol_id_t TPTB_add_info_from_token(symbol_id_t s_id, token_t* t, symbol_id_t v
 long TPTB_get_memory_size_id(symbol_id_t id, typetab_ctx_t* ctx) {
     type_info_t* ti;
     if (!map_get(&ctx->typetb, id, (void**)&ti)) return SMT_NULL;
-    return ti->memory.ptr ? CONF_get_full_bytness() : ti->memory.size;
+    return _type_memory_size(ti);
 }
 
 int TPTB_set_memory_size_id(symbol_id_t id, long size, typetab_ctx_t* ctx) {
     type_info_t* ti;
     if (!map_get(&ctx->typetb, id, (void**)&ti)) return 0;
-    ti->memory.size = size;
+    _set_type_size(ti, size);
     return 1;
 }
 
 int TPTB_set_child_scope_id(symbol_id_t id, symbol_id_t cs_id, typetab_ctx_t* ctx) {
     type_info_t* ti;
-    if (!map_get(&ctx->typetb, id, (void**)&ti)) return 0;
-    ti->cs_id = cs_id;
+    if (!map_get(&ctx->typetb, id, (void**)&ti) || ti->t != TYPE_CUSTOM) return 0;
+    ti->body.custom.cs_id = cs_id;
     return 1;
 }
 
@@ -152,8 +246,15 @@ int TPTB_link_child(symbol_id_t p_id, symbol_id_t c_id, typetab_ctx_t* ctx) {
         map_get(&ctx->typetb, p_id, (void**)&p_ti) &&
         map_get(&ctx->typetb, c_id, (void**)&c_ti)
     ) {
-        list_add(&p_ti->link.c, (void*)c_id);
-        if (p_ti->cs_id == NO_SYMBOL_ID) p_ti->cs_id = c_ti->s_id;
+        if (p_ti->t == TYPE_ARRAY) {
+            p_ti->body.array.element_t_id = c_id;
+            return 1;
+        }
+
+        if (p_ti->t != TYPE_CUSTOM) return 0;
+
+        list_add(&p_ti->body.custom.layout.children, (void*)c_id);
+        if (p_ti->body.custom.cs_id == NO_SYMBOL_ID) p_ti->body.custom.cs_id = c_ti->s_id;
         return 1;
     }
 
@@ -164,14 +265,16 @@ symbol_id_t TPTB_get_first_child(symbol_id_t p_id, typetab_ctx_t* ctx) {
     p_id = TPTB_resolve_parent(p_id, ctx);
     type_info_t* p_ti;
     if (!map_get(&ctx->typetb, p_id, (void**)&p_ti)) return NO_SYMBOL_ID;
-    if (!p_ti->link.c.s) return NO_SYMBOL_ID;
-    return (symbol_id_t)list_get_head(&p_ti->link.c);
+
+    if (p_ti->t == TYPE_ARRAY) return p_ti->body.array.element_t_id;
+    if (p_ti->t != TYPE_CUSTOM || !p_ti->body.custom.layout.children.s) return NO_SYMBOL_ID;
+    return (symbol_id_t)list_get_head(&p_ti->body.custom.layout.children);
 }
 
 symbol_id_t TPTB_get_indexed_type(symbol_id_t id, typetab_ctx_t* ctx) {
     type_info_t ti;
     if (!TPTB_get_info_id(id, &ti, ctx)) return NO_SYMBOL_ID;
-    if (ti.memory.ptr) return TPTB_add_copy(id, NO_SYMBOL_ID, ti.memory.ptr - 1, ctx);
+    if (ti.ptr) return TPTB_add_copy(id, ti.ptr - 1, ctx);
     if (ti.t == TYPE_ARRAY) return TPTB_get_first_child(id, ctx);
     return NO_SYMBOL_ID;
 }
@@ -186,23 +289,24 @@ int TPTB_add_as_child(symbol_id_t p_id, symbol_id_t c_id, string_t* name, long o
         map_get(&ctx->typetb, p_id, (void**)&p_ti) &&
         map_get(&ctx->typetb, c_id, (void**)&c_ti)
     ) {
-        list_add(&p_ti->link.c, (void*)c_id);
-        c_ti->link.p = p_id;
+        if (p_ti->t != TYPE_CUSTOM) return 0;
+
+        list_add(&p_ti->body.custom.layout.children, (void*)c_id);
+        c_ti->member.p = p_id;
         if (name) {
-            if (c_ti->link.name) destroy_string(c_ti->link.name);
-            c_ti->link.name = name->copy(name);
+            if (c_ti->member.name) destroy_string(c_ti->member.name);
+            c_ti->member.name = name->copy(name);
         }
         
-        long field_size = c_ti->memory.size;
+        long field_size = _type_memory_size(c_ti);
         if (overrite_size != FIELD_NO_CHANGE) {
             field_size = overrite_size;
-            if (!c_ti->memory.ptr) c_ti->memory.size = overrite_size;
+            if (!c_ti->ptr) _set_type_size(c_ti, overrite_size);
         }
 
-        if (!p_ti->memory.multiple)        p_ti->memory.size = MAX(p_ti->memory.size, ALIGN(field_size, p_ti->memory.align));
-        else if (p_ti->memory.align != -1) p_ti->memory.size += ALIGN(field_size, p_ti->memory.align);
-        else                               p_ti->memory.size += ALIGN(field_size, field_size);
-        // if (p_ti->memory.align == -1)      p_ti->memory.size = ALIGN(p_ti->memory.size, c_ti->memory.size);
+        if (!p_ti->body.custom.layout.multiple)        p_ti->body.custom.layout.size = MAX(p_ti->body.custom.layout.size, ALIGN(field_size, p_ti->body.custom.layout.align));
+        else if (p_ti->body.custom.layout.align != -1) p_ti->body.custom.layout.size += ALIGN(field_size, p_ti->body.custom.layout.align);
+        else                                           p_ti->body.custom.layout.size += ALIGN(field_size, field_size);
         return 1;
     }
 
@@ -214,11 +318,14 @@ symbol_id_t TPTB_resolve_child(symbol_id_t p_id, string_t* name, typetab_ctx_t* 
 
     type_info_t *p_ti, *c_ti;
     if (!map_get(&ctx->typetb, p_id, (void**)&p_ti)) return NO_SYMBOL_ID;
+
+    list_t* children = _type_children(p_ti);
+    if (!children) return NO_SYMBOL_ID;
     
-    foreach (symbol_id_t c_id, &p_ti->link.c) {
+    foreach (symbol_id_t c_id, children) {
         if (!map_get(&ctx->typetb, c_id, (void**)&c_ti)) continue;
-        if (!c_ti->link.name) continue;
-        if (c_ti->link.name->equals(c_ti->link.name, name)) return c_id;
+        if (!c_ti->member.name) continue;
+        if (c_ti->member.name->equals(c_ti->member.name, name)) return c_id;
     }
 
     return NO_SYMBOL_ID;
@@ -229,20 +336,20 @@ long TPTB_get_child_offset(symbol_id_t p_id, symbol_id_t tc_id, typetab_ctx_t* c
 
     type_info_t *p_ti, *c_ti;
     if (!map_get(&ctx->typetb, p_id, (void**)&p_ti)) return -1;
-    if (!p_ti->memory.multiple) return 0;
+    if (p_ti->t != TYPE_CUSTOM || !p_ti->body.custom.layout.multiple) return 0;
 
     long offset = 0;
-    foreach (symbol_id_t c_id, &p_ti->link.c) {
+    foreach (symbol_id_t c_id, &p_ti->body.custom.layout.children) {
         if (!map_get(&ctx->typetb, c_id, (void**)&c_ti)) continue;
-        long size = c_ti->memory.ptr ? CONF_get_full_bytness() : c_ti->memory.size;
-        if (p_ti->memory.align == -1) {
+        long size = _type_memory_size(c_ti);
+        if (p_ti->body.custom.layout.align == -1) {
             offset = ALIGN(offset, size);
             if (tc_id == c_id) return offset;
             offset += size;
         }
         else {
             if (tc_id == c_id) return offset;
-            offset += ALIGN(size, p_ti->memory.align);
+            offset += ALIGN(size, p_ti->body.custom.layout.align);
         }
     }
 
@@ -254,7 +361,7 @@ int TPTB_find_type_init_slot(symbol_id_t t_id, long target_slot, long base_offse
     if (!TPTB_get_info_id(t_id, &ti, ctx)) return 0;
 
     long type_size = TPTB_get_memory_size_id(t_id, ctx);
-    if (ti.memory.ptr || ti.t == TYPE_PRIMITIVE) {
+    if (ti.ptr || ti.t == TYPE_PRIMITIVE) {
         if (slot_info->curr_idx++ != target_slot) return 0;
         slot_info->slot_off   = base_offset;
         slot_info->slot_size  = type_size;
@@ -267,18 +374,29 @@ int TPTB_find_type_init_slot(symbol_id_t t_id, long target_slot, long base_offse
     type_info_t scan_ti;
     if (!TPTB_get_info_id(scan_id, &scan_ti, ctx)) return 0;
 
-    foreach (symbol_id_t child_id, &scan_ti.link.c) {
-        long child_offset = TPTB_get_child_offset(scan_id, child_id, ctx);
-        long child_size   = TPTB_get_memory_size_id(child_id, ctx);
-        if (child_offset < 0 || child_size <= 0) continue;
-        long repeats = scan_ti.t == TYPE_ARRAY ? type_size / child_size : 1;
+    if (scan_ti.t == TYPE_ARRAY) {
+        symbol_id_t child_id = scan_ti.body.array.element_t_id;
+        long child_size = TPTB_get_memory_size_id(child_id, ctx);
+        if (child_size <= 0) return 0;
+        long repeats = type_size / child_size;
         for (long repeat = 0; repeat < repeats; repeat++) {
-            long nested_base = base_offset + child_offset + repeat * child_size;
+            long nested_base = base_offset + repeat * child_size;
             if (TPTB_find_type_init_slot(child_id, target_slot, nested_base, slot_info, ctx)) {
-                if (scan_ti.t == TYPE_ARRAY) slot_info->slot_owner = scan_id;
+                slot_info->slot_owner = scan_id;
                 return 1;
             }
         }
+
+        return 0;
+    }
+
+    if (scan_ti.t != TYPE_CUSTOM) return 0;
+
+    foreach (symbol_id_t child_id, &scan_ti.body.custom.layout.children) {
+        long child_offset = TPTB_get_child_offset(scan_id, child_id, ctx);
+        long child_size   = TPTB_get_memory_size_id(child_id, ctx);
+        if (child_offset < 0 || child_size <= 0) continue;
+        if (TPTB_find_type_init_slot(child_id, target_slot, base_offset + child_offset, slot_info, ctx)) return 1;
     }
 
     return 0;
@@ -302,14 +420,15 @@ type_type_t TPTB_get_type_type_id(symbol_id_t id, typetab_ctx_t* ctx) {
 
 token_type_t TPTB_get_token_type_id(symbol_id_t id, typetab_ctx_t* ctx) {
     type_info_t* ti;
-    if (map_get(&ctx->typetb, id, (void**)&ti)) return ti->tt;
+    if (map_get(&ctx->typetb, id, (void**)&ti)) return _type_token_type(ti);
     return CUSTOM_TYPE_TOKEN;
 }
 
 int TPTB_get_info(string_t* name, symbol_id_t s_id, int ptr, type_info_t* info, typetab_ctx_t* ctx) {
     map_foreach (type_info_t* ti, &ctx->typetb) {
-        if (ti->link.v_id != NO_SYMBOL_ID || ti->link.name) continue;
-        if (ti->memory.ptr != ptr) continue;
+        if (ti->p != NO_SYMBOL_ID || ti->member.name) continue;
+        if (ti->t == TYPE_METHOD && ti->body.method.f_id != NO_SYMBOL_ID) continue;
+        if (ti->ptr != ptr) continue;
         if (
             name && ti->name && name->equals(name, ti->name) &&
             (s_id == ti->s_id || ti->s_id == NO_SYMBOL_ID)
@@ -323,9 +442,10 @@ int TPTB_get_info(string_t* name, symbol_id_t s_id, int ptr, type_info_t* info, 
 }
 
 static int _unload_info(type_info_t* info) {
-    list_free(&info->link.c);
-    if (info->name)      destroy_string(info->name);
-    if (info->link.name) destroy_string(info->link.name);
+    list_t* children = _type_children(info);
+    if (children) list_free(children);
+    if (info->name)        destroy_string(info->name);
+    if (info->member.name) destroy_string(info->member.name);
     mm_free(info);
     return 1;
 }

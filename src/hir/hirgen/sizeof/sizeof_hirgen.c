@@ -37,7 +37,7 @@ hir_subject_t* HIR_generate_sizeof(ast_node_t* node, hir_ctx_t* ctx, sym_table_t
         if (node->c->sinfo.t_id != NO_SYMBOL_ID) {
             type_info_t ti;
             if (TPTB_get_info_id(node->c->sinfo.t_id, &ti, &smt->t)) {
-                return HIR_SUBJ_CONST(ti.memory.size);
+                return HIR_SUBJ_CONST(TPTB_get_memory_size_id(ti.id, &smt->t));
             }
         }
 

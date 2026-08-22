@@ -451,6 +451,13 @@ Return loaded member value.
 hir_subject_t* HIR_generate_load_member_access(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
 /*
+Find variable metadata for a concrete container field type.
+Uses the field owner and field name when the type belongs to a container,
+falling back to a type-only lookup for non-field types.
+*/
+int HIR_find_member_variable(type_info_t* field_info, variable_info_t* var_info, sym_table_t* smt);
+
+/*
 Syntheticly move a head towards the field (by sub-type Id).
 Params:
     - `root` - Container field access node.

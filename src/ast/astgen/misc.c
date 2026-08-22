@@ -19,7 +19,7 @@ symbol_id_t type_lookup(token_t* t, ast_ctx_t* ctx, sym_table_t* smt) {
         if (
             t->flags.ptr > 0 &&
             TPTB_get_info(t->body, s_id, 0, &ti, &smt->t)
-        ) return TPTB_add_copy(ti.id, NO_SYMBOL_ID, t->flags.ptr, &smt->t);
+        ) return TPTB_add_copy(ti.id, t->flags.ptr, &smt->t);
     }
 
     return NO_SYMBOL_ID;
