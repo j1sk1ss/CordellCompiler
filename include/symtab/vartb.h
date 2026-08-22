@@ -49,6 +49,7 @@ int VRTB_update_memory(symbol_id_t id, long offset, long size, char reg, short a
 int VRTB_update_definition(symbol_id_t id, long definition, symbol_id_t overdefined, vartab_ctx_t* ctx, int rewrite);
 int VRTB_update_type(symbol_id_t id, int t, symbol_id_t t_id, vartab_ctx_t* ctx);
 int VRTB_get_info_id(symbol_id_t id, variable_info_t* info, vartab_ctx_t* ctx);
+int VRTB_find_by_type_id(symbol_id_t t_id, variable_info_t* info, vartab_ctx_t* ctx);
 int VRTB_get_info(string_t* vname, symbol_id_t scope, variable_info_t* info, vartab_ctx_t* ctx);
 symbol_id_t VRTB_resolve_parent(symbol_id_t id, vartab_ctx_t* ctx);
 symbol_id_t VRTB_add_copy(variable_info_t* src, vartab_ctx_t* ctx);

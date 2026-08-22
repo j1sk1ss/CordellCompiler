@@ -108,7 +108,7 @@ hir_subject_t* HIR_generate_load_indexation(ast_node_t* node, hir_ctx_t* ctx, sy
     if (
         TPTB_get_info_id(node->c->sinfo.t_id, &p_ti, &smt->t) && p_ti.t == TYPE_ARRAY &&
         TPTB_get_info_id(TPTB_get_first_child(node->c->sinfo.t_id, &smt->t), &c_ti, &smt->t) &&
-        (c_ti.t == TYPE_ARRAY || c_ti.t == TYPE_CUSTOM) && !c_ti.memory.ptr
+        (c_ti.t == TYPE_ARRAY || c_ti.t == TYPE_CUSTOM) && !c_ti.ptr
     ) return final_head;
 
     hir_subject_t* res = HIR_SUBJ_TMPVAR(indexed_type, VRTB_add_info(NULL, HIR_get_tmptkn_type(indexed_type), NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v));

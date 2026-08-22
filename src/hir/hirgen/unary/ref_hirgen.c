@@ -40,9 +40,11 @@ hir_subject_t* HIR_generate_ref(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* s
         type_info_t ti = { 0 };
         hir_subject_t* head = HIR_point_to_field(node->c, ctx, &ti, smt);
         array_info_t ai;
+        variable_info_t vi;
         if (
             ti.t == TYPE_ARRAY &&
-            ARTB_get_info(ti.link.v_id, &ai, &smt->a)
+            VRTB_find_by_type_id(ti.id, &vi, &smt->v) &&
+            ARTB_get_info(vi.v_id, &ai, &smt->a)
         ) return HIR_load_array_field_head(head, &ai, ctx, smt);
         return head;
     }

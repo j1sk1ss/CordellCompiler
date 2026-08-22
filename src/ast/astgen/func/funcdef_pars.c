@@ -153,7 +153,7 @@ DEFINE_PARSER(cpl_parse_function, {
         type_info_t ti;
         if (
             TPTB_get_info_id(base_tid, &ti, &smt->t)
-        ) name->sinfo.s_id = ti.cs_id;
+        ) name->sinfo.s_id = ti.t == TYPE_CUSTOM ? ti.body.custom.cs_id : NO_SYMBOL_ID;
         destroy_string(base_type);
     }
 

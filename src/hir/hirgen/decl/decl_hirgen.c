@@ -128,7 +128,7 @@ static inline int _cnt_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t
     variable_info_t vi;
     if (!VRTB_get_info_id(name->sinfo.v_id, &vi, &smt->v)) return 0;
     HIR_BLOCK3(
-        ctx, HIR_ARRDECL, HIR_SUBJ_ASTVAR(node->c), HIR_SUBJ_CONST(ti.memory.size), 
+        ctx, HIR_ARRDECL, HIR_SUBJ_ASTVAR(node->c), HIR_SUBJ_CONST(TPTB_get_memory_size_id(ti.id, &smt->t)),
         _generate_init_args(&vi, elems, ctx, smt, vi.vfs.glob || !TKN_in_stack(name->t))
     );
     return 1;
