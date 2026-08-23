@@ -33,6 +33,32 @@ static inline int _fit_custom_type(ast_node_t* arg, hir_subject_t* hir_arg, sym_
             -1; /* otherwise - punish */
 }
 
+typedef struct {
+    symbol_id_t        f_id;
+    hir_subject_type_t t;
+    token_type_t       tt;
+    int                ptr;
+} ret_type_t;
+
+static inline ret_type_t _convert_type_to_htype(symbol_id_t t_id, sym_table_t* smt) {
+    t_id = TPTB_resolve_parent(t_id, &smt->t);
+
+    type_info_t ti;
+    if (TPTB_get_info_id(t_id, &ti, &smt->t)) {
+        switch (ti.t) {
+            case TYPE_PRIMITIVE: {
+                token_t _ = { .t_type = ti.body.primitive.token, .flags.ptr = ti.ptr };
+                return (ret_type_t) { .f_id = NO_SYMBOL_ID, .ptr = ti.ptr, .t = HIR_get_tmptype_tkn(&_, 0), .tt = _.t_type };
+            }
+            case TYPE_SIGNATURE: return _convert_type_to_htype(ti.body.signature.ret_type, smt);
+            case TYPE_CUSTOM:    return (ret_type_t) { .f_id = NO_SYMBOL_ID, .ptr = ti.ptr, .t = HIR_STKVARU8, .tt = U8_TYPE_TOKEN };
+            default:             return (ret_type_t) { .f_id = NO_SYMBOL_ID, .ptr = 0, .t = HIR_STKVARU64, .tt = U64_TYPE_TOKEN };
+        }
+    }
+
+    return (ret_type_t) { .f_id = NO_SYMBOL_ID, .ptr = 0, .t = HIR_STKVARU64, .tt = U64_TYPE_TOKEN };
+}
+
 /* De-overload for functions in HIR.
 The idea to determine which function is beign called:
 ```cpl
@@ -56,20 +82,26 @@ Params:
     - `smt` - Symtable.
 
 Returns 1 if succeeds */
-static symbol_id_t _resolve_function_overload(
-    hir_subject_t* callee, symbol_id_t s_id, hir_subject_t* args, sym_table_t* smt, int ret, token_t* out
-) {
-    out->t_type = I64_TYPE_TOKEN;
-    if (!callee) return NO_SYMBOL_ID;
+static ret_type_t _resolve_function_overload(hir_subject_t* callee, symbol_id_t s_id, hir_subject_t* args, sym_table_t* smt, int ret) {
+    if (!callee) return (ret_type_t) { .f_id = NO_SYMBOL_ID, .ptr = 0, .t = HIR_STKVARU64 };
 
+    ret_type_t info;
     func_info_t fi;
     if (
         callee->t != HIR_FNAME || 
         !FNTB_get_info_id(callee->storage.str.s_id, &fi, &smt->f)
-    ) return callee->storage.str.s_id;
+    ) {
+        info = (ret_type_t) { .ptr = 0, .t = HIR_STKVARU64 };
+        variable_info_t vi;
+        if (
+            HIR_is_vartype(callee->t) && 
+            VRTB_get_info_id(callee->storage.var.v_id, &vi, &smt->v)
+        ) info = _convert_type_to_htype(vi.t_id, smt);
+        return info;
+    }
 
     if (fi.rtype) {
-        str_memcpy(out, fi.rtype->t, sizeof(token_t));
+        info = _convert_type_to_htype(fi.rtype->sinfo.t_id, smt);
     }
 
     list_t funcs;
@@ -109,13 +141,14 @@ static symbol_id_t _resolve_function_overload(
         }
 
         if (resolved) {
-            if (ret && resolved->rtype) str_memcpy(out, resolved->rtype->t, sizeof(token_t));
+            if (ret && resolved->rtype) info = _convert_type_to_htype(resolved->rtype->sinfo.t_id, smt);
             callee->storage.str.s_id = resolved->id;
         }
     }
 
     list_free(&funcs);
-    return callee->storage.str.s_id;
+    info.f_id = callee->storage.str.s_id;
+    return info;
 }
 
 hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret) {
@@ -163,9 +196,9 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
         list_add(&args->storage.list.h, el);
     }
     
-    token_t tmp = { 0 };
     func_info_t resolved;
-    if (FNTB_get_info_id(_resolve_function_overload(call_subj, fi.s_id, args, smt, ret, &tmp), &resolved, &smt->f)) {
+    ret_type_t ret_info = _resolve_function_overload(call_subj, fi.s_id, args, smt, ret);
+    if (FNTB_get_info_id(ret_info.f_id, &resolved, &smt->f)) {
         int arg_offset = 0, arg_count = list_size(&args->storage.list.h);
         fn_iterate_args (&resolved) {
             if (arg_offset++ < arg_count || !arg->c || !arg->c->siblings.n) continue;
@@ -185,7 +218,8 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
     }
 
     hir_subject_t* res = HIR_SUBJ_TMPVAR(
-        HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, tmp.flags, &smt->v)
+        ret_info.t, VRTB_add_info(NULL, ret_info.tt, NO_SYMBOL_ID, 
+        (basic_object_info_t) { .ptr = ret_info.ptr }, &smt->v)
     );
     
     res->ptr = fi.rtype ? fi.rtype->t->flags.ptr : 0;
