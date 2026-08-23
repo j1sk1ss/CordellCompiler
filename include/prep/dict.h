@@ -24,6 +24,7 @@
 
 // Function
 #define FUNCTION_COMMAND        "function"
+#define SIGNATURE_COMMAND       "fn"
 #define VAR_ARGUMENTS_COMMAND   "..."
 #define LAMBDA_COMMAND          "=>"
 

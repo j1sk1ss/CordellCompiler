@@ -9,6 +9,7 @@ static const char* _name_tkn_type(token_type_t t) {
         case SIZEOF_TOKEN:                return "SIZEOF_TOKEN";
         case INDEXATION_TOKEN:            return "INDEXATION_TOKEN";
         case CALLING_TOKEN:               return "CALLING_TOKEN";
+        case SIGNATURE_TOKEN:             return "SIGNATURE_TOKEN";
         case UNKNOWN_FLOAT_NUMERIC_TOKEN: return "UNKNOWN_FLOAT_NUMERIC_TOKEN";
         case UNKNOWN_CHAR_TOKEN:          return "UNKNOWN_CHAR_TOKEN";
         case UNKNOWN_BRACKET_VALUE:       return "UNKNOWN_BRACKET_VALUE";
@@ -119,6 +120,7 @@ const char* DUMP_format_token_type(token_type_t t) {
         case U64_TYPE_TOKEN:   base = "u64"; break;
         case F64_TYPE_TOKEN:   base = "f64"; break;
         case ARRAY_TYPE_TOKEN: base = "arr"; break;
+        case SIGNATURE_TOKEN:  base = "fn";  break;
         default:               base = "";    break;
     }
     

@@ -41,7 +41,7 @@ static const handler_t handlers[] = {
         F32_TYPE_TOKEN, F64_TYPE_TOKEN,
         I8_TYPE_TOKEN,  I16_TYPE_TOKEN, I32_TYPE_TOKEN, I64_TYPE_TOKEN,
         U8_TYPE_TOKEN,  U16_TYPE_TOKEN, U32_TYPE_TOKEN, U64_TYPE_TOKEN,
-        I0_TYPE_TOKEN
+        I0_TYPE_TOKEN,  SIGNATURE_TOKEN
     ),
     HANDLER(
         cpl_parse_expression, 0,
@@ -69,7 +69,7 @@ static ast_node_t* _dynamic_navigation_handler(PARSER_ARGS) {
     PARSER_ARGS_USE;
     symbol_id_t type = type_lookup(CURRENT_TOKEN, ctx, smt);
     if (
-        CURRENT_TOKEN->t_type != ARRAY_TYPE_TOKEN &&
+        CURRENT_TOKEN->t_type != ARRAY_TYPE_TOKEN                          &&
         (look_next_token(it) && look_next_token(it)->t_type != STAT_TOKEN) &&
         (TKN_is_builtin_type(CURRENT_TOKEN) || type != NO_SYMBOL_ID)
     ) return cpl_parse_variable_declaration(it, ctx, smt, type);

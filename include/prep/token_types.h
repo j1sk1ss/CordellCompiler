@@ -30,6 +30,7 @@ typedef enum {
     CALLING_TOKEN,         // ()
     LAMBDA_TOKEN,          // =>
     LAMBDA_FUNCTION_TOKEN, // () => {};
+    SIGNATURE_TOKEN,       // fn
     OPEN_INDEX_TOKEN,      // [
     CLOSE_INDEX_TOKEN,     // ]
     OPEN_BRACKET_TOKEN,    // (

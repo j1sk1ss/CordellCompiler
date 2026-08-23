@@ -7,7 +7,11 @@ DEFINE_PARSER(cpl_parse_extern, {
     forward_token(it, 1);
     ast_node_t* arg = NULL;
     symbol_id_t type = type_lookup(CURRENT_TOKEN, ctx, smt);
-    if (TKN_is_builtin_type(CURRENT_TOKEN) || type != NO_SYMBOL_ID) {
+    if (
+        TKN_is_builtin_type(CURRENT_TOKEN) || 
+        type != NO_SYMBOL_ID               || 
+        CURRENT_TOKEN->t_type == SIGNATURE_TOKEN
+    ) {
         CURRENT_TOKEN->flags.ext  = 1;
         CURRENT_TOKEN->flags.glob = 1;
         arg = cpl_parse_variable_declaration(it, ctx, smt, type);

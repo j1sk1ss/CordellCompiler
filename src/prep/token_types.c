@@ -326,6 +326,7 @@ token_type_t TKN_get_var_from_type(token_type_t t) {
         case CUSTOM_TYPE_TOKEN:  return CUSTOM_VARIABLE_TOKEN;
         case GENERIC_TYPE_TOKEN: return GENERIC_VARIABLE_TOKEN;
         case ARRAY_TYPE_TOKEN:   return ARR_VARIABLE_TOKEN;
+        case SIGNATURE_TOKEN:    return U64_VARIABLE_TOKEN;
         case F64_TYPE_TOKEN:     return F64_VARIABLE_TOKEN;
         case F32_TYPE_TOKEN:     return F32_VARIABLE_TOKEN;
         case U64_TYPE_TOKEN:     return U64_VARIABLE_TOKEN;

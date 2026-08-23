@@ -5,8 +5,8 @@ function inc(i32 value) -> i32 {
 }
 
 start() {
-    ptr i0 fn = inc;
-    exit fn(41 as i32) as u8;
+    ptr i0 fnc = inc;
+    exit fnc(41 as i32) as u8;
 }
 
 :/ OUTPUT

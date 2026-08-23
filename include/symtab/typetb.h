@@ -14,6 +14,7 @@ typedef enum {
     TYPE_PRIMITIVE, /* i32, i0..       */
     TYPE_METHOD,    /* function + self */
     TYPE_ARRAY,     /* array           */
+    TYPE_SIGNATURE, /* signature       */
 } type_type_t;
 
 typedef struct {
@@ -30,6 +31,10 @@ typedef struct {
     } member;
 
     union {
+        struct {
+            list_t              arg_types; /* symbol_id_t */
+            symbol_id_t         ret_type;
+        } signature;
         struct {
             token_type_t        token;
         } generic;
@@ -63,6 +68,8 @@ typedef struct {
     map_t       typetb;
 } typetab_ctx_t;
 
+symbol_id_t  TPTB_get_signature(list_t* args, symbol_id_t ret, typetab_ctx_t* ctx);
+symbol_id_t  TPTB_add_signature(list_t* args, symbol_id_t ret, typetab_ctx_t* ctx);
 symbol_id_t  TPTB_resolve_parent(symbol_id_t c, typetab_ctx_t* ctx);
 symbol_id_t  TPTB_add_info(string_t* name, symbol_id_t s_id, type_type_t t, int align, int multiple, typetab_ctx_t* ctx);
 symbol_id_t  TPTB_add_copy(symbol_id_t id, int ptr, typetab_ctx_t* ctx);

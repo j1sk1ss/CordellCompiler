@@ -3,6 +3,19 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+# Version v3.7
+<div class="change-date">Date: 2026-08-23</div>
+CPL now is a strong typed language! Function pointers now use the next logic:
+
+```cpl
+function foo(i32 a, i32 b) -> i32;
+start() {
+    ptr fn(i32,i32)i32 func_pointer = foo;
+}
+```
+
+----------------------------------------
+
 ## Nested containers
 <div class="change-date">Date: 2026-08-21</div>
 Containers are usefull - this is true. But if we can create them only on top level - we cut their abilities. That's why I've changed it here. Now users can create nested containers:

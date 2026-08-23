@@ -223,6 +223,7 @@ static token_t* _get_token_from_type_id(symbol_id_t t_id, typetab_ctx_t* tctx) {
         case TYPE_CUSTOM:    t->t_type = CUSTOM_TYPE_TOKEN;       break;
         case TYPE_METHOD:    t->t_type = FUNC_TOKEN;              break;
         case TYPE_ARRAY:     t->t_type = ARRAY_TYPE_TOKEN;        break;
+        case TYPE_SIGNATURE: t->t_type = SIGNATURE_TOKEN;         break;
         case TYPE_PRIMITIVE: t->t_type = ti.body.primitive.token; break;
         default:             t->t_type = UNKNOWN_STRING_TOKEN;    break;
     }

@@ -6,6 +6,7 @@ static inline token_type_t _default_token_type(type_type_t t) {
         case TYPE_CUSTOM:    return CUSTOM_TYPE_TOKEN;
         case TYPE_METHOD:    return FUNC_TOKEN;
         case TYPE_ARRAY:     return ARRAY_TYPE_TOKEN;
+        case TYPE_SIGNATURE: return SIGNATURE_TOKEN;
         case TYPE_PRIMITIVE:
         default:             return UNKNOWN_STRING_TOKEN;
     }
@@ -46,6 +47,11 @@ static void _init_type_body(type_info_t* info, type_type_t t, token_type_t token
             info->body.array.size         = 0;
             break;
         }
+        case TYPE_SIGNATURE: {
+            list_init(&info->body.signature.arg_types);
+            info->body.signature.ret_type = NO_SYMBOL_ID;
+            break;
+        }
         case TYPE_PRIMITIVE:
         default: {
             info->body.primitive.token = token;
@@ -69,6 +75,7 @@ static inline token_type_t _type_token_type(const type_info_t* info) {
         case TYPE_CUSTOM:    return CUSTOM_TYPE_TOKEN;
         case TYPE_METHOD:    return FUNC_TOKEN;
         case TYPE_ARRAY:     return ARRAY_TYPE_TOKEN;
+        case TYPE_SIGNATURE: return SIGNATURE_TOKEN;
         case TYPE_PRIMITIVE: return info->body.primitive.token;
         default:             return UNKNOWN_STRING_TOKEN;
     }
@@ -94,6 +101,7 @@ static inline long _raw_type_size(const type_info_t* info) {
         case TYPE_ARRAY:  return info->body.array.size;
         case TYPE_METHOD:
         case TYPE_GENERICS:
+        case TYPE_SIGNATURE:
         default:          return SMT_NULL;
     }
 }
@@ -113,16 +121,71 @@ static void _copy_type_body(type_info_t* dst, const type_info_t* src) {
             dst->body.custom.layout.multiple = src->body.custom.layout.multiple;
             break;
         }
-        case TYPE_METHOD: dst->body.method.f_id = src->body.method.f_id;          break;
+        case TYPE_METHOD: dst->body.method.f_id = src->body.method.f_id; break;
         case TYPE_ARRAY: {
             dst->body.array.element_t_id = src->body.array.element_t_id;
             dst->body.array.size         = src->body.array.size;
             break;
         }
+        case TYPE_SIGNATURE: {
+            dst->body.signature.ret_type = src->body.signature.ret_type;
+            list_copy((list_t*)&src->body.signature.arg_types, &dst->body.signature.arg_types);
+            break;
+        }
         case TYPE_GENERICS:
         case TYPE_PRIMITIVE:
-        default:                                                                  break;
+        default:                                                         break;
     }
+}
+
+symbol_id_t TPTB_get_signature(list_t* args, symbol_id_t ret, typetab_ctx_t* ctx) {
+    map_foreach (type_info_t* ti, &ctx->typetb) {
+        if (
+            ti->t != TYPE_SIGNATURE            ||
+            ti->body.signature.ret_type != ret ||
+            list_size(args) != list_size(&ti->body.signature.arg_types)
+        ) continue;
+        
+        int same = 1;
+        list_iter_t expected;
+        list_iter_t provided;
+        list_iter_hinit(&ti->body.signature.arg_types, &expected);
+        list_iter_hinit(args, &provided);
+
+        void* expected_id;
+        void* provided_id;
+        while (
+            list_iter_next(&expected, &expected_id) &&
+            list_iter_next(&provided, &provided_id)
+        ) {
+            if ((symbol_id_t)expected_id != (symbol_id_t)provided_id) {
+                same = 0;
+                break;
+            }
+        }
+
+        if (!same) continue;
+        return ti->id;
+    }
+
+    return NO_SYMBOL_ID;
+}
+
+symbol_id_t TPTB_add_signature(list_t* args, symbol_id_t ret, typetab_ctx_t* ctx) {
+    if (TPTB_get_signature(args, ret, ctx) != NO_SYMBOL_ID) return NO_SYMBOL_ID;
+
+    type_info_t* info = _create_type_info(NULL);
+    if (!info) return NO_SYMBOL_ID;
+
+    info->id = ctx->curr_id++;
+    _init_type_body(info, TYPE_SIGNATURE, SIGNATURE_TOKEN);
+    foreach(symbol_id_t arg, args) {
+        list_add(&info->body.signature.arg_types, (void*)arg);
+    }
+
+    info->body.signature.ret_type = ret;
+    map_put(&ctx->typetb, info->id, info);
+    return info->id;
 }
 
 symbol_id_t TPTB_add_info(string_t* name, symbol_id_t s_id, type_type_t t, int align, int multiple, typetab_ctx_t* ctx) {
@@ -143,17 +206,34 @@ symbol_id_t TPTB_add_info(string_t* name, symbol_id_t s_id, type_type_t t, int a
     return info->id;
 }
 
+static symbol_id_t _get_existing_copy(symbol_id_t id, int ptr, typetab_ctx_t* ctx) {
+    symbol_id_t root_id = TPTB_resolve_parent(id, ctx);
+    map_foreach (type_info_t* ti, &ctx->typetb) {
+        if (
+            ti->ptr == ptr                              && // same ptr
+            TPTB_resolve_parent(ti->id, ctx) == root_id && // same parent
+            ti->p != NO_SYMBOL_ID                       && // its a copy
+            !ti->member.name                               // it isn't a field
+        ) return ti->id;
+    }
+
+    return NO_SYMBOL_ID;
+}
+
 symbol_id_t TPTB_add_copy(symbol_id_t id, int ptr, typetab_ctx_t* ctx) {
     type_info_t* ti;
     if (!map_get(&ctx->typetb, id, (void**)&ti)) return NO_SYMBOL_ID;
     if (ti->t == TYPE_GENERICS) return id;
 
+    symbol_id_t existed_copy = _get_existing_copy(id, ptr, ctx);
+    if (existed_copy != NO_SYMBOL_ID) return existed_copy;
+
     type_info_t* info = _create_type_info(ti->name);
     if (!info) return NO_SYMBOL_ID;
 
-    info->p       = id;
-    info->s_id    = ti->s_id;
-    info->ptr     = ptr;
+    info->p        = id;
+    info->s_id     = ti->s_id;
+    info->ptr      = ptr;
     info->member.p = ti->member.p;
     _copy_type_body(info, ti);
     if (ti->member.name) info->member.name = ti->member.name->copy(ti->member.name);
@@ -426,9 +506,11 @@ token_type_t TPTB_get_token_type_id(symbol_id_t id, typetab_ctx_t* ctx) {
 
 int TPTB_get_info(string_t* name, symbol_id_t s_id, int ptr, type_info_t* info, typetab_ctx_t* ctx) {
     map_foreach (type_info_t* ti, &ctx->typetb) {
-        if (ti->p != NO_SYMBOL_ID || ti->member.name) continue;
-        if (ti->t == TYPE_METHOD && ti->body.method.f_id != NO_SYMBOL_ID) continue;
-        if (ti->ptr != ptr) continue;
+        if (
+            ti->member.name                                                || // this is a field 
+            (ti->t == TYPE_METHOD && ti->body.method.f_id != NO_SYMBOL_ID) || // this is a method
+            ti->ptr != ptr
+        ) continue;
         if (
             name && ti->name && name->equals(name, ti->name) &&
             (s_id == ti->s_id || ti->s_id == NO_SYMBOL_ID)
@@ -443,9 +525,10 @@ int TPTB_get_info(string_t* name, symbol_id_t s_id, int ptr, type_info_t* info, 
 
 static int _unload_info(type_info_t* info) {
     list_t* children = _type_children(info);
-    if (children) list_free(children);
-    if (info->name)        destroy_string(info->name);
-    if (info->member.name) destroy_string(info->member.name);
+    if (children)                  list_free(children);
+    if (info->t == TYPE_SIGNATURE) list_free(&info->body.signature.arg_types);
+    if (info->name)                destroy_string(info->name);
+    if (info->member.name)         destroy_string(info->member.name);
     mm_free(info);
     return 1;
 }

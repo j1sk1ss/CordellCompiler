@@ -1,4 +1,36 @@
 # TODO
+
+## Complete strict (strong) typing! (Completed)
+We need to complete the strong typing support in the compiler. TO do this, the compiler should allow to create function-types:
+
+```cpl
+ptr fn(i32,i32)i32 function;
+```
+
+Actually, I think it can be solved via a new type in the types' table which is linked to a function from the functions' table. Let's say it will create a new dummy function:
+
+```cpl
+function __cpl_custom_typed_function(i32 _, i32 _) -> i32; :/ ID: X /:
+```
+
+Then this function will be linked to a type. With this type we will be able to check whether a function has the same signature or not. Also, if we declare two pointers with the same type, the logic of name creation won't allow us to duplicate the template. The one problem here is scopes - It may create a new function if this is a new scope. </br>
+The second idea is to store info in the type. Link a list of token types and the return type of a function. It will look like that:
+
+```c
+typedef struct {
+    unsigned long long hash; // Fast search for an entry when we create a new one
+    list_t             args;
+    token_type_t       rtype;
+} function_type_t;
+```
+
+In the HIR level it will be a `ptr i0` pointer with a linked type Id. This means it won't change anything and will allow the CSA be more precise with pointer functions. Also it may help with lambdas:
+
+```cpl
+ptr fn(i8,i8)i8 lambda = (i8 a, i8 b) => a + b;
+exit lamda(1, 1);
+```
+
 ## Containers (Completed)
 The idea is to create structures but with some features. For instance, a container will have an ability of function holding with self argument support. It means, the CPL will support the next syntax:
 ```cpl

@@ -9,7 +9,9 @@ int cpl_parse_funcdef_args(PARSER_ARGS) {
         ast_node_t* arg = NULL;
         symbol_id_t arg_type = type_lookup(CURRENT_TOKEN, ctx, smt);
         if (
-            TKN_is_builtin_type(CURRENT_TOKEN) || arg_type != NO_SYMBOL_ID
+            TKN_is_builtin_type(CURRENT_TOKEN) || 
+            arg_type != NO_SYMBOL_ID           || 
+            CURRENT_TOKEN->t_type == SIGNATURE_TOKEN
         ) arg = cpl_parse_variable_declaration(it, ctx, smt, arg_type);
         else if (CURRENT_TOKEN->t_type == VAR_ARGUMENTS_TOKEN) {
             arg = AST_create_node(CURRENT_TOKEN);

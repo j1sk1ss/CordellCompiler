@@ -1,10 +1,32 @@
 #include <symtab/dump.h>
 #include <stdarg.h>
 
+static char* _dump_appendf(char* dst, char* end, const char* fmt, ...);
+
 static char* _format_type(symbol_id_t id, typetab_ctx_t* ctx) {
+    static char signature[256];
     type_info_t ti;
     if (TPTB_get_info_id(id, &ti, ctx)) {
-        return ti.name->body;
+        if (ti.name) return ti.name->body;
+        if (ti.t == TYPE_SIGNATURE) {
+            char* dst = signature;
+            char* end = signature + sizeof(signature);
+            dst = _dump_appendf(dst, end, "fn(");
+
+            int first = 1;
+            foreach (symbol_id_t arg_id, &ti.body.signature.arg_types) {
+                if (!first) dst = _dump_appendf(dst, end, ",");
+                dst = _dump_appendf(dst, end, "%li", arg_id);
+                first = 0;
+            }
+
+            dst = _dump_appendf(dst, end, ")%li", ti.body.signature.ret_type);
+            for (int i = 0; i < ti.ptr; i++) {
+                dst = _dump_appendf(dst, end, "*");
+            }
+            *dst = 0;
+            return signature;
+        }
     }
 
     return "NULL";

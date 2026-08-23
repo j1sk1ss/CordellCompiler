@@ -28,6 +28,7 @@ static const markup_token_t _lexems[] = {
 
     /* Function and jmp tokens. */
     LEXEM(FUNCTION_COMMAND,       FUNC_TOKEN),
+    LEXEM(SIGNATURE_COMMAND,      SIGNATURE_TOKEN),
     LEXEM(RETURN_COMMAND,         RETURN_TOKEN),
     LEXEM(SYSCALL_COMMAND,        SYSCALL_TOKEN),
     LEXEM(ASM_COMMAND,            ASM_TOKEN),

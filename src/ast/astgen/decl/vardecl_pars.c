@@ -1,8 +1,79 @@
 #include <ast/astgen/astgen.h>
 
+static symbol_id_t _resolve_plain_type(token_t* t, ast_ctx_t* ctx, sym_table_t* smt) {
+    symbol_id_t type = type_lookup(t, ctx, smt);
+    if (type != NO_SYMBOL_ID)   return type;
+    if (TKN_is_builtin_type(t)) return TPTB_add_info_from_token(NO_SYMBOL_ID, t, NO_SYMBOL_ID, &smt->t);
+    return NO_SYMBOL_ID;
+}
+
+static symbol_id_t _parse_type_id(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt);
+
+static symbol_id_t _intern_signature_type(list_t* args, symbol_id_t ret, typetab_ctx_t* ctx) {
+    symbol_id_t signature = TPTB_get_signature(args, ret, ctx);
+    if (signature != NO_SYMBOL_ID) return signature;
+    return TPTB_add_signature(args, ret, ctx);
+}
+
+static symbol_id_t _parse_signature_type(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+    if (!CURRENT_TOKEN || CURRENT_TOKEN->t_type != SIGNATURE_TOKEN) return NO_SYMBOL_ID;
+    if (!consume_token(it, OPEN_BRACKET_TOKEN)) {
+        PARSE_ERROR("Signature type parse error! Expected '(' after 'fn'.");
+        return NO_SYMBOL_ID;
+    }
+
+    list_t args;
+    list_init(&args);
+#define SIGNATURE_PARSE_ASSERT(action, message) \
+    if (action) { \
+        PARSE_ERROR("Signature type parse error! Expected argument list."); \
+        list_free(&args); \
+        return NO_SYMBOL_ID; \
+    }
+    
+    SIGNATURE_PARSE_ASSERT(!forward_token(it, 1), "Signature type parse error! Expected argument list.");
+    while (CURRENT_TOKEN && CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN) {
+        symbol_id_t arg_type = _parse_type_id(it, ctx, smt);
+        SIGNATURE_PARSE_ASSERT(arg_type == NO_SYMBOL_ID, "Signature type parse error! Unknown argument type.");
+
+        list_add(&args, (void*)arg_type);
+        if (consume_token(it, COMMA_TOKEN)) {
+            SIGNATURE_PARSE_ASSERT(!forward_token(it, 1), "Signature type parse error! Expected argument type after ','.");
+            continue;
+        }
+
+        SIGNATURE_PARSE_ASSERT(
+            !CURRENT_TOKEN || CURRENT_TOKEN->t_type != CLOSE_BRACKET_TOKEN, 
+            "Signature type parse error! Expected ',' or ')'."
+        );
+    }
+
+    SIGNATURE_PARSE_ASSERT(!CURRENT_TOKEN || !forward_token(it, 1), "Signature type parse error! Expected return type.");
+    symbol_id_t ret_type = _parse_type_id(it, ctx, smt);
+    SIGNATURE_PARSE_ASSERT(ret_type == NO_SYMBOL_ID, "Signature type parse error! Unknown return type.");
+#undef SIGNATURE_PARSE_ASSERT
+    symbol_id_t signature = _intern_signature_type(&args, ret_type, &smt->t);
+    list_free(&args);
+    return signature;
+}
+
+static symbol_id_t _parse_type_id(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
+    return CURRENT_TOKEN->t_type == SIGNATURE_TOKEN ? 
+                _parse_signature_type(it, ctx, smt) : 
+                _resolve_plain_type(CURRENT_TOKEN, ctx, smt);
+}
+
 DEFINE_PARSER(cpl_parse_variable_declaration, {
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
     PARSER_ASSERT(!base, NULL, "Can't create a base for the variable's declaration type! <type> <name>!");
+
+    if (CURRENT_TOKEN->t_type == SIGNATURE_TOKEN) {
+        base->sinfo.t_id = _parse_signature_type(it, ctx, smt);
+        PARSER_ASSERT_DO(
+            base->sinfo.t_id == NO_SYMBOL_ID, "Can't parse a function signature type! Expected fn(<args>)<ret>.",
+            { AST_unload(base); }
+        );
+    }
 
     annotations_summary_t annots = { 
         .align  = CONF_get_full_bytness(), .section = NULL, 

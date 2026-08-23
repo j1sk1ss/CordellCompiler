@@ -85,6 +85,7 @@ static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
         case U32_TYPE_TOKEN:
         case U16_TYPE_TOKEN:
         case U8_TYPE_TOKEN:
+        case SIGNATURE_TOKEN:
         case ARRAY_TYPE_TOKEN:     return DECLARATION_NODE;
 
         case ASSIGN_TOKEN:
