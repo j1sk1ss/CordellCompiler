@@ -662,11 +662,31 @@ static int _create_type_name(hir_subject_type_t t, int ptr, char* buffer, int bu
     return 1;
 }
 
-static inline int _compare_expected_with_provided(ast_node_t* expected, hir_subject_t* provided, sym_table_t* smt) {
-    if (expected->t->flags.ptr != provided->ptr) return 0;
-    if (expected->t->flags.ptr > 0) return 1;
-    if (expected->t->t_type != CUSTOM_TYPE_TOKEN) {
-        return HIR_get_type_size(HIR_get_tmptype_tkn(expected->t, 0)) ==
+static int _create_type_name_from_tid(symbol_id_t t_id, sym_table_t* smt, char* buffer, int buffer_size) {
+    type_info_t ti;
+    if (!TPTB_get_info_id(TPTB_resolve_parent(t_id, &smt->t), &ti, &smt->t)) return 0;
+    for (int i = 0; i < ti.ptr; i++) {
+        buffer += snprintf(buffer, buffer_size, "ptr ");
+    }
+
+    switch (ti.t) {
+        case TYPE_PRIMITIVE: buffer += snprintf(buffer, buffer_size, "%s", DUMP_format_token_type(ti.body.primitive.token)); break;
+        case TYPE_CUSTOM:    buffer += snprintf(buffer, buffer_size, "%s", ti.name->body);                                   break;
+        default: break;
+    }
+
+    return 1;
+}
+
+static inline int _compare_expected_with_provided(symbol_id_t t_id, hir_subject_t* provided, sym_table_t* smt) {
+    type_info_t ti;
+    if (!TPTB_get_info_id(TPTB_resolve_parent(t_id, &smt->t), &ti, &smt->t)) return 0;
+
+    if (ti.ptr != provided->ptr) return 0;
+    if (ti.ptr > 0) return 1;
+    if (ti.t == TYPE_PRIMITIVE) {
+        token_t _ = { .t_type = ti.body.primitive.token };
+        return HIR_get_type_size(HIR_get_tmptype_tkn(&_, 0)) ==
                HIR_get_type_size(HIR_get_tmp_type(provided->t));
     }
 
@@ -674,7 +694,7 @@ static inline int _compare_expected_with_provided(ast_node_t* expected, hir_subj
     if (
         HIR_is_vartype(provided->t) &&
         VRTB_get_info_id(provided->storage.var.v_id, &pvi, &smt->v)
-    ) return TPTB_resolve_parent(expected->sinfo.t_id, &smt->t) == TPTB_resolve_parent(pvi.t_id, &smt->t);
+    ) return ti.id == TPTB_resolve_parent(pvi.t_id, &smt->t);
     return 0;
 }
 
@@ -682,8 +702,30 @@ int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
     if (b->op == HIR_SYSC || b->op == HIR_STORE_SYSC) return 1;
     func_info_t fi;
-    if (!FNTB_get_info_id(b->sarg->storage.str.s_id, &fi, &smt->f)) {
-        return 1;
+    variable_info_t vi = { .v_id = NO_SYMBOL_ID };
+    if (
+        !FNTB_get_info_id(b->sarg->storage.str.s_id, &fi, &smt->f) &&
+        (HIR_is_vartype(b->sarg->t) || !VRTB_get_info_id(b->sarg->storage.var.v_id, &vi, &smt->v))
+    ) return 1;
+    
+    list_t expected;
+    list_init(&expected);
+
+    type_info_t ti;
+    if (
+        vi.v_id != NO_SYMBOL_ID                                               &&
+        TPTB_get_info_id(TPTB_resolve_parent(vi.t_id, &smt->t), &ti, &smt->t) &&
+        ti.t == TYPE_SIGNATURE
+    ) {
+        foreach (symbol_id_t t_id, &ti.body.signature.arg_types) {
+            list_add(&expected, (void*)t_id);
+        }
+    }
+    else {
+        fn_iterate_args (&fi) {
+            if (arg->t->t_type == VAR_ARGUMENTS_TOKEN) break;
+            list_add(&expected, (void*)arg->sinfo.t_id);
+        }
     }
 
     trace_t trace;
@@ -691,14 +733,17 @@ int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
 
     int arg_index = 0;
     hir_subject_t** hir_args = (hir_subject_t**)list_flatten(&b->targ->storage.list.h);
-    if (!hir_args) return 1;
+    if (!hir_args) {
+        list_free(&expected);
+        TRACE_unload_trace(&trace);
+        return 1;
+    }
 
     trace_id_t trace_id = TRACE_NO_ID;
-    fn_iterate_args (&fi) {
-        if (arg->t->t_type == VAR_ARGUMENTS_TOKEN) continue;
-        if (!_compare_expected_with_provided(arg, hir_args[arg_index], smt)) {
+    foreach (symbol_id_t expected_id, &expected) {
+        if (!_compare_expected_with_provided(expected_id, hir_args[arg_index], smt)) {
             char received[64], expected[64];
-            _create_type_name(HIR_get_tmptype_tkn(arg->t, 0), arg->t->flags.ptr, expected, sizeof(expected));
+            _create_type_name_from_tid(expected_id, smt, expected, sizeof(expected));
             _create_type_name(hir_args[arg_index]->t, hir_args[arg_index]->ptr, received, sizeof(received));
 
             if (trace_id == TRACE_NO_ID) {
@@ -737,6 +782,7 @@ int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
 
     mm_free(hir_args);
     TRACE_print_and_free_trace(&trace);
+    list_free(&expected);
     return 1;
 }
 
