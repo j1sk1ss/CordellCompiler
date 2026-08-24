@@ -1,0 +1,27 @@
+: BUG :
+container smth {
+    i32 a;
+}
+container els {
+    i32 a;
+}
+
+start() {
+    ptr fn(i32,i32)i32 fnc;
+    fnc(1, 1);
+
+    ptr fn(ptr el)i0 a;
+    ptr fn(ptr smth)i0 b;
+
+    smth d;
+    els k;
+
+    a(ref d);
+    b(ref k);
+}
+
+
+:/ OUTPUT
+[/tmp/tmp8prms0g5.cpl:12:23] Signature type parse error! Expected argument list.
+[/tmp/tmp8prms0g5.cpl:12:23] Can't parse a function signature type! Expected fn(<args>)<ret>.
+/:
