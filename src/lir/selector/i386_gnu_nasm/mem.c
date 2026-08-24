@@ -374,12 +374,66 @@ static inline int _is_esp_adjustment(lir_block_t* lh, lir_operation_t op) {
     );
 }
 
+static inline long _esp_adjustment_value(lir_block_t* lh, lir_operation_t op) {
+    if (!_is_esp_adjustment(lh, op)) return 0;
+    return lh->targ->storage.cnst.value;
+}
+
+static int _insert_block_before_call(cfg_block_t* bb, lir_block_t* block, lir_block_t* call) {
+    if (!block || !call) return 0;
+    if (bb->lmap.entry == call) bb->lmap.entry = block;
+    return LIR_insert_block_before(block, call);
+}
+
+static int _insert_stack_arg_shift(cfg_block_t* bb, lir_block_t* call, long arg_bytes) {
+    if (!_insert_block_before_call(
+        bb,
+        LIR_create_block(LIR_iSUB, LIR_SUBJ_REG(ESP, 4), LIR_SUBJ_REG(ESP, 4), LIR_SUBJ_CONST(4)),
+        call
+    )) return 0;
+
+    for (long off = 0; off < arg_bytes; off += 4) {
+        if (!_insert_block_before_call(
+            bb,
+            LIR_create_block(LIR_iMOV, LIR_SUBJ_REG(ECX, 4), LIR_SUBJ_OFF(ESP, -(off + 4), 4), NULL),
+            call
+        )) return 0;
+
+        if (!_insert_block_before_call(
+            bb,
+            LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(ESP, -off, 4), LIR_SUBJ_REG(ECX, 4), NULL),
+            call
+        )) return 0;
+    }
+
+    return 1;
+}
+
+static inline int _is_stack_arg_shift_move(lir_block_t* lh) {
+    return (
+        lh && lh->op == LIR_iMOV &&
+        lh->farg && lh->sarg &&
+        (
+            (lh->farg->t == LIR_REGISTER && LIR_format_register(lh->farg->storage.reg.reg, 4) == ECX && lh->sarg->t == LIR_MEMORY) ||
+            (lh->farg->t == LIR_MEMORY && lh->sarg->t == LIR_REGISTER && LIR_format_register(lh->sarg->storage.reg.reg, 4) == ECX)
+        )
+    );
+}
+
 static inline int _has_stack_alignment_fix(cfg_block_t* bb, lir_block_t* lh) {
     if (!bb || !lh || lh == bb->lmap.entry || lh == bb->lmap.exit) return 0;
-    return (
-        _is_esp_adjustment(lh->prev, LIR_iSUB) && lh->prev->targ->storage.cnst.value == 4 &&
-        _is_esp_adjustment(lh->next, LIR_iADD) && lh->next->targ->storage.cnst.value == 4
-    );
+    if (_esp_adjustment_value(lh->next, LIR_iADD) != 4) return 0;
+
+    long arg_bytes = _esp_adjustment_value(lh->next->next, LIR_iADD);
+    lir_block_t* pre = lh->prev;
+    for (long off = 0; off < arg_bytes; off += 4) {
+        if (!_is_stack_arg_shift_move(pre)) return 0;
+        pre = pre->prev;
+        if (!_is_stack_arg_shift_move(pre)) return 0;
+        pre = pre->prev;
+    }
+
+    return _esp_adjustment_value(pre, LIR_iSUB) == 4;
 }
 
 #define IS_REGULAR_FCALL(lh) (lh && (lh->op == LIR_ECLL || lh->op == LIR_FCLL) && lh->farg && lh->farg->t == LIR_FNAME)
@@ -457,13 +511,11 @@ static cfg_dfs_action_t _validate_stack_alignment(
                     ) ||
                     !_stack_alignment_mod(*alignment) || _has_stack_alignment_fix(bb, lh)
                 ) break;
-                lir_block_t* pre  = LIR_create_block(LIR_iSUB, LIR_SUBJ_REG(ESP, 4), LIR_SUBJ_REG(ESP, 4), LIR_SUBJ_CONST(4));
                 lir_block_t* post = LIR_create_block(LIR_iADD, LIR_SUBJ_REG(ESP, 4), LIR_SUBJ_REG(ESP, 4), LIR_SUBJ_CONST(4));
-                if (!pre || !post) return CFG_DFS_STOP;
-                if (bb->lmap.entry == lh) bb->lmap.entry = pre;
+                if (!post) return CFG_DFS_STOP;
                 if (bb->lmap.exit == lh)  bb->lmap.exit = post;
                 if (
-                    !LIR_insert_block_before(pre, lh) ||
+                    !_insert_stack_arg_shift(bb, lh, _esp_adjustment_value(lh->next, LIR_iADD)) ||
                     !LIR_insert_block_after(post, lh)
                 ) return CFG_DFS_STOP;
                 *alignment += 4;

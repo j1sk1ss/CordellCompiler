@@ -36,7 +36,7 @@ Params:
     - `smt` - Symtable.
 
 Returns 1 if this is a register value, otherwise 0. */
-static int _get_abi_argument(int index, int offset, lir_subject_t* s, abi_argument_t* out, func_info_t* fi, sym_table_t* smt) {
+static int _get_abi_argument(int index, lir_subject_t* s, abi_argument_t* out, func_info_t* fi, sym_table_t* smt) {
     int dec_abi_regs[]  = { RDI,  RSI,  RDX,  RCX,  R8,   R9               };
     int simd_abi_regs[] = { XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7 };
 
@@ -63,7 +63,7 @@ static int _get_abi_argument(int index, int offset, lir_subject_t* s, abi_argume
     }
 
     if (index >= regs_count) {
-        out->off = (offset - regs_count + !fi->flags.naked + 1) * -8;
+        out->off = (index - regs_count + !fi->flags.naked + 1) * -8;
         return 0;
     }
     
@@ -191,7 +191,7 @@ static cfg_dfs_action_t _instruction_selection_block(
                 func_info_t callee;
                 if (!_get_call_info(lh, bb, &callee, smt)) callee = *fi;
                 abi_argument_t target;
-                if (!_get_abi_argument(lh->sarg->storage.cnst.value, 0, lh->farg, &target, &callee, smt)) {
+                if (!_get_abi_argument(lh->sarg->storage.cnst.value, lh->farg, &target, &callee, smt)) {
                     lh->op = LIR_PUSH;
                     ctx->clean_stack += 8;
                 }
@@ -211,7 +211,7 @@ static cfg_dfs_action_t _instruction_selection_block(
                 abi_argument_t target;
                 lir_subject_t* nfarg;
                 if (
-                    _get_abi_argument(lh->sarg->storage.cnst.value, lh->targ->storage.cnst.value, lh->farg, &target, fi, smt)
+                    _get_abi_argument(lh->sarg->storage.cnst.value, lh->farg, &target, fi, smt)
                 ) nfarg = x86_64_gnu_nasm_create_tmp(target.reg, lh->farg, smt, -1);
                 else nfarg = LIR_SUBJ_OFF(RBP, target.off, lh->farg->size);
                 LIR_unload_subject(lh->sarg);

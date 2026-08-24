@@ -405,12 +405,119 @@ static inline int _is_rsp_adjustment(lir_block_t* lh, lir_operation_t op) {
     );
 }
 
+static inline long _rsp_adjustment_value(lir_block_t* lh, lir_operation_t op) {
+    if (!_is_rsp_adjustment(lh, op)) return 0;
+    return lh->targ->storage.cnst.value;
+}
+
+static int _insert_block_before_call(cfg_block_t* bb, lir_block_t* block, lir_block_t* call) {
+    if (!block || !call) return 0;
+    if (bb->lmap.entry == call) bb->lmap.entry = block;
+    return LIR_insert_block_before(block, call);
+}
+
+static int _unlink_block(cfg_block_t* bb, lir_block_t* block) {
+    if (!bb || !block) return 0;
+    if (bb->lmap.entry == block) bb->lmap.entry = block->next;
+    if (bb->lmap.exit == block)  bb->lmap.exit = block->prev;
+    return LIR_unlink_block(block);
+}
+
+static int _insert_slot_swap(cfg_block_t* bb, lir_block_t* call, long a, long b) {
+    if (!_insert_block_before_call(
+        bb,
+        LIR_create_block(LIR_iMOV, LIR_SUBJ_REG(RAX, 8), LIR_SUBJ_OFF(RSP, -(a * 8), 8), NULL),
+        call
+    )) return 0;
+
+    if (!_insert_block_before_call(
+        bb,
+        LIR_create_block(LIR_iMOV, LIR_SUBJ_REG(R11, 8), LIR_SUBJ_OFF(RSP, -(b * 8), 8), NULL),
+        call
+    )) return 0;
+
+    if (!_insert_block_before_call(
+        bb,
+        LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(RSP, -(a * 8), 8), LIR_SUBJ_REG(R11, 8), NULL),
+        call
+    )) return 0;
+
+    return _insert_block_before_call(
+        bb,
+        LIR_create_block(LIR_iMOV, LIR_SUBJ_OFF(RSP, -(b * 8), 8), LIR_SUBJ_REG(RAX, 8), NULL),
+        call
+    );
+}
+
+static int _insert_stack_arg_reorder(cfg_block_t* bb, lir_block_t* call, long save_bytes, long arg_bytes, long padding_bytes) {
+    if (
+        padding_bytes &&
+        !_insert_block_before_call(
+            bb,
+            LIR_create_block(LIR_iSUB, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(padding_bytes)),
+            call
+        )
+    ) return 0;
+
+    long base_slots = save_bytes / 8 + padding_bytes / 8;
+    long arg_slots  = arg_bytes / 8;
+    for (long arg = 0; arg < arg_slots; arg++) {
+        for (long pos = base_slots + arg; pos > arg; pos--) {
+            if (!_insert_slot_swap(bb, call, pos, pos - 1)) return 0;
+        }
+    }
+
+    return 1;
+}
+
+static inline int _is_stack_arg_shift_move(lir_block_t* lh) {
+    return (
+        lh && lh->op == LIR_iMOV &&
+        lh->farg && lh->sarg &&
+        (
+            (lh->farg->t == LIR_REGISTER && LIR_format_register(lh->farg->storage.reg.reg, 8) == RAX && lh->sarg->t == LIR_MEMORY) ||
+            (lh->farg->t == LIR_REGISTER && LIR_format_register(lh->farg->storage.reg.reg, 8) == R11 && lh->sarg->t == LIR_MEMORY) ||
+            (lh->farg->t == LIR_MEMORY && lh->sarg->t == LIR_REGISTER && LIR_format_register(lh->sarg->storage.reg.reg, 8) == RAX) ||
+            (lh->farg->t == LIR_MEMORY && lh->sarg->t == LIR_REGISTER && LIR_format_register(lh->sarg->storage.reg.reg, 8) == R11)
+        )
+    );
+}
+
 static inline int _has_stack_alignment_fix(cfg_block_t* bb, lir_block_t* lh) {
     if (!bb || !lh || lh == bb->lmap.entry || lh == bb->lmap.exit) return 0;
-    return (
-        _is_rsp_adjustment(lh->prev, LIR_iSUB) && lh->prev->targ->storage.cnst.value == 8 &&
-        _is_rsp_adjustment(lh->next, LIR_iADD) && lh->next->targ->storage.cnst.value == 8
-    );
+    if (_rsp_adjustment_value(lh->next, LIR_iADD) < 8) return 0;
+
+    lir_block_t* pre = lh->prev;
+    while (_is_stack_arg_shift_move(pre)) {
+        pre = pre->prev;
+    }
+
+    return _rsp_adjustment_value(pre, LIR_iSUB) == 8;
+}
+
+static inline int _is_call_arg_save_pop(lir_block_t* lh) {
+    if (!lh || lh->op != LIR_POP || !lh->farg || lh->farg->t != LIR_REGISTER) return 0;
+    lir_registers_t reg = LIR_format_register(lh->farg->storage.reg.reg, 8);
+    lir_registers_t arg_regs[] = { RDI, RSI, RDX, RCX, R8, R9 };
+    for (int i = 0; i < (int)(sizeof(arg_regs) / sizeof(arg_regs[0])); i++) {
+        if (reg == arg_regs[i]) return 1;
+    }
+    return 0;
+}
+
+static long _post_call_stack_arg_cleanup(lir_block_t* call, long* save_bytes, lir_block_t** cleanup) {
+    if (save_bytes) *save_bytes = 0;
+    if (cleanup)    *cleanup    = NULL;
+
+    lir_block_t* curr = call ? call->next : NULL;
+    while (_is_call_arg_save_pop(curr)) {
+        if (save_bytes) *save_bytes += 8;
+        curr = curr->next;
+    }
+
+    long arg_bytes = _rsp_adjustment_value(curr, LIR_iADD);
+    if (arg_bytes && cleanup) *cleanup = curr;
+    return arg_bytes;
 }
 
 #define IS_REGULAR_FCALL(lh) (lh && (lh->op == LIR_ECLL || lh->op == LIR_FCLL) && lh->farg && lh->farg->t == LIR_FNAME)
@@ -485,20 +592,25 @@ static cfg_dfs_action_t _validate_stack_alignment(
                             IS_REGULAR_FCALL(lh) &&
                             set_has(&ctx->broken_funcs, (void*)lh->farg->storage.str.sid)
                         )
-                    ) ||
-                    !(ALIGN_MOD(*alignment, 16)) ||
-                    _has_stack_alignment_fix(bb, lh)
+                    )
                 ) break;
-                lir_block_t* pre  = LIR_create_block(LIR_iSUB, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(8));
-                lir_block_t* post = LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(8));
-                if (!pre || !post) return CFG_DFS_STOP;
-                if (bb->lmap.entry == lh) bb->lmap.entry = pre;
-                if (bb->lmap.exit == lh)  bb->lmap.exit = post;
+                long save_bytes = 0;
+                lir_block_t* cleanup = NULL;
+                long arg_bytes = _post_call_stack_arg_cleanup(lh, &save_bytes, &cleanup);
+                long padding_bytes = (ALIGN_MOD(*alignment, 16) && !_has_stack_alignment_fix(bb, lh)) ? 8 : 0;
+                int reorder_stack_args = save_bytes && arg_bytes;
+                if (!padding_bytes && !reorder_stack_args) break;
+
+                long post_bytes = (reorder_stack_args ? arg_bytes : 0) + padding_bytes;
+                lir_block_t* post = LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_REG(RSP, 8), LIR_SUBJ_CONST(post_bytes));
+                if (!post) return CFG_DFS_STOP;
+                if (bb->lmap.exit == lh) bb->lmap.exit = post;
                 if (
-                    !LIR_insert_block_before(pre, lh) ||
+                    !_insert_stack_arg_reorder(bb, lh, save_bytes, arg_bytes, padding_bytes) ||
                     !LIR_insert_block_after(post, lh)
                 ) return CFG_DFS_STOP;
-                *alignment += 8;
+                if (reorder_stack_args && !_unlink_block(bb, cleanup)) return CFG_DFS_STOP;
+                *alignment += padding_bytes;
                 break;
             }
             default: break;
