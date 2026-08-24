@@ -10,8 +10,8 @@
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
 
-#include <sem/semantic.h>
-#include <sem/misc/restore.h>
+#include <csa/semantic.h>
+#include <csa/misc/restore.h>
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {

@@ -10,7 +10,7 @@
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
 #include <ast/devirt.h>
-#include <sem/misc/restore.h>
+#include <csa/misc/restore.h>
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>

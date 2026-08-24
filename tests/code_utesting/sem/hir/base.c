@@ -18,7 +18,7 @@
 #include <hir/func.h>
 #include <hir/constfold.h>
 
-#include <sem/semantic.h>
+#include <csa/semantic.h>
 
 int main(int argc, char* argv[]) {
     config_t cfg = { 

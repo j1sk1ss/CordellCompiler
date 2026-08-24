@@ -6,7 +6,7 @@
         "src/preproc/misc/*.c",
         "src/prep/*.c",
         "src/ast/*.c",
-        "src/sem/misc/restore.c",
+        "src/csa/misc/restore.c",
         "src/ast/astgen/*.c", 
         "src/ast/astgen/*/*.c",
         "src/ast/devirt/*.c",

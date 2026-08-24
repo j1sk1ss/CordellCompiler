@@ -11,7 +11,7 @@
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
 #include <ast/dump.h>
-#include <sem/misc/restore.h>
+#include <csa/misc/restore.h>
 #include <symtab/dump.h>
 
 int main(int argc, char* argv[]) {
