@@ -26,7 +26,7 @@ static symbol_id_t _parse_signature_type(list_iter_t* it, ast_ctx_t* ctx, sym_ta
     list_init(&args);
 #define SIGNATURE_PARSE_ASSERT(action, message) \
     if (action) { \
-        PARSE_ERROR("Signature type parse error! Expected argument list."); \
+        PARSE_ERROR(message); \
         list_free(&args); \
         return NO_SYMBOL_ID; \
     }

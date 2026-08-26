@@ -1,16 +1,10 @@
 #include <csa/hir/hir_visitors.h>
 
-#define HIR_TRACE_INTERPROC_MAX_DEPTH 8
-
-static int _is_tmp_variable(variable_info_t* vi) {
-    return !vi || TKN_is_tmp_type(vi->type) || !vi->name || vi->name->requals(vi->name, "tmp");
-}
-
 static int _resolve_named_variable_info(symbol_id_t id, sym_table_t* smt, variable_info_t* out) {
     variable_info_t vi;
     int found = 0;
     while (VRTB_get_info_id(id, &vi, &smt->v)) {
-        if (!_is_tmp_variable(&vi)) {
+        if (!TKN_is_tmp_type(vi.type)) {
             if (out) str_memcpy(out, &vi, sizeof(variable_info_t));
             found = 1;
         }
@@ -299,7 +293,7 @@ static int _add_interprocedural_value_notes_rec(
     if (
         !trace || trace_id == TRACE_NO_ID || !bb || 
         !bb->pfunc || !subject || !ctx || !ctx->z3 || 
-        !ctx->z3->cfg_ctx || depth >= HIR_TRACE_INTERPROC_MAX_DEPTH
+        !ctx->z3->cfg_ctx || depth >= 8
     ) return 1;
 
     long arg_index = -1;
@@ -664,7 +658,7 @@ static int _create_type_name(hir_subject_type_t t, int ptr, char* buffer, int bu
 
 static int _create_type_name_from_tid(symbol_id_t t_id, sym_table_t* smt, char* buffer, int buffer_size) {
     type_info_t ti;
-    if (!TPTB_get_info_id(TPTB_resolve_parent(t_id, &smt->t), &ti, &smt->t)) return 0;
+    if (!TPTB_get_info_id(t_id, &ti, &smt->t)) return 0;
     for (int i = 0; i < ti.ptr; i++) {
         buffer += snprintf(buffer, buffer_size, "ptr ");
     }
@@ -701,11 +695,11 @@ static inline int _compare_expected_with_provided(symbol_id_t t_id, hir_subject_
 int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
     if (b->op == HIR_SYSC || b->op == HIR_STORE_SYSC) return 1;
-    func_info_t fi;
+    func_info_t fi = { .name = NULL };
     variable_info_t vi = { .v_id = NO_SYMBOL_ID };
     if (
         !FNTB_get_info_id(b->sarg->storage.str.s_id, &fi, &smt->f) &&
-        (HIR_is_vartype(b->sarg->t) || !VRTB_get_info_id(b->sarg->storage.var.v_id, &vi, &smt->v))
+        (!HIR_is_vartype(b->sarg->t) || !VRTB_get_info_id(b->sarg->storage.var.v_id, &vi, &smt->v))
     ) return 1;
     
     list_t expected;
@@ -749,8 +743,8 @@ int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
             if (trace_id == TRACE_NO_ID) {
                 trace_id = TRACE_create_root(
                     &trace, TRACE_SEVERITY_WARNING, &ctx->curr_location,
-                    "Function '%s' has some arguments, which have a wrong type! Consider to use the 'as' operator!",
-                    fi.name->body
+                    "%s '%s' has some arguments, which have a wrong type! Consider to use the 'as' operator!",
+                    fi.name ? "Function" : "Call of", fi.name ? fi.name->body : _resolve_variable_name(b->sarg->storage.var.v_id, smt)
                 );
             }
 
