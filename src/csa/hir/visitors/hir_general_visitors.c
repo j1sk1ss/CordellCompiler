@@ -674,10 +674,10 @@ static int _create_type_name_from_tid(symbol_id_t t_id, sym_table_t* smt, char* 
 
 static inline int _compare_expected_with_provided(symbol_id_t t_id, hir_subject_t* provided, sym_table_t* smt) {
     type_info_t ti;
-    if (!TPTB_get_info_id(TPTB_resolve_parent(t_id, &smt->t), &ti, &smt->t)) return 0;
+    if (!TPTB_get_info_id(t_id, &ti, &smt->t)) return 0;
 
     if (ti.ptr != provided->ptr) return 0;
-    if (ti.ptr > 0) return 1;
+    if (ti.t != TYPE_CUSTOM && ti.ptr > 0) return 1;
     if (ti.t == TYPE_PRIMITIVE) {
         token_t _ = { .t_type = ti.body.primitive.token };
         return HIR_get_type_size(HIR_get_tmptype_tkn(&_, 0)) ==
@@ -688,7 +688,7 @@ static inline int _compare_expected_with_provided(symbol_id_t t_id, hir_subject_
     if (
         HIR_is_vartype(provided->t) &&
         VRTB_get_info_id(provided->storage.var.v_id, &pvi, &smt->v)
-    ) return ti.id == TPTB_resolve_parent(pvi.t_id, &smt->t);
+    ) return TPTB_resolve_parent(t_id, &smt->t) == TPTB_resolve_parent(pvi.t_id, &smt->t);
     return 0;
 }
 
@@ -814,7 +814,7 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
     if (di.const_value >= table_size || di.const_value < 0) {
         trace_id_t trace_id = TRACE_create_root(
             &trace, TRACE_SEVERITY_WARNING, &ctx->curr_location,
-            "Selected architecture doesn't have a syscall for %li value!", di.const_value
+            "Selected architecture doesn't have a registered syscall for %li value!", di.const_value
         );
         if (di.defined_value == 2) {
             file_position_t loc;
@@ -830,11 +830,11 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
     syscall_t syscall = table[di.const_value];
     if (syscall.security > ctx->acceptable_level) {
         TRACE_create_root(
-            &trace, TRACE_SEVERITY_WARNING, &ctx->curr_location,
+            &trace, TRACE_SEVERITY_ERROR, &ctx->curr_location,
             "Syscall %i (%s, %s) has security level %i and is dangerous for this acceptance level (%i). Consider deleting this call or reducing the acceptance level.",
             di.const_value, syscall.name, syscall.description, syscall.security, ctx->acceptable_level
         );
-        // goto _force_exit_syscall_checker;
+        goto _force_exit_syscall_checker;
     }
 
     trace_id_t wrong_args_trace_id = TRACE_NO_ID;
@@ -865,19 +865,16 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
                 _sparce_find_variable_define_location(b, flatten_input[arg_index]->storage.var.v_id, &loc);
                 TRACE_add_note(&trace, wrong_args_trace_id, &loc, "The variable is defined here!");
             }
-
         }
 
-        if (
-            syscall.types[sarg_index].dereference && 
-            Z3_check_subject_eq_llong(ctx->z3, bb->pfunc, flatten_input[arg_index], 0)
-        ) {
+        z3_result_t is_null = Z3_check_subject_eq_llong(ctx->z3, bb->pfunc, flatten_input[arg_index], 0);
+        if (syscall.types[sarg_index].dereference && is_null != Z3A_NO && is_null != Z3A_UNKNOWN) {
             char _[64] = { 0 };
             const char* source = _format_subject_name(flatten_input[arg_index], smt, ctx->dctx, _, sizeof(_));
             TRACE_create_root(
-                &trace, TRACE_SEVERITY_WARNING, &ctx->curr_location, 
-                "Syscall will dereference the %i argument, but the %s is NULL!",
-                sarg_index + 1, source
+                &trace, is_null == Z3A_YES ? TRACE_SEVERITY_ERROR : TRACE_SEVERITY_WARNING, &ctx->curr_location, 
+                "Syscall will dereference the %i argument, but the %s %s NULL!",
+                sarg_index + 1, source, is_null == Z3A_YES ? "is" : "can be"
             );
         }
     }
