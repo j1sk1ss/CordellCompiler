@@ -2,7 +2,7 @@
     "version": "0.3.0",
     "configurations": [
         {
-            "name": "Debug compiler",
+            "name": "Debug compiler (Darwin LLDB)",
             "type": "lldb",
             "request": "launch",
             "program": "${workspaceFolder}/builds/darwin-x86_64/cplc",
@@ -32,7 +32,7 @@
             "terminal": "integrated"
         },
         {
-            "name": "Debug CSA",
+            "name": "Debug CSA (Darwin LLDB)",
             "type": "lldb",
             "request": "launch",
             "program": "${workspaceFolder}/builds/darwin-x86_64/cplc",
@@ -55,6 +55,85 @@
             },
             "preLaunchTask": "Build compiler and CPL runtime (debug)",
             "terminal": "integrated"
+        },
+        {
+            "name": "Debug compiler (Linux GDB)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/builds/linux-x86_64/cplc",
+            "args": [
+                "--debug",
+                "${input:cplOptimizationProfile}",
+                "${input:cplStrictProfile}",
+                "--arch",
+                "x86_64",
+                "--sys-type",
+                "linux64",
+                "--asm-format",
+                "elf64",
+                "-c",
+                "--emit-asm",
+                "--asm-output",
+                "${workspaceFolder}/builds/linux-x86_64/${fileBasenameNoExtension}.s",
+                "--output",
+                "${workspaceFolder}/builds/linux-x86_64/${fileBasenameNoExtension}.o",
+                "${file}"
+            ],
+            "cwd": "${workspaceFolder}",
+            "environment": [
+                {
+                    "name": "CPL_INCLUDE_PATH",
+                    "value": "${workspaceFolder}/cpllib"
+                }
+            ],
+            "preLaunchTask": "Build compiler and CPL runtime (debug)",
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "externalConsole": false,
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "Debug CSA (Linux GDB)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/builds/linux-x86_64/cplc",
+            "args": [
+                "--debug",
+                "${input:cplOptimizationProfile}",
+                "${input:cplStrictProfile}",
+                "--CSA",
+                "--arch",
+                "x86_64",
+                "--sys-type",
+                "linux64",
+                "--asm-format",
+                "elf64",
+                "${file}"
+            ],
+            "cwd": "${workspaceFolder}",
+            "environment": [
+                {
+                    "name": "CPL_INCLUDE_PATH",
+                    "value": "${workspaceFolder}/cpllib"
+                }
+            ],
+            "preLaunchTask": "Build compiler and CPL runtime (debug)",
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "externalConsole": false,
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
         }
     ],
     "inputs": [
