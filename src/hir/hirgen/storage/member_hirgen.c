@@ -26,9 +26,11 @@ hir_subject_t* HIR_point_to_field(ast_node_t* root, hir_ctx_t* ctx, type_info_t*
         root->c->t->t_type != MEMBER_ACCESS_TOKEN
     ) {
         type_info_t ti;
-        if (root->c && root->c->t && root->c->t->t_type != INDEXATION_TOKEN)    base = HIR_generate_elem(root->c, ctx, smt);
-        else if (TPTB_get_info_id(root->c->sinfo.t_id, &ti, &smt->t) && ti.ptr) base = HIR_generate_load_indexation(root->c, ctx, smt);
-        else                                                                    base = HIR_generate_ref_indexation(root->c, ctx, smt);
+        if (root->c) {
+            if (root->c->t && root->c->t->t_type != INDEXATION_TOKEN)               base = HIR_generate_elem(root->c, ctx, smt);
+            else if (TPTB_get_info_id(root->c->sinfo.t_id, &ti, &smt->t) && ti.ptr) base = HIR_generate_load_indexation(root->c, ctx, smt);
+            else                                                                    base = HIR_generate_ref_indexation(root->c, ctx, smt);
+        }
     }
     else {
         type_info_t parent_field;
