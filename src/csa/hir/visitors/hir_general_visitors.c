@@ -1120,8 +1120,31 @@ int HIRWLKR_illegal_store(HIR_VISITOR_ARGS) {
 
         TRACE_create_root(
             &trace, TRACE_SEVERITY_WARNING, &ctx->curr_location, 
-            "The variable %s has a store operation which will cut the source value of %s",
+            "The variable '%s' has a store operation which will cut the source value of %s",
             source, destination
+        );
+
+        TRACE_print_and_free_trace(&trace);
+    }
+
+    z3_result_t is_null = Z3_check_subject_lt_llong_at_block(ctx->z3, bb->pfunc, bb, b->farg, 0);
+    variable_info_t dest;
+    if (
+        HIR_is_vartype(b->farg->t)                                  && 
+        VRTB_get_info_id(b->farg->storage.var.v_id, &dest, &smt->v) &&
+        dest.csa.not_null                                           && 
+        (is_null == Z3A_YES || is_null == Z3A_MAYBE)
+    ) {
+        trace_t trace;
+        TRACE_init_trace(&trace);
+
+        char source_buffer[64] = { 0 };
+        const char* source = _format_subject_name(b->farg, smt, ctx->dctx, source_buffer, sizeof(source_buffer));
+
+        TRACE_create_root(
+            &trace, is_null == Z3A_MAYBE ? TRACE_SEVERITY_WARNING : TRACE_SEVERITY_ERROR, &ctx->curr_location, 
+            "The @[not_null] variable '%s' has a store operation which %s store a NULL value!",
+            source, is_null == Z3A_MAYBE ? "can" : "will"
         );
 
         TRACE_print_and_free_trace(&trace);
