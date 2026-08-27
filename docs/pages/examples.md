@@ -82,7 +82,7 @@ function inc(i64 a) -> i64 {
 }
 
 start() {
-    ptr i0 f = inc;
+    ptr fn(i64)i64 f = inc;
     exit f(4) as u8;
 }
 ```
@@ -91,7 +91,7 @@ start() {
 
 ```cpl
 start() {
-    ptr i0 add = (i64 a, i64 b) => a + b;
+    ptr fn(i64,i64)i64 add = (i64 a, i64 b) => a + b;
     exit add(2, 3) as u8;
 }
 ```

@@ -39,6 +39,7 @@ The parser accepts `@[name]`, `@[name(value / variable)]` and `@[name(value / va
 | `@[cold]`                                     | `if` or switch `case`                                            | make the true branch, or the annotated case, cold for layout                                       |
 | `@[not_lazy]`                                 | logical expression                                               | evaluate both sides of `&&` or `\|\|`                                                              |
 | `@[union]`                                    | container                                                        | lay out all fields at offset zero and allocate enough memory for the largest field                 |
+| `@[not_null]`                                 | variable declaration                                             | mark a variable as a object which can't store 0 (for CSA only, doesn't change compilation)         |
 
 ## Entry, naked, sections
 

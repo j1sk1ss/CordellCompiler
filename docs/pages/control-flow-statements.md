@@ -92,9 +92,9 @@ Cases fall through unless you use `break` or annotate the switch with `@[no_fall
 ```cpl
 @[no_fall]
 switch code; {
-    case 'A'; { putc('A'); }
-    case 'B'; { putc('B'); }
-    default  { putc('?'); }
+    case 'A'; putc('A');
+    case 'B'; putc('B');
+    default   putc('?');
 }
 ```
 

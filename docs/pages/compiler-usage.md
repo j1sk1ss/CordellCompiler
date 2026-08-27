@@ -1,21 +1,6 @@
 # Compiler usage
 
-Build the compiler from the repository root:
-
-```bash
-make install && make cpllib
-cplc -v
-```
-
-## Toolchain requirements
-
-The compiler emits NASM assembly, assembles it to object files, and links those objects into the final executable. </br> 
-Default tools and target are selected at compile time:
-
-| Host build | Assembler format | Linker | Entry symbol | System type | Sections |
-|---|---|---|---|---|---|
-| Linux | `elf64` | `gcc` with `--linker-no-pie` defaulted on | `main` | `linux64` | `.rodata`, `.data`, `.text` |
-| non-Linux default path | `macho64` | `clang` | `_main` | `macho64` | `__TEXT,__const`, `__DATA,__data`, `__TEXT,__text` |
+## In few words
 
 The explcit build command is next:
 
@@ -65,21 +50,15 @@ Useful preprocessor-related flags:
 
 By default the compiler assembles and links an executable. These flags also write intermediate output files:
 
-| Flag | Output |
-|---|---|
-| `--emit-ast` | `output.ast` |
-| `--emit-ir` | `output.ir` |
-| `--emit-lir` | `output.lir` |
-| `--emit-asm` | `output.s` |
-
-Each default path can be replaced:
-
-```bash
---ast-output ast.txt
---ir-output hir.txt
---lir-output lir.txt
---asm-output program.s
-```
+| Flag              | Output                | Note         |
+|-------------------|-----------------------|--------------|
+| `--emit-ast`      | `output.ast`          |              |
+| `--emit-ir`       | `output.ir`           |              |
+| `--emit-lir`      | `output.lir`          |              |
+| `--emit-asm`      | `output.s`            |              |
+| `--emit-symtable` | `output.<smt>.symtab` | var, fn, sec |
+| `--emit-hir-cfg`  | `output.dot`          |              |
+| `--emit-lir-cfg`  | `output.dot`          |              |
 
 These emit flags write dumps in addition to the selected build mode.
 
@@ -106,9 +85,9 @@ Profiles:
 Individual flags:
 
 ```bash
---tre / --no-tre
---finline / --no-finline
---licm / --no-licm
+--tre      / --no-tre
+--finline  / --no-finline
+--licm     / --no-licm
 --constant / --no-constant
 --copyprop / --no-copyprop
 --peephole / --no-peephole
@@ -140,8 +119,6 @@ Section names can also be configured:
 --code-section .text
 ```
 
-`--sys-type macho64`, `--sys-type linux64`, and `--sys-type i386` also set section defaults for their target family. `--arch x86_64` selects 64-bit bytness and `elf64`; `--arch i386`, `--arch x86`, and `--arch ia32` select 32-bit bytness, `elf32`, and `--linker-m32`.
-
 Linker-related switches:
 
 ```bash
@@ -152,9 +129,6 @@ Linker-related switches:
 -Wl,<arg>
 -Xlinker <arg> / --linker-arg <arg>
 ```
-
-Library and raw linker arguments are appended to the final linker command after
-the generated object files and `libcpl.a`.
 
 ## Analysis flags
 

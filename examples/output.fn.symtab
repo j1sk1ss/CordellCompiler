@@ -1,0 +1,6 @@
+fn id=1 name=gets__std virt=gets__std1 scope=2 args=(i8* buffer*, i64 size) ret=i64 locals={} generic_types={} resolutions={} 
+fn id=4 name=fread__std virt=fread__std4 scope=2 args=(i32 fd, u8* buffer*, i32 size) ret=i64 locals={} generic_types={} resolutions={} 
+fn id=3 name=fwrite__std virt=fwrite__std3 scope=2 args=(i32 fd, u8* buffer*, i32 size) ret=i64 locals={} generic_types={} resolutions={} 
+fn id=0 name=putc__std virt=putc__std0 scope=2 args=(i8 c) ret=i64 locals={} generic_types={} resolutions={} 
+fn id=5 name=close__std virt=close__std5 scope=2 args=(i32 fd) ret=i8 locals={} generic_types={} resolutions={} 
+fn id=2 name=open__std virt=open__std2 scope=2 args=(i8* path*, i32 flags, i32 mode) ret=i64 locals={} generic_types={} resolutions={} 
