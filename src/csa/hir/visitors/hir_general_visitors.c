@@ -738,8 +738,14 @@ int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
         if (!_compare_expected_with_provided(expected_id, hir_args[arg_index], smt)) {
             char received[64], expected[64];
             _create_type_name_from_tid(expected_id, smt, expected, sizeof(expected));
-            _create_type_name(hir_args[arg_index]->t, hir_args[arg_index]->ptr, received, sizeof(received));
-
+            if (!HIR_is_vartype(hir_args[arg_index]->t))  _create_type_name(hir_args[arg_index]->t, hir_args[arg_index]->ptr, received, sizeof(received));
+            else {
+                variable_info_t vi;
+                if (VRTB_get_info_id(hir_args[arg_index]->storage.var.v_id, &vi, &smt->v)) {
+                    _create_type_name_from_tid(vi.t_id, smt, received, sizeof(received));
+                }
+            }
+            
             if (trace_id == TRACE_NO_ID) {
                 trace_id = TRACE_create_root(
                     &trace, TRACE_SEVERITY_WARNING, &ctx->curr_location,
