@@ -3,6 +3,20 @@ Logs for the first and second versions are quite short because I don’t remembe
 
 ----------------------------------------
 
+## Z3 optimizations
+<div class="change-date">Date: 2026-08-28</div>
+CPL now supports Z3 optimizations. For now this is only dead branches elimination. It means, if Z3 proves that a branch is dead, we eliminate it. For instance:
+
+```cpl
+i32 a = 10;
+if a < 0; { :/ <- Delete this branch and whole expression /:
+    :/ smth /:
+    return 1;
+}
+
+return 2;
+```
+
 # Version v3.7
 <div class="change-date">Date: 2026-08-23</div>
 CPL now is a strong typed language! Function pointers now use the next logic:

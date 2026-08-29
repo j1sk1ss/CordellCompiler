@@ -1154,6 +1154,9 @@ int main(int argc, char* argv[]) {
         }
 
         if (options.config.z3opt) {
+#ifndef CPL_ENABLE_Z3
+            fprintf(stderr, "'--z3opt' flag is active, but Z3 isn't installed! Install Z3 to use Z3 optimizations!\n");
+#endif
             Z3OPT_deadbranch(&cfgctx, &smt);
         }
 
