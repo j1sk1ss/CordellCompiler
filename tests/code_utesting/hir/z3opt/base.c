@@ -6,26 +6,18 @@
 #include <preproc/pp.h>
 #include <prep/token.h>
 #include <prep/markup.h>
-
 #include <ast/ast.h>
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
+#include <csa/misc/restore.h>
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
 #include <hir/cfg.h>
-#include <hir/ssa.h>
 #include <hir/func.h>
-#include <hir/dag.h>
+#include <hir/ssa.h>
 #include <hir/dump.h>
-
-#define RELOAD_CFG                          \
-    HIR_CFG_unload(&cfgctx);                \
-    HIR_CFG_build(&hirctx, &cfgctx, &smt);  \
-    HIR_CG_unload(&callctx);                \
-    HIR_CG_build(&cfgctx, &callctx, &smt);  \
-    HIR_CG_perform_dfe(&callctx, &smt);     \
-    HIR_CG_apply_dfe(&cfgctx, &smt);
+#include <hir/z3opt.h>
 
 int main(int argc, char* argv[]) {
     if (argc != 3) {
@@ -80,31 +72,27 @@ int main(int argc, char* argv[]) {
     hir_ctx_t hirctx = { 0 };
     HIR_generate(&sctx, &hirctx, &smt);
 
-    call_graph_t callctx;
     cfg_ctx_t cfgctx = { .cid = 0 };
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
+
+    call_graph_t callctx;
     HIR_CG_build(&cfgctx, &callctx, &smt);
-
-    RELOAD_CFG; // Rebuild after Last_ret + TRE
-
-    HIR_CFG_create_domdata(&cfgctx);
-    ltree_ctx_t lctx;
-    map_init(&lctx.lmap, MAP_NO_CMP);
-    HIR_LOOP_mark_loops(&cfgctx, &lctx);
+    HIR_CG_perform_dfe(&callctx, &smt);
+    HIR_CG_apply_dfe(&cfgctx, &smt);
 
     HIR_CFG_finalize_before_dom(&cfgctx);
-    HIR_LTREE_canonicalization(&cfgctx, &lctx);
-    HIR_CFG_unload_domdata(&cfgctx);
     HIR_CFG_create_domdata(&cfgctx);
 
     ssa_ctx_t ssactx;
     map_init(&ssactx.vers, MAP_NO_CMP);
-    HIR_SSA_insert_phi(&cfgctx, &smt);      // Transform
-    HIR_SSA_rename(&cfgctx, &ssactx, &smt); // Transform
+    HIR_SSA_insert_phi(&cfgctx, &smt);
+    HIR_SSA_rename(&cfgctx, &ssactx, &smt);
     map_free_force(&ssactx.vers);
 
     HIR_compute_homes(&hirctx);
-    HIR_LTREE_licm(&cfgctx, &lctx, &smt);
+    HIR_CFG_make_allias(&cfgctx, &smt);
+
+    Z3OPT_deadbranch(&cfgctx, &smt);
 
     DUMP_format_hirctx(&hirctx, &smt, 0, 1, stdout);
 
@@ -115,6 +103,12 @@ int main(int argc, char* argv[]) {
     AST_unload_ctx(&sctx);
 
     SMT_unload(&smt);
+
+    if (mm_get_allocated()) {
+        printf("\n<<ERROR>>\tMemory leak!\t%i != 0!\n", mm_get_allocated());
+        return EXIT_FAILURE;
+    }
+
     close(fd);
     return EXIT_SUCCESS;
 }

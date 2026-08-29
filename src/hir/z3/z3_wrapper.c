@@ -1,4 +1,4 @@
-#include <csa/hir/z3_wrapper.h>
+#include <hir/z3_wrapper.h>
 
 const char* Z3_result_name(int result) {
     switch (result) {
@@ -731,6 +731,39 @@ static int _z3c_lower_instruction(z3_func_ctx_t* fctx, hir_block_t* h) {
     }
 }
 
+static int _z3c_models_direct_assignment(hir_operation_t op) {
+    switch (op) {
+        case HIR_STORE:
+        case HIR_NOT:
+        case HIR_NEG:
+        case HIR_TPTR: case HIR_TF64: case HIR_TF32:
+        case HIR_TI64: case HIR_TI32: case HIR_TI16: case HIR_TI8:
+        case HIR_TU64: case HIR_TU32:
+        case HIR_TU16: case HIR_TU8:
+        case HIR_iADD: case HIR_iSUB: case HIR_iMUL: case HIR_iDIV:
+        case HIR_iMOD: case HIR_iLRG: case HIR_iLGE: case HIR_iLWR:
+        case HIR_iLRE: case HIR_iCMP: case HIR_iNMP: case HIR_iAND:
+        case HIR_iOR: case HIR_iBLFT: case HIR_iBRHT: case HIR_bAND:
+        case HIR_bOR: case HIR_bXOR: return 1;
+        default:                    return 0;
+    }
+}
+
+static int _z3c_record_single_assignment(map_t* defs, hir_block_t* h) {
+    if (
+        !defs ||
+        !h ||
+        h->unused ||
+        !_z3c_models_direct_assignment(h->op) ||
+        !h->farg ||
+        !HIR_is_vartype(h->farg->t)
+    ) return 1;
+
+    long key = _z3c_var_key(h->farg);
+    if (map_get(defs, key, NULL)) return 0;
+    return map_put(defs, key, h);
+}
+
 static z3_func_ctx_t* _z3c_build_function(z3_analyzer_t* analyzer, cfg_func_t* function) {
     z3_func_ctx_t* fctx = (z3_func_ctx_t*)mm_malloc(sizeof(z3_func_ctx_t));
     if (!fctx) return NULL;
@@ -744,8 +777,12 @@ static z3_func_ctx_t* _z3c_build_function(z3_analyzer_t* analyzer, cfg_func_t* f
     fctx->solver = Z3_mk_solver(fctx->ctx);
     Z3_solver_inc_ref(fctx->ctx, fctx->solver);
 
+    map_t defs;
+    map_init(&defs, MAP_NO_CMP);
+
     foreach (cfg_block_t* bb, &function->blocks) {
         iterate_hir_instructions (bb) {
+            if (!_z3c_record_single_assignment(&defs, hh)) fctx->complete = 0;
             if (!_z3c_lower_instruction(fctx, hh)) fctx->complete = 0;
             if (
                 hh->op == HIR_MKLB &&
@@ -756,6 +793,17 @@ static z3_func_ctx_t* _z3c_build_function(z3_analyzer_t* analyzer, cfg_func_t* f
             }
         }
     }
+    map_free(&defs);
+
+    /*
+     * The wrapper still asserts block assignments into one function-wide solver.
+     * If that approximation is contradictory, it is an analysis failure, not a
+     * proof that all queried paths are unreachable.
+     */
+    if (
+        fctx->complete &&
+        Z3_solver_check(fctx->ctx, fctx->solver) != Z3_L_TRUE
+    ) fctx->complete = 0;
 
     return fctx;
 }
@@ -946,7 +994,7 @@ static int _z3c_assert_path_preambles(z3_func_ctx_t* fctx, cfg_block_t* bb) {
 }
 
 static int _z3c_check_current(z3_func_ctx_t* fctx, Z3_ast extra) {
-    if (Z3_solver_check(fctx->ctx, fctx->solver) != Z3_L_TRUE) return 1;
+    if (Z3_solver_check(fctx->ctx, fctx->solver) == Z3_L_FALSE) return 0;
 
     int pushed = 0;
     if (extra && !_z3c_ast_is_true(fctx->ctx, extra)) {

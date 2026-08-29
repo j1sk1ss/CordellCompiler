@@ -4,7 +4,7 @@
 #include <csa/misc/warns.h>
 #include <csa/hir/hir_data.h>
 #include <csa/hir/hir_visitor.h>
-#include <csa/hir/z3_wrapper.h>
+#include <hir/z3_wrapper.h>
 
 typedef struct {
     attention_level_t l;

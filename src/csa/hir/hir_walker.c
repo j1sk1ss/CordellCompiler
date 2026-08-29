@@ -24,14 +24,11 @@ int HIRWLK_register_visitor(unsigned int trg, int (*perform)(HIR_VISITOR_ARGS), 
 
 int HIRWLK_init_ctx(hir_walker_t* ctx, dag_ctx_t* dctx, hir_ctx_t* hctx, sym_table_t* smt) {
     str_memset(ctx, 0, sizeof(hir_walker_t));
-    ctx->vctx.dump = tmpfile();
-    if (!ctx->vctx.dump) return 0;
     map_init(&ctx->vctx.definitions, MAP_NO_CMP);
     ctx->smt                   = smt;
     ctx->vctx.dctx             = dctx;
     ctx->vctx.z3               = NULL;
     ctx->vctx.acceptable_level = CONF_get_acceptance_level();
-    DUMP_format_hirctx(hctx, smt, 0, 0, ctx->vctx.dump);
     return list_init(&ctx->visitors);
 }
 
@@ -151,6 +148,5 @@ static int _unload_sem_handler(hir_sem_handler_t* h) {
 int HIRWLK_unload_ctx(hir_walker_t* ctx) {
     map_free_force_op(&ctx->vctx.definitions, (int (*)(void*))_free_definitions_entry);
     list_free_force_op(&ctx->visitors, (int (*)(void*))_unload_sem_handler);
-    fclose(ctx->vctx.dump);
     return mm_free(ctx);
 }

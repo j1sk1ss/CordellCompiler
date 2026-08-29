@@ -432,7 +432,7 @@ Params:
 
 Returns 1 if succeeds. 
 */
-int HIR_CFG_finilize_before_dom(cfg_ctx_t* ctx);
+int HIR_CFG_finalize_before_dom(cfg_ctx_t* ctx);
 
 /*
 Get the count of HIR blocks in base block.

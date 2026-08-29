@@ -119,7 +119,7 @@ int main(int argc, char* argv[]) {
     map_init(&lctx.lmap, MAP_NO_CMP);
     HIR_LOOP_mark_loops(&cfgctx, &lctx);
 
-    HIR_CFG_finilize_before_dom(&cfgctx);
+    HIR_CFG_finalize_before_dom(&cfgctx);
     HIR_LTREE_canonicalization(&cfgctx, &lctx);
     HIR_CFG_unload_domdata(&cfgctx);
     HIR_CFG_create_domdata(&cfgctx);

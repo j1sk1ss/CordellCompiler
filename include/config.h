@@ -42,14 +42,6 @@ typedef struct {
     } system;
 
     struct {
-        FLAG(tre);                           /* Enable or disable TRE optimization    */
-        FLAG(finline);                       /* Enable or disable function inline     */
-        FLAG(licm);                          /* Enable or disable LICM optimization   */
-        FLAG(constant);                      /* Enable or disable constant fold/prop  */
-        FLAG(peephole);                      /* Enable or disable peephole            */
-    } optimization_flags;
-
-    struct {
         FLAG(debug);                         /* Debug flag                            */
         FLAG(strict);                        /* The compiler stops on casts or not    */
         FLAG(parser_error);                  /* If there is a parser error            */

@@ -8,9 +8,9 @@
 #include <csa/misc/warns.h>
 #include <csa/hir/hir_data.h>
 #include <csa/hir/syscall.h>
-#include <csa/hir/z3_wrapper.h>
 #include <prep/token_types.h>
 #include <ast/ast.h>
+#include <hir/z3_wrapper.h>
 #include <hir/hir.h>
 #include <hir/hirgen.h>
 #include <hir/hir_types.h>

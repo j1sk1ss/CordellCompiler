@@ -1,4 +1,4 @@
-extern function kprintf(ptr i8 fmt, ...) -> i0;
+extern function kprintf(@[not_null] ptr i8 fmt, ...) -> i0;
 extern function i386_inb(u16 port) -> i8;
 extern function i386_outb(u16 port, u8 data) -> i0;
 extern function i386_irq_registerHandler(i32 irq, ptr i0 handler) -> i0;
@@ -111,7 +111,7 @@ glob arr _shift_alphabet[128, u8] = {
     0
 };
 
-glob i8 _curr_char = EMPTY_KEYBOARD;
+glob u8 _curr_char = EMPTY_KEYBOARD;
 glob arr _key_pressed[128, u8] = { 0 };
 
 function _keyboard_wait_input_clear() -> i8 {
@@ -161,7 +161,7 @@ function _keyboard_flush_output() -> i0 {
 }
 
 function i386_keyboard_handler(ptr i0 _) -> i0{
-    i8 character = i386_inb(0x60);
+    i8 character = i386_inb(0x60 as u16);
     if character < 0 || character >= 128; return;
 
     _key_pressed[character as i32] = 0;
@@ -184,17 +184,17 @@ glob function i386_init_keyboard() -> i0 {
     u8 status = i386_inb(KBD_STATUS_PORT);
     kprintf(ref "[KEYBOARD INFO]: ( ");
     if status & (1 << 0); kprintf(ref "Output buffer full.\t");
-    else kprintf(ref "Output buffer empty.\t");
+    else                  kprintf(ref "Output buffer empty.\t");
     if status & (1 << 1); kprintf(ref "Input buffer full.\t");
-    else kprintf(ref "Input buffer empty.\t");
+    else                  kprintf(ref "Input buffer empty.\t");
     if status & (1 << 2); kprintf(ref "System flag set.\t");
-    else kprintf(ref "System flag unset.\t");
+    else                  kprintf(ref "System flag unset.\t");
     if status & (1 << 3); kprintf(ref "Command/Data -> PS/2 device.\t");
-    else kprintf(ref "Command/Data -> PS/2 controller.\t");
-    if status & (1 << 6); kprintf("Timeout error.\t");
-    else kprintf(ref "No timeout error.\t");
+    else                  kprintf(ref "Command/Data -> PS/2 controller.\t");
+    if status & (1 << 6); kprintf(ref "Timeout error.\t");
+    else                  kprintf(ref "No timeout error.\t");
     if status & (1 << 7); kprintf(ref "Parity error. ");
-    else kprintf(ref "No parity error.");
+    else                  kprintf(ref "No parity error.");
     kprintf(ref ")\n");
 
     u8 config = 0;
@@ -221,8 +221,8 @@ glob function enable_keyboard() -> i0 {
     _curr_char = EMPTY_KEYBOARD;
 }
 
-glob function pop_character() -> i8 {
-    i8 character = _curr_char;
+glob function pop_character() -> u8 {
+    u8 character = _curr_char;
     _curr_char = EMPTY_KEYBOARD;
     return character;
 }

@@ -38,6 +38,7 @@
 #include <hir/constfold.h>
 #include <hir/func.h>
 #include <hir/loop.h>
+#include <hir/z3opt.h>
 
 /* HLIR generation                               */
 #include <lir/lirgen.h>
@@ -83,8 +84,8 @@
 #include <symtab/dump.h>
 
 #include <gem_data.h>
-#define CCPL_VERSION                 "3.7:2308.26" // major.minor<.patch> (old version style):ddmm.yy (new version style)
-#define CCPL_SPLASH                  "CPL now is Strong Typing" // NULL / Related to the version splash
+#define CCPL_VERSION                 "3.7.1:2908.26" // major.minor<.patch> (old version style):ddmm.yy (new version style)
+#define CCPL_SPLASH                  "Z3 optimizations" // NULL / Related to the version splash
 /* Version logic is next: We have the old style and the new style:
     - Old style is a default version semantics - major-minor-patch style, where major is incremented when
       I've added a lot of new features and they work properly. Also there should be some big shifts in
@@ -162,6 +163,8 @@ according you system requirements. */
 #define OPTION_NO_FINLINE            "--no-finline"
 #define OPTION_LICM                  "--licm"
 #define OPTION_NO_LICM               "--no-licm"
+#define OPTION_Z3OPT                 "--z3opt"
+#define OPTION_NO_Z3OPT              "--no-z3opt"
 #define OPTION_CONSTANT              "--constant"
 #define OPTION_NO_CONSTANT           "--no-constant"
 #define OPTION_COPYPROP              "--copyprop"
@@ -230,6 +233,7 @@ typedef struct {
         arch_type_t  sys_type;
         int          tre                  : 1;
         int          finline              : 1;
+        int          z3opt                : 1;
         int          licm                 : 1;
         int          constant             : 1;
         int          peephole             : 1;

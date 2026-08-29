@@ -488,6 +488,7 @@ static void _set_optimization_profile(options_t* out, int level) {
     out->config.constant      = 0;
     out->config.peephole      = 0;
     out->config.copy_prop     = 0;
+    out->config.z3opt         = 0;
 
     if (level >= 2) {
         out->config.licm      = 1;
@@ -496,6 +497,7 @@ static void _set_optimization_profile(options_t* out, int level) {
     }
 
     if (level >= 3) {
+        out->config.z3opt     = 1;
         out->config.copy_prop = 1;
         out->config.tre       = 1;
         out->config.finline   = 1;
@@ -551,13 +553,6 @@ static config_t _make_config(const options_t* options) {
                 .e_bytness  = options->config.eight_bytness,
             },
             .sys_type       = options->config.sys_type,
-        },
-        .optimization_flags = {
-            .tre            = options->config.tre      ? 1 : 0,
-            .finline        = options->config.finline  ? 1 : 0,
-            .licm           = options->config.licm     ? 1 : 0,
-            .constant       = options->config.constant ? 1 : 0,
-            .peephole       = options->config.peephole ? 1 : 0,
         },
         .compilation_flags  = {
             .debug          = options->config.debug  ? 1 : 0,
@@ -844,6 +839,8 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
         else if (!strcmp(argv[i], OPTION_NO_FINLINE))           out->config.finline     = 0;
         else if (!strcmp(argv[i], OPTION_LICM))                 out->config.licm        = 1;
         else if (!strcmp(argv[i], OPTION_NO_LICM))              out->config.licm        = 0;
+        else if (!strcmp(argv[i], OPTION_Z3OPT))                out->config.z3opt       = 1;
+        else if (!strcmp(argv[i], OPTION_NO_Z3OPT))             out->config.z3opt       = 0;
         else if (!strcmp(argv[i], OPTION_CONSTANT))             out->config.constant    = 1;
         else if (!strcmp(argv[i], OPTION_NO_CONSTANT))          out->config.constant    = 0;
         else if (!strcmp(argv[i], OPTION_COPYPROP))             out->config.copy_prop   = 1;
@@ -1122,7 +1119,7 @@ int main(int argc, char* argv[]) {
 
         RELOAD_CFG;
         
-        // HIR_CFG_finilize_before_dom(&cfgctx);
+        // HIR_CFG_finalize_before_dom(&cfgctx);
         HIR_CFG_create_domdata(&cfgctx);
         ltree_ctx_t lctx;
         map_init(&lctx.lmap, MAP_NO_CMP);
@@ -1132,7 +1129,7 @@ int main(int argc, char* argv[]) {
             HIR_FUNC_perform_inline(&cfgctx, &lctx, &smt);
             HIR_LTREE_unload_ctx(&lctx);
             RELOAD_CFG;
-            // HIR_CFG_finilize_before_dom(&cfgctx);
+            // HIR_CFG_finalize_before_dom(&cfgctx);
             HIR_CFG_create_domdata(&cfgctx);
             map_init(&lctx.lmap, MAP_NO_CMP);
             HIR_LOOP_mark_loops(&cfgctx, &lctx);
@@ -1142,7 +1139,7 @@ int main(int argc, char* argv[]) {
         HIR_LOOP_perform_dle(&lctx);
 
         HIR_CFG_unload_domdata(&cfgctx);
-        HIR_CFG_finilize_before_dom(&cfgctx);
+        HIR_CFG_finalize_before_dom(&cfgctx);
         HIR_CFG_create_domdata(&cfgctx);
 
         ssa_ctx_t ssactx;
@@ -1156,16 +1153,21 @@ int main(int argc, char* argv[]) {
             HIR_LTREE_licm(&cfgctx, &lctx, &smt);
         }
 
+        if (options.config.z3opt) {
+            Z3OPT_deadbranch(&cfgctx, &smt);
+        }
+
         HIR_CFG_make_allias(&cfgctx, &smt);
         dag_ctx_t dagctx = { .curr_id = 0 };
         HIR_DAG_init(&dagctx);
         int needs_hir_analysis = options.flags.hir_analysis || options.build_mode == BUILD_MODE_ANALYSIS;
-        if (options.config.constant || needs_hir_analysis) {
+        if (options.config.constant || options.config.z3opt || needs_hir_analysis) {
             HIR_DAG_generate(&cfgctx, &dagctx, &smt);
         }
 
         if (options.config.constant) {
             HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);
+            HIR_DAG_mark_unused_entries(&cfgctx, &dagctx);
             int folded = 0;
             do {
                 folded = 0;
@@ -1173,6 +1175,9 @@ int main(int argc, char* argv[]) {
                 folded = HIR_sparse_const_funcall_propagation(&cfgctx, &smt) || folded;
                 folded = HIR_sparce_const_fret_propagation(&cfgctx, &smt)    || folded;
             } while (folded);
+        }
+        else if (options.config.z3opt) {
+            HIR_DAG_mark_unused_entries(&cfgctx, &dagctx);
         }
 
         HIR_CFG_squeeze_blocks(&cfgctx);

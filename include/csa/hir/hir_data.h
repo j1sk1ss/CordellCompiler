@@ -8,7 +8,7 @@
 #include <hir/cfg.h>
 #include <hir/dag.h>
 #include <hir/dump.h>
-#include <csa/hir/z3_wrapper.h>
+#include <hir/z3_wrapper.h>
 
 typedef enum {
     SETPOS_INST   = 1 << 0,
@@ -31,7 +31,6 @@ typedef struct {
     map_t           definitions; /* map of id:list, possible definitions of a variable */
     dag_ctx_t*      dctx;
     z3_analyzer_t*  z3;
-    FILE*           dump;
 } hir_visitors_ctx_t;
 
 #define HIR_VISITOR_ARGS     hir_block_t* b, cfg_block_t* bb, sym_table_t* smt, hir_visitors_ctx_t* ctx

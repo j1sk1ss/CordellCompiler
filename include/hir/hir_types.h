@@ -192,6 +192,7 @@ hir_subject_type_t HIR_get_tmp_type(hir_subject_type_t t);
 int HIR_is_sign(hir_subject_type_t t);
 int HIR_is_jmp(hir_operation_t op);
 int HIR_is_vartype(hir_subject_type_t t);
+int HIR_is_global(hir_subject_type_t t);
 int HIR_is_arrtype(hir_subject_type_t t);
 int HIR_is_tmptype(hir_subject_type_t t);
 int HIR_is_conv(hir_operation_t op);
