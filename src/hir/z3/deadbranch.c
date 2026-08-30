@@ -8,7 +8,11 @@ static int _hide_branch(cfg_block_t* bb) {
     ) _hide_branch(child);
 
     iterate_hir_instructions (bb) {
-        if (hh->op == HIR_MKLB || hh->op == HIR_FEND || hh->op == HIR_STEND) continue;
+        if (
+            hh->op == HIR_MKLB || 
+            hh->op == HIR_FEND || 
+            hh->op == HIR_STEND
+        ) continue;
         hh->unused = 1;
     }
 
