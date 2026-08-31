@@ -58,12 +58,12 @@ start() {
             i64t %9 = csu8 1 as i64;
             i64t %10 = i32s %15 as i64;
             i8t %8 = i64t %10 == i64t %9;
-            [unused] if i8t %8, goto lb12, else goto lb45;
+            goto lb12;
             lb45:
             [unused] i64t %12 = csu8 2 as i64;
             [unused] i64t %13 = i32s %15 as i64;
             [unused] i8t %11 = i64t %13 == i64t %12;
-            [unused] if i8t %11, goto lb16, else goto lb50;
+            [unused] goto lb16;
             lb50:
             [unused] goto lb35;
             lb11:

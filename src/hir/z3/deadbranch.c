@@ -33,9 +33,12 @@ int Z3OPT_deadbranch(cfg_ctx_t* cctx, sym_table_t* smt) {
                     (Z3_is_block_reachable(z3, fb, bb->l) == Z3A_NO)
                 ) {
                     _hide_branch(bb->l);
-                    bb->l      = bb->jmp;
-                    bb->jmp    = NULL;
-                    hh->unused = 1;
+                    bb->l  = NULL;
+                    hh->op = HIR_JMP;
+
+                    hir_subject_t* tmp = hh->farg;
+                    hh->farg = hh->targ;
+                    hh->targ = tmp;
                 }
 
                 if (
@@ -43,8 +46,13 @@ int Z3OPT_deadbranch(cfg_ctx_t* cctx, sym_table_t* smt) {
                     (Z3_is_block_reachable(z3, fb, bb->jmp) == Z3A_NO)
                 ) {
                     _hide_branch(bb->jmp);
-                    bb->jmp    = NULL;
-                    hh->unused = 1;
+                    bb->jmp = bb->l;
+                    bb->l   = NULL;
+                    hh->op  = HIR_JMP;
+
+                    hir_subject_t* tmp = hh->farg;
+                    hh->farg = hh->sarg;
+                    hh->sarg = tmp;
                 }
             }
         }
