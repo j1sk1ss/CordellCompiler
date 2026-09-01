@@ -28,32 +28,26 @@ int Z3OPT_deadbranch(cfg_ctx_t* cctx, sym_table_t* smt) {
         foreach (cfg_block_t* bb, &fb->blocks) {
             iterate_hir_instructions (bb) {
                 if (hh->op != HIR_IFOP2) continue;
-                if (
-                    bb->l && 
-                    (Z3_is_block_reachable(z3, fb, bb->l) == Z3A_NO)
-                ) {
+#define SWAP_ARGS(src) do {          \
+    hir_subject_t* __tmp = hh->farg; \
+    hh->farg = src;                  \
+    src      = __tmp;                \
+} while (0);
+                if (bb->l && (Z3_is_block_reachable(z3, fb, bb->l) == Z3A_NO)) {
                     _hide_branch(bb->l);
                     bb->l  = NULL;
                     hh->op = HIR_JMP;
-
-                    hir_subject_t* tmp = hh->farg;
-                    hh->farg = hh->targ;
-                    hh->targ = tmp;
+                    SWAP_ARGS(hh->targ);
                 }
 
-                if (
-                    bb->jmp && 
-                    (Z3_is_block_reachable(z3, fb, bb->jmp) == Z3A_NO)
-                ) {
+                if (bb->jmp && (Z3_is_block_reachable(z3, fb, bb->jmp) == Z3A_NO)) {
                     _hide_branch(bb->jmp);
                     bb->jmp = bb->l;
                     bb->l   = NULL;
                     hh->op  = HIR_JMP;
-
-                    hir_subject_t* tmp = hh->farg;
-                    hh->farg = hh->sarg;
-                    hh->sarg = tmp;
+                    SWAP_ARGS(hh->sarg);
                 }
+#undef SWAP_ARGS
             }
         }
     }
