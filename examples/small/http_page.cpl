@@ -2,6 +2,7 @@
 
 @[section(".bss")] glob http_server server;
 
+@[abi]
 function example_file_exists(ptr i8 path) -> i8 {
     i32 fd = open(path, O_RDONLY as i32);
     if fd < 0; return 0;
@@ -9,6 +10,7 @@ function example_file_exists(ptr i8 path) -> i8 {
     1
 }
 
+@[abi]
 function index(ptr http_request req, ptr http_response res) -> i0 {
     if example_file_exists(ref "http_page.html"); {
         res.html_file(ref "http_page.html");
@@ -18,6 +20,7 @@ function index(ptr http_request req, ptr http_response res) -> i0 {
     res.html_file(ref "examples/small/http_page.html");
 }
 
+@[abi]
 function stop(ptr http_request req, ptr http_response res) -> i0 {
     res.text(200 as i32, ref "Server has stopped...\n");
     server.stop();

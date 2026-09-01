@@ -1,9 +1,9 @@
 #include <queue_h.cpl>
 
 start() {
-    i32 a = 10;
-    i32 b = 20;
-    i32 c = 30;
+    i32 a = 10 as i32;
+    i32 b = 20 as i32;
+    i32 c = 30 as i32;
 
     ptr queue q = queue::new();
     if not q; exit 1;

@@ -1012,6 +1012,7 @@ int main(int argc, char* argv[]) {
         PP_init_pp_ctx(&ppctx);
         _apply_cli_defines(&ppctx, &options.locations.defines);
 
+        PP_predefine(&ppctx);
         fd = PP_perform(fd, &finctx, &ppctx);
         if (fd < 0) {
             fprintf(stderr, "Failed to preprocess %s\n", input_file);

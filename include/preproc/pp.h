@@ -155,6 +155,7 @@ typedef struct {
     const char* spath; /* Compiler-provided standard library directory */
 } finder_ctx_t;
 
+int PP_predefine(pp_ctx_t* ppctx);
 int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx);
 
 #endif

@@ -121,7 +121,7 @@ function _keyboard_wait_input_clear() -> i8 {
         if timeout <= 0; return 0;
     }
 
-    return 1;
+    1
 }
 
 function _keyboard_wait_output_full() -> i32 {
@@ -131,29 +131,29 @@ function _keyboard_wait_output_full() -> i32 {
         if timeout <= 0; return 0;
     }
 
-    return 1;
+    1
 }
 
 function _keyboard_write_command(u8 command) -> i32 {
     if not _keyboard_wait_input_clear(); return 0;
     i386_outb(KBD_COMMAND_PORT, command);
-    return 1;
+    1
 }
 
 function _keyboard_write_data(u8 data) -> i8 {
     if not _keyboard_wait_input_clear(); return 0;
     i386_outb(KBD_DATA_PORT, data);
-    return 1;
+    1
 }
 
 function _keyboard_read_data(ptr u8 data) -> i8 {
     if not _keyboard_wait_output_full(); return 0;
     dref data = i386_inb(KBD_DATA_PORT);
-    return 1;
+    1
 }
 
 function _keyboard_flush_output() -> i0 {
-    i32 timeout = 32;
+    i32 timeout = 32 as i32;
     while (i386_inb(KBD_STATUS_PORT) & KBD_STATUS_OUTPUT_FULL) && (timeout > 0); {
         timeout -= 1;
         i386_inb(KBD_DATA_PORT);
@@ -224,5 +224,5 @@ glob function enable_keyboard() -> i0 {
 glob function pop_character() -> u8 {
     u8 character = _curr_char;
     _curr_char = EMPTY_KEYBOARD;
-    return character;
+    character
 }

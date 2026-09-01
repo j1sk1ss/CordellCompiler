@@ -41,48 +41,46 @@ start() {
     Color orb_ring;
     orb_ring = ray_color(24 as u8, 88 as u8, 117 as u8, 255 as u8);
 
-    i32 add_x = 54;
-    i32 pulse_x = 224;
-    i32 speed_x = 414;
-    i32 reset_x = 584;
-    i32 button_y = 145;
-    i32 button_w = 150;
-    i32 button_h = 48;
-    i32 pulse_w = 170;
+    i32 add_x    = 54 as i32;
+    i32 pulse_x  = 224 as i32;
+    i32 speed_x  = 414 as i32;
+    i32 reset_x  = 584 as i32;
+    i32 button_y = 145 as i32;
+    i32 button_w = 150 as i32;
+    i32 button_h = 48 as i32;
+    i32 pulse_w  = 170 as i32;
+    i32 orbs     = 5 as i32;
+    i32 clicks   = 0 as i32;
+    i32 speed    = 2 as i32;
+    i32 pulse    = 1 as i32;
+    i32 tick     = 0 as i32;
 
-    i32 orbs = 5;
-    i32 clicks = 0;
-    i32 speed = 2;
-    i32 pulse = 1;
-    i32 tick = 0;
+    init_window(SCREEN_WIDTH as i32, SCREEN_HEIGHT as i32, ref "CPL raylib controls");
+    set_target_fps(60 as i32);
 
-    InitWindow(SCREEN_WIDTH as i32, SCREEN_HEIGHT as i32, ref "CPL raylib controls");
-    SetTargetFPS(60 as i32);
-
-    while not WindowShouldClose(); {
+    while not window_should_close(); {
         tick += speed;
 
-        i32 mouse_x = GetMouseX();
-        i32 mouse_y = GetMouseY();
-        i8 mouse_down = IsMouseButtonDown(MOUSE_BUTTON_LEFT as i32);
-        i8 mouse_click = IsMouseButtonPressed(MOUSE_BUTTON_LEFT as i32);
-
-        i32 add_hover = 0;
-        i32 pulse_hover = 0;
-        i32 speed_hover = 0;
-        i32 reset_hover = 0;
+        i32 mouse_x     = get_mouse_x();
+        i32 mouse_y     = get_mouse_y();
+        i8 mouse_down   = is_mouse_button_down(MOUSE_BUTTON_LEFT as i32);
+        i8 mouse_click  = is_mouse_button_pressed(MOUSE_BUTTON_LEFT as i32);
+        i32 add_hover   = 0 as i32;
+        i32 pulse_hover = 0 as i32;
+        i32 speed_hover = 0 as i32;
+        i32 reset_hover = 0 as i32;
 
         if mouse_x >= add_x && mouse_x <= add_x + button_w && mouse_y >= button_y && mouse_y <= button_y + button_h; {
-            add_hover = 1;
+            add_hover = 1 as i32;
         }
         if mouse_x >= pulse_x && mouse_x <= pulse_x + pulse_w && mouse_y >= button_y && mouse_y <= button_y + button_h; {
-            pulse_hover = 1;
+            pulse_hover = 1 as i32;
         }
         if mouse_x >= speed_x && mouse_x <= speed_x + button_w && mouse_y >= button_y && mouse_y <= button_y + button_h; {
-            speed_hover = 1;
+            speed_hover = 1 as i32;
         }
         if mouse_x >= reset_x && mouse_x <= reset_x + button_w && mouse_y >= button_y && mouse_y <= button_y + button_h; {
-            reset_hover = 1;
+            reset_hover = 1 as i32;
         }
 
         if mouse_click && add_hover; {
@@ -93,25 +91,25 @@ start() {
         }
         if mouse_click && pulse_hover; {
             if pulse; {
-                pulse = 0;
+                pulse = 0 as i32;
             }
             else {
-                pulse = 1;
+                pulse = 1 as i32;
             }
             clicks += 1;
         }
         if mouse_click && speed_hover; {
             speed += 1;
             if speed > 5; {
-                speed = 1;
+                speed = 1 as i32;
             }
             clicks += 1;
         }
         if mouse_click && reset_hover; {
-            orbs = 5;
-            speed = 2;
-            pulse = 1;
-            tick = 0;
+            orbs  = 5 as i32;
+            speed = 2 as i32;
+            pulse = 1 as i32;
+            tick  = 0 as i32;
             clicks += 1;
         }
 
@@ -160,66 +158,66 @@ start() {
             reset_fill = danger_active;
         }
 
-        BeginDrawing();
-        ClearBackground(background);
+        begin_drawing();
+        clear_background(background);
 
-        DrawRectangleGradientV(0 as i32, 0 as i32, SCREEN_WIDTH as i32, 230 as i32, panel_top, panel_bottom);
-        DrawText(ref "CPL + raylib", 54 as i32, 36 as i32, 34 as i32, ink);
-        DrawText(ref "mouse hover, clicks, animation, text formatting", 56 as i32, 78 as i32, 20 as i32, muted);
-        DrawText(TextFormat(ref "orbs: %i   speed: %i   clicks: %i", orbs, speed, clicks), 56 as i32, 106 as i32, 18 as i32, muted);
+        draw_rectangle_gradient_v(0 as i32, 0 as i32, SCREEN_WIDTH as i32, 230 as i32, panel_top, panel_bottom);
+        draw_text(ref "CPL + raylib", 54 as i32, 36 as i32, 34 as i32, ink);
+        draw_text(ref "mouse hover, clicks, animation, text formatting", 56 as i32, 78 as i32, 20 as i32, muted);
+        draw_text(text_format(ref "orbs: %i   speed: %i   clicks: %i", orbs, speed, clicks), 56 as i32, 106 as i32, 18 as i32, muted);
 
-        DrawRectangle(add_x, button_y, button_w, button_h, add_fill);
-        DrawRectangleLines(add_x, button_y, button_w, button_h, outline);
-        DrawText(ref "+ orb", add_x + 48, button_y + 14, 18 as i32, outline);
+        draw_rectangle(add_x, button_y, button_w, button_h, add_fill);
+        draw_rectangle_lines(add_x, button_y, button_w, button_h, outline);
+        draw_text(ref "+ orb", add_x + 48, button_y + 14, 18 as i32, outline);
 
-        DrawRectangle(pulse_x, button_y, pulse_w, button_h, pulse_fill);
-        DrawRectangleLines(pulse_x, button_y, pulse_w, button_h, outline);
+        draw_rectangle(pulse_x, button_y, pulse_w, button_h, pulse_fill);
+        draw_rectangle_lines(pulse_x, button_y, pulse_w, button_h, outline);
         if pulse; {
-            DrawText(ref "pulse on", pulse_x + 45, button_y + 14, 18 as i32, ink);
+            draw_text(ref "pulse on", pulse_x + 45, button_y + 14, 18 as i32, ink);
         }
         else {
-            DrawText(ref "pulse off", pulse_x + 39, button_y + 14, 18 as i32, ink);
+            draw_text(ref "pulse off", pulse_x + 39, button_y + 14, 18 as i32, ink);
         }
 
-        DrawRectangle(speed_x, button_y, button_w, button_h, speed_fill);
-        DrawRectangleLines(speed_x, button_y, button_w, button_h, outline);
-        DrawText(ref "speed +", speed_x + 42, button_y + 14, 18 as i32, outline);
+        draw_rectangle(speed_x, button_y, button_w, button_h, speed_fill);
+        draw_rectangle_lines(speed_x, button_y, button_w, button_h, outline);
+        draw_text(ref "speed +", speed_x + 42, button_y + 14, 18 as i32, outline);
 
-        DrawRectangle(reset_x, button_y, button_w, button_h, reset_fill);
-        DrawRectangleLines(reset_x, button_y, button_w, button_h, outline);
-        DrawText(ref "reset", reset_x + 52, button_y + 14, 18 as i32, ink);
+        draw_rectangle(reset_x, button_y, button_w, button_h, reset_fill);
+        draw_rectangle_lines(reset_x, button_y, button_w, button_h, outline);
+        draw_text(ref "reset", reset_x + 52, button_y + 14, 18 as i32, ink);
 
-        DrawText(ref "interactive draw loop", 54 as i32, 258 as i32, 24 as i32, outline);
+        draw_text(ref "interactive draw loop", 54 as i32, 258 as i32, 24 as i32, outline);
 
         i32 marker_x = 54 + tick % 730;
-        DrawRectangle(54 as i32, 292 as i32, 760 as i32, 8 as i32, muted);
-        DrawRectangle(marker_x, 288 as i32, 48 as i32, 16 as i32, danger);
+        draw_rectangle(54 as i32, 292 as i32, 760 as i32, 8 as i32, muted);
+        draw_rectangle(marker_x, 288 as i32, 48 as i32, 16 as i32, danger);
 
-        i32 i = 0;
+        i32 i = 0 as i32;
         while i < orbs; {
             i32 col = i % 8;
             i32 row = i / 8;
             i32 x = 118 + col * 88;
             i32 y = 322 + row * 78;
-            i32 size = 34;
+            i32 size = 34 as i32;
 
             if pulse; {
                 size = size + (tick / 4 + i) % (4 + speed);
             }
 
-            DrawRectangle(x - size / 2, y - size / 2, size, size, orb);
-            DrawRectangleLines(x - size / 2, y - size / 2, size, size, orb_ring);
-            DrawText(TextFormat(ref "%i", i + 1), x - 5, y - 8, 16 as i32, ink);
+            draw_rectangle(x - size / 2, y - size / 2, size, size, orb);
+            draw_rectangle_lines(x - size / 2, y - size / 2, size, size, orb_ring);
+            draw_text(text_format(ref "%i", i + 1), x - 5, y - 8, 16 as i32, ink);
             i += 1;
         }
 
-        DrawLine(mouse_x - 8, mouse_y, mouse_x + 8, mouse_y, danger);
-        DrawLine(mouse_x, mouse_y - 8, mouse_x, mouse_y + 8, danger);
-        DrawFPS(816 as i32, 18 as i32);
+        draw_line(mouse_x - 8, mouse_y, mouse_x + 8, mouse_y, danger);
+        draw_line(mouse_x, mouse_y - 8, mouse_x, mouse_y + 8, danger);
+        draw_fps(816 as i32, 18 as i32);
 
-        EndDrawing();
+        end_drawing();
     }
 
-    CloseWindow();
+    close_window();
     exit 0;
 }

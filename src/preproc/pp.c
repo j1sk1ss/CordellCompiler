@@ -218,18 +218,32 @@ static inline int _permitted_character(char* p) {
     return 0;
 }
 
+int PP_predefine(pp_ctx_t* ppctx) {
 #define PREDEFINE_FLAG(name)         MCTB_put_define(name, "1", &ppctx->defines);
 #define PREDEFINE_VALUE(name, value) MCTB_put_define(name, value, &ppctx->defines);
-
-int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx) {
     switch (CONF_get_system_type()) {
-        case MACHO64:   PREDEFINE_FLAG("CCPL_MACHO64");   break;
-        case LINUX64:   PREDEFINE_FLAG("CCPL_GNU64");     break;
-        case I386:      PREDEFINE_FLAG("CCPL_GNUI386");   break;
-        case WINDOWS64: PREDEFINE_FLAG("CCPL_WINDOWS64"); break;
+        case LINUX64:   PREDEFINE_FLAG("CCPL_GNU64");     goto _predefine_64size;
+        case WINDOWS64: PREDEFINE_FLAG("CCPL_WINDOWS64"); goto _predefine_64size;
+        case MACHO64: {
+            PREDEFINE_FLAG("CCPL_MACHO64");
+_predefine_64size: {}
+            PREDEFINE_VALUE("usize", "u64");
+            PREDEFINE_VALUE("isize", "i64");
+            break;
+        }
+        case I386: {
+            PREDEFINE_FLAG("CCPL_GNUI386");
+            PREDEFINE_VALUE("usize", "u32");
+            PREDEFINE_VALUE("isize", "i32");
+        }
         default: break;
     }
+#undef PREDEFINE_FLAG
+#undef PREDEFINE_VALUE
+    return 1;
+}
 
+int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx) {
     ppctx->fd = fd;
     int ffd = PP_create_tmp_file();
     if (ffd < 0) return -1;
