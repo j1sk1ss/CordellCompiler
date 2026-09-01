@@ -189,13 +189,27 @@ int HIR_generate_declaration_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t
         return 1;
     });
 
+    HAS_ANNOTATION(POPREG_ANNOTATION, node, {
+        hir_subject_t* decl = HIR_SUBJ_ASTVAR(name);
+        hir_subject_t* reg_src = HIR_SUBJ_TMPVAR(
+            HIR_TMPVARU64, 
+            VRTB_add_info(NULL, TMP_U64_TYPE_TOKEN, NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v)
+        );
+        variable_info_t vi;
+        if (
+            !VRTB_get_info_id(reg_src->storage.var.v_id, &vi, &smt->v) ||
+            !VRTB_update_memory(vi.v_id, FIELD_NO_CHANGE, FIELD_NO_CHANGE, annot->data.regval, FIELD_NO_CHANGE, &smt->v)
+        ) return 0;
+        HIR_BLOCK2(ctx, HIR_STORE, decl, reg_src);
+        return 1;
+    });
+
     if (!name->siblings.n) return 1;
-    ast_node_t* left   = node->c;
-    hir_subject_t* src = HIR_generate_elem(left->siblings.n->c, ctx, smt);
+    hir_subject_t* src = HIR_generate_elem(name->siblings.n->c, ctx, smt);
     if (!src) {
         HIRGEN_ERROR(ctx, "Assign: The right part generation error!");
         return 0;
     }
     
-    return HIR_generate_store_block(left, src, ctx, smt);
+    return HIR_generate_store_block(name, src, ctx, smt);
 }

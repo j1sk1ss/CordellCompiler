@@ -41,12 +41,10 @@ glob stack _stack;
 @[entry("_start")]
 @[naked]
 function main() -> i0 {
-    @[register(4)] u32 magic;
-    @[register(5)] u32 mb_info;
-    asm(magic, mb_info) {
-        "mov %0, eax", :/ save magic /:
-        "mov %1, ebx"  :/ save multiboot info /:
-    }
+#define RAX 0
+#define RBX 1
+    @[popreg(RAX)] usize magic;
+    @[popreg(RBX)] usize mb_info;
 
     asm(ref _stack + sizeof(stack)) {
         "mov esp, %0",

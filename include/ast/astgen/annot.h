@@ -24,6 +24,7 @@
 #define COLDS_ANNOTATION_COMMAND "cold"
 #define REGST_ANNOTATION_COMMAND "register"
 #define POPRG_ANNOTATION_COMMAND "poparg"
+#define PPREG_ANNOTATION_COOMAND "popreg"
 #define SSELF_ANNOTATION_COMMAND "self"
 #define VNAME_ANNOTATION_COMMAND "vname"
 #define NNULL_ANNOTATION_COMMAND "not_null"
@@ -75,6 +76,7 @@ typedef struct {
     int                  align;
     annotation_counter_t counter;
     short                reg;
+    short                popreg;
     char                 is_vname    : 1;
     char                 is_nosec    : 1;
     char                 is_naked    : 1;
@@ -109,6 +111,7 @@ typedef enum {
     COLD_ANNOTATION,      /* Will make the linked then branch hot           */
     REGISTER_ANNOTATION,  /* Will link the selected register to a decl      */
     POPARG_ANNOTATION,    /* Will pop value from the stack to a linked      */
+    POPREG_ANNOTATION,    /* Will load value from a specific register       */
     INLINE_ANNOTATION,    /* Will change inline decider result              */
     SELF_ANNOTATION,      /* Will tell devirt that a function is static     */
     LIKEC_ANNOTATION,     /* Will tell container to generate C offsets      */

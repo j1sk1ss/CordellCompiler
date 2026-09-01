@@ -8,6 +8,7 @@ annotation_t* ANNOT_create_annotation(annotation_type_t t, annotation_param_t* f
     switch (t) {
         case ALIGN_ANNOTATION:     annot->data.align = (int)fp->value;                                    break;
         case REGISTER_ANNOTATION:  annot->data.regval = (short)fp->value;                                 break;
+        case POPREG_ANNOTATION:    annot->data.regval = (short)fp->value;                                 break;
         case VNAME_ANNOTATION:
         case ENTRY_ANNOTATION:     if (fp->string) annot->data.fname = fp->string->copy(fp->string);      break;
         case INLINE_ANNOTATION:    if (fp->string) annot->data.inline_opt = fp->string->copy(fp->string); break;
@@ -83,6 +84,7 @@ _set_vname: {}
             case HOT_ANNOTATION:       summary->is_hot      = 1;                   break;
             case COLD_ANNOTATION:      summary->is_cold     = 1;                   break;
             case POPARG_ANNOTATION:    summary->is_argpop   = 1;                   break;
+            case POPREG_ANNOTATION:    summary->popreg      = annot->data.regval;  break;
             case SELF_ANNOTATION:      summary->is_self     = 1;                   break;
             case LIKEC_ANNOTATION:     summary->is_like_c   = 1;                   break;
             case UNION_ANNOTATION:     summary->is_union    = 1;                   break;

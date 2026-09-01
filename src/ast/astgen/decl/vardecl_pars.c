@@ -77,11 +77,15 @@ DEFINE_PARSER(cpl_parse_variable_declaration, {
 
     annotations_summary_t annots = { 
         .align  = CONF_get_full_bytness(), .section = NULL, 
-        .salign = SMT_NULL,                .reg     = SMT_NULL 
+        .salign = SMT_NULL, .reg = SMT_NULL, .popreg = SMT_NULL
     };
 
     ANNOT_read_annotations(&ctx->annots, &annots);
-    if (annots.is_argpop) list_add(&base->annots, ANNOT_create_annotation(POPARG_ANNOTATION, NULL, 0));
+    if (annots.is_argpop) list_add(&base->annots, ANNOT_create_annotation(POPARG_ANNOTATION, NULL, NULL));
+    if (annots.popreg != SMT_NULL) {
+        annotation_param_t annot_param = { .value = annots.popreg };
+        list_add(&base->annots, ANNOT_create_annotation(POPREG_ANNOTATION, &annot_param, NULL));
+    }
 
     forward_token(it, 1);
     ast_node_t* name = AST_create_node(CURRENT_TOKEN);
