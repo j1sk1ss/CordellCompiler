@@ -65,7 +65,7 @@ static int _node_has_required_effect(dag_node_t* nd) {
         case HIR_STORE_FCLL:
         case HIR_STORE_ECLL:
         case HIR_STORE_SYSC: return 1;
-        case HIR_STORE:      return HIR_is_global(home->farg);
+        case HIR_STORE:      return HIR_is_global(home->farg->t);
         default:             return 0;
     }
 }
