@@ -1,6 +1,6 @@
 # Annotations
 
-Annotations extend the small core syntax without adding many dedicated keywords. They look like a combination of `Java` and `Rust` annotations. They are written before the construct they affect:
+Annotations extend the small core syntax without adding many dedicated keywords. They resemble Java and Rust annotations and are written before the construct they affect:
 
 ```cpl
 :/ entry affects the function /:
@@ -39,7 +39,7 @@ The parser accepts `@[name]`, `@[name(value / variable)]` and `@[name(value / va
 | `@[cold]`                                     | `if` or switch `case`                                            | make the true branch, or the annotated case, cold for layout                                       |
 | `@[not_lazy]`                                 | logical expression                                               | evaluate both sides of `&&` or `\|\|`                                                              |
 | `@[union]`                                    | container                                                        | lay out all fields at offset zero and allocate enough memory for the largest field                 |
-| `@[not_null]`                                 | variable declaration                                             | mark a variable as a object which can't store 0 (for CSA only, doesn't change compilation)         |
+| `@[not_null]`                                 | variable declaration                                             | mark a variable as an object that cannot store 0; CSA only, does not change compilation            |
 
 ## Entry, naked, sections
 

@@ -1,14 +1,14 @@
 # Build, install, and package
 
-## Install basics from the source
+## Install from source
 
-To instal the complier, the first thing you need to do is to download it from the source:
+To install the compiler, clone the repository first:
 
 ```bash
 git clone --recurse-submodules https://github.com/j1sk1ss/CordellCompiler.git
 ```
 
-Then, if you want to use the `VSCode` extension and standart CPL library, you'll need to run the next command:
+Then, if you want to use the VS Code extension and the standard CPL library, run:
 
 ```bash
 make submodules
@@ -16,7 +16,7 @@ make submodules
 
 ### Dependencies
 
-After this you'll see a folder which contains all important code. But before we can continue, you need to be sure that your system has all essential packages. If you're working on Ubuntu, use the next command:
+After cloning, make sure your system has the required packages. On Ubuntu, run:
 
 ```bash
 sudo apt install gcc nasm
@@ -28,11 +28,11 @@ For Fedora:
 sudo dnf install gcc nasm
 ```
 
-*P.S.:* Additionally, you can include the `z3` package. It will improve overall performance of the static analyzer. Hovewer, it's optional step.
+*P.S.:* You can also install the `z3` package. It improves the static analyzer's overall performance, but it is optional.
 
 ## Build the compiler
 
-Now, when you have all essentials for further work, we can proceed further and move on to the building part. To build the compiler you need to run the next command:
+Once the dependencies are installed, build the compiler with:
 
 ```bash
 make all
@@ -40,7 +40,7 @@ make all
 
 *P.S.:* This command will create the `build` directory.
 
-To run the compiler you can use the next command:
+To run the compiler, use:
 
 ```bash
 ./builds/$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m)/cplc --version
@@ -48,7 +48,7 @@ To run the compiler you can use the next command:
 
 ## Build the standard library from the Makefile
 
-To install CPL standart library you'll (despite the `make submodules` command) need to run the next command: 
+To build the CPL standard library, run:
 
 ```bash
 make cpllib
@@ -68,7 +68,7 @@ make CPLLIB_SRC_DIR=../cpllib cpllib
 
 ## Install
 
-And finally, if you want to use `cplc` command instead of the absolute path, you can use the next command:
+Finally, if you want to use the `cplc` command instead of an absolute path, run:
 
 ```bash
 sudo make install

@@ -1,8 +1,8 @@
 # Compiler usage
 
-## In few words
+## In a few words
 
-The explcit build command is next:
+An explicit build command looks like this:
 
 ```bash
 cplc                 \
@@ -16,7 +16,7 @@ cplc                 \
 ./hello
 ```
 
-The implicit command is:
+The shortest command is:
 
 ```bash
 cplc hello.cpl

@@ -91,7 +91,7 @@ i32 x = rows[1][0];
 ```
 
 Global and read-only arrays are placed into target-dependent sections. Local arrays are allocated in function-local storage. </br>
-To store a string you can use the next example:
+To store a string, use this form:
 ```cpl
 arr msg[0, i8] = "Hello world!";
 ```
