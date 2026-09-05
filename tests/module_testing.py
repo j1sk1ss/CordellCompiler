@@ -1026,7 +1026,27 @@ def _run_test_once(
             ]))
 
             if compiler_proc.returncode != 0:
-                actual_output = compiler_proc.stdout
+                if compiler_proc.returncode < 0:
+                    signal_number = -compiler_proc.returncode
+                    reason = f"Compiler terminated by {signal.Signals(signal_number).name} (signal {signal_number})."
+                else:
+                    reason = f"Compiler failed with exit code {compiler_proc.returncode}."
+                reason += f"\nCommand: {_cmd_to_str(compile_cmd)}"
+                if compiler_proc.stdout:
+                    reason += f"\nCompiler output:\n{compiler_proc.stdout.rstrip()}"
+                test_elapsed = time.perf_counter() - test_started_at
+                return _attach_failure_log({
+                    "file": str(test_file),
+                    "ok": False,
+                    "critical": flags["block_test"] and not flags["bug"],
+                    "warning": flags["bug"],
+                    "diff": reason,
+                    "metrics": _build_measure_info(measure_time, test_elapsed, None, measure_lines, input_lines, output_lines),
+                    "_test_elapsed": test_elapsed,
+                    "_program_elapsed": None,
+                    "_input_lines": input_lines,
+                    "_output_lines": output_lines,
+                }, test_file, log_sections)
             else:
                 asm_ok, asm_output, actual_outputs_by_run, actual_exit_codes, program_elapsed = _assemble_and_run(
                     compiler_proc.stdout,

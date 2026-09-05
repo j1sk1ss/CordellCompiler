@@ -75,25 +75,26 @@ _set_vname: {}
                 summary->fname = annot->data.fname ? annot->data.fname->copy(annot->data.fname) : NULL;
                 break;
             }
-            case NOSECTION_ANNOTATION: summary->is_nosec    = 1;                   break;
-            case ALIGN_ANNOTATION:     summary->align       = annot->data.align;   break;
-            case NAKED_ANNOTATION:     summary->is_naked    = 1;                   break;
-            case NOFALL_ANNOTATION:    summary->is_nofall   = 1;                   break;
-            case NOTLAZY_ANNOTATION:   summary->is_notlazy  = 1;                   break;
-            case STRAIGHT_ANNOTATION:  summary->is_straight = 1;                   break;
-            case HOT_ANNOTATION:       summary->is_hot      = 1;                   break;
-            case COLD_ANNOTATION:      summary->is_cold     = 1;                   break;
-            case POPARG_ANNOTATION:    summary->is_argpop   = 1;                   break;
-            case POPREG_ANNOTATION:    summary->popreg      = annot->data.regval;  break;
-            case SELF_ANNOTATION:      summary->is_self     = 1;                   break;
-            case LIKEC_ANNOTATION:     summary->is_like_c   = 1;                   break;
-            case UNION_ANNOTATION:     summary->is_union    = 1;                   break;
-            case WEAK_ANNOTATION:      summary->is_weak     = 1;                   break;
-            case ABI_ANNOTATION:       summary->is_abi      = 1;                   break;
-            case ONLYBODY_ANNOTATION:  summary->is_onlybody = 1;                   break;
-            case NOTNULL_ANNOTATION:   summary->is_notnull  = 1;                   break;
-            case REGISTER_ANNOTATION:  summary->reg         = annot->data.regval;  break;
-            case COUNTER_ANNOTATION:   summary->counter     = annot->data.counter; break;
+            case NOSECTION_ANNOTATION: summary->is_nosec     = 1;                   break;
+            case ALIGN_ANNOTATION:     summary->align        = annot->data.align;   break;
+            case NAKED_ANNOTATION:     summary->is_naked     = 1;                   break;
+            case NOFALL_ANNOTATION:    summary->is_nofall    = 1;                   break;
+            case NOTLAZY_ANNOTATION:   summary->is_notlazy   = 1;                   break;
+            case STRAIGHT_ANNOTATION:  summary->is_straight  = 1;                   break;
+            case HOT_ANNOTATION:       summary->is_hot       = 1;                   break;
+            case COLD_ANNOTATION:      summary->is_cold      = 1;                   break;
+            case POPARG_ANNOTATION:    summary->is_argpop    = 1;                   break;
+            case POPREG_ANNOTATION:    summary->pop_register = annot->data.regval;  break;
+            case SELF_ANNOTATION:      summary->is_self      = 1;                   break;
+            case LIKEC_ANNOTATION:     summary->is_like_c    = 1;                   break;
+            case UNION_ANNOTATION:     summary->is_union     = 1;                   break;
+            case WEAK_ANNOTATION:      summary->is_weak      = 1;                   break;
+            case ABI_ANNOTATION:       summary->is_abi       = 1;                   break;
+            case ONLYBODY_ANNOTATION:  summary->is_onlybody  = 1;                   break;
+            case NOTNULL_ANNOTATION:   summary->is_notnull   = 1;                   break;
+            case VOLATILE_ANNOTATION:  summary->is_volatile  = 1;                   break;
+            case REGISTER_ANNOTATION:  summary->reg          = annot->data.regval;  break;
+            case COUNTER_ANNOTATION:   summary->counter      = annot->data.counter; break;
             default: break;
         }
 

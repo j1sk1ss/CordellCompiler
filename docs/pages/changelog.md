@@ -3,6 +3,10 @@ Logs for the first and second versions are quite short because I do not remember
 
 ----------------------------------------
 
+## Pop register and volatile
+<div class="change-date">Date: 2026-09-05</div>
+I've fixed some bugs with the pop register annotation and added the volatile annotation. At this point, this annotation only marks a variable as used before final optimizations, which preserves it from being deleted by the compiler. 
+
 ## Z3 optimizations
 <div class="change-date">Date: 2026-08-28</div>
 CPL now supports Z3-backed optimization. For now, this only covers dead-branch elimination: if Z3 proves that a branch is dead, the compiler removes it. For instance:

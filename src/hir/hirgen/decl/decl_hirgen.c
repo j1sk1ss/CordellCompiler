@@ -192,8 +192,8 @@ int HIR_generate_declaration_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t
     HAS_ANNOTATION(POPREG_ANNOTATION, node, {
         hir_subject_t* decl = HIR_SUBJ_ASTVAR(name);
         hir_subject_t* reg_src = HIR_SUBJ_TMPVAR(
-            HIR_TMPVARU64, 
-            VRTB_add_info(NULL, TMP_U64_TYPE_TOKEN, NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v)
+            HIR_get_tmp_type(decl->t), 
+            VRTB_add_info(NULL, TKN_get_tmp_type(name->t->t_type), NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v)
         );
         variable_info_t vi;
         if (

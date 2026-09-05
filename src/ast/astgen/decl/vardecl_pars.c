@@ -77,13 +77,13 @@ DEFINE_PARSER(cpl_parse_variable_declaration, {
 
     annotations_summary_t annots = { 
         .align  = CONF_get_full_bytness(), .section = NULL, 
-        .salign = SMT_NULL, .reg = SMT_NULL, .popreg = SMT_NULL
+        .salign = SMT_NULL, .reg = SMT_NULL, .pop_register = SMT_NULL
     };
 
     ANNOT_read_annotations(&ctx->annots, &annots);
     if (annots.is_argpop) list_add(&base->annots, ANNOT_create_annotation(POPARG_ANNOTATION, NULL, NULL));
-    if (annots.popreg != SMT_NULL) {
-        annotation_param_t annot_param = { .value = annots.popreg };
+    if (annots.pop_register != SMT_NULL) {
+        annotation_param_t annot_param = { .value = annots.pop_register };
         list_add(&base->annots, ANNOT_create_annotation(POPREG_ANNOTATION, &annot_param, NULL));
     }
 
@@ -110,6 +110,11 @@ DEFINE_PARSER(cpl_parse_variable_declaration, {
     }
     
     if (annots.is_notnull) VRTB_set_not_null(name->sinfo.v_id, &smt->v);
+    if (annots.is_volatile) {
+        VRTB_set_volatile(name->sinfo.v_id, &smt->v);
+        VRTB_set_used(name->sinfo.v_id, &smt->v);
+    }
+
     VRTB_update_type(name->sinfo.v_id, FIELD_NO_CHANGE, carry, &smt->v);
 
     /* If this is a custom type variable, register it as an array as well. */

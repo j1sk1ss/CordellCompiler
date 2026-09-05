@@ -1,6 +1,6 @@
 #include <lir/dump.h>
 
-static inline const char* _registers_to_string(lir_registers_t reg) {
+const char* DUMP_registers_to_string(lir_registers_t reg) {
     switch(reg) {
         case XMM0: return "xmm0"; case XMM1: return "xmm1";
         case RAX:  return "rax";  case RBX:  return "rbx";  case RCX:  return "rcx";  case RDX:  return "rdx";  case RSI:  return "rsi";
@@ -131,10 +131,10 @@ static char* _fmt_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt, int
     switch (s->t) {
         case LIR_MEMORY: {
             long off = s->storage.var.offset;
-            dst += sprintf(dst, "[%s %s %ld]", _registers_to_string(s->storage.var.base), off > 0 ? "-" : "+", ABS(off)); 
+            dst += sprintf(dst, "[%s %s %ld]", DUMP_registers_to_string(s->storage.var.base), off > 0 ? "-" : "+", ABS(off)); 
             break;
         }
-        case LIR_REGISTER: dst += sprintf(dst, "%s", _registers_to_string(s->storage.reg.reg)); break;
+        case LIR_REGISTER: dst += sprintf(dst, "%s", DUMP_registers_to_string(s->storage.reg.reg)); break;
         case LIR_GLVARIABLE: {
             variable_info_t vi;
             if (VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) {

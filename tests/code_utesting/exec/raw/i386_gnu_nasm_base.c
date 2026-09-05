@@ -75,6 +75,7 @@ int main(int argc, char* argv[]) {
     finder_ctx_t finctx = { .bpath = argv[2] };
     pp_ctx_t ppctx;
     PP_init_pp_ctx(&ppctx);
+    PP_predefine(&ppctx);
 
     fd = PP_perform(fd, &finctx, &ppctx);
     if (fd < 0) {

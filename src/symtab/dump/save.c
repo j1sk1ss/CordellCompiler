@@ -1,5 +1,4 @@
 #include <symtab/dump.h>
-#include <stdarg.h>
 
 static char* _dump_appendf(char* dst, char* end, const char* fmt, ...);
 
@@ -39,11 +38,13 @@ static inline const char* _format_flag(const char* base, int flag) {
 static int _format_varinfo(variable_info_t* vi, sym_table_t* smt, FILE* output) {
     fprintf(
         output,
-        "var id=%li type=%s name=%s align=%i par=%li scope=%li ptr=%i%s%s%s%s\n",
+        "var id=%li type=%s name=%s align=%i par=%li scope=%li ptr=%i%s%s%s%s%s %s\n",
         vi->v_id, _format_type(vi->t_id, &smt->t), vi->name->body, vi->vmi.align,
         vi->p_id, vi->s_id, vi->vfs.ptr,
         _format_flag(", ro", vi->vfs.ro),   _format_flag(", glob", vi->vfs.glob), 
-        _format_flag(", ext", vi->vfs.ext), _format_flag(", not_null", vi->csa.not_null)
+        _format_flag(", ext", vi->vfs.ext), _format_flag(", not_null", vi->csa.not_null),
+        _format_flag(", volatile", vi->vmi.vlatile),
+        vi->vmi.reg != SMT_NULL ? DUMP_registers_to_string(vi->vmi.reg) : ""
     );
     return 1;
 }

@@ -28,6 +28,7 @@
 #define SSELF_ANNOTATION_COMMAND "self"
 #define VNAME_ANNOTATION_COMMAND "vname"
 #define NNULL_ANNOTATION_COMMAND "not_null"
+#define VOLAT_ANNOTATION_COMMAND "volatile"
 
 #define INLNE_ANNOTATION_COMMAND "inline" /* inline / inline(always) / inline(never) */
 #define INLNE_YES_OPTION         "always"
@@ -76,7 +77,7 @@ typedef struct {
     int                  align;
     annotation_counter_t counter;
     short                reg;
-    short                popreg;
+    short                pop_register;
     char                 is_vname    : 1;
     char                 is_nosec    : 1;
     char                 is_naked    : 1;
@@ -94,6 +95,7 @@ typedef struct {
     char                 is_abi      : 1;
     char                 is_onlybody : 1;
     char                 is_notnull  : 1;
+    char                 is_volatile : 1;
 } annotations_summary_t;
 
 typedef enum {
@@ -121,6 +123,7 @@ typedef enum {
     ONLYBODY_ANNOTATION,  /* Will say that the function is just a container */
     VNAME_ANNOTATION,     /* Will set a vartial name for a function         */
     NOTNULL_ANNOTATION,   /* Will mark a variable as a not Null variable    */
+    VOLATILE_ANNOTATION,  /* Will mark variable as a important variable     */
 } annotation_type_t;
 
 typedef struct {

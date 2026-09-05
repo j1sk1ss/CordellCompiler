@@ -43,8 +43,8 @@ glob stack _stack;
 function main() -> i0 {
 #define RAX 0
 #define RBX 1
-    @[popreg(RAX)] usize magic;
-    @[popreg(RBX)] usize mb_info;
+    @[pop_register(RAX)] usize magic;
+    @[pop_register(RBX)] usize mb_info;
 
     asm(ref _stack + sizeof(stack)) {
         "mov esp, %0",
