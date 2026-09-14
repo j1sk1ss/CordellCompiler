@@ -82,15 +82,11 @@ Params:
     - `smt` - Symtable.
 
 Returns 1 if succeeds */
-static ret_type_t _resolve_function_overload(hir_subject_t* callee, symbol_id_t s_id, hir_subject_t* args, sym_table_t* smt, int ret) {
+static ret_type_t _resolve_function_overload(hir_subject_t* callee, func_info_t* target_fi, hir_subject_t* args, sym_table_t* smt, int ret) {
     if (!callee) return (ret_type_t) { .f_id = NO_SYMBOL_ID, .ptr = 0, .t = HIR_STKVARU64 };
 
     ret_type_t info;
-    func_info_t fi;
-    if (
-        callee->t != HIR_FNAME || 
-        !FNTB_get_info_id(callee->storage.str.s_id, &fi, &smt->f)
-    ) {
+    if (callee->t != HIR_FNAME && target_fi->id == NO_SYMBOL_ID) {
         info = (ret_type_t) { .ptr = 0, .t = HIR_STKVARU64 };
         variable_info_t vi;
         if (
@@ -100,14 +96,14 @@ static ret_type_t _resolve_function_overload(hir_subject_t* callee, symbol_id_t 
         return info;
     }
 
-    if (fi.rtype) {
-        info = _convert_type_to_htype(fi.rtype->sinfo.t_id, smt);
+    if (target_fi->rtype) {
+        info = _convert_type_to_htype(target_fi->rtype->sinfo.t_id, smt);
     }
 
     list_t funcs;
     list_init(&funcs);
     if (
-        FNTB_collect_info(fi.name, s_id, &funcs, &smt->f, &smt->sc) && 
+        FNTB_collect_info(target_fi->name, target_fi->s_id, &funcs, &smt->f, &smt->sc) && 
         list_size(&funcs) > 1
     ) {
         func_info_t* resolved = NULL;
@@ -175,8 +171,8 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
             ((vtable_index = TPTB_get_vtable_index(self_ti.id, node->c->sinfo.v_id, &smt->t)) != SMT_NULL) &&
             self_ti.t == TYPE_CUSTOM && self_ti.body.custom.layout.vtable
         ) {
-            hir_subject_t *self = HIR_SUBJ_ASTVAR(node->self), *ref_self = HIR_reference_subject(self, smt, 1);
-            HIR_BLOCK2(ctx, HIR_REF, ref_self, self);
+            hir_subject_t *self = HIR_generate_elem(node->self, ctx, smt), *ref_self = !self->ptr ? HIR_reference_subject(self, smt, 1) : self;
+            if (self != ref_self) HIR_BLOCK2(ctx, HIR_REF, ref_self, self);
             call_subj = HIR_add_to_subject(ref_self, smt, vtable_index * CONF_get_full_bytness(), ctx);
             while (call_subj->ptr > 0) call_subj = HIR_gdref_subject(call_subj, smt, ctx);
             call_subj->ptr = 1;
@@ -213,7 +209,7 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
     }
     
     func_info_t resolved;
-    ret_type_t ret_info = _resolve_function_overload(call_subj, fi.s_id, args, smt, ret);
+    ret_type_t ret_info = _resolve_function_overload(call_subj, &fi, args, smt, ret);
     if (FNTB_get_info_id(ret_info.f_id, &resolved, &smt->f)) {
         int arg_offset = 0, arg_count = list_size(&args->storage.list.h);
         fn_iterate_args (&resolved) {

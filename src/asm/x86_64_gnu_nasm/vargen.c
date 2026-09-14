@@ -82,7 +82,7 @@ const char* x86_64_gnu_nasm_format_lir_subject(lir_subject_t* v, sym_table_t* sm
                 }
             }
 
-            return "<unknown>";
+            return "str<unknown>";
         }
         case LIR_FNAME: {
             func_info_t fi;
@@ -105,7 +105,7 @@ const char* x86_64_gnu_nasm_format_lir_subject(lir_subject_t* v, sym_table_t* sm
                 return buffer;
             }
 
-            return "<unknown>";
+            return "fn<unknown>";
         }
         case LIR_GLVARIABLE:
         case LIR_VARIABLE: {
@@ -133,7 +133,7 @@ const char* x86_64_gnu_nasm_format_lir_subject(lir_subject_t* v, sym_table_t* sm
                 }
             }
             
-            return "<unknown>";
+            return "var<unknown>";
         }
         case LIR_MEMORY: {
 _shifted_to_memory: {}
