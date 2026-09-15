@@ -1,0 +1,25 @@
+{
+  "name": "12_child_interface_dependency_injection",
+  "description": "A child interface extends a root interface; controller code receives the child type, mutates it, and forwards it to a root-interface consumer in another unit.",
+  "entry": "main.cpl",
+  "sources": [
+    "reader_impl.cpl",
+    "root_consumer.cpl",
+    "controller.cpl",
+    "main.cpl"
+  ],
+  "headers": [
+    "reader.inc",
+    "adjustable.inc",
+    "reader_impl.inc",
+    "controller.inc"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "interface_chain",
+    "dependency_injection",
+    "upcast",
+    "cross_tu_forwarding",
+    "stateful_override"
+  ]
+}

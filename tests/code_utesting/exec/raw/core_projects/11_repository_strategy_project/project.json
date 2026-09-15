@@ -1,0 +1,26 @@
+{
+  "name": "11_repository_strategy_project",
+  "description": "A small project combines domain containers, a strategy interface, an implementation, repository methods, and a seeding module.",
+  "entry": "main.cpl",
+  "sources": [
+    "scorer.cpl",
+    "repository.cpl",
+    "seed.cpl",
+    "main.cpl"
+  ],
+  "headers": [
+    "domain.inc",
+    "scorer.inc",
+    "repository.inc",
+    "seed.inc"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "project_like",
+    "nested_containers",
+    "array_field",
+    "interface_strategy",
+    "virtual_dispatch_in_loop",
+    "cross_tu_methods"
+  ]
+}

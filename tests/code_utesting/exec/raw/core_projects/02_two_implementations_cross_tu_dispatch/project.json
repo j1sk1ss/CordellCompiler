@@ -1,0 +1,26 @@
+{
+  "name": "02_two_implementations_cross_tu_dispatch",
+  "description": "Two different containers implement one interface in different source files; a third unit dispatches through interface pointers.",
+  "entry": "main.cpl",
+  "sources": [
+    "add_op.cpl",
+    "mul_op.cpl",
+    "combine.cpl",
+    "main.cpl"
+  ],
+  "headers": [
+    "operation.inc",
+    "add_op.inc",
+    "mul_op.inc",
+    "combine.inc"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "headers",
+    "interface",
+    "two_implementations",
+    "virtual_dispatch",
+    "cross_tu",
+    "nested_includes"
+  ]
+}

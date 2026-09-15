@@ -1,0 +1,20 @@
+{
+  "name": "27_global_interface_instance_shared_methods",
+  "description": "Factory exposes a pointer to a global stateful implementation while its methods are defined in other units.",
+  "entry": "main.cpl",
+  "sources": [
+    "provider.cpl",
+    "add.cpl",
+    "value.cpl",
+    "workflow.cpl",
+    "main.cpl"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "interface",
+    "global_instance",
+    "split_overrides",
+    "factory",
+    "cross_tu"
+  ]
+}

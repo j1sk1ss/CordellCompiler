@@ -155,6 +155,7 @@ int TKN_is_close(token_t* token) {
 int TKN_is_builtin_type(token_t* token) {
     if (!token) return 0;
     switch (token->t_type) {
+        case SIGNATURE_TOKEN:
         case I0_TYPE_TOKEN:
         case I8_TYPE_TOKEN:
         case U8_TYPE_TOKEN:

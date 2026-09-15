@@ -1,0 +1,17 @@
+{
+  "name": "18_virtual_accepts_interface_cross_tu",
+  "description": "A virtual method receives another interface object implemented in a different source unit.",
+  "entry": "main.cpl",
+  "sources": [
+    "value.cpl",
+    "add_other.cpl",
+    "main.cpl"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "interface",
+    "virtual_interface_argument",
+    "split_methods",
+    "cross_tu"
+  ]
+}

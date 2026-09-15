@@ -1,0 +1,16 @@
+{
+  "name": "19_same_impl_distinct_state_cross_tu",
+  "description": "Two instances of the same implementation keep distinct state when accessed through interface pointers.",
+  "entry": "main.cpl",
+  "sources": [
+    "impl.cpl",
+    "consumer.cpl",
+    "main.cpl"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "interface",
+    "distinct_state",
+    "cross_tu"
+  ]
+}

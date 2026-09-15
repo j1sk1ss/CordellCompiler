@@ -157,7 +157,7 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
     }
 
     ast_node_t* args_node = node->c->siblings.n->c;
-    func_info_t fi = { 0 };
+    func_info_t fi = { .id = NO_SYMBOL_ID, 0 };
     if ( /* Get function from the expression */
         node->c->t->t_type != FUNC_NAME_TOKEN || 
         !FNTB_get_info_id(node->c->sinfo.v_id, &fi, &smt->f)

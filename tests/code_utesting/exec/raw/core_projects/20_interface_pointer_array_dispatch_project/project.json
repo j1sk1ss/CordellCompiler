@@ -1,0 +1,18 @@
+{
+  "name": "20_interface_pointer_array_dispatch_project",
+  "description": "An array of interface pointers mixes implementations from separate units and dispatches through each element.",
+  "entry": "main.cpl",
+  "sources": [
+    "first.cpl",
+    "second.cpl",
+    "aggregate.cpl",
+    "main.cpl"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "interface",
+    "interface_pointer_array",
+    "two_implementations",
+    "cross_tu"
+  ]
+}
