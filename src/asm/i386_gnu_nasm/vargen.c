@@ -27,7 +27,7 @@ static const char* _format_lir_register(lir_registers_t reg) {
         /* 8-bit */
         case AL:   return "al";   case BL:   return "bl";   case CL:   return "cl";   case DL:   return "dl";
         case AH:   return "ah";   case BH:   return "bh";   case CH:   return "ch";   case DH:   return "dh";
-        default:   return "<unknown>";
+        default:   return "reg<unknown>";
     }
 }
 

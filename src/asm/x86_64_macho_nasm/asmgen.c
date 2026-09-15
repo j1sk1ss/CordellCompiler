@@ -331,6 +331,7 @@ _default_const_type: {}
         }
 
         emitted_end = slot_info.slot_off + slot_info.slot_size;
+        elem        = NULL;
     }
 
     _emit_zero_bytes(NULL, reserve_size - emitted_end, output);

@@ -39,7 +39,7 @@ static const char* _format_lir_register(lir_registers_t reg) {
         case AH:   return "ah";   case BH:   return "bh";   case CH:   return "ch";   case DH:   return "dh";
         case R8B:  return "r8b";  case R9B:  return "r9b";  case R10B: return "r10b"; case R11B: return "r11b"; 
         case R12B: return "r12b"; case R13B: return "r13b"; case R14B: return "r14b"; case R15B: return "r15b";
-        default:   return "<unknown>";
+        default:   return "reg<unknown>";
     }
 }
 
