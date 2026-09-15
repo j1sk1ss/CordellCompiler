@@ -17,6 +17,7 @@ typedef struct {
 int MCTB_put_define(char* name, char* value, deftb_t* ctx);
 int MCTB_remove_define(char* name, deftb_t* ctx);
 int MCTB_get_define(char* name, define_t* out, deftb_t* ctx);
+int MCTB_init(deftb_t* ctx);
 int MCTB_unload(deftb_t* ctx);
 
 #endif

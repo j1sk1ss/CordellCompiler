@@ -334,8 +334,7 @@ static int _link_objects(const options_t* options, list_t* objects) {
         !_push_cmd_arg(&cmd, options->locations.output ? options->locations.output : "a.out")
     ) goto _fail;
 
-    char* object = NULL;
-    foreach (object, objects) {
+    foreach (char* object, objects) {
         if (!_push_cmd_arg(&cmd, object)) goto _fail;
     }
 
@@ -344,8 +343,7 @@ static int _link_objects(const options_t* options, list_t* objects) {
         !_push_cmd_arg(&cmd, options->locations.runtime)
     ) goto _fail;
 
-    char* linker_arg = NULL;
-    foreach (linker_arg, (list_t*)&options->tools.linker_args) {
+    foreach (char* linker_arg, (list_t*)&options->tools.linker_args) {
         if (!_push_cmd_arg(&cmd, linker_arg)) goto _fail;
     }
 
@@ -423,8 +421,7 @@ static int _emit_symtab(sym_table_t* smt, const char* type) {
 }
 
 static int _emit_requested_symtabs(sym_table_t* smt, list_t* types) {
-    char* type = NULL;
-    foreach (type, types) {
+    foreach (char* type, types) {
         if (!_emit_symtab(smt, type)) return 0;
     }
 
@@ -647,15 +644,10 @@ static int _add_linker_arg(options_t* out, const char* arg) {
     return 1;
 }
 
-static inline void _apply_cli_defines(pp_ctx_t* ppctx, list_t* defines) {
-    if (!ppctx || !defines) return;
-    cli_define_t* define = NULL;
-    foreach (define, defines) {
-        MCTB_put_define(
-            define->name, 
-            define->value, 
-            &ppctx->defines
-        );
+static inline void _apply_cli_defines(deftb_t* macros, list_t* defines) {
+    if (!macros || !defines) return;
+    foreach (cli_define_t* define, defines) {
+        MCTB_put_define(define->name,  define->value,  macros);
     }
 }
 
@@ -993,8 +985,12 @@ int main(int argc, char* argv[]) {
     ast_ctx_t sctx;
     AST_init_ctx(&sctx);
 
-    char* input_file = NULL;
-    foreach (input_file, &options.locations.files) {
+    deftb_t macros;
+    MCTB_init(&macros);
+    PP_predefine(&macros);
+    _apply_cli_defines(&macros, &options.locations.defines);
+
+    foreach (char* input_file, &options.locations.files) {
         files_left--;
 
         int fd = open(input_file, O_RDONLY);
@@ -1010,10 +1006,8 @@ int main(int argc, char* argv[]) {
 
         pp_ctx_t ppctx;
         PP_init_pp_ctx(&ppctx);
-        _apply_cli_defines(&ppctx, &options.locations.defines);
 
-        PP_predefine(&ppctx);
-        fd = PP_perform(fd, &finctx, &ppctx);
+        fd = PP_perform(fd, &finctx, &ppctx, &macros);
         if (fd < 0) {
             fprintf(stderr, "Failed to preprocess %s\n", input_file);
             return 1;
@@ -1411,14 +1405,14 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    char* object_file = NULL;
-    foreach (object_file, &object_files) {
+    foreach (char* object_file, &object_files) {
         if (object_file) {
             unlink(object_file);
             mm_free(object_file);
         }
     }
 
+    MCTB_unload(&macros);
     list_free(&object_files);
     _unload_token_lists(&token_lists);
     _unload_options(&options);

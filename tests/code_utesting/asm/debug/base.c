@@ -50,10 +50,13 @@ int main(int argc, char* argv[]) {
     CONF_set_config((config_t){ .compilation_flags.debug = 1 });
 
     finder_ctx_t finctx = { .bpath = argv[2] };
+    
+    deftb_t macros;
+    MCTB_init(&macros);
     pp_ctx_t ppctx;
     PP_init_pp_ctx(&ppctx);
-
-    fd = PP_perform(fd, &finctx, &ppctx);
+    fd = PP_perform(fd, &finctx, &ppctx, &macros);
+    MCTB_unload(&macros);
     if (fd < 0) {
         fprintf(stderr, "Processed file %s isn't found!\n", argv[1]);
         return 1;
