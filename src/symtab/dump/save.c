@@ -174,14 +174,16 @@ static int _format_secinfo(section_info_t* si, FILE* output) {
     const char* name = si->name ? si->name->body : "NULL";
     char vars[512]  = { 0 };
     char funcs[512] = { 0 };
+    char vtabs[512] = { 0 };
 
     _format_id_list(&si->sorted.vars, vars, sizeof(vars));
     _format_id_list(&si->sorted.func, funcs, sizeof(funcs));
+    _format_id_list(&si->sorted.vtab, vtabs, sizeof(vtabs));
 
     fprintf(
         output,
-        "sec name=%s align=%i vars=%s funcs=%s\n",
-        name, si->align, vars, funcs
+        "sec name=%s align=%i vars=%s funcs=%s vtabs=%s\n",
+        name, si->align, vars, funcs, vtabs
     );
     
     return 1;

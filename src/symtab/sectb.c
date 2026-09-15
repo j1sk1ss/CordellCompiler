@@ -5,6 +5,7 @@ static inline set_t* _get_set_target(section_elem_type_t t, section_info_t* sect
         case SECTION_ELEMENT_VARIABLE: return &section->vars;
         case SECTION_ELEMENT_FUNCTION: return &section->func;
         case SECTION_ELEMENT_STRING:   return &section->strs;
+        case SECTION_ELEMENT_VTABLE:   return &section->vtab;
         default:                       return NULL;
     }
 }
@@ -14,6 +15,7 @@ static inline list_t* _get_list_target(section_elem_type_t t, section_info_t* se
         case SECTION_ELEMENT_VARIABLE: return &section->sorted.vars;
         case SECTION_ELEMENT_FUNCTION: return &section->sorted.func;
         case SECTION_ELEMENT_STRING:   return &section->sorted.strs;
+        case SECTION_ELEMENT_VTABLE:   return &section->sorted.vtab;
         default:                       return NULL;
     }
 }
@@ -28,12 +30,14 @@ static section_info_t* _create_section(string_t* name, int align) {
     set_init(&s->vars, SET_NO_CMP);
     set_init(&s->func, SET_NO_CMP);
     set_init(&s->strs, SET_NO_CMP);
+    set_init(&s->vtab, SET_NO_CMP);
     
     s->align = align;
     
     list_init(&s->sorted.vars);
     list_init(&s->sorted.func);
     list_init(&s->sorted.strs);
+    list_init(&s->sorted.vtab);
     return s;
 }
 
@@ -42,9 +46,11 @@ static int _unload_secinfo(section_info_t* info) {
     set_free(&info->vars);
     set_free(&info->func);
     set_free(&info->strs);
+    set_free(&info->vtab);
     list_free(&info->sorted.vars);
     list_free(&info->sorted.func);
     list_free(&info->sorted.strs);
+    list_free(&info->sorted.vtab);
     return mm_free(info);
 }
 

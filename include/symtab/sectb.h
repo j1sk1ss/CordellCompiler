@@ -11,7 +11,8 @@
 typedef enum {
     SECTION_ELEMENT_VARIABLE,
     SECTION_ELEMENT_FUNCTION,
-    SECTION_ELEMENT_STRING
+    SECTION_ELEMENT_STRING,
+    SECTION_ELEMENT_VTABLE
 } section_elem_type_t;
 
 typedef struct {
@@ -19,11 +20,13 @@ typedef struct {
     set_t      vars; /* :symbol_id_t */
     set_t      func; /* :symbol_id_t */
     set_t      strs; /* :symbol_id_t */
+    set_t      vtab; /* :symbol_id_t */
     int        align;
     struct {
         list_t vars;
         list_t func;
         list_t strs;
+        list_t vtab;
     } sorted;
 } section_info_t;
 

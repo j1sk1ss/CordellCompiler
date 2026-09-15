@@ -67,6 +67,12 @@ static int _register_functions(call_graph_t* ctx, sym_table_t* smt) {
         }
     }
 
+    map_foreach (vtable_info_t* vi, &smt->vt.vttb) {
+        foreach (symbol_id_t f_id, &vi->funcs) {
+            if (f_id != NO_SYMBOL_ID) list_add(&ctx->entries, (void*)f_id);
+        }
+    }
+
     return 1;
 }
 

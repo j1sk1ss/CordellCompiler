@@ -146,6 +146,26 @@ static inline void NASMFMT_emit_typed_func(FILE* output, const char* name, long 
     else      _NASMFMT_emit_command(output, "%s %s", op, value);
 }
 
+static inline const char* NASMFMT_format_vtable_value(symbol_id_t vt_id, sym_table_t* smt, char* buffer, size_t size) {
+    type_info_t ti;
+    vtable_info_t vi;
+    if (
+        vt_id == NO_SYMBOL_ID                   ||
+        !VTTB_get_info_id(vt_id, &vi, &smt->vt) ||
+        !TPTB_get_info_id(vi.t_id, &ti, &smt->t)
+    ) return "0";
+    snprintf(buffer, size, "_cpl_vtable_%s", ti.name->body);
+    return buffer;
+}
+
+static inline void NASMFMT_emit_typed_vtable(FILE* output, const char* name, long size, symbol_id_t vt_id, sym_table_t* smt) {
+    const char* op = size == 8 ? "dq" : size == 4 ? "dd" : size == 2 ? "dw" : "db";
+    char buffer[256] = { 0 };
+    const char* value = NASMFMT_format_vtable_value(vt_id, smt, buffer, sizeof(buffer));
+    if (name) _NASMFMT_emit_command(output, "%s %s %s", name, op, value);
+    else      _NASMFMT_emit_command(output, "%s %s", op, value);
+}
+
 #ifndef EMIT_COMMAND
     #define EMIT_COMMAND(cmd, ...)      _NASMFMT_emit_command(output, cmd, ##__VA_ARGS__)
 #endif

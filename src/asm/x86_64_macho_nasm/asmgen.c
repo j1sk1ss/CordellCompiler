@@ -194,6 +194,25 @@ static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {
     return 1;
 }
 
+static int _generate_vtable(symbol_id_t id, sym_table_t* smt, FILE* output) {
+    type_info_t ti;
+    vtable_info_t vi;
+    if (
+        !VTTB_get_info_id(id, &vi, &smt->vt) ||
+        !TPTB_get_info_id(vi.t_id, &ti, &smt->t)
+    ) return 0;
+
+    char vtable_name[128] = { 0 };
+    snprintf(vtable_name, sizeof(vtable_name), "_cpl_vtable_%s", ti.name->body);
+    EMIT_DATA_LABEL(vtable_name);
+
+    foreach (symbol_id_t f_id, &vi.funcs) {
+        NASMFMT_emit_typed_func(output, NULL, CONF_get_full_bytness(), f_id, smt);
+    }
+
+    return 1;
+}
+
 static inline long _array_reserve_size(variable_info_t* vi, array_info_t* ai, token_t* elem_tkn, sym_table_t* smt) {
     long type_size = TPTB_get_memory_size_id(vi->t_id, &smt->t);
     if (type_size != SMT_NULL) return type_size;
@@ -240,7 +259,7 @@ static int _generate_typed_initializer(variable_info_t* vi, array_info_t* ai, sy
     long emitted_end = 0, value_count = list_size(&ai->elems), reserve_size = _array_reserve_size(vi, ai, NULL, smt);
     array_elem_info_t* elem = NULL;
     long value_pos = 0, string_pos = 0;
-    symbol_id_t string_owner_id = NO_SYMBOL_ID;
+    symbol_id_t string_owner_id = NO_SYMBOL_ID; // TODO: refactor this mess
 
     list_iter_t values;
     list_iter_hinit(&ai->elems, &values);
@@ -298,6 +317,10 @@ static int _generate_typed_initializer(variable_info_t* vi, array_info_t* ai, sy
             }
             case ARRAY_ELEM_FUNC_TYPE: {
                 NASMFMT_emit_typed_func(output, NULL, slot_info.slot_size, elem->s.f_id, smt);
+                break;
+            }
+            case ARRAY_ELEM_VTABLE_TYPE: {
+                NASMFMT_emit_typed_vtable(output, NULL, slot_info.slot_size, elem->s.vt_id, smt);
                 break;
             }
             default: {
@@ -372,6 +395,11 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
                         fprintf(output, "%s", NASMFMT_format_func_value(el->s.f_id, smt, buffer, sizeof(buffer)));
                         break;
                     }
+                    case ARRAY_ELEM_VTABLE_TYPE: {
+                        char buffer[256] = { 0 };
+                        fprintf(output, "%s", NASMFMT_format_vtable_value(el->s.vt_id, smt, buffer, sizeof(buffer)));
+                        break;
+                    }
                     default: fprintf(output, "%lli", el->s.value);                         break;
                 }
 
@@ -386,6 +414,11 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
                     case ARRAY_ELEM_FUNC_TYPE: {
                         char buffer[256] = { 0 };
                         fprintf(output, "%s", last_elem ? NASMFMT_format_func_value(last_elem->s.f_id, smt, buffer, sizeof(buffer)) : "0");
+                        break;
+                    }
+                    case ARRAY_ELEM_VTABLE_TYPE: {
+                        char buffer[256] = { 0 };
+                        fprintf(output, "%s", last_elem ? NASMFMT_format_vtable_value(last_elem->s.vt_id, smt, buffer, sizeof(buffer)) : "0");
                         break;
                     }
                     default: fprintf(output, "%lli", last_elem ? last_elem->s.value : 0);         break;
@@ -460,6 +493,10 @@ int x86_64_macho_nasm_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* outp
 
         foreach (symbol_id_t id, &section->sorted.strs) {
             _generate_ro_string(id, smt, output);
+        }
+
+        foreach (symbol_id_t id, &section->sorted.vtab) {
+            _generate_vtable(id, smt, output);
         }
 
         foreach (symbol_id_t id, &section->sorted.func) {

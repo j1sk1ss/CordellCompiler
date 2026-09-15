@@ -113,7 +113,7 @@ static int _arr_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) 
     return 1;
 }
 
-static void _load_vtable(hir_subject_t* args, type_info_t* ti, hir_ctx_t* ctx, variable_info_t* vi, sym_table_t* smt) {
+static symbol_id_t _intern_vtable(type_info_t* ti, sym_table_t* smt) {
     long slots = 0, fallback_index = 0;
     foreach (symbol_id_t c, &ti->body.custom.layout.children) {
         type_info_t c_ti;
@@ -128,9 +128,15 @@ static void _load_vtable(hir_subject_t* args, type_info_t* ti, hir_ctx_t* ctx, v
         }
     }
 
+    if (!slots) return NO_SYMBOL_ID;
+
+    vtable_info_t vti;
+    if (VTTB_get_info_type(ti->id, &vti, &smt->vt)) return vti.id;
+
+    symbol_id_t vt_id = VTTB_add_info(ti->id, &smt->vt);
+    if (vt_id == NO_SYMBOL_ID) return NO_SYMBOL_ID;
     for (long slot = 0; slot < slots; slot++) {
-        hir_subject_t* vtable_init = NULL;
-        int static_init = 0;
+        symbol_id_t f_id = NO_SYMBOL_ID;
         fallback_index = 0;
         foreach (symbol_id_t c, &ti->body.custom.layout.children) {
             type_info_t c_ti;
@@ -147,27 +153,31 @@ static void _load_vtable(hir_subject_t* args, type_info_t* ti, hir_ctx_t* ctx, v
             if (vtable_index != slot) continue;
             if (!FNTB_get_info_id(c_ti.body.method.f_id, &c_fi, &smt->f) || c_fi.flags.abstract) break;
 
-            if (vi->vfs.glob) {
-                ARTB_add_elems(vi->v_id, (array_elem_info_t){ .s.f_id = c_fi.id, .t = ARRAY_ELEM_FUNC_TYPE  }, &smt->a);
-                static_init = 1;
-            }
-            else {
-                vtable_init = HIR_SUBJ_TMPVAR(HIR_STKVARI0, VRTB_add_info(NULL, TMP_I0_TYPE_TOKEN, NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v));
-                vtable_init->ptr = 1;
-                HIR_BLOCK2(ctx, HIR_REF, vtable_init, HIR_SUBJ_FNAMETB(c_fi.id));
-            }
-
+            f_id = c_fi.id;
             break;
         }
 
-        if (vi->vfs.glob) {
-            if (!static_init) ARTB_add_elems(vi->v_id, (array_elem_info_t){ .s.f_id = NO_SYMBOL_ID, .t = ARRAY_ELEM_FUNC_TYPE  }, &smt->a);
-        }
-        else {
-            if (!vtable_init) vtable_init = HIR_SUBJ_CONST(0);
-            list_add(&args->storage.list.h, vtable_init);
-        }
+        VTTB_add_func(vt_id, f_id, &smt->vt);
     }
+
+    string_t* section = create_string(CONF_get_ro_section());
+    SCTB_add_to_section(section, CONF_get_full_bytness(), vt_id, SECTION_ELEMENT_VTABLE, &smt->c);
+    destroy_string(section);
+    return vt_id;
+}
+
+static void _load_vtable(hir_subject_t* args, type_info_t* ti, hir_ctx_t* ctx, variable_info_t* vi, sym_table_t* smt) {
+    symbol_id_t vt_id = _intern_vtable(ti, smt);
+    if (vt_id == NO_SYMBOL_ID) return;
+    if (vi->vfs.glob) {
+        ARTB_add_elems(vi->v_id, (array_elem_info_t){ .s.vt_id = vt_id, .t = ARRAY_ELEM_VTABLE_TYPE }, &smt->a);
+        return;
+    }
+
+    hir_subject_t* vtable_init = HIR_SUBJ_TMPVAR(HIR_STKVARI0, VRTB_add_info(NULL, TMP_I0_TYPE_TOKEN, NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v));
+    vtable_init->ptr = 1;
+    HIR_BLOCK2(ctx, HIR_REF, vtable_init, HIR_SUBJ_VTABLE(vt_id));
+    list_add(&args->storage.list.h, vtable_init);
 }
 
 /* Generate allocation HIR for a custom container declaration.

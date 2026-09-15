@@ -222,7 +222,7 @@ static long _vtable_slot_count(type_info_t* info, typetab_ctx_t* ctx) {
 }
 
 static inline long _vtable_prefix_size(type_info_t* info, typetab_ctx_t* ctx) {
-    return _vtable_slot_count(info, ctx) * CONF_get_full_bytness();
+    return _vtable_slot_count(info, ctx) ? CONF_get_full_bytness() : 0;
 }
 
 static void _recalculate_custom_layout(type_info_t* info, typetab_ctx_t* ctx) {
@@ -752,14 +752,14 @@ int TPTB_find_type_init_slot(symbol_id_t t_id, long target_slot, long base_offse
 
     if (scan_ti.t != TYPE_CUSTOM) return 0;
 
-    long vtable_slots = _vtable_slot_count(&scan_ti, ctx);
-    for (long slot = 0; slot < vtable_slots; slot++) {
-        if (slot_info->curr_idx++ != target_slot) continue;
-        slot_info->slot_off   = base_offset + slot * CONF_get_full_bytness();
-        slot_info->slot_size  = CONF_get_full_bytness();
-        slot_info->slot_type  = NO_SYMBOL_ID;
-        slot_info->slot_owner = scan_id;
-        return 1;
+    if (_vtable_slot_count(&scan_ti, ctx)) {
+        if (slot_info->curr_idx++ == target_slot) {
+            slot_info->slot_off   = base_offset;
+            slot_info->slot_size  = CONF_get_full_bytness();
+            slot_info->slot_type  = NO_SYMBOL_ID;
+            slot_info->slot_owner = scan_id;
+            return 1;
+        }
     }
 
     long child_offset = _vtable_prefix_size(&scan_ti, ctx);

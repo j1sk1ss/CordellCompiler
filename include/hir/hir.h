@@ -130,6 +130,7 @@ static inline hir_subject_type_t _get_token_stktype(token_t* tkn, int ptr) {
 #define HIR_SUBJ_STRTB(id)               HIR_create_subject(HIR_STRING, id, NULL, 0)
 #define HIR_SUBJ_FUNCNAME(n)             HIR_create_subject(HIR_FNAME, n->sinfo.v_id, NULL, 0)
 #define HIR_SUBJ_FNAMETB(id)             HIR_create_subject(HIR_FNAME, id, NULL, 0)
+#define HIR_SUBJ_VTABLE(id)              HIR_create_subject(HIR_VTABLE, id, NULL, 0)
 #define HIR_SUBJ_SET()                   HIR_create_subject(HIR_PHISET, 0, NULL, 0)
 #define HIR_SUBJ_LIST()                  HIR_create_subject(HIR_ARGLIST, 0, NULL, 0)
 #define HIR_SUBJ_LOCATION(tloc)          HIR_create_subject(HIR_FPOS, 0, (string_t*)tloc, 0)

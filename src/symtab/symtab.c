@@ -3,11 +3,13 @@
 int SMT_init(sym_table_t* smt) {
     smt->v.curr_id  = 0;
     smt->s.curr_id  = 0;
+    smt->vt.curr_id = 0;
     smt->f.curr_id  = 0;
     smt->t.curr_id  = 0;
     smt->sc.curr_id = 0;
     return map_init(&smt->v.vartb,  MAP_NO_CMP) &&
            map_init(&smt->s.strtb,  MAP_NO_CMP) &&
+           map_init(&smt->vt.vttb,  MAP_NO_CMP) &&
            map_init(&smt->f.functb, MAP_NO_CMP) &&
            map_init(&smt->a.arrtb,  MAP_NO_CMP) &&
            map_init(&smt->m.allias, MAP_NO_CMP) &&
@@ -19,6 +21,7 @@ int SMT_init(sym_table_t* smt) {
 int SMT_compress(sym_table_t* smt) {
     map_compress(&smt->v.vartb);
     map_compress(&smt->s.strtb);
+    map_compress(&smt->vt.vttb);
     map_compress(&smt->f.functb);
     map_compress(&smt->t.typetb);
     map_compress(&smt->sc.parents);
@@ -30,6 +33,7 @@ int SMT_unload(sym_table_t* smt) {
     ARTB_unload(&smt->a);
     FNTB_unload(&smt->f);
     STTB_unload(&smt->s);
+    VTTB_unload(&smt->vt);
     ALLIAS_unload(&smt->m);
     SCTB_unload(&smt->c);
     TPTB_unload(&smt->t);

@@ -107,6 +107,19 @@ const char* x86_64_macho_nasm_format_lir_subject(lir_subject_t* v, sym_table_t* 
 
             return "fn<unknown>";
         }
+        case LIR_VTABLE: {
+            vtable_info_t vi;
+            type_info_t ti;
+            if (
+                VTTB_get_info_id(v->storage.str.sid, &vi, &smt->vt) &&
+                TPTB_get_info_id(vi.t_id, &ti, &smt->t)
+            ) {
+                snprintf(buffer, sizeof(_buffers[0]), v->storage.str.rel ? "[rel _cpl_vtable_%s]" : "_cpl_vtable_%s", ti.name->body);
+                return buffer;
+            }
+
+            return "vtable<unknown>";
+        }
         case LIR_GLVARIABLE:
         case LIR_VARIABLE: {
             variable_info_t vi;

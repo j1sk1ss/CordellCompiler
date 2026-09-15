@@ -10,7 +10,8 @@
 typedef enum {
     ARRAY_ELEM_STRING_TYPE,
     ARRAY_ELEM_CONST_TYPE,
-    ARRAY_ELEM_FUNC_TYPE
+    ARRAY_ELEM_FUNC_TYPE,
+    ARRAY_ELEM_VTABLE_TYPE
 } array_elem_type_t;
 
 typedef struct {
@@ -18,6 +19,7 @@ typedef struct {
         symbol_id_t   v_id;
         symbol_id_t   s_id;
         symbol_id_t   f_id;
+        symbol_id_t   vt_id;
         long long     value;
     } s;
     array_elem_type_t t;
