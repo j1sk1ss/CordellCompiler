@@ -35,6 +35,7 @@ static const markup_token_t _lexems[] = {
     LEXEM(ASM_COMMAND,            ASM_TOKEN),
     LEXEM(VAR_ARGUMENTS_COMMAND,  VAR_ARGUMENTS_TOKEN),
     LEXEM(LAMBDA_COMMAND,         LAMBDA_TOKEN),
+    LEXEM(PLACE_COMMAND,          PLACE_TOKEN),
 
     /* Variable modifiers */
     LEXEM(DREF_COMMAND,           DREF_TYPE_TOKEN),

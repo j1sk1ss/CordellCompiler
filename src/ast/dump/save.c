@@ -7,6 +7,7 @@ static const char* _name_tkn_type(token_type_t t) {
         case GENERIC_TYPE_TOKEN:          return "GENERIC_TYPE_TOKEN";   
         case GENERIC_VARIABLE_TOKEN:      return "GENERIC_VARIABLE_TOKEN";
         case SIZEOF_TOKEN:                return "SIZEOF_TOKEN";
+        case PLACE_TOKEN:                 return "PLACE_TOKEN";
         case INDEXATION_TOKEN:            return "INDEXATION_TOKEN";
         case CALLING_TOKEN:               return "CALLING_TOKEN";
         case SIGNATURE_TOKEN:             return "SIGNATURE_TOKEN";

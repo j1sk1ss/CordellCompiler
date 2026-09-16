@@ -68,6 +68,7 @@
 #define SYSCALL_COMMAND         "syscall"
 #define ASM_COMMAND             "asm"
 #define SIZEOF_COMMAND          "sizeof"
+#define PLACE_COMMAND           "place"
 
 // Symbols and statements (Operands)
 /* Update lexems */

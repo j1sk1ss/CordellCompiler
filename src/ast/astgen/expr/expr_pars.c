@@ -275,6 +275,7 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
                 annotation_unreserve(ctx, annot_off);
                 return node;
             }
+            case PLACE_TOKEN:     return cpl_parse_place(it, ctx, smt, 0);
             case SIZEOF_TOKEN:    return cpl_parse_sizeof(it, ctx, smt, 0);
             case SYSCALL_TOKEN:   return cpl_parse_syscall(it, ctx, smt, 0);
             case NOT_TOKEN:

@@ -19,6 +19,7 @@ Returns generated value from the AST node or the 'NULL' value. */
 static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret) {    
     hir_subject_t* res = NULL;
     switch (node->t->t_type) {
+        case PLACE_TOKEN:                 res = HIR_generate_place(node, ctx, smt);              break;
         case CALLING_TOKEN:               res = HIR_generate_funccall(node, ctx, smt, 1);        break;
         case SIZEOF_TOKEN:                res = HIR_generate_sizeof(node, ctx, smt);             break;
         case SYSCALL_TOKEN:               res = HIR_generate_syscall(node, ctx, smt, 1);         break;

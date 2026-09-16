@@ -91,6 +91,7 @@ typedef enum {
     RETURN_TYPE_TOKEN,     // ->
     SCOPE_TOKEN,           // {  }
     ANNOTATION_TOKEN,      // @
+    PLACE_TOKEN,           // place
 
     CONTAINER_TOKEN,       // container
     INTERFACE_TOKEN,       // interface
