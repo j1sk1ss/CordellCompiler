@@ -166,15 +166,16 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
         type_info_t self_ti;
         int vtable_index;
         if ( /* Get function from the virtual table */
-            node->self                                                                                     &&
-            TPTB_get_info_id(TPTB_resolve_parent(node->self->sinfo.t_id, &smt->t), &self_ti, &smt->t)      &&
-            ((vtable_index = TPTB_get_vtable_index(self_ti.id, node->c->sinfo.v_id, &smt->t)) != SMT_NULL) &&
-            self_ti.t == TYPE_CUSTOM && self_ti.body.custom.layout.vtable
+            node->self                                                                                     && /* it has self node  */
+            TPTB_get_info_id(TPTB_resolve_parent(node->self->sinfo.t_id, &smt->t), &self_ti, &smt->t)      && /* self has a type   */
+            ((vtable_index = TPTB_get_vtable_index(self_ti.id, node->c->sinfo.v_id, &smt->t)) != SMT_NULL)    /* call is a method  */
         ) {
             hir_subject_t *self = HIR_generate_elem(node->self, ctx, smt), *ref_self = !self->ptr ? HIR_reference_subject(self, smt, 1) : self;
             if (self != ref_self) HIR_BLOCK2(ctx, HIR_REF, ref_self, self);
-            hir_subject_t* vtable = HIR_gdref_subject(ref_self, smt, ctx, 1);
-            hir_subject_t* vtable_entry = HIR_add_to_subject(vtable, smt, vtable_index * CONF_get_full_bytness(), ctx);
+            hir_subject_t* vtable_entry = HIR_add_to_subject(
+                HIR_gdref_subject(ref_self, smt, ctx, 1),        /* pointer to the first virtual method */
+                smt, vtable_index * CONF_get_full_bytness(), ctx /* move to the target method           */
+            );
             call_subj = HIR_gdref_subject(vtable_entry, smt, ctx, 1);
         } /* Get function from the name */
         else {

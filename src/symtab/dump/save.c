@@ -153,11 +153,11 @@ static int _format_funcinfo(func_info_t* fi, FILE* output) {
         "%s%s%s%s%s%s%s%s%s%s%s%s%s%s\n",
         fi->id, _format_str(fi->name), _format_str(fi->virt), fi->s_id,
         args, rtype, locals, generic_types, resolutions,
-        _format_flag(", ext", fi->flags.external),     _format_flag(", glob", fi->flags.global), _format_flag(", entry", fi->flags.entry),
-        _format_flag(", used", fi->flags.used),        _format_flag(", local", fi->flags.local), _format_flag(", vargs", fi->flags.vargs),
-        _format_flag(", gen", fi->flags.generic),      _format_flag(", abi", fi->flags.abi),     _format_flag(", weak", fi->flags.weak),
-        _format_flag(", self", fi->flags.self),        _format_flag(", naked", fi->flags.naked), _format_flag(", inline", fi->flags.inln),
-        _format_flag("only_body", fi->flags.onlybody), _format_flag(", vname", fi->flags.vname)
+        _format_flag(", ext", fi->flags.external),       _format_flag(", glob", fi->flags.global), _format_flag(", entry", fi->flags.entry),
+        _format_flag(", used", fi->flags.used),          _format_flag(", local", fi->flags.local), _format_flag(", vargs", fi->flags.vargs),
+        _format_flag(", gen", fi->flags.generic),        _format_flag(", abi", fi->flags.abi),     _format_flag(", weak", fi->flags.weak),
+        _format_flag(", self", fi->flags.self),          _format_flag(", naked", fi->flags.naked), _format_flag(", inline", fi->flags.inln),
+        _format_flag(", only_body", fi->flags.onlybody), _format_flag(", vname", fi->flags.vname)
     );
     return 1;
 }
