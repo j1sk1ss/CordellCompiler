@@ -11,7 +11,7 @@
 #include <hir/hir_types.h>
 
 hir_subject_t* HIR_add_to_subject(hir_subject_t* src, sym_table_t* smt, long add, hir_ctx_t* ctx);
-hir_subject_t* HIR_gdref_subject(hir_subject_t* src, sym_table_t* smt, hir_ctx_t* ctx);
+hir_subject_t* HIR_gdref_subject(hir_subject_t* src, sym_table_t* smt, hir_ctx_t* ctx, int set_ptr);
 
 /* Check if node has an annotation.
    Params:
