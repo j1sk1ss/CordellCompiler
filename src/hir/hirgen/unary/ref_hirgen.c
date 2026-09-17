@@ -27,7 +27,7 @@ hir_subject_t* HIR_reference_subject(hir_subject_t* src, sym_table_t* smt, int i
 
     /* If the source variable was a custom typed variable, we mst
        preserve its type thru reference operation */
-    symbol_id_t ref_id = VRTB_add_info(NULL, HIR_get_tmptkn_type(src_type), NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v);
+    symbol_id_t ref_id = VRTB_ADD_TMP_NF(src_type, smt);
     variable_info_t src_info;
     if (
         HIR_is_vartype(src->t)                                      &&

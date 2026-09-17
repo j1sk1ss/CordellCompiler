@@ -10,6 +10,15 @@
 #include <hir/hir.h>
 #include <hir/hir_types.h>
 
+/* Create a temp variable in a variables' table
+   - `t` - HIR type
+   - `f` - Flags
+   - `smt` - Symtable */
+#define VRTB_ADD_TMP(t, f, smt) \
+    VRTB_add_info(NULL, HIR_get_tmptkn_type(t), NO_SYMBOL_ID, f, &smt->v)
+/* Create a temp variable without flags */
+#define VRTB_ADD_TMP_NF(t, smt) VRTB_ADD_TMP(t, EMPTY_BASIC_FLAGS, smt)
+
 hir_subject_t* HIR_add_to_subject(hir_subject_t* src, sym_table_t* smt, long add, hir_ctx_t* ctx);
 hir_subject_t* HIR_gdref_subject(hir_subject_t* src, sym_table_t* smt, hir_ctx_t* ctx, int set_ptr);
 
