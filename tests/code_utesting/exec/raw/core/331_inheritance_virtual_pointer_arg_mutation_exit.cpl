@@ -5,7 +5,7 @@ interface iface331 {
     @[self] @[abstract]
     function update(ptr iface331 self, ptr i32 value) -> i0;
 }
-container impl331::iface331 {
+container impl331 implements iface331 {
     @[override]
     function update(ptr impl331 self, ptr i32 value) -> i0;
 }

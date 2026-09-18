@@ -1,6 +1,6 @@
 #include "value_source.inc"
 
-container hidden_value08::value_source08 {
+container hidden_value08 implements value_source08 {
     i32 stored;
 
     @[override]

@@ -6,7 +6,7 @@ interface iface319 {
     function add(ptr iface319 self, i32 delta) -> i32;
 }
 
-container counter319::iface319 {
+container counter319 implements iface319 {
     i32 current;
 
     @[override]

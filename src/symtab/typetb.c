@@ -650,15 +650,16 @@ long TPTB_get_child_offset(symbol_id_t p_id, symbol_id_t tc_id, typetab_ctx_t* c
     if (!map_get(&ctx->typetb, p_id, (void**)&p_ti)) return SMT_NULL;
     if (p_ti->t != TYPE_CUSTOM) return 0;
 
-    long offset = _vtable_prefix_size(p_ti, ctx);
+    long offset = _vtable_prefix_size(p_ti, ctx); /* Skip vtable pointer */
     if (!p_ti->body.custom.layout.multiple) return offset;
     foreach (symbol_id_t c_id, &p_ti->body.custom.layout.children) {
         if (!map_get(&ctx->typetb, c_id, (void**)&c_ti)) continue;
         if (c_ti->t == TYPE_METHOD) {
             long vtable_index = c_ti->body.method.vtable_index;
-            if (c_ti->body.method.in_vtable && vtable_index != SMT_NULL && tc_id == c_id) {
-                return vtable_index * CONF_get_full_bytness();
-            }
+            if (
+                c_ti->body.method.in_vtable && 
+                vtable_index != SMT_NULL && tc_id == c_id
+            ) return vtable_index * CONF_get_full_bytness();
             continue;
         }
 

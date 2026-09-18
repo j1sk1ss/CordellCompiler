@@ -5,7 +5,7 @@ interface iface343 {
     @[self] @[abstract]
     function sum(ptr iface343 self) -> i32;
 }
-container impl343::iface343 {
+container impl343 implements iface343 {
     arr values[3, i32];
     @[override] function sum(ptr impl343 self) -> i32;
 }

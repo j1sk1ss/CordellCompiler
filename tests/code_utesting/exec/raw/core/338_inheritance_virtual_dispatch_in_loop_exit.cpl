@@ -5,7 +5,7 @@ interface iface338 {
     @[self] @[abstract]
     function step(ptr iface338 self) -> i32;
 }
-container impl338::iface338 { @[override] function step(ptr impl338 self) -> i32; }
+container impl338 implements iface338 { @[override] function step(ptr impl338 self) -> i32; }
 function impl338::step(ptr impl338 self) -> i32 { return 7; }
 
 function run338(ptr iface338 item) -> i32 {

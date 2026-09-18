@@ -8,7 +8,7 @@ interface iface350 {
     @[self] @[abstract]
     function value(ptr iface350 self) -> i32;
 }
-container impl350::iface350 {
+container impl350 implements iface350 {
     i32 current;
     @[override] function bump(ptr impl350 self, i32 delta) -> i0;
     @[override] function value(ptr impl350 self) -> i32;

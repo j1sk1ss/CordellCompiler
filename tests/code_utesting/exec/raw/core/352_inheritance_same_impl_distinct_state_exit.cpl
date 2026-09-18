@@ -5,7 +5,7 @@ interface iface352 {
     @[self] @[abstract]
     function value(ptr iface352 self) -> i32;
 }
-container impl352::iface352 {
+container impl352 implements iface352 {
     i32 state;
     @[override] function value(ptr impl352 self) -> i32;
 }

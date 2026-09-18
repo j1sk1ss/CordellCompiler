@@ -3,7 +3,7 @@
 
 #include "reader.inc"
 
-interface adjustable12::reader12 {
+interface adjustable12 implements reader12 {
     @[self] @[abstract]
     function set_offset(ptr adjustable12 self, i32 offset) -> i0;
 }

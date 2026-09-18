@@ -6,7 +6,7 @@ interface iface324 {
     @[self] function right(ptr iface324 self) -> i32;
 }
 
-container pair324::iface324 {
+container pair324 implements iface324 {
     @[override] function left(ptr pair324 self) -> i32;
     @[override] function right(ptr pair324 self) -> i32;
 }

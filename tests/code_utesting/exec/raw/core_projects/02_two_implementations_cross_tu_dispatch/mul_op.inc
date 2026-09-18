@@ -3,7 +3,7 @@
 
 #include "operation.inc"
 
-container mul_op02::operation02 {
+container mul_op02 implements operation02 {
     i32 factor;
 
     @[override]

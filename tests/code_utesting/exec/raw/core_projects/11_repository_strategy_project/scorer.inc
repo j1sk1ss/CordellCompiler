@@ -8,7 +8,7 @@ interface scorer11 {
     function score(ptr scorer11 self, ptr record11 item) -> i32;
 }
 
-container weight_scorer11::scorer11 {
+container weight_scorer11 implements scorer11 {
     @[override]
     function score(ptr weight_scorer11 self, ptr record11 item) -> i32;
 }

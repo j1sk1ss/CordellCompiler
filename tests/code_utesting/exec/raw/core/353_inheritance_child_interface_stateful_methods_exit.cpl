@@ -5,11 +5,11 @@ interface root353 {
     @[self] @[abstract]
     function value(ptr root353 self) -> i32;
 }
-interface child353::root353 {
+interface child353 implements root353 {
     @[self] @[abstract]
     function add(ptr child353 self, i32 delta) -> i0;
 }
-container impl353::child353 {
+container impl353 implements child353 {
     i32 state;
     @[override] function value(ptr impl353 self) -> i32;
     @[override] function add(ptr impl353 self, i32 delta) -> i0;

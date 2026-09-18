@@ -6,8 +6,8 @@ interface iface326 {
     function value(ptr iface326 self) -> i32;
 }
 
-container low326::iface326 { @[override] function value(ptr low326 self) -> i32; }
-container high326::iface326 { @[override] function value(ptr high326 self) -> i32; }
+container low326 implements iface326 { @[override] function value(ptr low326 self) -> i32; }
+container high326 implements iface326 { @[override] function value(ptr high326 self) -> i32; }
 function low326::value(ptr low326 self) -> i32 { return 7; }
 function high326::value(ptr high326 self) -> i32 { return 42; }
 

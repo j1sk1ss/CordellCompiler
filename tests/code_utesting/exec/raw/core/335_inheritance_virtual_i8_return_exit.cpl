@@ -5,7 +5,7 @@ interface iface335 {
     @[self] @[abstract]
     function value(ptr iface335 self) -> i8;
 }
-container impl335::iface335 { @[override] function value(ptr impl335 self) -> i8; }
+container impl335 implements iface335 { @[override] function value(ptr impl335 self) -> i8; }
 function impl335::value(ptr impl335 self) -> i8 { return 42 as i8; }
 
 start() {

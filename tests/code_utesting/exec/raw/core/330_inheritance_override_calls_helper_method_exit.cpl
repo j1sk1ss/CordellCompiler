@@ -6,7 +6,7 @@ interface iface330 {
     function value(ptr iface330 self) -> i32;
 }
 
-container impl330::iface330 {
+container impl330 implements iface330 {
     i32 base;
 
     @[self]

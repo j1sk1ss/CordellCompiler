@@ -6,11 +6,11 @@ interface iface329 {
     function value(ptr iface329 self) -> i32;
 }
 
-container first329::iface329 { 
+container first329 implements iface329 { 
     @[override] function value(ptr first329 self) -> i32; 
 }
 
-container second329::iface329 { 
+container second329 implements iface329 { 
     @[override] function value(ptr second329 self) -> i32; 
 }
 

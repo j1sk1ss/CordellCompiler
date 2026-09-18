@@ -5,7 +5,7 @@ interface iface339 {
     @[self] @[abstract]
     function step(ptr iface339 self) -> i32;
 }
-container impl339::iface339 { @[override] function step(ptr impl339 self) -> i32; }
+container impl339 implements iface339 { @[override] function step(ptr impl339 self) -> i32; }
 function impl339::step(ptr impl339 self) -> i32 { return 7; }
 
 function sum339(ptr iface339 item, i32 count) -> i32 {

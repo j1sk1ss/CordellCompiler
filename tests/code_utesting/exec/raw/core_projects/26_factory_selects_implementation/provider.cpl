@@ -1,6 +1,6 @@
 #include "iface.inc"
-container low26::value26 { @[override] function value(ptr low26 self) -> i32; }
-container high26::value26 { @[override] function value(ptr high26 self) -> i32; }
+container low26 implements value26 { @[override] function value(ptr low26 self) -> i32; }
+container high26 implements value26 { @[override] function value(ptr high26 self) -> i32; }
 glob low26 LOW26;
 glob high26 HIGH26;
 function low26::value(ptr low26 self) -> i32 { return 7; }

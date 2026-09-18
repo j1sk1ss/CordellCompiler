@@ -3,6 +3,17 @@ Logs for the first and second versions are quite short because I do not remember
 
 ----------------------------------------
 
+## implements instead of '::'
+<div class="change-date">Date: 2026-09-18</div>
+Usually, `::` means being somewhere in a scope of an element. This breaks when we try to implement an interface for a container. That's why I've taken a keyword from Java: `implements`. Now, to link an interface to a container, you need to use `implements` keyword:
+
+```cpl
+interface base {
+}
+container implementation implements base {
+}
+```
+
 ## Place
 <div class="change-date">Date: 2026-09-17</div>
 Implement a new keyword: `place`. Actually, it's the best solution in my situation, when I need to somehow combine low-level idiology and a high-level memory model. Previous updates neglect the important thing - virtual tables placement in a non-stack allocated container. When we're talking about stack allocated containers, there is an obvoius place where we can generate a sequence of instructions which sets container's iternal pointer to a virtual table. But what happens here:

@@ -5,7 +5,7 @@ interface iface342 {
     @[self] @[abstract]
     function value(ptr iface342 self) -> i32;
 }
-container impl342::iface342 {
+container impl342 implements iface342 {
     ptr i32 source;
     @[override] function value(ptr impl342 self) -> i32;
 }

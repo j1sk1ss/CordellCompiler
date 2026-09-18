@@ -5,8 +5,8 @@ interface iface341 {
     @[self] @[abstract]
     function value(ptr iface341 self) -> i32;
 }
-container first341::iface341 { @[override] function value(ptr first341 self) -> i32; }
-container second341::iface341 { @[override] function value(ptr second341 self) -> i32; }
+container first341 implements iface341 { @[override] function value(ptr first341 self) -> i32; }
+container second341 implements iface341 { @[override] function value(ptr second341 self) -> i32; }
 function first341::value(ptr first341 self) -> i32 { return 50; }
 function second341::value(ptr second341 self) -> i32 { return 8; }
 

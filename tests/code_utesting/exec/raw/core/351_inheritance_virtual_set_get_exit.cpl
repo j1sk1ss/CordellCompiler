@@ -8,7 +8,7 @@ interface iface351 {
     @[self] @[abstract]
     function get(ptr iface351 self) -> i32;
 }
-container impl351::iface351 {
+container impl351 implements iface351 {
     i32 value_field;
     @[override] function set(ptr impl351 self, i32 value) -> i0;
     @[override] function get(ptr impl351 self) -> i32;

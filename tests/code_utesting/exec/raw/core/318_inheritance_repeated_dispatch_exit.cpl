@@ -6,7 +6,7 @@ interface iface318 {
     function value(ptr iface318 self) -> i32;
 }
 
-container impl318::iface318 {
+container impl318 implements iface318 {
     @[override]
     function value(ptr impl318 self) -> i32;
 }

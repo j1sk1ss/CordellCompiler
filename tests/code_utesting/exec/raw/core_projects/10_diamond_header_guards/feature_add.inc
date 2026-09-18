@@ -3,7 +3,7 @@
 
 #include "transform.inc"
 
-container add_transform10::transform10 {
+container add_transform10 implements transform10 {
     i32 bias;
     @[override] function apply(ptr add_transform10 self, i32 value) -> i32;
 }

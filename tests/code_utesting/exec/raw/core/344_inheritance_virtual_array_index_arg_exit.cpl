@@ -5,7 +5,7 @@ interface iface344 {
     @[self] @[abstract]
     function at(ptr iface344 self, i32 index) -> i32;
 }
-container impl344::iface344 {
+container impl344 implements iface344 {
     arr values[3, i32];
     @[override] function at(ptr impl344 self, i32 index) -> i32;
 }

@@ -3,7 +3,7 @@
 
 #include "mutable.inc"
 
-container state_impl03::mutable03 {
+container state_impl03 implements mutable03 {
     i32 state;
 
     @[override] function value(ptr state_impl03 self) -> i32;

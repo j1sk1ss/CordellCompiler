@@ -6,7 +6,7 @@ interface iface323 {
     function value(ptr iface323 self) -> i32;
 }
 
-container impl323::iface323 {
+container impl323 implements iface323 {
     @[override]
     function value(ptr impl323 self) -> i32;
 }

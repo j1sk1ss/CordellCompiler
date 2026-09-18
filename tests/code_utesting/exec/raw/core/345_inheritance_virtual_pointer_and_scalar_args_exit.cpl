@@ -5,7 +5,7 @@ interface iface345 {
     @[self] @[abstract]
     function compute(ptr iface345 self, ptr i32 source, i32 add, i32 mul) -> i32;
 }
-container impl345::iface345 {
+container impl345 implements iface345 {
     @[override]
     function compute(ptr impl345 self, ptr i32 source, i32 add, i32 mul) -> i32;
 }

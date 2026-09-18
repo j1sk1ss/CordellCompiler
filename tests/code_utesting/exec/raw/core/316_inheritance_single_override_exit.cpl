@@ -6,7 +6,7 @@ interface base316 {
     function value(ptr base316 self) -> i32;
 }
 
-container child316::base316 {
+container child316 implements base316 {
     @[override]
     function value(ptr child316 self) -> i32;
 }

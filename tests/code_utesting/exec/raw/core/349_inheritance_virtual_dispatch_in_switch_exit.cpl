@@ -5,7 +5,7 @@ interface iface349 {
     @[self] @[abstract]
     function value(ptr iface349 self) -> i32;
 }
-container impl349::iface349 { @[override] function value(ptr impl349 self) -> i32; }
+container impl349 implements iface349 { @[override] function value(ptr impl349 self) -> i32; }
 function impl349::value(ptr impl349 self) -> i32 { return 42; }
 
 function run349(ptr iface349 item, i32 selector) -> i32 {

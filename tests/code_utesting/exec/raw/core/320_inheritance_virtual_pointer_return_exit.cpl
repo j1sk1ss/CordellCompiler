@@ -6,7 +6,7 @@ interface iface320 {
     function marker(ptr iface320 self) -> ptr i8;
 }
 
-container text320::iface320 {
+container text320 implements iface320 {
     @[override]
     function marker(ptr text320 self) -> ptr i8;
 }

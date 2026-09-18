@@ -7,7 +7,7 @@ interface iface346 {
     @[self] @[abstract]
     function operation(ptr iface346 self) -> ptr i0;
 }
-container impl346::iface346 { @[override] function operation(ptr impl346 self) -> ptr i0; }
+container impl346 implements iface346 { @[override] function operation(ptr impl346 self) -> ptr i0; }
 function impl346::operation(ptr impl346 self) -> ptr i0 { return twice346; }
 
 start() {

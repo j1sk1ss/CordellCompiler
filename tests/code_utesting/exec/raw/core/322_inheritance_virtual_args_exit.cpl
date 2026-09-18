@@ -6,7 +6,7 @@ interface iface322 {
     function mix(ptr iface322 self, i32 a, i32 b, i32 c) -> i32;
 }
 
-container weighted322::iface322 {
+container weighted322 implements iface322 {
     @[override]
     function mix(ptr weighted322 self, i32 a, i32 b, i32 c) -> i32;
 }

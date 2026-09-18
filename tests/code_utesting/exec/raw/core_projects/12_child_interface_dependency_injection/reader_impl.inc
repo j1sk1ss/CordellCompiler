@@ -3,7 +3,7 @@
 
 #include "adjustable.inc"
 
-container reader_impl12::adjustable12 {
+container reader_impl12 implements adjustable12 {
     i32 base;
     i32 offset;
 

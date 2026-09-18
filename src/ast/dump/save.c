@@ -34,8 +34,8 @@ static const char* _name_tkn_type(token_type_t t) {
         case U8_TYPE_TOKEN:               return "U8_TYPE_TOKEN";
         case ARRAY_TYPE_TOKEN:            return "ARRAY_TYPE_TOKEN";
         case CONVERT_TOKEN:               return "CONVERT_TOKEN";
-        case IMPORT_TOKEN:                return "IMPORT_TOKEN";
-        case IMPORT_SELECT_TOKEN:         return "IMPORT_SELECT_TOKEN";
+        // case IMPORT_TOKEN:                return "IMPORT_TOKEN";
+        // case IMPORT_SELECT_TOKEN:         return "IMPORT_SELECT_TOKEN";
         case EXTERN_TOKEN:                return "EXTERN_TOKEN";
         case START_TOKEN:                 return "START_TOKEN";
         case RETURN_TOKEN:                return "RETURN_TOKEN";

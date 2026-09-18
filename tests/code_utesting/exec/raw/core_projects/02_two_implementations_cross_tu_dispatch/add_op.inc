@@ -3,7 +3,7 @@
 
 #include "operation.inc"
 
-container add_op02::operation02 {
+container add_op02 implements operation02 {
     i32 bias;
 
     @[override]

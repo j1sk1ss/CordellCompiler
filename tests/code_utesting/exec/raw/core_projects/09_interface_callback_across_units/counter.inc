@@ -3,7 +3,7 @@
 
 #include "sink.inc"
 
-container counter09::sink09 {
+container counter09 implements sink09 {
     i32 value;
 
     @[override] function push(ptr counter09 self, i32 value) -> i0;

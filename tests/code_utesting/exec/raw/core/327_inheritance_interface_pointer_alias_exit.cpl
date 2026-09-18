@@ -5,7 +5,7 @@ interface iface327 {
     @[self] @[abstract]
     function value(ptr iface327 self) -> i32;
 }
-container impl327::iface327 { @[override] function value(ptr impl327 self) -> i32; }
+container impl327 implements iface327 { @[override] function value(ptr impl327 self) -> i32; }
 function impl327::value(ptr impl327 self) -> i32 { return 42; }
 
 start() {

@@ -6,7 +6,7 @@ interface metric01 {
     function value(ptr metric01 self) -> i32;
 }
 
-container fixed_metric01::metric01 {
+container fixed_metric01 implements metric01 {
     i32 base;
 
     @[override]

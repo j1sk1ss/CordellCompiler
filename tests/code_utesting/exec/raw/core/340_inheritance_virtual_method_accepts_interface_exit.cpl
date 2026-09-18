@@ -8,7 +8,7 @@ interface iface340 {
     @[self] @[abstract]
     function add_other(ptr iface340 self, ptr iface340 other) -> i32;
 }
-container impl340::iface340 {
+container impl340 implements iface340 {
     i32 value_field;
     @[override] function value(ptr impl340 self) -> i32;
     @[override] function add_other(ptr impl340 self, ptr iface340 other) -> i32;

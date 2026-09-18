@@ -28,7 +28,7 @@ DEFINE_PARSER(cpl_parse_contdef, {
     );
     name->t->t_type = CUSTOM_TYPE_TOKEN;
 
-    if (consume_token(it, STAT_TOKEN)) {
+    if (consume_token(it, IMPLEMENTS_TOKEN)) {
         forward_token(it, 1);
         do {
             symbol_id_t base_tid = type_lookup(CURRENT_TOKEN, ctx, smt);

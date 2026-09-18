@@ -6,10 +6,10 @@ interface root321 {
     function value(ptr root321 self) -> i32;
 }
 
-interface middle321::root321 {
+interface middle321 implements root321 {
 }
 
-container impl321::middle321 {
+container impl321 implements middle321 {
     @[override]
     function value(ptr impl321 self) -> i32;
 }

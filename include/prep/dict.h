@@ -19,6 +19,7 @@
 
 #define CONTAINER_COMMAND       "container"
 #define INTERFACE_COMMAND       "interface"
+#define IMPLEMENTS_COMMAND      "implements"
 #define DOT_COMMAND             "."
 #define STAT_COMMAND            "::"
 #define SELF_COMMAND            "self"

@@ -6,7 +6,7 @@ interface iface317 {
     function value(ptr iface317 self) -> i32;
 }
 
-container first317::iface317 {
+container first317 implements iface317 {
     @[override]
     function value(ptr first317 self) -> i32;
 }
@@ -15,7 +15,7 @@ function first317::value(ptr first317 self) -> i32 {
     return 13;
 }
 
-container second317::iface317 {
+container second317 implements iface317 {
     @[override]
     function value(ptr second317 self) -> i32;
 }

@@ -6,14 +6,18 @@ Note: ! This shouldn't be used as the final size getter !
       bitness outcome. It doesn't know the target platform.
 Returns the variable bitness (size in bits). */
 type_size_t TKN_variable_bitness(token_t* token, char ptr) {
-    if (!token) return TYPE_FULL_SIZE;
-    if (ptr && token->flags.ptr) return TYPE_FULL_SIZE;
+    if (
+        !token ||
+        (ptr && token->flags.ptr)
+    ) return TYPE_FULL_SIZE;
     switch (token->t_type) {
         case UNKNOWN_NUMERIC_TOKEN:
         case UNKNOWN_FLOAT_NUMERIC_TOKEN:
+        case I0_TYPE_TOKEN: // exception
         case I64_TYPE_TOKEN:
         case U64_TYPE_TOKEN:
         case F64_TYPE_TOKEN:
+        case I0_VARIABLE_TOKEN: // exception
         case I64_VARIABLE_TOKEN:  
         case U64_VARIABLE_TOKEN: 
         case F64_VARIABLE_TOKEN: return TYPE_FULL_SIZE;

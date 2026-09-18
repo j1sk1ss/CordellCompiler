@@ -5,8 +5,8 @@ interface iface348 {
     @[self] @[abstract]
     function value(ptr iface348 self) -> i32;
 }
-container first348::iface348 { @[override] function value(ptr first348 self) -> i32; }
-container second348::iface348 { @[override] function value(ptr second348 self) -> i32; }
+container first348 implements iface348 { @[override] function value(ptr first348 self) -> i32; }
+container second348 implements iface348 { @[override] function value(ptr second348 self) -> i32; }
 function first348::value(ptr first348 self) -> i32 { return 5; }
 function second348::value(ptr second348 self) -> i32 { return 42; }
 
