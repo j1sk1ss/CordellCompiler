@@ -475,36 +475,48 @@ static int _generate_function(symbol_id_t f_id, cfg_ctx_t* cctx, sym_table_t* sm
     return 1;
 }
 
+static inline void _emit_section(section_info_t* section, cfg_ctx_t* cctx, sym_table_t* smt, int no_sec, FILE* output) {
+    if (!no_sec) {
+        EMIT_COMMAND("section %s", section->name->body);
+        if (section->align != SMT_NULL) {
+            EMIT_COMMAND("align %i", section->align);
+        }
+    }
+
+    foreach (symbol_id_t id, &section->sorted.vars) {
+        _generate_variable(id, smt, output);
+    }
+
+    foreach (symbol_id_t id, &section->sorted.strs) {
+        _generate_ro_string(id, smt, output);
+    }
+
+    foreach (symbol_id_t id, &section->sorted.vtab) {
+        _generate_vtable(id, smt, output);
+    }
+
+    foreach (symbol_id_t id, &section->sorted.func) {
+        func_info_t fi;
+        if (!FNTB_get_info_id(id, &fi, &smt->f)) continue;
+        foreach (symbol_id_t l_id, &fi.local) {
+            _generate_function(l_id, cctx, smt, output);
+        }
+
+        _generate_function(id, cctx, smt, output);
+    }
+}
+
 int x86_64_gnu_nasm_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* output) {
     foreach (section_info_t* section, &smt->c.sorted.sectb) {
-        if (!section->name->requals(section->name, CONF_get_no_section())) {
-            EMIT_COMMAND("section %s", section->name->body);
-            if (section->align != SMT_NULL) {
-                EMIT_COMMAND("align %i", section->align);
-            }
+        if (section->name->requals(section->name, CONF_get_no_section())) {
+            _emit_section(section, cctx, smt, 1, output);
+            break;
         }
-        
-        foreach (symbol_id_t id, &section->sorted.vars) {
-            _generate_variable(id, smt, output);
-        }
+    }
 
-        foreach (symbol_id_t id, &section->sorted.strs) {
-            _generate_ro_string(id, smt, output);
-        }
-
-        foreach (symbol_id_t id, &section->sorted.vtab) {
-            _generate_vtable(id, smt, output);
-        }
-
-        foreach (symbol_id_t id, &section->sorted.func) {
-            func_info_t fi;
-            if (!FNTB_get_info_id(id, &fi, &smt->f)) continue;
-            foreach (symbol_id_t l_id, &fi.local) {
-                _generate_function(l_id, cctx, smt, output);
-            }
-
-            _generate_function(id, cctx, smt, output);
-        }
+    foreach (section_info_t* section, &smt->c.sorted.sectb) {
+        if (section->name->requals(section->name, CONF_get_no_section())) continue;
+        _emit_section(section, cctx, smt, 0, output);
     }
 
     foreach (lir_block_t* lb, &cctx->outs.lout) {
