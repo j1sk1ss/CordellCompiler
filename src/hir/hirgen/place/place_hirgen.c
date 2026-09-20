@@ -6,7 +6,10 @@ hir_subject_t* HIR_generate_place(ast_node_t* node, hir_ctx_t* ctx, sym_table_t*
     type_info_t ti;
     if (TPTB_get_info_id(node->c->siblings.n->sinfo.t_id, &ti, &smt->t)) {
         hir_subject_t* vtable = HIR_load_vtable(&ti, ctx, NULL, smt);
-        if (vtable) HIR_BLOCK2(ctx, HIR_LDREF, buffer, vtable);
+        if (vtable) {
+            buffer->ptr += 1; /* hack: HIR_LDREF dereferences the provided subject, we must preserve size */
+            HIR_BLOCK2(ctx, HIR_LDREF, buffer, vtable);
+        }
     }
 
     return buffer;
