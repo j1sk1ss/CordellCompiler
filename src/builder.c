@@ -77,6 +77,7 @@ static int _print_help_message() {
         { "-L<dir>, -l<name>, -Wl,<arg>",                     NULL,       "Pass library search paths, libraries, and driver linker options to the linker" },
         { OPTION_LINKER_ARG_SHORT ", " OPTION_LINKER_ARG,     "<arg>",    "Pass one raw argument to the linker command"                                   },
         { OPTION_COMPILE_ONLY_SHORT ", " OPTION_COMPILE_ONLY, NULL,       "Build an object file and skip linking"                                         },
+        { OPTION_NO_OBJECT_SHORT ", " OPTION_NO_OBJECT,       NULL,       "Don't build anything, just compile what you've got"                            },
         { OPTION_LINKER_NO_PIE,                               NULL,       "Disable PIE"                                                                   },
         { OPTION_LINKER_PIE,                                  NULL,       "Enable PIE"                                                                    },
         { OPTION_LINKER_M32,                                  NULL,       "Enable m32 mode"                                                               },
@@ -784,6 +785,12 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
             !strcmp(argv[i], OPTION_COMPILE_ONLY)
         ) {
             if (!_set_build_mode(out, BUILD_MODE_OBJECT)) goto _fail;
+        }
+        else if (
+            !strcmp(argv[i], OPTION_NO_OBJECT_SHORT) ||
+            !strcmp(argv[i], OPTION_NO_OBJECT)
+        ) {
+            if (!_set_build_mode(out, BUILD_MODE_RAW)) goto _fail;
         }
         else if (!strcmp(argv[i], OPTION_LINKER_NO_PIE)) out->tools.linker_no_pie = 1;
         else if (!strcmp(argv[i], OPTION_LINKER_PIE))    out->tools.linker_no_pie = 0;
