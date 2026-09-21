@@ -164,7 +164,7 @@ static int _cleanup_pass(cfg_block_t* bb) {
         ) {
             if (CFG_DFS_WALK(bb, _cleanup_walk_logic, lh->op, lh->farg, lh, lh->next)) {
                 lh->unused = 1;
-                changed = 1;
+                changed    = 1;
             }
         }
     }
