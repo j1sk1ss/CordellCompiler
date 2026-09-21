@@ -1,7 +1,7 @@
 {
   "suite": "core_projects",
   "format_version": 2,
-  "project_count": 33,
+  "project_count": 37,
   "projects": [
     {
       "path": "01_header_interface_single_impl",
@@ -716,6 +716,95 @@
         "function_pointer",
         "pipeline",
         "cross_tu"
+      ]
+    },
+    {
+      "path": "34_place_factory_cross_tu",
+      "entry": "main.cpl",
+      "sources": [
+        "impl.cpl",
+        "provider.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "iface.inc",
+        "impl.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface",
+        "place",
+        "factory",
+        "cross_tu"
+      ]
+    },
+    {
+      "path": "35_place_memcpy_clone_cross_tu",
+      "entry": "main.cpl",
+      "sources": [
+        "impl.cpl",
+        "memory.cpl",
+        "provider.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "iface.inc",
+        "impl.inc",
+        "memory.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface",
+        "place",
+        "memcpy",
+        "cross_tu"
+      ]
+    },
+    {
+      "path": "36_place_holder_bind_cross_tu",
+      "entry": "main.cpl",
+      "sources": [
+        "impl.cpl",
+        "provider.cpl",
+        "holder.cpl",
+        "bind.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "iface.inc",
+        "impl.inc",
+        "holder.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface",
+        "place",
+        "interface_pointer_field",
+        "cross_tu"
+      ]
+    },
+    {
+      "path": "37_place_child_interface_cross_tu",
+      "entry": "main.cpl",
+      "sources": [
+        "value.cpl",
+        "add.cpl",
+        "provider.cpl",
+        "mutate.cpl",
+        "read.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "root.inc",
+        "child.inc",
+        "impl.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface_inheritance",
+        "place",
+        "cross_tu",
+        "upcast"
       ]
     }
   ]
