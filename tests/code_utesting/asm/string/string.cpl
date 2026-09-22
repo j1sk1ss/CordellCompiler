@@ -34,7 +34,7 @@ section .text
 extern print
 global _main
 _main:
-    lea     rcx, byte [rel a]
+    lea     rcx, qword [rel a]
     mov     rax, rcx
     add     rax, 0
     mov     rcx, rax

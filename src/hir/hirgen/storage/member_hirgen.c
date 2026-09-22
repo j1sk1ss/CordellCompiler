@@ -76,7 +76,8 @@ hir_subject_t* HIR_point_to_field(ast_node_t* root, hir_ctx_t* ctx, type_info_t*
     }
 
     if (!base->ptr) {
-        hir_subject_t* ref_base = HIR_reference_subject(base, smt, 1);
+        base->ptr = 1; /* hack: despite being a stack / section variable, containers are arrays */
+        hir_subject_t* ref_base = HIR_reference_subject(base, smt, 0);
         HIR_BLOCK2(ctx, HIR_REF, ref_base, base);
         base = ref_base;
     }
@@ -112,8 +113,8 @@ hir_subject_t* HIR_generate_load_member_access(ast_node_t* node, hir_ctx_t* ctx,
     ) return HIR_load_array_field_head(head, &ai, ctx, smt);
     
     if (!HIR_find_member_variable(&ti, _member_owner_id(node), _member_name(node), &vi, smt)) return NULL;
+    
     token_t tmp = { .t_type = vi.type, .flags.ptr = vi.vfs.ptr };
-
     hir_subject_t* value = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v));
     value->ptr = tmp.flags.ptr;
 
