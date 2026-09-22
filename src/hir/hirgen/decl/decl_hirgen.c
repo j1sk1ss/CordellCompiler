@@ -45,6 +45,16 @@ Returns a HIR subject list with local initializer elements. */
 static hir_subject_t* _generate_init_args(variable_info_t* vi, ast_node_t* elems, hir_ctx_t* ctx, sym_table_t* smt, int static_init, hir_subject_t* init_elems) {
     if (!elems) return init_elems;
     for (ast_node_t* ast_el = elems->c; ast_el; ast_el = ast_el->siblings.n) {
+        if (
+            static_init                                      &&
+            ast_el->t->t_type == REF_TYPE_TOKEN              &&
+            ast_el->c && ast_el->c->t                        &&
+            ast_el->c->t->t_type == STRING_VALUE_TOKEN
+        ) {
+            ARTB_add_elems(vi->v_id, (array_elem_info_t){ .s.s_id = ast_el->c->sinfo.v_id, .t = ARRAY_ELEM_STRING_TYPE }, &smt->a);
+            continue;
+        }
+
         hir_subject_t* el = HIR_generate_elem(ast_el, ctx, smt);
         if (!el) continue;
         if (static_init) {
@@ -136,6 +146,7 @@ static int _cnt_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) 
         hir_subject_t* vtable = HIR_load_vtable(&ti, ctx, &vi, smt);
         if (vtable) list_add(&init_elems->storage.list.h, vtable);
     }
+
     _generate_init_args(&vi, elems, ctx, smt, vi.vfs.glob || !TKN_in_stack(name->t), init_elems);
     HIR_BLOCK3(ctx, HIR_ARRDECL, HIR_SUBJ_ASTVAR(node->c), HIR_SUBJ_CONST(TPTB_get_memory_size_id(ti.id, &smt->t)), init_elems);
     return 1;

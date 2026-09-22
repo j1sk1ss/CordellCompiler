@@ -14,14 +14,14 @@ hir_subject_t* HIR_reference_subject(hir_subject_t* src, sym_table_t* smt, int i
     /* We need to dereference the type of an element, 
        if this is an array type. */
     hir_subject_type_t src_type = src->t;
-    int src_ptr = src->ptr;
+    int src_ptr                 = src->ptr;
 
     if (HIR_is_arrtype(src_type)) {
         array_info_t ai;
         if (ARTB_get_info(src->storage.var.v_id, &ai, &smt->a)) {
             token_t tmp = { .t_type = ai.elements_info.el_type };
             src_type = HIR_get_tmptype_tkn(&tmp, 0);
-            src_ptr = ai.elements_info.el_flags.ptr;
+            src_ptr  = ai.elements_info.el_flags.ptr;
         }
     }
 
@@ -58,6 +58,7 @@ hir_subject_t* HIR_generate_ref(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* s
         ) return HIR_load_array_field_head(head, &ai, ctx, smt);
         return head;
     }
+
     if (
         node->c && node->c->t &&
         node->c->t->t_type == INDEXATION_TOKEN

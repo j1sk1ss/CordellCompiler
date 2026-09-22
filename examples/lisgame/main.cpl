@@ -322,8 +322,8 @@ function lis_game::destroy(ptr lis_game self) -> i0 {
     free(self.storm_note.text);
 }
 
-glob person Max   = { "Max" }
-glob person Chloe = { "Chloe" }
+glob person Max   = { ref "Max" }
+glob person Chloe = { ref "Chloe" }
 
 function act_photo(ptr lis_game self) -> i0 {
     self.now.photos += 1;

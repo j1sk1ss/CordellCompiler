@@ -270,7 +270,7 @@ static int _generate_typed_initializer(variable_info_t* vi, array_info_t* ai, sy
         _emit_zero_bytes(NULL, slot_info.slot_off - emitted_end, output);
 
         type_info_t slot_ti;
-        int for_string = (
+        int is_array_string = (
             TPTB_get_info_id(slot_info.slot_type, &slot_ti, &smt->t)  &&
             slot_ti.t == TYPE_PRIMITIVE                               &&
             slot_ti.body.primitive.token == I8_TYPE_TOKEN             &&
@@ -278,22 +278,20 @@ static int _generate_typed_initializer(variable_info_t* vi, array_info_t* ai, sy
         );
 
         if (
-            !(
-                elem && elem->t == ARRAY_ELEM_STRING_TYPE && 
-                for_string && string_owner_id == slot_info.slot_owner
-            ) && 
-            value_pos < value_count &&
-            list_iter_next(&values, (void**)&elem)
-        ) { /* restore info if this isn't a string */
+            elem && elem->t == ARRAY_ELEM_STRING_TYPE && 
+            is_array_string && (string_owner_id == slot_info.slot_owner)
+        ) goto _continue_element_emmit;
+        if (value_pos < value_count) {
+            list_iter_next(&values, (void**)&elem);
             string_pos      = 0;
             string_owner_id = NO_SYMBOL_ID;
             value_pos++;
         }
-
+_continue_element_emmit: {}
         if (!elem) goto _default_const_type;
         switch (elem->t) {
             case ARRAY_ELEM_STRING_TYPE: {
-                if (for_string) {
+                if (is_array_string) {
                     if (!(string_owner_id == NO_SYMBOL_ID || string_owner_id == slot_info.slot_owner)) {
                         _emit_typed_value(NULL, slot_info.slot_size, 0, output);
                         break;
@@ -330,7 +328,7 @@ _default_const_type: {}
         }
 
         emitted_end = slot_info.slot_off + slot_info.slot_size;
-        elem        = NULL;
+        if (!is_array_string) elem = NULL;
     }
 
     _emit_zero_bytes(NULL, reserve_size - emitted_end, output);
