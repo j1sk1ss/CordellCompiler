@@ -1,0 +1,21 @@
+{
+  "name": "13_default_argument_from_header",
+  "description": "A container self-method with a default argument is declared in a header, defined in another unit, and called with the argument omitted by main.",
+  "entry": "main.cpl",
+  "sources": [
+    "offsetter.cpl",
+    "workflow.cpl",
+    "main.cpl"
+  ],
+  "headers": [
+    "offsetter.inc"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "header_default_argument",
+    "container",
+    "self_method",
+    "cross_tu_definition",
+    "caller_side_semantics"
+  ]
+}

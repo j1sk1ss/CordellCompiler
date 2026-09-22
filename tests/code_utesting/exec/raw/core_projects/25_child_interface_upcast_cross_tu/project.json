@@ -1,0 +1,17 @@
+{
+  "name": "25_child_interface_upcast_cross_tu",
+  "description": "Child interface object crosses a TU boundary and is consumed through its parent interface.",
+  "entry": "main.cpl",
+  "sources": [
+    "impl.cpl",
+    "root_consumer.cpl",
+    "child_consumer.cpl",
+    "main.cpl"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "interface_inheritance",
+    "upcast",
+    "cross_tu"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "name": "03_split_interface_inheritance",
+  "description": "Root and child interfaces are declared in different headers; the implementation and algorithm are separate translation units.",
+  "entry": "main.cpl",
+  "sources": [
+    "state_impl.cpl",
+    "algorithm.cpl",
+    "main.cpl"
+  ],
+  "headers": [
+    "root.inc",
+    "mutable.inc",
+    "state_impl.inc",
+    "algorithm.inc"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "interface_inheritance",
+    "split_headers",
+    "override",
+    "state_mutation",
+    "cross_tu_virtual_dispatch"
+  ]
+}

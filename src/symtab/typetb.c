@@ -21,12 +21,92 @@ static type_info_t* _create_type_info(string_t* name) {
     info->p             = NO_SYMBOL_ID;
     info->s_id          = NO_SYMBOL_ID;
     info->ptr           = 0;
-    info->member.p      = NO_SYMBOL_ID;
-    info->member.name   = NULL;
 
     if (name) info->name = name->copy(name);
     else      info->name = NULL;
     return info;
+}
+
+static member_t* _create_member() {
+    member_t* info = (member_t*)mm_malloc(sizeof(member_t));
+    if (!info) return NULL;
+    list_init(&info->links);
+    return info;
+}
+
+static member_info_t* _create_member_info(symbol_id_t p_id, symbol_id_t c_id, string_t* name) {
+    member_info_t* info = (member_info_t*)mm_malloc(sizeof(member_info_t));
+    if (!info) return NULL;
+
+    info->parent = p_id;
+    info->child  = c_id;
+    info->name   = name ? name->copy(name) : NULL;
+    return info;
+}
+
+static inline member_t* _get_member(symbol_id_t p_id, typetab_ctx_t* ctx) {
+    member_t* member;
+    if (map_get(&ctx->membtb, p_id, (void**)&member)) return member;
+    return NULL;
+}
+
+static member_t* _get_or_create_member(symbol_id_t p_id, typetab_ctx_t* ctx) {
+    member_t* member = _get_member(p_id, ctx);
+    if (member) return member;
+
+    member = _create_member();
+    if (!member || !map_put(&ctx->membtb, p_id, member)) {
+        if (member) mm_free(member);
+        return NULL;
+    }
+
+    return member;
+}
+
+static inline int _member_name_equals(member_info_t* info, string_t* name) {
+    if (!name) return 1;
+    return info->name && info->name->equals(info->name, name);
+}
+
+static member_info_t* _find_member_info(symbol_id_t p_id, symbol_id_t c_id, string_t* name, typetab_ctx_t* ctx) {
+    if (p_id != NO_SYMBOL_ID) {
+        p_id = TPTB_resolve_parent(p_id, ctx);
+        member_t* member = _get_member(p_id, ctx);
+        if (!member) return NULL;
+
+        foreach (member_info_t* info, &member->links) {
+            if (c_id != NO_SYMBOL_ID && info->child != c_id) continue;
+            if (!_member_name_equals(info, name)) continue;
+            return info;
+        }
+
+        return NULL;
+    }
+
+    map_foreach (member_t* member, &ctx->membtb) {
+        foreach (member_info_t* info, &member->links) {
+            if (c_id != NO_SYMBOL_ID && info->child != c_id) continue;
+            if (!_member_name_equals(info, name)) continue;
+            return info;
+        }
+    }
+
+    return NULL;
+}
+
+static int _add_member_info(symbol_id_t p_id, symbol_id_t c_id, string_t* name, typetab_ctx_t* ctx) {
+    p_id = TPTB_resolve_parent(p_id, ctx);
+
+    member_t* member = _get_or_create_member(p_id, ctx);
+    if (!member) return 0;
+
+    member_info_t* info = _create_member_info(p_id, c_id, name);
+    if (!info) return 0;
+    if (list_add(&member->links, info)) return 1;
+
+    if (info->name) destroy_string(info->name);
+    mm_free(info);
+    return 0;
 }
 
 static void _init_type_body(type_info_t* info, type_type_t t, token_type_t token) {
@@ -41,7 +121,12 @@ static void _init_type_body(type_info_t* info, type_type_t t, token_type_t token
             list_init(&info->body.custom.layout.children);
             break;
         }
-        case TYPE_METHOD: info->body.method.f_id = NO_SYMBOL_ID; break;
+        case TYPE_METHOD: {
+            info->body.method.f_id         = NO_SYMBOL_ID;
+            info->body.method.in_vtable    = 0;
+            info->body.method.vtable_index = SMT_NULL;
+            break;
+        }
         case TYPE_ARRAY: {
             info->body.array.element_t_id = NO_SYMBOL_ID;
             info->body.array.size         = 0;
@@ -90,7 +175,7 @@ static inline void _set_type_size(type_info_t* info, long size) {
     }
 }
 
-static inline long _raw_type_size(const type_info_t* info) {
+static inline long _raw_type_size(type_info_t* info, int vtable) {
     if (!info) return SMT_NULL;
     switch (info->t) {
         case TYPE_PRIMITIVE: {
@@ -99,16 +184,103 @@ static inline long _raw_type_size(const type_info_t* info) {
         }
         case TYPE_CUSTOM: return info->body.custom.layout.size;
         case TYPE_ARRAY:  return info->body.array.size;
-        case TYPE_METHOD:
+        case TYPE_METHOD: if (
+                              vtable && 
+                              info->body.method.in_vtable
+                          ) return CONF_get_full_bytness();
+                          __attribute__ ((fallthrough));
         case TYPE_GENERICS:
         case TYPE_SIGNATURE:
         default:          return SMT_NULL;
     }
 }
 
-static inline long _type_memory_size(type_info_t* info) {
+static inline long _type_memory_size(type_info_t* info, int vtable) {
     if (!info) return SMT_NULL;
-    return info->ptr ? CONF_get_full_bytness() : _raw_type_size(info);
+    return info->ptr ? CONF_get_full_bytness() : _raw_type_size(info, vtable);
+}
+
+static long _vtable_slot_count(type_info_t* info, typetab_ctx_t* ctx) {
+    if (!info || info->t != TYPE_CUSTOM || !info->body.custom.layout.vtable) return 0;
+
+    long slots = 0, fallback_index = 0;
+    foreach (symbol_id_t c_id, &info->body.custom.layout.children) {
+        type_info_t* c_ti;
+        if (
+            !map_get(&ctx->typetb, c_id, (void**)&c_ti) ||
+            c_ti->t != TYPE_METHOD                      ||
+            !c_ti->body.method.in_vtable
+        ) continue;
+
+        long vtable_index = c_ti->body.method.vtable_index;
+        if (vtable_index == SMT_NULL) vtable_index = fallback_index;
+        if (vtable_index >= slots) slots = vtable_index + 1;
+        fallback_index++;
+    }
+
+    return slots;
+}
+
+static inline long _vtable_prefix_size(type_info_t* info, typetab_ctx_t* ctx) {
+    return _vtable_slot_count(info, ctx) ? CONF_get_full_bytness() : 0;
+}
+
+static void _recalculate_custom_layout(type_info_t* info, typetab_ctx_t* ctx) {
+    if (!info || info->t != TYPE_CUSTOM) return;
+    long vtable_size = _vtable_prefix_size(info, ctx);
+    info->body.custom.layout.size = 0;
+    foreach (symbol_id_t c_id, &info->body.custom.layout.children) {
+        type_info_t* c_ti;
+        if (!map_get(&ctx->typetb, c_id, (void**)&c_ti)) continue;
+        if (c_ti->t == TYPE_METHOD) continue;
+        long field_size = _type_memory_size(c_ti, 0);
+        if (field_size <= 0) continue;
+        if (!info->body.custom.layout.multiple)                  info->body.custom.layout.size = MAX(info->body.custom.layout.size,  ALIGN(field_size, info->body.custom.layout.align));
+        else if (info->body.custom.layout.align != SMT_NULL)     info->body.custom.layout.size += ALIGN(field_size, info->body.custom.layout.align);
+        else                                                     info->body.custom.layout.size += ALIGN(field_size, field_size);
+    }
+    info->body.custom.layout.size += vtable_size;
+}
+
+static long _get_child_vtable_index(type_info_t* p_ti, symbol_id_t target_id, typetab_ctx_t* ctx) {
+    if (!p_ti || p_ti->t != TYPE_CUSTOM) return SMT_NULL;
+
+    long fallback_index = 0;
+    foreach (symbol_id_t c_id, &p_ti->body.custom.layout.children) {
+        type_info_t* c_ti;
+        if (
+            !map_get(&ctx->typetb, c_id, (void**)&c_ti) ||
+            c_ti->t != TYPE_METHOD                      ||
+            !c_ti->body.method.in_vtable
+        ) continue;
+
+        long vtable_index = c_ti->body.method.vtable_index;
+        if (vtable_index == SMT_NULL) vtable_index = fallback_index;
+        if (c_id == target_id) return vtable_index;
+        fallback_index++;
+    }
+
+    return SMT_NULL;
+}
+
+static long _next_vtable_index(type_info_t* p_ti, typetab_ctx_t* ctx) {
+    if (!p_ti || p_ti->t != TYPE_CUSTOM) return 0;
+
+    long next_index = 0;
+    foreach (symbol_id_t c_id, &p_ti->body.custom.layout.children) {
+        type_info_t* c_ti;
+        if (
+            !map_get(&ctx->typetb, c_id, (void**)&c_ti) ||
+            c_ti->t != TYPE_METHOD                      ||
+            !c_ti->body.method.in_vtable
+        ) continue;
+
+        long vtable_index = c_ti->body.method.vtable_index;
+        if (vtable_index == SMT_NULL) vtable_index = next_index;
+        if (vtable_index >= next_index) next_index = vtable_index + 1;
+    }
+
+    return next_index;
 }
 
 static void _copy_type_body(type_info_t* dst, const type_info_t* src) {
@@ -121,7 +293,12 @@ static void _copy_type_body(type_info_t* dst, const type_info_t* src) {
             dst->body.custom.layout.multiple = src->body.custom.layout.multiple;
             break;
         }
-        case TYPE_METHOD: dst->body.method.f_id = src->body.method.f_id; break;
+        case TYPE_METHOD: {
+            dst->body.method.f_id         = src->body.method.f_id;
+            dst->body.method.in_vtable    = src->body.method.in_vtable;
+            dst->body.method.vtable_index = src->body.method.vtable_index;
+            break;
+        }
         case TYPE_ARRAY: {
             dst->body.array.element_t_id = src->body.array.element_t_id;
             dst->body.array.size         = src->body.array.size;
@@ -188,7 +365,11 @@ symbol_id_t TPTB_add_signature(list_t* args, symbol_id_t ret, typetab_ctx_t* ctx
     return info->id;
 }
 
-symbol_id_t TPTB_add_info(string_t* name, symbol_id_t s_id, type_type_t t, int align, int multiple, typetab_ctx_t* ctx) {
+symbol_id_t TPTB_add_info(
+    string_t* name, symbol_id_t s_id, type_type_t t, int align, 
+    int multiple, int vtable, int interface,
+    typetab_ctx_t* ctx
+) {
     if (TPTB_get_info(name, s_id, 0, NULL, ctx)) return NO_SYMBOL_ID;
     type_info_t* info = _create_type_info(name);
     if (!info) return NO_SYMBOL_ID;
@@ -198,8 +379,10 @@ symbol_id_t TPTB_add_info(string_t* name, symbol_id_t s_id, type_type_t t, int a
     _init_type_body(info, t, _default_token_type(t));
 
     if (t == TYPE_CUSTOM) {
-        info->body.custom.layout.align    = align;
-        info->body.custom.layout.multiple = multiple;
+        info->body.custom.layout.align     = align;
+        info->body.custom.layout.multiple  = multiple;
+        info->body.custom.layout.vtable    = vtable;
+        info->body.custom.layout.interface = interface;
     }
 
     map_put(&ctx->typetb, info->id, info);
@@ -212,8 +395,7 @@ static symbol_id_t _get_existing_copy(symbol_id_t id, int ptr, typetab_ctx_t* ct
         if (
             ti->ptr == ptr                              && // same ptr
             TPTB_resolve_parent(ti->id, ctx) == root_id && // same parent
-            ti->p != NO_SYMBOL_ID                       && // its a copy
-            !ti->member.name                               // it isn't a field
+            ti->p != NO_SYMBOL_ID                          // its a copy
         ) return ti->id;
     }
 
@@ -234,9 +416,7 @@ symbol_id_t TPTB_add_copy(symbol_id_t id, int ptr, typetab_ctx_t* ctx) {
     info->p        = id;
     info->s_id     = ti->s_id;
     info->ptr      = ptr;
-    info->member.p = ti->member.p;
     _copy_type_body(info, ti);
-    if (ti->member.name) info->member.name = ti->member.name->copy(ti->member.name);
 
     info->id = ctx->curr_id++;
     map_put(&ctx->typetb, info->id, info);
@@ -248,10 +428,19 @@ static inline symbol_id_t _get_type_by_token(token_t* t, typetab_ctx_t* ctx) {
     if (t->t_type == ARRAY_TYPE_TOKEN) return NO_SYMBOL_ID;
     map_foreach (type_info_t* ti, &ctx->typetb) {
         if (_type_token_type(ti) != t->t_type || ti->ptr != t->flags.ptr) continue;
-        if (ti->p != NO_SYMBOL_ID || ti->member.name)                     continue;
-        if (ti->t == TYPE_METHOD && ti->body.method.f_id != NO_SYMBOL_ID)  continue;
+        if (ti->p != NO_SYMBOL_ID)                                        continue;
+        if (ti->t == TYPE_METHOD && ti->body.method.f_id != NO_SYMBOL_ID) continue;
         if (!t->body && !ti->name)                                        return ti->id;
         if (t->body && ti->name && t->body->equals(t->body, ti->name))    return ti->id;
+    }
+
+    return NO_SYMBOL_ID;
+}
+
+static inline symbol_id_t _get_type_by_fid(symbol_id_t f_id, typetab_ctx_t* ctx) {
+    map_foreach (type_info_t* ti, &ctx->typetb) {
+        if (ti->t != TYPE_METHOD || ti->body.method.f_id == NO_SYMBOL_ID) continue;
+        if (ti->body.method.f_id == f_id && f_id != NO_SYMBOL_ID) return ti->id;
     }
 
     return NO_SYMBOL_ID;
@@ -271,7 +460,7 @@ symbol_id_t TPTB_add_info_from_token(symbol_id_t s_id, token_t* t, symbol_id_t f
     }
 
     int linked_method = type_kind == TYPE_METHOD && f_id != NO_SYMBOL_ID;
-    symbol_id_t existed = linked_method ? NO_SYMBOL_ID : _get_type_by_token(t, ctx);
+    symbol_id_t existed = linked_method ? _get_type_by_fid(f_id, ctx) : _get_type_by_token(t, ctx);
     if (existed != NO_SYMBOL_ID) return existed;
 
     type_info_t* info = _create_type_info(t->body);
@@ -288,10 +477,25 @@ symbol_id_t TPTB_add_info_from_token(symbol_id_t s_id, token_t* t, symbol_id_t f
     return info->id;
 }
 
+int TPTB_has_field(symbol_id_t c_id, symbol_id_t p_id, typetab_ctx_t* ctx) {
+    return _find_member_info(p_id, c_id, NULL, ctx) != NULL;
+}
+
+int TPTB_get_member_info(symbol_id_t p_id, symbol_id_t c_id, string_t* name, member_info_t* info, typetab_ctx_t* ctx) {
+    member_info_t* found = _find_member_info(p_id, c_id, name, ctx);
+    if (!found) return 0;
+    if (info) str_memcpy(info, found, sizeof(member_info_t));
+    return 1;
+}
+
+int TPTB_is_member(symbol_id_t c_id, typetab_ctx_t* ctx) {
+    return _find_member_info(NO_SYMBOL_ID, c_id, NULL, ctx) != NULL;
+}
+
 long TPTB_get_memory_size_id(symbol_id_t id, typetab_ctx_t* ctx) {
     type_info_t* ti;
     if (!map_get(&ctx->typetb, id, (void**)&ti)) return SMT_NULL;
-    return _type_memory_size(ti);
+    return _type_memory_size(ti, 0);
 }
 
 int TPTB_set_memory_size_id(symbol_id_t id, long size, typetab_ctx_t* ctx) {
@@ -332,7 +536,6 @@ int TPTB_link_child(symbol_id_t p_id, symbol_id_t c_id, typetab_ctx_t* ctx) {
         }
 
         if (p_ti->t != TYPE_CUSTOM) return 0;
-
         list_add(&p_ti->body.custom.layout.children, (void*)c_id);
         if (p_ti->body.custom.cs_id == NO_SYMBOL_ID) p_ti->body.custom.cs_id = c_ti->s_id;
         return 1;
@@ -359,6 +562,36 @@ symbol_id_t TPTB_get_indexed_type(symbol_id_t id, typetab_ctx_t* ctx) {
     return NO_SYMBOL_ID;
 }
 
+symbol_id_t TPTB_set_as_vtable_method(symbol_id_t p_id, symbol_id_t id, string_t* name, typetab_ctx_t* ctx) {
+    p_id = TPTB_resolve_parent(p_id, ctx);
+    type_info_t *p_ti, *ti;
+    if (
+        !map_get(&ctx->typetb, p_id, (void**)&p_ti) ||
+        !map_get(&ctx->typetb, id, (void**)&ti)     ||
+        p_ti->t != TYPE_CUSTOM                      ||
+        ti->t != TYPE_METHOD
+    ) return SMT_NULL;
+
+    long vtable_index = SMT_NULL;
+    member_info_t* inherited = _find_member_info(p_id, NO_SYMBOL_ID, name ? name : ti->name, ctx);
+    if (inherited) vtable_index = _get_child_vtable_index(p_ti, inherited->child, ctx);
+    if (vtable_index == SMT_NULL) vtable_index = _next_vtable_index(p_ti, ctx);
+    ti->body.method.in_vtable    = 1;
+    ti->body.method.vtable_index = vtable_index;
+    return inherited ? inherited->child : SMT_NULL;
+}
+
+int TPTB_enable_vtable(symbol_id_t id, typetab_ctx_t* ctx) {
+    type_info_t* ti;
+    if (map_get(&ctx->typetb, id, (void**)&ti) && ti->t == TYPE_CUSTOM) {
+        ti->body.custom.layout.vtable = 1;
+        _recalculate_custom_layout(ti, ctx);
+        return 1;
+    }
+
+    return 0;
+}
+
 int TPTB_add_as_child(symbol_id_t p_id, symbol_id_t c_id, string_t* name, long overrite_size, typetab_ctx_t* ctx) {
     if (p_id == NO_SYMBOL_ID) return 0;
     p_id = TPTB_resolve_parent(p_id, ctx);
@@ -371,22 +604,34 @@ int TPTB_add_as_child(symbol_id_t p_id, symbol_id_t c_id, string_t* name, long o
     ) {
         if (p_ti->t != TYPE_CUSTOM) return 0;
 
-        list_add(&p_ti->body.custom.layout.children, (void*)c_id);
-        c_ti->member.p = p_id;
-        if (name) {
-            if (c_ti->member.name) destroy_string(c_ti->member.name);
-            c_ti->member.name = name->copy(name);
+        member_info_t* existed = name ? _find_member_info(p_id, NO_SYMBOL_ID, name, ctx) : NULL;
+        if (existed) {
+            type_info_t* old_ti;
+            if (
+                map_get(&ctx->typetb, existed->child, (void**)&old_ti) &&
+                old_ti->t == TYPE_METHOD                               &&
+                c_ti->t == TYPE_METHOD                                 &&
+                old_ti->body.method.in_vtable                          &&
+                c_ti->body.method.in_vtable
+            ) {
+                symbol_id_t old_id = existed->child;
+                c_ti->body.method.vtable_index = old_ti->body.method.vtable_index;
+                existed->child = c_id;
+                if (!list_replace(&p_ti->body.custom.layout.children, (void*)old_id, (void*)c_id)) return 0;
+                _recalculate_custom_layout(p_ti, ctx);
+                return 1;
+            }
+
+            return 1;
         }
-        
-        long field_size = _type_memory_size(c_ti);
+
+        if (!_add_member_info(p_id, c_id, name, ctx)) return 0;
+        list_add(&p_ti->body.custom.layout.children, (void*)c_id);
         if (overrite_size != FIELD_NO_CHANGE) {
-            field_size = overrite_size;
             if (!c_ti->ptr) _set_type_size(c_ti, overrite_size);
         }
 
-        if (!p_ti->body.custom.layout.multiple)        p_ti->body.custom.layout.size = MAX(p_ti->body.custom.layout.size, ALIGN(field_size, p_ti->body.custom.layout.align));
-        else if (p_ti->body.custom.layout.align != -1) p_ti->body.custom.layout.size += ALIGN(field_size, p_ti->body.custom.layout.align);
-        else                                           p_ti->body.custom.layout.size += ALIGN(field_size, field_size);
+        _recalculate_custom_layout(p_ti, ctx);
         return 1;
     }
 
@@ -394,35 +639,33 @@ int TPTB_add_as_child(symbol_id_t p_id, symbol_id_t c_id, string_t* name, long o
 }
 
 symbol_id_t TPTB_resolve_child(symbol_id_t p_id, string_t* name, typetab_ctx_t* ctx) {
-    p_id = TPTB_resolve_parent(p_id, ctx);
-
-    type_info_t *p_ti, *c_ti;
-    if (!map_get(&ctx->typetb, p_id, (void**)&p_ti)) return NO_SYMBOL_ID;
-
-    list_t* children = _type_children(p_ti);
-    if (!children) return NO_SYMBOL_ID;
-    
-    foreach (symbol_id_t c_id, children) {
-        if (!map_get(&ctx->typetb, c_id, (void**)&c_ti)) continue;
-        if (!c_ti->member.name) continue;
-        if (c_ti->member.name->equals(c_ti->member.name, name)) return c_id;
-    }
-
-    return NO_SYMBOL_ID;
+    member_info_t* info = _find_member_info(p_id, NO_SYMBOL_ID, name, ctx);
+    return info ? info->child : NO_SYMBOL_ID;
 }
 
 long TPTB_get_child_offset(symbol_id_t p_id, symbol_id_t tc_id, typetab_ctx_t* ctx) {
     p_id = TPTB_resolve_parent(p_id, ctx);
 
     type_info_t *p_ti, *c_ti;
-    if (!map_get(&ctx->typetb, p_id, (void**)&p_ti)) return -1;
-    if (p_ti->t != TYPE_CUSTOM || !p_ti->body.custom.layout.multiple) return 0;
+    if (!map_get(&ctx->typetb, p_id, (void**)&p_ti)) return SMT_NULL;
+    if (p_ti->t != TYPE_CUSTOM) return 0;
 
-    long offset = 0;
+    long offset = _vtable_prefix_size(p_ti, ctx); /* Skip vtable pointer */
+    if (!p_ti->body.custom.layout.multiple) return offset;
     foreach (symbol_id_t c_id, &p_ti->body.custom.layout.children) {
         if (!map_get(&ctx->typetb, c_id, (void**)&c_ti)) continue;
-        long size = _type_memory_size(c_ti);
-        if (p_ti->body.custom.layout.align == -1) {
+        if (c_ti->t == TYPE_METHOD) {
+            long vtable_index = c_ti->body.method.vtable_index;
+            if (
+                c_ti->body.method.in_vtable && 
+                vtable_index != SMT_NULL && tc_id == c_id
+            ) return vtable_index * CONF_get_full_bytness();
+            continue;
+        }
+
+        long size = _type_memory_size(c_ti, 0);
+        if (size == SMT_NULL) continue;
+        if (p_ti->body.custom.layout.align == SMT_NULL) {
             offset = ALIGN(offset, size);
             if (tc_id == c_id) return offset;
             offset += size;
@@ -433,7 +676,45 @@ long TPTB_get_child_offset(symbol_id_t p_id, symbol_id_t tc_id, typetab_ctx_t* c
         }
     }
 
-    return -1;
+    return SMT_NULL;
+}
+
+long TPTB_get_child_offset_name(symbol_id_t p_id, string_t* name, typetab_ctx_t* ctx) {
+    p_id = TPTB_resolve_parent(p_id, ctx);
+
+    type_info_t *p_ti, *c_ti;
+    if (!map_get(&ctx->typetb, p_id, (void**)&p_ti)) return SMT_NULL;
+    if (p_ti->t != TYPE_CUSTOM) return 0;
+
+    member_t* member = _get_member(p_id, ctx);
+    if (!member) return SMT_NULL;
+
+    long offset = _vtable_prefix_size(p_ti, ctx);
+    if (!p_ti->body.custom.layout.multiple) return offset;
+    foreach (member_info_t* info, &member->links) {
+        if (!map_get(&ctx->typetb, info->child, (void**)&c_ti)) continue;
+        if (c_ti->t == TYPE_METHOD) {
+            long vtable_index = c_ti->body.method.vtable_index;
+            if (c_ti->body.method.in_vtable && vtable_index != SMT_NULL && _member_name_equals(info, name)) {
+                return vtable_index * CONF_get_full_bytness();
+            }
+            continue;
+        }
+
+        long size = _type_memory_size(c_ti, 0);
+        if (size == SMT_NULL) continue;
+        if (p_ti->body.custom.layout.align == SMT_NULL) {
+            offset = ALIGN(offset, size);
+            if (_member_name_equals(info, name)) return offset;
+            offset += size;
+        }
+        else {
+            if (_member_name_equals(info, name)) return offset;
+            offset += ALIGN(size, p_ti->body.custom.layout.align);
+        }
+    }
+
+    return SMT_NULL;
 }
 
 int TPTB_find_type_init_slot(symbol_id_t t_id, long target_slot, long base_offset, type_init_info_t* slot_info, typetab_ctx_t* ctx) {
@@ -472,11 +753,25 @@ int TPTB_find_type_init_slot(symbol_id_t t_id, long target_slot, long base_offse
 
     if (scan_ti.t != TYPE_CUSTOM) return 0;
 
+    if (_vtable_slot_count(&scan_ti, ctx)) {
+        if (slot_info->curr_idx++ == target_slot) {
+            slot_info->slot_off   = base_offset;
+            slot_info->slot_size  = CONF_get_full_bytness();
+            slot_info->slot_type  = NO_SYMBOL_ID;
+            slot_info->slot_owner = scan_id;
+            return 1;
+        }
+    }
+
+    long child_offset = _vtable_prefix_size(&scan_ti, ctx);
     foreach (symbol_id_t child_id, &scan_ti.body.custom.layout.children) {
-        long child_offset = TPTB_get_child_offset(scan_id, child_id, ctx);
-        long child_size   = TPTB_get_memory_size_id(child_id, ctx);
+        long child_size = TPTB_get_memory_size_id(child_id, ctx);
+        if (TPTB_get_type_type_id(child_id, ctx) == TYPE_METHOD) continue;
         if (child_offset < 0 || child_size <= 0) continue;
+        if (scan_ti.body.custom.layout.align == SMT_NULL) child_offset = ALIGN(child_offset, child_size);
         if (TPTB_find_type_init_slot(child_id, target_slot, base_offset + child_offset, slot_info, ctx)) return 1;
+        if (scan_ti.body.custom.layout.align == SMT_NULL) child_offset += child_size;
+        else child_offset += ALIGN(child_size, scan_ti.body.custom.layout.align);
     }
 
     return 0;
@@ -490,6 +785,27 @@ int TPTB_get_info_id(symbol_id_t id, type_info_t* info, typetab_ctx_t* ctx) {
     }
 
     return 0;
+}
+
+int TPTB_get_vtable_index(symbol_id_t p_id, symbol_id_t f_id, typetab_ctx_t* ctx) {
+    type_info_t *p_ti, *c_ti;
+    if (map_get(&ctx->typetb, p_id, (void**)&p_ti) && p_ti->t == TYPE_CUSTOM) {
+        int fallback_index = 0;
+        foreach (symbol_id_t rc_id, &p_ti->body.custom.layout.children) {
+            if (
+                map_get(&ctx->typetb, rc_id, (void**)&c_ti) &&
+                c_ti->t == TYPE_METHOD                      &&
+                c_ti->body.method.in_vtable
+            ) {
+                long vtable_index = c_ti->body.method.vtable_index;
+                if (vtable_index == SMT_NULL) vtable_index = fallback_index;
+                if (c_ti->body.method.f_id == f_id) return vtable_index;
+                fallback_index++;
+            }
+        }
+    }
+
+    return SMT_NULL;
 }
 
 type_type_t TPTB_get_type_type_id(symbol_id_t id, typetab_ctx_t* ctx) {
@@ -507,7 +823,6 @@ token_type_t TPTB_get_token_type_id(symbol_id_t id, typetab_ctx_t* ctx) {
 int TPTB_get_info(string_t* name, symbol_id_t s_id, int ptr, type_info_t* info, typetab_ctx_t* ctx) {
     map_foreach (type_info_t* ti, &ctx->typetb) {
         if (
-            ti->member.name                                                || // this is a field 
             (ti->t == TYPE_METHOD && ti->body.method.f_id != NO_SYMBOL_ID) || // this is a method
             ti->ptr != ptr
         ) continue;
@@ -528,11 +843,21 @@ static int _unload_info(type_info_t* info) {
     if (children)                  list_free(children);
     if (info->t == TYPE_SIGNATURE) list_free(&info->body.signature.arg_types);
     if (info->name)                destroy_string(info->name);
-    if (info->member.name)         destroy_string(info->member.name);
-    mm_free(info);
-    return 1;
+    return mm_free(info);
+}
+
+static int _unload_member_info(member_info_t* info) {
+    if (info->name) destroy_string(info->name);
+    return mm_free(info);
+}
+
+static int _unload_member(member_t* info) {
+    list_free_force_op(&info->links, (int (*)(void*))_unload_member_info);
+    return mm_free(info);
 }
 
 int TPTB_unload(typetab_ctx_t* ctx) {
-    return map_free_force_op(&ctx->typetb, (int (*)(void*))_unload_info);
+    return
+        map_free_force_op(&ctx->membtb, (int (*)(void*))_unload_member) &&
+        map_free_force_op(&ctx->typetb, (int (*)(void*))_unload_info);
 }

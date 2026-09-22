@@ -23,6 +23,8 @@ static const markup_token_t _lexems[] = {
     LEXEM(CLOSE_BRACKET,          CLOSE_BRACKET_TOKEN),
 
     LEXEM(CONTAINER_COMMAND,      CONTAINER_TOKEN),
+    LEXEM(INTERFACE_COMMAND,      INTERFACE_TOKEN),
+    LEXEM(IMPLEMENTS_COMMAND,     IMPLEMENTS_TOKEN),
     LEXEM(DOT_COMMAND,            DOT_TOKEN),
     LEXEM(STAT_COMMAND,           STAT_TOKEN),
 
@@ -34,6 +36,7 @@ static const markup_token_t _lexems[] = {
     LEXEM(ASM_COMMAND,            ASM_TOKEN),
     LEXEM(VAR_ARGUMENTS_COMMAND,  VAR_ARGUMENTS_TOKEN),
     LEXEM(LAMBDA_COMMAND,         LAMBDA_TOKEN),
+    LEXEM(PLACE_COMMAND,          PLACE_TOKEN),
 
     /* Variable modifiers */
     LEXEM(DREF_COMMAND,           DREF_TYPE_TOKEN),

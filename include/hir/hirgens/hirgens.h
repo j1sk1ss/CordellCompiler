@@ -10,6 +10,18 @@
 #include <hir/hir.h>
 #include <hir/hir_types.h>
 
+/* Create a temp variable in a variables' table
+   - `t` - HIR type
+   - `f` - Flags
+   - `smt` - Symtable */
+#define VRTB_ADD_TMP(t, f, smt) \
+    VRTB_add_info(NULL, HIR_get_tmptkn_type(t), NO_SYMBOL_ID, f, &smt->v)
+/* Create a temp variable without flags */
+#define VRTB_ADD_TMP_NF(t, smt) VRTB_ADD_TMP(t, EMPTY_BASIC_FLAGS, smt)
+
+hir_subject_t* HIR_add_to_subject(hir_subject_t* src, sym_table_t* smt, long add, hir_ctx_t* ctx);
+hir_subject_t* HIR_gdref_subject(hir_subject_t* src, sym_table_t* smt, hir_ctx_t* ctx, int set_ptr);
+
 /* Check if node has an annotation.
    Params:
         - `t` - Target annotation Type.
@@ -455,7 +467,7 @@ Find variable metadata for a concrete container field type.
 Uses the field owner and field name when the type belongs to a container,
 falling back to a type-only lookup for non-field types.
 */
-int HIR_find_member_variable(type_info_t* field_info, variable_info_t* var_info, sym_table_t* smt);
+int HIR_find_member_variable(type_info_t* field_info, symbol_id_t owner_id, string_t* name, variable_info_t* var_info, sym_table_t* smt);
 
 /*
 Syntheticly move a head towards the field (by sub-type Id).
@@ -494,5 +506,8 @@ Params:
 Returns 1 if there is no errors.
 */
 int HIR_generate_store_member_access(ast_node_t* node, hir_subject_t* data, hir_ctx_t* ctx, sym_table_t* smt);
+
+hir_subject_t* HIR_load_vtable(type_info_t* ti, hir_ctx_t* ctx, variable_info_t* vi, sym_table_t* smt);
+hir_subject_t* HIR_generate_place(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
 #endif

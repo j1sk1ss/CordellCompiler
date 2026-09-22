@@ -1,0 +1,22 @@
+{
+  "name": "07_extern_function_pointer_dispatch",
+  "description": "Two ABI functions are declared extern, provided by another unit, then selected and called through a function pointer.",
+  "entry": "main.cpl",
+  "sources": [
+    "provider.cpl",
+    "dispatch.cpl",
+    "main.cpl"
+  ],
+  "headers": [
+    "extern_math.inc"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "extern",
+    "abi",
+    "function_pointer",
+    "pointer_reassign",
+    "cross_tu_symbol"
+  ],
+  "notes": "Exercises extern symbol resolution independently from direct calls by taking the address of the extern function."
+}

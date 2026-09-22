@@ -1,0 +1,18 @@
+{
+  "name": "29_extern_container_pointer_bridge",
+  "description": "Extern ABI function accepts a pointer to a container declared in a shared header and mutates it.",
+  "entry": "main.cpl",
+  "sources": [
+    "provider.cpl",
+    "workflow.cpl",
+    "main.cpl"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "extern",
+    "abi",
+    "container_pointer",
+    "mutation",
+    "cross_tu"
+  ]
+}

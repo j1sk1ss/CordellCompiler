@@ -1,0 +1,25 @@
+{
+  "name": "10_diamond_header_guards",
+  "description": "Two feature headers include the same common interface header; main includes both through an aggregate header while implementations are separate.",
+  "entry": "main.cpl",
+  "sources": [
+    "add_transform.cpl",
+    "mul_transform.cpl",
+    "aggregate.cpl",
+    "main.cpl"
+  ],
+  "headers": [
+    "transform.inc",
+    "feature_add.inc",
+    "feature_mul.inc",
+    "aggregate.inc"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "include_guard",
+    "diamond_include",
+    "interface",
+    "multiple_implementations",
+    "cross_tu_dispatch"
+  ]
+}

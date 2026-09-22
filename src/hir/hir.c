@@ -63,7 +63,8 @@ long HIR_hash_subject(hir_subject_t* s) {
 
         case HIR_FNAME:
         case HIR_RAWASM:
-        case HIR_STRING: h ^= _mix64(s->storage.str.s_id);              break;
+        case HIR_STRING:
+        case HIR_VTABLE: h ^= _mix64(s->storage.str.s_id);              break;
         case HIR_PHISET: h ^= _mix64((unsigned long)&s->storage.set.h); break;
         default:         h ^= _mix64(s->id);                            break;
     }
@@ -123,7 +124,8 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strv
         }
         case HIR_FNAME:
         case HIR_RAWASM:
-        case HIR_STRING: subj->storage.str.s_id = v_id; break;
+        case HIR_STRING:
+        case HIR_VTABLE: subj->storage.str.s_id = v_id; break;
         case HIR_FPOS: if (strval) str_memcpy(&subj->storage.pos, strval, sizeof(file_position_t)); break;
         default: break;
     }
@@ -226,7 +228,8 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
         case HIR_U32CONSTVAL: case HIR_I32CONSTVAL:
         case HIR_U64CONSTVAL: case HIR_I64CONSTVAL:
         case HIR_FNAME:       case HIR_RAWASM:
-        case HIR_STRING:      case HIR_FPOS: {
+        case HIR_STRING:      case HIR_VTABLE:
+        case HIR_FPOS: {
             str_memcpy(&ns->storage, &s->storage, sizeof(s->storage));
             break;
         }

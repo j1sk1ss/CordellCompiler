@@ -1,0 +1,20 @@
+{
+  "name": "30_command_bus_project",
+  "description": "Mini command-bus project: two command implementations mutate shared context through interface dispatch.",
+  "entry": "main.cpl",
+  "sources": [
+    "add.cpl",
+    "mul.cpl",
+    "bus.cpl",
+    "main.cpl"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "mini_project",
+    "interface",
+    "two_implementations",
+    "interface_pointer_array",
+    "shared_context",
+    "cross_tu"
+  ]
+}

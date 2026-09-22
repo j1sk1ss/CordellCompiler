@@ -1,0 +1,17 @@
+{
+  "name": "21_virtual_string_return_cross_tu",
+  "description": "Virtual method returns a string pointer; another TU indexes it after interface dispatch.",
+  "entry": "main.cpl",
+  "sources": [
+    "impl.cpl",
+    "consumer.cpl",
+    "main.cpl"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "interface",
+    "pointer_return",
+    "string",
+    "cross_tu"
+  ]
+}

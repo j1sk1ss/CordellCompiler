@@ -1,0 +1,18 @@
+{
+  "name": "28_two_extern_providers",
+  "description": "Two extern ABI declarations are resolved by definitions living in different CPL source units.",
+  "entry": "main.cpl",
+  "sources": [
+    "left.cpl",
+    "right.cpl",
+    "combine.cpl",
+    "main.cpl"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "extern",
+    "abi",
+    "multiple_definitions",
+    "cross_tu"
+  ]
+}

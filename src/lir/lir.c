@@ -27,20 +27,21 @@ _variable_complete: {}
         case LIR_LABEL:    subj->storage.lb.lb_id   = v_id;   break;
         case LIR_CONSTVAL: subj->storage.cnst.value = intval; break;
         case LIR_FNAME:
+        case LIR_VTABLE:
         case LIR_RAWASM:
         case LIR_STRING: {
             subj->storage.str.sid = v_id; 
             subj->storage.str.rel = intval;
             break;
         }
-        CONDITIONAL_CASE(LIR_NUMBER, strval) { /* reg is used here as a flag which shows whether the number is float or not */
+        CONDITIONAL_CASE(LIR_NUMBER, strval, /* reg is used here as a flag which shows whether the number is float or not */
             subj->storage.num.is_float = reg ? 1 : 0;
             subj->storage.num.value = strval->copy(strval);
             break;
-        }
-        CONDITIONAL_CASE(LIR_FPOS, strval) {
+        )
+        CONDITIONAL_CASE(LIR_FPOS, strval,
             str_memcpy(&subj->storage.pos, strval, sizeof(file_position_t));
-        }
+        )
         default: break;
     }
 
@@ -68,17 +69,18 @@ lir_subject_t* LIR_copy_subject(lir_subject_t* s) {
             break;
         }
         case LIR_FPOS:       case LIR_LABEL:    case LIR_FNAME:
-        case LIR_RAWASM:     case LIR_MEMORY:   case LIR_STRING:
+        case LIR_VTABLE:     case LIR_RAWASM:   case LIR_MEMORY:
+        case LIR_STRING:
         case LIR_CONSTVAL:   case LIR_REGISTER: case LIR_VARIABLE:
         case LIR_GLVARIABLE: case LIR_STVARIABLE: {
             str_memcpy(&subj->storage, &s->storage, sizeof(s->storage));
             break;
         }
-        CONDITIONAL_CASE(LIR_NUMBER, s->storage.num.value) {
+        CONDITIONAL_CASE(LIR_NUMBER, s->storage.num.value,
             subj->storage.num.is_float = s->storage.num.is_float;
             subj->storage.num.value    = s->storage.num.value->copy(s->storage.num.value);
             break;
-        }
+        )
         default: break;
     }
 
@@ -111,6 +113,7 @@ int LIR_subj_equals(lir_subject_t* a, lir_subject_t* b) {
         case LIR_LABEL:      return a->storage.lb.lb_id == b->storage.lb.lb_id;
         case LIR_RAWASM:
         case LIR_FNAME:
+        case LIR_VTABLE:
         case LIR_STRING:     return a->storage.str.sid == b->storage.str.sid &&
                                     a->storage.str.rel == b->storage.str.rel;
         case LIR_VARIABLE:   return a->storage.var.v_id == b->storage.var.v_id;

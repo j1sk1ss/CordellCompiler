@@ -1,0 +1,811 @@
+{
+  "suite": "core_projects",
+  "format_version": 2,
+  "project_count": 37,
+  "projects": [
+    {
+      "path": "01_header_interface_single_impl",
+      "entry": "main.cpl",
+      "sources": [
+        "fixed_metric.cpl",
+        "evaluate.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "metric.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "header",
+        "include_guard",
+        "interface",
+        "container",
+        "override",
+        "cross_tu_method",
+        "cross_tu_free_function"
+      ]
+    },
+    {
+      "path": "02_two_implementations_cross_tu_dispatch",
+      "entry": "main.cpl",
+      "sources": [
+        "add_op.cpl",
+        "mul_op.cpl",
+        "combine.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "operation.inc",
+        "add_op.inc",
+        "mul_op.inc",
+        "combine.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "headers",
+        "interface",
+        "two_implementations",
+        "virtual_dispatch",
+        "cross_tu",
+        "nested_includes"
+      ]
+    },
+    {
+      "path": "03_split_interface_inheritance",
+      "entry": "main.cpl",
+      "sources": [
+        "state_impl.cpl",
+        "algorithm.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "root.inc",
+        "mutable.inc",
+        "state_impl.inc",
+        "algorithm.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface_inheritance",
+        "split_headers",
+        "override",
+        "state_mutation",
+        "cross_tu_virtual_dispatch"
+      ]
+    },
+    {
+      "path": "04_container_methods_in_separate_units",
+      "entry": "main.cpl",
+      "sources": [
+        "add.cpl",
+        "multiply.cpl",
+        "pipeline.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "accumulator.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "container",
+        "self_methods",
+        "method_prototypes",
+        "cross_tu_methods",
+        "header"
+      ]
+    },
+    {
+      "path": "05_linked_container_project",
+      "entry": "main.cpl",
+      "sources": [
+        "list_init.cpl",
+        "list_push.cpl",
+        "list_sum.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "list.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "recursive_container",
+        "pointers",
+        "self_methods",
+        "cross_tu_state",
+        "multi_method_project"
+      ]
+    },
+    {
+      "path": "06_extern_abi_bridge",
+      "entry": "main.cpl",
+      "sources": [
+        "provider.cpl",
+        "consumer.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "model.inc",
+        "bridge.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "extern",
+        "abi",
+        "container_pointer",
+        "cross_tu_symbol",
+        "header"
+      ]
+    },
+    {
+      "path": "07_extern_function_pointer_dispatch",
+      "entry": "main.cpl",
+      "sources": [
+        "provider.cpl",
+        "dispatch.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "extern_math.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "extern",
+        "abi",
+        "function_pointer",
+        "pointer_reassign",
+        "cross_tu_symbol"
+      ]
+    },
+    {
+      "path": "08_factory_returns_interface",
+      "entry": "main.cpl",
+      "sources": [
+        "provider.cpl",
+        "consumer.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "value_source.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface",
+        "private_implementation",
+        "global_container",
+        "factory",
+        "interface_pointer_return",
+        "cross_tu_vtable"
+      ]
+    },
+    {
+      "path": "09_interface_callback_across_units",
+      "entry": "main.cpl",
+      "sources": [
+        "counter.cpl",
+        "producer.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "sink.inc",
+        "counter.inc",
+        "producer.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface_callback",
+        "mutating_virtual_method",
+        "container",
+        "cross_tu_argument",
+        "nested_headers"
+      ]
+    },
+    {
+      "path": "10_diamond_header_guards",
+      "entry": "main.cpl",
+      "sources": [
+        "add_transform.cpl",
+        "mul_transform.cpl",
+        "aggregate.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "transform.inc",
+        "feature_add.inc",
+        "feature_mul.inc",
+        "aggregate.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "include_guard",
+        "diamond_include",
+        "interface",
+        "multiple_implementations",
+        "cross_tu_dispatch"
+      ]
+    },
+    {
+      "path": "11_repository_strategy_project",
+      "entry": "main.cpl",
+      "sources": [
+        "scorer.cpl",
+        "repository.cpl",
+        "seed.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "domain.inc",
+        "scorer.inc",
+        "repository.inc",
+        "seed.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "project_like",
+        "nested_containers",
+        "array_field",
+        "interface_strategy",
+        "virtual_dispatch_in_loop",
+        "cross_tu_methods"
+      ]
+    },
+    {
+      "path": "12_child_interface_dependency_injection",
+      "entry": "main.cpl",
+      "sources": [
+        "reader_impl.cpl",
+        "root_consumer.cpl",
+        "controller.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "reader.inc",
+        "adjustable.inc",
+        "reader_impl.inc",
+        "controller.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface_chain",
+        "dependency_injection",
+        "upcast",
+        "cross_tu_forwarding",
+        "stateful_override"
+      ]
+    },
+    {
+      "path": "13_default_argument_from_header",
+      "entry": "main.cpl",
+      "sources": [
+        "offsetter.cpl",
+        "workflow.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "offsetter.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "header_default_argument",
+        "container",
+        "self_method",
+        "cross_tu_definition",
+        "caller_side_semantics"
+      ]
+    },
+    {
+      "path": "14_interface_pointer_field_cross_tu",
+      "entry": "main.cpl",
+      "sources": [
+        "impl.cpl",
+        "bind.cpl",
+        "holder.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "holder.inc",
+        "iface.inc",
+        "impl.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface",
+        "container",
+        "interface_pointer_field",
+        "cross_tu"
+      ]
+    },
+    {
+      "path": "15_interface_pointer_reassign_cross_tu",
+      "entry": "main.cpl",
+      "sources": [
+        "first.cpl",
+        "second.cpl",
+        "workflow.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "first.inc",
+        "iface.inc",
+        "second.inc",
+        "workflow.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface",
+        "two_implementations",
+        "interface_pointer_reassign",
+        "cross_tu"
+      ]
+    },
+    {
+      "path": "16_virtual_array_field_cross_tu",
+      "entry": "main.cpl",
+      "sources": [
+        "impl.cpl",
+        "consumer.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "iface.inc",
+        "impl.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface",
+        "array_field",
+        "virtual_dispatch",
+        "cross_tu"
+      ]
+    },
+    {
+      "path": "17_virtual_pointer_arg_mutation_cross_tu",
+      "entry": "main.cpl",
+      "sources": [
+        "impl.cpl",
+        "workflow.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "iface.inc",
+        "impl.inc",
+        "workflow.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface",
+        "pointer_argument",
+        "mutation",
+        "cross_tu"
+      ]
+    },
+    {
+      "path": "18_virtual_accepts_interface_cross_tu",
+      "entry": "main.cpl",
+      "sources": [
+        "value.cpl",
+        "add_other.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "iface.inc",
+        "impl.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface",
+        "virtual_interface_argument",
+        "split_methods",
+        "cross_tu"
+      ]
+    },
+    {
+      "path": "19_same_impl_distinct_state_cross_tu",
+      "entry": "main.cpl",
+      "sources": [
+        "impl.cpl",
+        "consumer.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "iface.inc",
+        "impl.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface",
+        "distinct_state",
+        "cross_tu"
+      ]
+    },
+    {
+      "path": "20_interface_pointer_array_dispatch_project",
+      "entry": "main.cpl",
+      "sources": [
+        "first.cpl",
+        "second.cpl",
+        "aggregate.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "aggregate.inc",
+        "first.inc",
+        "iface.inc",
+        "second.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface",
+        "interface_pointer_array",
+        "two_implementations",
+        "cross_tu"
+      ]
+    },
+    {
+      "path": "21_virtual_string_return_cross_tu",
+      "entry": "main.cpl",
+      "sources": [
+        "impl.cpl",
+        "consumer.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "iface.inc",
+        "impl.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface",
+        "pointer_return",
+        "string",
+        "cross_tu"
+      ]
+    },
+    {
+      "path": "22_override_calls_helper_other_tu",
+      "entry": "main.cpl",
+      "sources": [
+        "helper.cpl",
+        "override.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "iface.inc",
+        "impl.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface",
+        "container_helper_method",
+        "split_method_definitions",
+        "cross_tu"
+      ]
+    },
+    {
+      "path": "23_override_reads_pointer_field_cross_tu",
+      "entry": "main.cpl",
+      "sources": [
+        "impl.cpl",
+        "attach.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "iface.inc",
+        "impl.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface",
+        "pointer_field",
+        "deref",
+        "cross_tu"
+      ]
+    },
+    {
+      "path": "24_virtual_side_effect_then_read_split",
+      "entry": "main.cpl",
+      "sources": [
+        "bump.cpl",
+        "value.cpl",
+        "workflow.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "iface.inc",
+        "impl.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface",
+        "state_mutation",
+        "split_overrides",
+        "cross_tu"
+      ]
+    },
+    {
+      "path": "25_child_interface_upcast_cross_tu",
+      "entry": "main.cpl",
+      "sources": [
+        "impl.cpl",
+        "root_consumer.cpl",
+        "child_consumer.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "child.inc",
+        "impl.inc",
+        "root.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface_inheritance",
+        "upcast",
+        "cross_tu"
+      ]
+    },
+    {
+      "path": "26_factory_selects_implementation",
+      "entry": "main.cpl",
+      "sources": [
+        "provider.cpl",
+        "consumer.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "iface.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface",
+        "factory",
+        "hidden_implementation",
+        "global_instance",
+        "cross_tu"
+      ]
+    },
+    {
+      "path": "27_global_interface_instance_shared_methods",
+      "entry": "main.cpl",
+      "sources": [
+        "provider.cpl",
+        "add.cpl",
+        "value.cpl",
+        "workflow.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "counter.inc",
+        "impl.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface",
+        "global_instance",
+        "split_overrides",
+        "factory",
+        "cross_tu"
+      ]
+    },
+    {
+      "path": "28_two_extern_providers",
+      "entry": "main.cpl",
+      "sources": [
+        "left.cpl",
+        "right.cpl",
+        "combine.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "externs.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "extern",
+        "abi",
+        "multiple_definitions",
+        "cross_tu"
+      ]
+    },
+    {
+      "path": "29_extern_container_pointer_bridge",
+      "entry": "main.cpl",
+      "sources": [
+        "provider.cpl",
+        "workflow.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "model.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "extern",
+        "abi",
+        "container_pointer",
+        "mutation",
+        "cross_tu"
+      ]
+    },
+    {
+      "path": "30_command_bus_project",
+      "entry": "main.cpl",
+      "sources": [
+        "add.cpl",
+        "mul.cpl",
+        "bus.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "add.inc",
+        "bus.inc",
+        "command.inc",
+        "context.inc",
+        "mul.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "mini_project",
+        "interface",
+        "two_implementations",
+        "interface_pointer_array",
+        "shared_context",
+        "cross_tu"
+      ]
+    },
+    {
+      "path": "31_service_registry_project",
+      "entry": "main.cpl",
+      "sources": [
+        "fixed.cpl",
+        "offset.cpl",
+        "bind.cpl",
+        "total.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "fixed.inc",
+        "offset.inc",
+        "registry.inc",
+        "service.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "mini_project",
+        "registry",
+        "interface_pointer_array",
+        "split_methods",
+        "cross_tu"
+      ]
+    },
+    {
+      "path": "32_child_interface_stateful_workflow",
+      "entry": "main.cpl",
+      "sources": [
+        "value.cpl",
+        "add.cpl",
+        "workflow.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "child.inc",
+        "impl.inc",
+        "root.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface_inheritance",
+        "stateful",
+        "split_overrides",
+        "cross_tu"
+      ]
+    },
+    {
+      "path": "33_interface_and_function_pointer_pipeline",
+      "entry": "main.cpl",
+      "sources": [
+        "source.cpl",
+        "transform.cpl",
+        "pipeline.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "source.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface",
+        "function_pointer",
+        "pipeline",
+        "cross_tu"
+      ]
+    },
+    {
+      "path": "34_place_factory_cross_tu",
+      "entry": "main.cpl",
+      "sources": [
+        "impl.cpl",
+        "provider.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "iface.inc",
+        "impl.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface",
+        "place",
+        "factory",
+        "cross_tu"
+      ]
+    },
+    {
+      "path": "35_place_memcpy_clone_cross_tu",
+      "entry": "main.cpl",
+      "sources": [
+        "impl.cpl",
+        "memory.cpl",
+        "provider.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "iface.inc",
+        "impl.inc",
+        "memory.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface",
+        "place",
+        "memcpy",
+        "cross_tu"
+      ]
+    },
+    {
+      "path": "36_place_holder_bind_cross_tu",
+      "entry": "main.cpl",
+      "sources": [
+        "impl.cpl",
+        "provider.cpl",
+        "holder.cpl",
+        "bind.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "iface.inc",
+        "impl.inc",
+        "holder.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface",
+        "place",
+        "interface_pointer_field",
+        "cross_tu"
+      ]
+    },
+    {
+      "path": "37_place_child_interface_cross_tu",
+      "entry": "main.cpl",
+      "sources": [
+        "value.cpl",
+        "add.cpl",
+        "provider.cpl",
+        "mutate.cpl",
+        "read.cpl",
+        "main.cpl"
+      ],
+      "headers": [
+        "root.inc",
+        "child.inc",
+        "impl.inc"
+      ],
+      "expected_exit_code": 42,
+      "features": [
+        "interface_inheritance",
+        "place",
+        "cross_tu",
+        "upcast"
+      ]
+    }
+  ]
+}

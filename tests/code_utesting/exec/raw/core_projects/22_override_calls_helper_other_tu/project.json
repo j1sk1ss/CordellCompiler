@@ -1,0 +1,17 @@
+{
+  "name": "22_override_calls_helper_other_tu",
+  "description": "Override implementation calls a non-virtual helper method whose definition is in another TU.",
+  "entry": "main.cpl",
+  "sources": [
+    "helper.cpl",
+    "override.cpl",
+    "main.cpl"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "interface",
+    "container_helper_method",
+    "split_method_definitions",
+    "cross_tu"
+  ]
+}

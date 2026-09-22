@@ -1,0 +1,18 @@
+{
+  "name": "15_interface_pointer_reassign_cross_tu",
+  "description": "Reassign one interface pointer between implementations defined in distinct source files.",
+  "entry": "main.cpl",
+  "sources": [
+    "first.cpl",
+    "second.cpl",
+    "workflow.cpl",
+    "main.cpl"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "interface",
+    "two_implementations",
+    "interface_pointer_reassign",
+    "cross_tu"
+  ]
+}

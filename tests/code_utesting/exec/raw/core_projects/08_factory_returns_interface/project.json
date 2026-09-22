@@ -1,0 +1,22 @@
+{
+  "name": "08_factory_returns_interface",
+  "description": "A provider keeps its concrete container private and exposes only a factory returning an interface pointer; the caller dispatches after crossing the TU boundary.",
+  "entry": "main.cpl",
+  "sources": [
+    "provider.cpl",
+    "consumer.cpl",
+    "main.cpl"
+  ],
+  "headers": [
+    "value_source.inc"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "interface",
+    "private_implementation",
+    "global_container",
+    "factory",
+    "interface_pointer_return",
+    "cross_tu_vtable"
+  ]
+}

@@ -82,8 +82,8 @@ typedef enum {
     CONVERT_TOKEN,         // as
 
     // Commands
-    IMPORT_TOKEN,          // import
-    IMPORT_SELECT_TOKEN,   // from
+    // IMPORT_TOKEN,          // import
+    // IMPORT_SELECT_TOKEN,   // from
     EXTERN_TOKEN,          // extern
     START_TOKEN,           // start
     RETURN_TOKEN,          // return
@@ -91,8 +91,11 @@ typedef enum {
     RETURN_TYPE_TOKEN,     // ->
     SCOPE_TOKEN,           // {  }
     ANNOTATION_TOKEN,      // @
+    PLACE_TOKEN,           // place
 
     CONTAINER_TOKEN,       // container
+    INTERFACE_TOKEN,       // interface
+    IMPLEMENTS_TOKEN,      // implements
     MEMBER_ACCESS_TOKEN,
     DOT_TOKEN,             // .
     STAT_TOKEN,            // ::

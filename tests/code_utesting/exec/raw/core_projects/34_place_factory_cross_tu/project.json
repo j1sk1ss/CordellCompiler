@@ -1,0 +1,17 @@
+{
+  "name": "34_place_factory_cross_tu",
+  "description": "A factory places an implementation into raw storage and returns it as an interface pointer across translation units.",
+  "entry": "main.cpl",
+  "sources": [
+    "impl.cpl",
+    "provider.cpl",
+    "main.cpl"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "interface",
+    "place",
+    "factory",
+    "cross_tu"
+  ]
+}

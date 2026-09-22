@@ -1,0 +1,20 @@
+{
+  "name": "31_service_registry_project",
+  "description": "Registry container stores heterogeneous services as interface pointers and aggregates them in another TU.",
+  "entry": "main.cpl",
+  "sources": [
+    "fixed.cpl",
+    "offset.cpl",
+    "bind.cpl",
+    "total.cpl",
+    "main.cpl"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "mini_project",
+    "registry",
+    "interface_pointer_array",
+    "split_methods",
+    "cross_tu"
+  ]
+}

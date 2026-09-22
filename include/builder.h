@@ -84,8 +84,8 @@
 #include <symtab/dump.h>
 
 #include <gem_data.h>
-#define CCPL_VERSION                 "3.7.4:0809.26" // major.minor<.patch> (old version style):ddmm.yy (new version style)
-#define CCPL_SPLASH                  "Z3 optimizations" // NULL / Related to the version splash
+#define CCPL_VERSION                 "3.8.2:2009.26" // major.minor<.patch> (old version style):ddmm.yy (new version style)
+#define CCPL_SPLASH                  "test branch: interfaces" // NULL / Related to the version splash
 /* Version logic is next: We have the old style and the new style:
     - Old style is a default version semantics - major-minor-patch style, where major is incremented when
       I've added a lot of new features and they work properly. Also there should be some big shifts in
@@ -144,6 +144,8 @@ according you system requirements. */
 #define OPTION_LINKER_ARG            "--linker-arg"
 #define OPTION_COMPILE_ONLY_SHORT    "-c"
 #define OPTION_COMPILE_ONLY          "--compile-only"
+#define OPTION_NO_OBJECT             "--no-object"
+#define OPTION_NO_OBJECT_SHORT       "-no"
 #define OPTION_LINKER_NO_PIE         "--linker-no-pie"
 #define OPTION_LINKER_PIE            "--linker-pie"
 #define OPTION_LINKER_M32            "--linker-m32"
@@ -192,6 +194,7 @@ typedef struct {
 typedef enum {
     BUILD_MODE_EXECUTABLE,
     BUILD_MODE_OBJECT,
+    BUILD_MODE_RAW,
     BUILD_MODE_ANALYSIS
 } build_mode_t;
 

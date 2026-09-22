@@ -39,7 +39,7 @@ static const char* _format_lir_register(lir_registers_t reg) {
         case AH:   return "ah";   case BH:   return "bh";   case CH:   return "ch";   case DH:   return "dh";
         case R8B:  return "r8b";  case R9B:  return "r9b";  case R10B: return "r10b"; case R11B: return "r11b"; 
         case R12B: return "r12b"; case R13B: return "r13b"; case R14B: return "r14b"; case R15B: return "r15b";
-        default:   return "<unknown>";
+        default:   return "reg<unknown>";
     }
 }
 
@@ -82,7 +82,7 @@ const char* x86_64_macho_nasm_format_lir_subject(lir_subject_t* v, sym_table_t* 
                 }
             }
 
-            return "<unknown>";
+            return "var<unknown>";
         }
         case LIR_FNAME: {
             func_info_t fi;
@@ -105,7 +105,20 @@ const char* x86_64_macho_nasm_format_lir_subject(lir_subject_t* v, sym_table_t* 
                 return buffer;
             }
 
-            return "<unknown>";
+            return "fn<unknown>";
+        }
+        case LIR_VTABLE: {
+            vtable_info_t vi;
+            type_info_t ti;
+            if (
+                VTTB_get_info_id(v->storage.str.sid, &vi, &smt->vt) &&
+                TPTB_get_info_id(vi.t_id, &ti, &smt->t)
+            ) {
+                snprintf(buffer, sizeof(_buffers[0]), v->storage.str.rel ? "[rel _cpl_vtable_%s]" : "_cpl_vtable_%s", ti.name->body);
+                return buffer;
+            }
+
+            return "vtable<unknown>";
         }
         case LIR_GLVARIABLE:
         case LIR_VARIABLE: {
@@ -140,7 +153,7 @@ const char* x86_64_macho_nasm_format_lir_subject(lir_subject_t* v, sym_table_t* 
                 }
             }
             
-            return "<unknown>";
+            return "var<unknown>";
         }
         case LIR_MEMORY: {
 _shifted_to_memory: {}

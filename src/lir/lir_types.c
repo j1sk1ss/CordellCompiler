@@ -1,12 +1,12 @@
 #include <lir/lir_types.h>
 
 lir_registers_t LIR_format_register(lir_registers_t reg, int size) {
-#define CONVERTER(e, h, q, d)                           \
-    do {                                                \
-        if (size == CONF_get_full_bytness()) return e;  \
-        if (size == CONF_get_half_bytness()) return h;  \
-        if (size == CONF_get_quart_bytness()) return q; \
-        return d;                                       \
+#define CONVERTER(e, h, q, d)          \
+    do {                               \
+        if (size == 8) return e;       \
+        if (size == 4) return h;       \
+        if (size == 2) return q;       \
+        return d;                      \
     } while (0);
     switch (reg) {
         /* x86_64/32/16 */
@@ -70,14 +70,14 @@ int LIR_is_writeop(lir_operation_t op) {
         case LIR_TI64: case LIR_TI32: case LIR_TI16: case LIR_TI8: 
         case LIR_TU64: case LIR_TU32: case LIR_TU16:
         case LIR_POP:
-        case LIR_bXOR: case LIR_bSHL: case LIR_bSHR: case LIR_bSAR: case LIR_bAND: case LIR_bOR:
-        case LIR_fADD: case LIR_fSUB: case LIR_fMUL: case LIR_fDIV: 
-        case LIR_iADD: case LIR_iSUB: case LIR_iMUL: case LIR_iDIV: case LIR_iMOD:
+        case LIR_bXOR: case LIR_iBRHT: case LIR_bSHL: case LIR_bSHR: case LIR_bSAR: case LIR_bAND: case LIR_bOR:
+        case LIR_fADD: case LIR_fSUB:  case LIR_fMUL: case LIR_fDIV: 
+        case LIR_iADD: case LIR_iSUB:  case LIR_iMUL: case LIR_iDIV: case LIR_iMOD:
         case LIR_DIV:  
         case LIR_GDREF:
         case LIR_REF_GDREF:
         case LIR_REF: return 1;
-        default: return _is_move_write_by_value(op);
+        default:      return _is_move_write_by_value(op);
     }
 }
 

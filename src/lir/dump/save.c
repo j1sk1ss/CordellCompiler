@@ -185,6 +185,14 @@ static char* _fmt_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt, int
 
             break;
         }
+        case LIR_VTABLE: {
+            vtable_info_t vi;
+            if (VTTB_get_info_id(s->storage.str.sid, &vi, &smt->vt)) {
+                dst += sprintf(dst, "vtable_%lu", vi.id);
+            }
+
+            break;
+        }
         default: dst += sprintf(dst, "unknw"); break;
     }
 

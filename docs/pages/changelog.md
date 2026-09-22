@@ -3,6 +3,170 @@ Logs for the first and second versions are quite short because I do not remember
 
 ----------------------------------------
 
+## implements instead of '::'
+<div class="change-date">Date: 2026-09-18</div>
+Usually, `::` means being somewhere in a scope of an element. This breaks when we try to implement an interface for a container. That's why I've taken a keyword from Java: `implements`. Now, to link an interface to a container, you need to use `implements` keyword:
+
+```cpl
+interface base {
+}
+container implementation implements base {
+}
+```
+
+## Place
+<div class="change-date">Date: 2026-09-17</div>
+Implement a new keyword: `place`. Actually, it's the best solution in my situation, when I need to somehow combine low-level idiology and a high-level memory model. Previous updates neglect the important thing - virtual tables placement in a non-stack allocated container. When we're talking about stack allocated containers, there is an obvoius place where we can generate a sequence of instructions which sets container's iternal pointer to a virtual table. But what happens here:
+
+```cpl
+interaface a {
+    @[self] function foo(ptr a self);
+}
+container b::a {
+    @[override] function foo(ptr b self);
+}
+function create() -> ptr b {
+    malloc(sizeof(b)) as ptr b :/ Raw pointer? /:
+}
+```
+
+Exact - `create` creates a raw pointer which doesn't have a valid link to its virtual table. The same situation happens in C++ when a user tries to allocate a class without `new`:
+
+```cpp
+class A {
+public:
+    int do_something() const {
+    }
+}
+
+A* instance = (A*)malloc(sizeof(A));
+instance->do_something(); // UB!
+```
+
+That's why I've added a new keyword `place`. Not `new`, 'cause it won't allocate any memmory. The idea of CPL is to give a programmer full power over his machine, that's why `place` just accepts a pointer where it need to place a container and links a virtual table. The small example is:
+
+```cpl
+interaface a {
+    @[self] function foo(ptr a self);
+}
+container b::a {
+    @[override] function foo(ptr b self);
+}
+function create() -> ptr b {
+    place(malloc(sizeof(b)), b) :/ Works fine! /:
+}
+```
+
+*P.S.: Yeah, again, it creates some hidden behaviour, but it's determenistic at least.*
+
+## Interfaces
+<div class="change-date">Date: 2026-09-12</div>
+Implement a new keyword: `interface`. It used for inheretance.
+
+```cpl
+interface base {
+    @[self]
+    function init(ptr base self) -> i0;
+}
+
+container implementation::base {
+    @[override]
+    function init(ptr implementation self) -> i0;
+}
+
+function implementation::init(ptr implementation self) -> i0 {
+}
+```
+
+Interfaces mark functions as abstract functions by default without `abstract` annotation.
+
+## Strict vtable index and inheretance
+<div class="change-date">Date: 2026-09-11</div>
+Vtable methods now have a strict index in a virtual table. Also, container can inheret methods from another container, and given the strict indexing, it allows to use them in shared interfaces:
+
+```cpl
+container base {
+    @[abstract] @[self] function do(ptr base self) -> i0;
+}
+container first::base {
+    @[override] function do(ptr first self) -> i0 {
+    }
+}
+container second::base {
+    @[override] function do(ptr second self) -> i0 {
+    }
+}
+
+glob first f;
+glob second s;
+
+function easy(ptr base b) -> i0 {
+    b.do();
+}
+
+start() {
+    easy(ref f); :/ f.do() /:
+    easy(ref s); :/ s.do() /:
+}
+```
+
+These features aren't well tested and still in progress, which means I'd rather wait till they be complete than use them right now.
+
+## @[override] and @[abstract] annotations
+<div class="change-date">Date: 2026-09-10</div>
+Now a function can have these annotations, and they work actually the same as they do in another languages. For instance, if we have a prototype in a container:
+
+```cpl
+container base {
+    @[abstract] @[self]
+    function init(ptr base self) -> i0;
+}
+```
+
+The complier will put `init` to the virtual table (and will enable it for `base` either). But not in `base` instance, it's forbidden to create `base` instance, if it has `abstract` function. </br>
+Second annotation `@[override]` works pretty easy. If we have a container which should be used somewhere, where can be used its parent, and we want to use similar methods from a virtual table, we must annotate a function with this annotation:
+
+```cpl
+container base {
+    @[abstract] @[self]
+    function init(ptr base self) -> i0;
+}
+
+container instance::base {
+    i32 body;
+    @[override]
+    function init(ptr instance self) -> i0;
+}
+
+function instance::init(ptr instance self) -> i0 {
+    self.body = 0 as i32;
+}
+
+function pipe(ptr base b) -> i0 {
+    b.init();
+}
+
+start() {
+    instance i;
+    pipe(ref i);
+}
+```
+
+In this example, the compiler will put `init` somewhere in the `instance`s virtual table, and will do the same for all childrens of `base`. This allows to invoke `init` safely, because we known where this method is in the provided container. </br>
+**P.S.: Inheretence still in progress, I've implemented override and abstract for functions, not for containers.**
+
+## Virtual table in a container
+<div class="change-date">Date: 2026-09-10</div>
+Containers now have an opportunity to include a virtual table. This is a High IR concept which extends type size to store linked functions. At declaration, the compiler iterates thru linked methods and load them into this table. By default it's a hidden feature and won't change anything, but this is a base for future inheretance logic.
+
+# Version v3.8
+<div class="change-date">Date: 2026-09-10</div>
+CPL goes towards semi-OOP. I know that I said that CPL not gonna be like C++, and I keep the track of development in the same pase. It's not a real Object Oriented Programming, it's a semi-OOP - actually, a huge difference. Of course, it forces compiler to be able to work with virtual tables, their logic, and involves some hidden behaviour (Like, how we're gonna set a pointer to a virtual table in an instance of a container, which is allocated with `malloc`?). It's actually a controversial shift in the compiler's development path, and I don't know how to solve it yet. </br>
+
+**For now, this version is all about interfaces, inheretence and virtual tables.**
+
+----------------------------------------
+
 ## Pop register and volatile
 <div class="change-date">Date: 2026-09-05</div>
 I've fixed some bugs with the pop register annotation and added the volatile annotation. At this point, this annotation only marks a variable as used before final optimizations, which preserves it from being deleted by the compiler. 

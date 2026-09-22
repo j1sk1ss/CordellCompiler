@@ -7,6 +7,7 @@ static const char* _name_tkn_type(token_type_t t) {
         case GENERIC_TYPE_TOKEN:          return "GENERIC_TYPE_TOKEN";   
         case GENERIC_VARIABLE_TOKEN:      return "GENERIC_VARIABLE_TOKEN";
         case SIZEOF_TOKEN:                return "SIZEOF_TOKEN";
+        case PLACE_TOKEN:                 return "PLACE_TOKEN";
         case INDEXATION_TOKEN:            return "INDEXATION_TOKEN";
         case CALLING_TOKEN:               return "CALLING_TOKEN";
         case SIGNATURE_TOKEN:             return "SIGNATURE_TOKEN";
@@ -33,8 +34,8 @@ static const char* _name_tkn_type(token_type_t t) {
         case U8_TYPE_TOKEN:               return "U8_TYPE_TOKEN";
         case ARRAY_TYPE_TOKEN:            return "ARRAY_TYPE_TOKEN";
         case CONVERT_TOKEN:               return "CONVERT_TOKEN";
-        case IMPORT_TOKEN:                return "IMPORT_TOKEN";
-        case IMPORT_SELECT_TOKEN:         return "IMPORT_SELECT_TOKEN";
+        // case IMPORT_TOKEN:                return "IMPORT_TOKEN";
+        // case IMPORT_SELECT_TOKEN:         return "IMPORT_SELECT_TOKEN";
         case EXTERN_TOKEN:                return "EXTERN_TOKEN";
         case START_TOKEN:                 return "START_TOKEN";
         case RETURN_TOKEN:                return "RETURN_TOKEN";

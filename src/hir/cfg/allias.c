@@ -89,8 +89,9 @@ int HIR_CFG_make_allias(cfg_ctx_t* cctx, sym_table_t* smt) {
                 if (hh->op == HIR_REF) {
                     symbol_id_t slave = hh->sarg->storage.var.v_id;
                     if (
-                        hh->sarg->t == HIR_FNAME ||
-                        hh->sarg->t == HIR_STRING
+                        hh->sarg->t == HIR_FNAME  ||
+                        hh->sarg->t == HIR_STRING ||
+                        hh->sarg->t == HIR_VTABLE
                     ) slave = hh->sarg->storage.str.s_id;
                     symbol_id_t master = hh->farg->storage.var.v_id;
                     ALLIAS_add_owner(slave, master, &smt->m);

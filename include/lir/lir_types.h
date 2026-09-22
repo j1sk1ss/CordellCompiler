@@ -1,6 +1,8 @@
 #ifndef LIR_TYPES_H_
 #define LIR_TYPES_H_
 
+#include <config.h>
+
 typedef enum {
     /* Operations */
         /* Commands */
@@ -172,6 +174,7 @@ typedef enum {
     LIR_MEMORY,     /* stack placement     */
     LIR_FNAME,      /* function name       */
     LIR_STRING,     /* string              */
+    LIR_VTABLE,     /* vtable name         */
     LIR_ARGLIST,    /* list of LIR subj    */
     LIR_FPOS,       /* postion in the file */
 } lir_subject_type_t;

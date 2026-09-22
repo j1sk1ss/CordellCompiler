@@ -3,7 +3,7 @@ container dummy {
     arr smth[10, i8];
 }
 
-glob dummy a = { "Hello", "World!" };
+glob dummy a = { ref "Hello", "World!" };
 
 :/ OUTPUT
 {

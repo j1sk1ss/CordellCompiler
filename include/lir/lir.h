@@ -105,6 +105,7 @@ int LIR_unload_blocks(lir_block_t* block);
 #define LIR_SUBJ_STRING(id)          LIR_create_subject(LIR_STRING,     -1,    id,                  0,   NULL,           0,   CONF_get_full_bytness())
 #define LIR_SUBJ_FUNCNAME(n)         LIR_create_subject(LIR_FNAME,      -1,    n->storage.str.s_id, 0,   NULL,           0,   0)
 #define LIR_SUBJ_ADDRFUNC(n)         LIR_create_subject(LIR_FNAME,      -1,    n->storage.str.s_id, 0,   NULL,           1,   CONF_get_full_bytness())
+#define LIR_SUBJ_VTABLE(n)           LIR_create_subject(LIR_VTABLE,     -1,    n->storage.str.s_id, 0,   NULL,           1,   CONF_get_full_bytness())
 #define LIR_SUBJ_LIST()              LIR_create_subject(LIR_ARGLIST,    -1,    -1,                  0,   NULL,           0,   0)
 #define LIR_SUBJ_LOCATION(tloc)      LIR_create_subject(LIR_FPOS,       -1,    -1,                  0,  (string_t*)tloc, 0,   0)
 

@@ -1,0 +1,23 @@
+{
+  "name": "01_header_interface_single_impl",
+  "description": "Interface and implementing container are declared in a shared header; method body and interface consumer live in separate translation units.",
+  "entry": "main.cpl",
+  "sources": [
+    "fixed_metric.cpl",
+    "evaluate.cpl",
+    "main.cpl"
+  ],
+  "headers": [
+    "metric.inc"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "header",
+    "include_guard",
+    "interface",
+    "container",
+    "override",
+    "cross_tu_method",
+    "cross_tu_free_function"
+  ]
+}
