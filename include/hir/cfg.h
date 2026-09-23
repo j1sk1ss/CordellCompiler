@@ -34,9 +34,9 @@ typedef struct {
     lir_map_t    lmap;    /* Mapping to existed LIR ctx   */
 
     /* CFG data */
-    set_t        locals;  /* Local functions              */
-    set_t        leaders; /* Leaders for block generation */
-    list_t       blocks;  /* cfg_block_t* list            */
+    set_t        locals;  /* @items: cfg_func_t* l. funcs */
+    set_t        leaders; /* @items: hir_block_t**        */
+    list_t       blocks;  /* @items: cfg_block_t* list    */
 } cfg_func_t;
 
 typedef enum {
@@ -432,7 +432,7 @@ Params:
 
 Returns 1 if succeeds. 
 */
-int HIR_CFG_finilize_before_dom(cfg_ctx_t* ctx);
+int HIR_CFG_finalize_before_dom(cfg_ctx_t* ctx);
 
 /*
 Get the count of HIR blocks in base block.

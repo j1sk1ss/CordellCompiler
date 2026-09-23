@@ -1,0 +1,19 @@
+{
+  "name": "36_place_holder_bind_cross_tu",
+  "description": "A placed interface object is produced in one unit, stored in a holder in another, and dispatched through the holder method.",
+  "entry": "main.cpl",
+  "sources": [
+    "impl.cpl",
+    "provider.cpl",
+    "holder.cpl",
+    "bind.cpl",
+    "main.cpl"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "interface",
+    "place",
+    "interface_pointer_field",
+    "cross_tu"
+  ]
+}

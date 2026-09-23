@@ -1,6 +1,101 @@
 # TODO
+
+## V-table in containers + interfaces
+
+To support some examples from OS-related code, we need to implement virtual table. The idea is to allocate an array of pointers in every instance of a cotainer, if it has linked functions. In a nutshell:
+
+```cpl
+cotainer std {
+    i32 a;
+    
+    @[self]
+    function init(ptr std self) -> i0;
+}
+
+function std::init(ptr std self) -> i0 {
+    self.a = 0;
+}
+
+start() {
+    std cnt;
+    cnt.init();
+    :/
+    In this case, the 'cnt' actually has the next structure:
+    container std {
+        arr vtable[1, ptr i0];
+        i32 a;
+    }
+
+    cnt.vtable[0] = std__init0;
+    cnt.vtable[0]();
+    /:
+}
+```
+
+This will allow us to implement actual inheretence:
+
+```cpl
+@[interface]
+container base {
+    @[self]
+    function init(ptr base self) -> i0; 
+}
+
+container std::base {
+    i32 a;
+    @[self]
+    function init(ptr std self) -> i0;
+}
+
+function foo(ptr base smth) -> i0 {
+    smth.init();
+    :/
+    Here we invoke the interface's function, and the difference here,
+    compiler doesn't invoke 'init', it invokes the first function in
+    a list of registered functions:
+    smth.vtable[0]();
+
+    And it doesn't care about the logic of this function, it just invokes
+    something by a pointer and passes something what was passed by a user.
+    /:
+}
+```
+
+## Complete strict (strong) typing! (Completed)
+
+We need to complete strong typing support in the compiler. To do this, the compiler should allow function types:
+
+```cpl
+ptr fn(i32,i32)i32 function;
+```
+
+I think this can be solved with a new type in the type table linked to a function from the function table. For example, it could create a dummy function:
+
+```cpl
+function __cpl_custom_typed_function(i32 _, i32 _) -> i32; :/ ID: X /:
+```
+
+Then this function will be linked to a type. With this type, we can check whether a function has the same signature. Also, if we declare two pointers with the same type, the name-generation logic will prevent template duplication. The one problem here is scopes: a new scope may create a new function. </br>
+The second idea is to store this information in the type itself: keep a list of argument token types and the function return type. It would look like this:
+
+```c
+typedef struct {
+    unsigned long long hash; // Fast search for an entry when we create a new one
+    list_t             args;
+    token_type_t       rtype;
+} function_type_t;
+```
+
+At the HIR level it will be a `ptr i0` pointer with a linked type ID. This means it will not change the generated representation, but it will allow CSA to be more precise with function pointers. It may also help with lambdas:
+
+```cpl
+ptr fn(i8,i8)i8 lambda = (i8 a, i8 b) => a + b;
+exit lamda(1, 1);
+```
+
 ## Containers (Completed)
-The idea is to create structures but with some features. For instance, a container will have an ability of function holding with self argument support. It means, the CPL will support the next syntax:
+
+The idea is to create structures with a few extra features. For instance, a container should be able to hold functions with explicit `self` argument support. CPL will therefore support syntax like this:
 ```cpl
 container storage {
     u32 wood  = 100;
@@ -19,7 +114,7 @@ start() {
 }
 ```
 
-In a nutshell, this code will be translated in the next IR:
+In a nutshell, this code will be translated into IR like this:
 ```cpl
 start() {
     u8* s = arrdecl(16);
@@ -40,8 +135,8 @@ fn storage__sell_wood(u8* ptr) {
 }
 ```
 
-This is the final feature that I want to add to the CPL. </br>
-**Important note:** Overloads and generics must work the same, which means the next code must be valid as well:
+This is the final feature that I want to add to CPL. </br>
+**Important note:** Overloads and generics must work the same way, which means this code must be valid as well:
 ```cpl
 container generic {
     function sum<T, U>(self, ptr T a, U b) -> i0 {
@@ -55,7 +150,7 @@ start() {
 }
 ```
 
-*P.S.:* Generics won't support containers. No ```sum<generic, i0>()```, etc. </br>
+*P.S.:* Generics will not support containers. No ```sum<generic, i0>()```, etc. </br>
 *P.P.S.:* No nested containers:
 ```cpl
 container a {
@@ -64,7 +159,7 @@ container a {
     } :/ Illegal /:
 }
 ``` 
-*P.P.P.S.:* By the way, there is a way how you can use a container in a container:
+*P.P.P.S.:* By the way, there is a way to use a container inside another container:
 ```cpl
 container a {
     ptr a next;
@@ -73,7 +168,8 @@ container a {
 ```
 
 ## Simple polymorphic system (Completed)
-The idea is to create a placeholder type for local variables, then copy a function with the provided type. For instance let's consider the function below:
+
+The idea is to create a placeholder type for local variables, then copy a function with the provided type. For instance, consider the function below:
 ```cpl
 function swap<T>(ptr T a, ptr T b) -> i0 {
     T tmp = dref a;
@@ -82,17 +178,17 @@ function swap<T>(ptr T a, ptr T b) -> i0 {
 }
 ```
 
-We have `T` as an unknown type. At the AST phase this type is considered as `genertic` type, which doesn't tell us anything. Also, important to note that we don't generate the IR for this function. But when we meet the next code:
+Here `T` is an unknown type. At the AST phase, this type is treated as a `generic` type, which does not tell us anything concrete. It is also important to note that we do not generate IR for this function yet. When we encounter this code:
 ```cpl
 swap<u8>(ref a, ref b);
 ```
 
 We:
-- determine which type is used for the call
-- find the called function AST node in symtable
-- generate IR for the function with provided type
+- determine which type is used for the call;
+- find the called function AST node in the symbol table;
+- generate IR for the function with the provided type.
 
-This will lead us to the next image:
+This produces code like this:
 ```cpl
 function swap1(ptr u8 a, ptr u8 b) -> i0 {
     u8 tmp = dref a;
@@ -111,7 +207,7 @@ sum<u8>(10, 11);
 sum<f64>(10.1, 20.0);
 ```
 
-To implement the same code with overloads, you will need to create two versions of the 'sum':
+To implement the same code with overloads, you would need to create two versions of `sum`:
 ```cpl
 function sum(u8 a, u8 b) -> u8 {
     return a + b;
@@ -123,7 +219,7 @@ sum(10 as u8, 11 as u8);
 sum(10.1, 20.0);
 ```
 
-Meanwhile, the overloads are essential to solve the next problem:
+Meanwhile, overloads are essential for cases like this:
 ```cpl
 function sum(u8 a, u8 b) -> u8 {
     return a + b;
@@ -135,5 +231,5 @@ sum(10 as u8, 11 as u8);
 sum(10.1, 20.0);
 ```
 
-That's why 'generic' functions are essential and pretty useful in terms of system programming. They won't consume a lot time to implement, they won't overcomplex the syntax and they are optional. </br> 
-P.S.: *Actually, the compiler needs its own user-types system to support this feature. At least allias system for user-defined named types, for instance: typedef a i32; etc.*
+That is why generic functions are essential and useful for systems programming. They should not take too much time to implement, they will not overcomplicate the syntax, and they are optional. </br> 
+P.S.: *Actually, the compiler needs its own user-type system to support this feature. At minimum, it needs an alias system for user-defined named types, for example: typedef a i32; etc.*

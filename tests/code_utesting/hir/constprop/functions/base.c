@@ -3,13 +3,12 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#include "../../../../misc/symtb_helper.h"
-
 #include <preproc/pp.h>
 #include <prep/token.h>
 #include <prep/markup.h>
 #include <ast/ast.h>
 #include <ast/astgen.h>
+#include <ast/dump.h>
 #include <ast/astgen/astgen.h>
 
 #include <hir/hirgen.h>
@@ -37,10 +36,12 @@ int main(int argc, char* argv[]) {
     }
 
     finder_ctx_t finctx = { .bpath = argv[2] };
+    deftb_t macros;
+    MCTB_init(&macros);
     pp_ctx_t ppctx;
     PP_init_pp_ctx(&ppctx);
-
-    fd = PP_perform(fd, &finctx, &ppctx);
+    fd = PP_perform(fd, &finctx, &ppctx, &macros);
+    MCTB_unload(&macros);
     if (fd < 0) {
         fprintf(stderr, "Processed file %s isn't found!\n", argv[1]);
         return 1;
@@ -110,8 +111,11 @@ int main(int argc, char* argv[]) {
     map_foreach (variable_info_t* vi, &smt.v.vartb) {
         printf("id: %li, %s, ", vi->v_id, vi->name->body);
         for (int i = 0; i < vi->vfs.ptr; i++) printf("ptr ");
-        printf("%s, s_id: %li", format_tkntype(vi->type), vi->s_id);
-        if (vi->vdi.defined == DEFINED_VARIABLE) printf(", value=%ld", vi->vdi.definition);
+        printf("%s, s_id: %li", DUMP_format_token_type(vi->type), vi->s_id);
+        if (vi->vdi.defined == DEFINED_VARIABLE) {
+            printf(", value=%ld", vi->vdi.definition);
+        }
+        
         printf("\n");
     }
 

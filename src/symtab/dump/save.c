@@ -1,10 +1,31 @@
 #include <symtab/dump.h>
-#include <stdarg.h>
+
+static char* _dump_appendf(char* dst, char* end, const char* fmt, ...);
 
 static char* _format_type(symbol_id_t id, typetab_ctx_t* ctx) {
+    static char signature[256];
     type_info_t ti;
     if (TPTB_get_info_id(id, &ti, ctx)) {
-        return ti.name->body;
+        if (ti.name) return ti.name->body;
+        if (ti.t == TYPE_SIGNATURE) {
+            char* dst = signature;
+            char* end = signature + sizeof(signature);
+            dst = _dump_appendf(dst, end, "fn(");
+
+            int first = 1;
+            foreach (symbol_id_t arg_id, &ti.body.signature.arg_types) {
+                if (!first) dst = _dump_appendf(dst, end, ",");
+                dst = _dump_appendf(dst, end, "%li", arg_id);
+                first = 0;
+            }
+
+            dst = _dump_appendf(dst, end, ")%li", ti.body.signature.ret_type);
+            for (int i = 0; i < ti.ptr; i++) {
+                dst = _dump_appendf(dst, end, "*");
+            }
+            *dst = 0;
+            return signature;
+        }
     }
 
     return "NULL";
@@ -17,11 +38,13 @@ static inline const char* _format_flag(const char* base, int flag) {
 static int _format_varinfo(variable_info_t* vi, sym_table_t* smt, FILE* output) {
     fprintf(
         output,
-        "var id=%li type=%s name=%s align=%i par=%li scope=%li ptr=%i%s%s%s%s\n",
+        "var id=%li type=%s name=%s align=%i par=%li scope=%li ptr=%i%s%s%s%s%s %s\n",
         vi->v_id, _format_type(vi->t_id, &smt->t), vi->name->body, vi->vmi.align,
         vi->p_id, vi->s_id, vi->vfs.ptr,
         _format_flag(", ro", vi->vfs.ro),   _format_flag(", glob", vi->vfs.glob), 
-        _format_flag(", ext", vi->vfs.ext), _format_flag(", not_null", vi->csa.not_null)
+        _format_flag(", ext", vi->vfs.ext), _format_flag(", not_null", vi->csa.not_null),
+        _format_flag(", volatile", vi->vmi.vlatile),
+        vi->vmi.reg != SMT_NULL ? DUMP_registers_to_string(vi->vmi.reg) : ""
     );
     return 1;
 }
@@ -30,6 +53,7 @@ int DUMP_format_vartb(sym_table_t* smt, FILE* output) {
     map_foreach (variable_info_t* vi, &smt->v.vartb) {
         _format_varinfo(vi, smt, output);
     }
+
     return 1;
 }
 
@@ -129,11 +153,11 @@ static int _format_funcinfo(func_info_t* fi, FILE* output) {
         "%s%s%s%s%s%s%s%s%s%s%s%s%s%s\n",
         fi->id, _format_str(fi->name), _format_str(fi->virt), fi->s_id,
         args, rtype, locals, generic_types, resolutions,
-        _format_flag(", ext", fi->flags.external),     _format_flag(", glob", fi->flags.global), _format_flag(", entry", fi->flags.entry),
-        _format_flag(", used", fi->flags.used),        _format_flag(", local", fi->flags.local), _format_flag(", vargs", fi->flags.vargs),
-        _format_flag(", gen", fi->flags.generic),      _format_flag(", abi", fi->flags.abi),     _format_flag(", weak", fi->flags.weak),
-        _format_flag(", self", fi->flags.self),        _format_flag(", naked", fi->flags.naked), _format_flag(", inline", fi->flags.inln),
-        _format_flag("only_body", fi->flags.onlybody), _format_flag(", vname", fi->flags.vname)
+        _format_flag(", ext", fi->flags.external),       _format_flag(", glob", fi->flags.global), _format_flag(", entry", fi->flags.entry),
+        _format_flag(", used", fi->flags.used),          _format_flag(", local", fi->flags.local), _format_flag(", vargs", fi->flags.vargs),
+        _format_flag(", gen", fi->flags.generic),        _format_flag(", abi", fi->flags.abi),     _format_flag(", weak", fi->flags.weak),
+        _format_flag(", self", fi->flags.self),          _format_flag(", naked", fi->flags.naked), _format_flag(", inline", fi->flags.inln),
+        _format_flag(", only_body", fi->flags.onlybody), _format_flag(", vname", fi->flags.vname)
     );
     return 1;
 }
@@ -150,15 +174,18 @@ static int _format_secinfo(section_info_t* si, FILE* output) {
     const char* name = si->name ? si->name->body : "NULL";
     char vars[512]  = { 0 };
     char funcs[512] = { 0 };
+    char vtabs[512] = { 0 };
 
     _format_id_list(&si->sorted.vars, vars, sizeof(vars));
     _format_id_list(&si->sorted.func, funcs, sizeof(funcs));
+    _format_id_list(&si->sorted.vtab, vtabs, sizeof(vtabs));
 
     fprintf(
         output,
-        "sec name=%s align=%i vars=%s funcs=%s\n",
-        name, si->align, vars, funcs
+        "sec name=%s align=%i vars=%s funcs=%s vtabs=%s\n",
+        name, si->align, vars, funcs, vtabs
     );
+    
     return 1;
 }
 

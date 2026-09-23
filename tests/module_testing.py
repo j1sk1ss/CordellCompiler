@@ -1026,7 +1026,27 @@ def _run_test_once(
             ]))
 
             if compiler_proc.returncode != 0:
-                actual_output = compiler_proc.stdout
+                if compiler_proc.returncode < 0:
+                    signal_number = -compiler_proc.returncode
+                    reason = f"Compiler terminated by {signal.Signals(signal_number).name} (signal {signal_number})."
+                else:
+                    reason = f"Compiler failed with exit code {compiler_proc.returncode}."
+                reason += f"\nCommand: {_cmd_to_str(compile_cmd)}"
+                if compiler_proc.stdout:
+                    reason += f"\nCompiler output:\n{compiler_proc.stdout.rstrip()}"
+                test_elapsed = time.perf_counter() - test_started_at
+                return _attach_failure_log({
+                    "file": str(test_file),
+                    "ok": False,
+                    "critical": flags["block_test"] and not flags["bug"],
+                    "warning": flags["bug"],
+                    "diff": reason,
+                    "metrics": _build_measure_info(measure_time, test_elapsed, None, measure_lines, input_lines, output_lines),
+                    "_test_elapsed": test_elapsed,
+                    "_program_elapsed": None,
+                    "_input_lines": input_lines,
+                    "_output_lines": output_lines,
+                }, test_file, log_sections)
             else:
                 asm_ok, asm_output, actual_outputs_by_run, actual_exit_codes, program_elapsed = _assemble_and_run(
                     compiler_proc.stdout,
@@ -1424,9 +1444,295 @@ def _find_test_roots(start_path: Path) -> list[Path]:
     return roots
 
 
+
+PROJECT_MANIFEST_NAME = "project.json"
+
+
+def _project_manifest_for_source(path: Path) -> Path | None:
+    """Return a project manifest when *path* is a source owned by a project directory."""
+    manifest = path.parent / PROJECT_MANIFEST_NAME
+    return manifest if manifest.is_file() else None
+
+
+def _load_project_manifest(manifest_path: Path) -> dict:
+    try:
+        raw = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except Exception as ex:
+        raise ValueError(f"{manifest_path}: failed to read project manifest: {ex}") from ex
+
+    if not isinstance(raw, dict):
+        raise ValueError(f"{manifest_path}: project manifest must be a JSON object")
+
+    sources_raw = raw.get("sources")
+    if not isinstance(sources_raw, list) or not sources_raw:
+        raise ValueError(f"{manifest_path}: 'sources' must be a non-empty array")
+
+    project_dir = manifest_path.parent.resolve()
+    sources: list[Path] = []
+    source_names: list[str] = []
+    seen: set[Path] = set()
+
+    for item in sources_raw:
+        if not isinstance(item, str) or not item.strip():
+            raise ValueError(f"{manifest_path}: every source must be a non-empty string")
+
+        rel = Path(item)
+        if rel.is_absolute():
+            raise ValueError(f"{manifest_path}: source paths must be relative: {item}")
+
+        source = (project_dir / rel).resolve()
+        try:
+            source.relative_to(project_dir)
+        except ValueError:
+            raise ValueError(f"{manifest_path}: source escapes project directory: {item}")
+
+        if source.suffix != ".cpl":
+            raise ValueError(f"{manifest_path}: project source is not a .cpl file: {item}")
+        if not source.is_file():
+            raise ValueError(f"{manifest_path}: project source does not exist: {item}")
+        if source in seen:
+            raise ValueError(f"{manifest_path}: duplicate project source: {item}")
+
+        seen.add(source)
+        sources.append(source)
+        source_names.append(item)
+
+    entry_raw = raw.get("entry")
+    if entry_raw is None:
+        if "main.cpl" in source_names:
+            entry_raw = "main.cpl"
+        else:
+            entry_raw = source_names[-1]
+
+    if not isinstance(entry_raw, str) or not entry_raw.strip():
+        raise ValueError(f"{manifest_path}: 'entry' must be a source path string")
+
+    entry = (project_dir / entry_raw).resolve()
+    if entry not in seen:
+        raise ValueError(f"{manifest_path}: entry '{entry_raw}' must also be listed in 'sources'")
+
+    expected_output = raw.get("expected_output", "")
+    if not isinstance(expected_output, str):
+        raise ValueError(f"{manifest_path}: 'expected_output' must be a string")
+
+    expected_exit_code_raw = raw.get("expected_exit_code", 0)
+    try:
+        expected_exit_code = int(expected_exit_code_raw)
+    except (TypeError, ValueError):
+        raise ValueError(f"{manifest_path}: 'expected_exit_code' must be an integer")
+
+    args_raw = raw.get("args", [])
+    if not isinstance(args_raw, list) or any(not isinstance(arg, str) for arg in args_raw):
+        raise ValueError(f"{manifest_path}: 'args' must be an array of strings")
+
+    link_args_raw = raw.get("link_args", [])
+    if not isinstance(link_args_raw, list) or any(not isinstance(arg, str) for arg in link_args_raw):
+        raise ValueError(f"{manifest_path}: 'link_args' must be an array of strings")
+
+    libs_raw = raw.get("libs", [])
+    if not isinstance(libs_raw, list) or any(not isinstance(lib, str) for lib in libs_raw):
+        raise ValueError(f"{manifest_path}: 'libs' must be an array of strings")
+
+    link_args = list(link_args_raw)
+    link_args.extend(lib if lib.startswith("-l") else f"-l{lib}" for lib in libs_raw)
+
+    return {
+        "manifest_path": manifest_path.resolve(),
+        "project_dir": project_dir,
+        "sources": sources,
+        "entry": entry,
+        "expected_output": expected_output,
+        "expected_exit_code": expected_exit_code,
+        "args": list(args_raw),
+        "link_args": link_args,
+        "debug": bool(raw.get("debug", False)),
+        "leak_trace": bool(raw.get("leak_trace", False)),
+    }
+
+
+def _project_entry_from_manifest(manifest_path: Path) -> Path:
+    return _load_project_manifest(manifest_path)["entry"]
+
+
+def _project_test_for_source(path: Path) -> dict | None:
+    manifest = _project_manifest_for_source(path)
+    if manifest is None:
+        return None
+
+    project = _load_project_manifest(manifest)
+    source = path.resolve()
+    if source not in project["sources"]:
+        return None
+    return project
+
+
+def _project_result_failure(project: dict, reason: str, *, critical: bool = False) -> dict:
+    return {
+        "file": str(project["manifest_path"]),
+        "ok": False,
+        "critical": critical,
+        "warning": False,
+        "diff": reason,
+        "metrics": None,
+    }
+
+
+def _run_project_test(
+    binary: str,
+    binary_leak: str | None,
+    project: dict,
+    *,
+    asm_arch: str | None = None,
+) -> dict:
+    """Compile all project sources in one compiler invocation and run the resulting assembly."""
+    manifest_path: Path = project["manifest_path"]
+    project_dir: Path = project["project_dir"]
+    sources: list[Path] = project["sources"]
+
+    skip_reason = _host_asm_arch_skip_reason(asm_arch)
+    if skip_reason is not None:
+        return {
+            "file": str(manifest_path),
+            "asm_arch": asm_arch,
+            "ok": True,
+            "skipped": True,
+            "critical": False,
+            "warning": False,
+            "diff": None,
+            "metrics": f"{skip_reason}; host={sys.platform}",
+        }
+
+    chosen_bin = binary_leak if project["leak_trace"] and binary_leak else binary
+    if project["leak_trace"] and not binary_leak:
+        result = _project_result_failure(
+            project,
+            "Project requests leak_trace, but leak-instrumented binary was not built.",
+            critical=True,
+        )
+        result["asm_arch"] = asm_arch
+        return result
+
+    log_sections: list[tuple[str, str]] = []
+    _append_log_section(log_sections, "PROJECT MANIFEST", json.dumps({
+        "manifest": str(manifest_path),
+        "project_dir": str(project_dir),
+        "sources": [str(p) for p in sources],
+        "entry": str(project["entry"]),
+        "expected_exit_code": project["expected_exit_code"],
+        "args": project["args"],
+        "link_args": project["link_args"],
+        "asm_arch": asm_arch,
+    }, ensure_ascii=False, indent=2))
+
+    # Multi-file compiler CLI convention:
+    #   compiler source1.cpl source2.cpl ... sourceN.cpl include_root
+    # This is deliberately identical to the old CLI for N=1.
+    compile_cmd = [str(chosen_bin), *[str(p) for p in sources], str(project_dir)]
+    _log(f"[PROJECT] manifest: {manifest_path}")
+    _log(f"[PROJECT] compiler command: {_cmd_to_str(compile_cmd)}")
+
+    try:
+        compiler_proc, compiler_elapsed = _capture_process(compile_cmd)
+    except Exception as ex:
+        result = _project_result_failure(project, f"Subprocess error: {ex}", critical=True)
+        result["asm_arch"] = asm_arch
+        return result
+
+    _append_log_section(log_sections, "PROJECT COMPILER OUTPUT", "\n".join([
+        f"command: {_cmd_to_str(compile_cmd)}",
+        f"exit_code: {compiler_proc.returncode}",
+        f"elapsed: {compiler_elapsed:.6f}s",
+        "output:",
+        compiler_proc.stdout.rstrip("\n"),
+    ]))
+
+    if compiler_proc.returncode != 0:
+        reason = f"Compiler failed with exit code {compiler_proc.returncode}."
+        if compiler_proc.returncode < 0:
+            signal_number = -compiler_proc.returncode
+            try:
+                signal_name = signal.Signals(signal_number).name
+            except ValueError:
+                signal_name = f"signal {signal_number}"
+            reason = f"Compiler terminated by {signal_name} (signal {signal_number})."
+        reason += f"\nCommand: {_cmd_to_str(compile_cmd)}"
+        if compiler_proc.stdout:
+            reason += f"\nCompiler output:\n{compiler_proc.stdout.rstrip()}"
+        result = _project_result_failure(project, reason)
+        result["asm_arch"] = asm_arch
+        return _attach_failure_log(result, manifest_path, log_sections)
+
+    asm_ok, asm_output, outputs_by_run, exit_codes, program_elapsed = _assemble_and_run(
+        compiler_proc.stdout,
+        debug=project["debug"],
+        runs=[project["args"]],
+        link_args=project["link_args"],
+        log_sections=log_sections,
+        asm_arch=asm_arch,
+    )
+
+    if project["debug"] and asm_ok:
+        return {
+            "file": str(manifest_path),
+            "asm_arch": asm_arch,
+            "ok": True,
+            "critical": False,
+            "warning": False,
+            "diff": None,
+            "metrics": None,
+        }
+
+    if not asm_ok:
+        result = _project_result_failure(project, asm_output or "Assembly/link step failed")
+        result["asm_arch"] = asm_arch
+        return _attach_failure_log(result, manifest_path, log_sections)
+
+    actual_output = (outputs_by_run or [asm_output or ""])[0]
+    expected_output = project["expected_output"]
+    output_ok, output_why = _matches_expected(
+        _normalize_output(expected_output),
+        _normalize_output(actual_output),
+    )
+
+    actual_exit_code = exit_codes[0] if exit_codes else None
+    exit_ok = actual_exit_code == project["expected_exit_code"]
+
+    if output_ok and exit_ok:
+        return {
+            "file": str(manifest_path),
+            "asm_arch": asm_arch,
+            "expected": _normalize_output(expected_output),
+            "actual": _normalize_output(actual_output),
+            "ok": True,
+            "critical": False,
+            "warning": False,
+            "diff": None,
+            "metrics": f"compiler={compiler_elapsed:.6f}s, program={_format_duration(program_elapsed)}",
+        }
+
+    reasons: list[str] = []
+    if not output_ok:
+        reasons.append(output_why or "Output mismatch")
+        diff = _make_diff(_normalize_output(expected_output), _normalize_output(actual_output))
+        if diff:
+            reasons.append(diff)
+    if not exit_ok:
+        reasons.append(
+            f"Exit code mismatch: expected {project['expected_exit_code']}, actual {actual_exit_code}"
+        )
+
+    result = _project_result_failure(project, "\n\n".join(reasons))
+    result["asm_arch"] = asm_arch
+    return _attach_failure_log(result, manifest_path, log_sections)
+
 def _collect_cpl_files_from_path(path: Path, all_roots: set[Path]) -> list[Path]:
     if path.is_file():
-        return [path] if path.suffix == ".cpl" else []
+        if path.name == PROJECT_MANIFEST_NAME:
+            return [_project_entry_from_manifest(path)]
+        if path.suffix != ".cpl":
+            return []
+        project = _project_test_for_source(path)
+        return [project["entry"]] if project is not None else [path]
 
     if path.is_dir():
         return _collect_cpl_files(path, all_roots)
@@ -1436,8 +1742,8 @@ def _collect_cpl_files_from_path(path: Path, all_roots: set[Path]) -> list[Path]
 
 def _resolve_test_selection(raw_path: Path) -> tuple[Path, list[Path], dict[Path, Path]]:
     if raw_path.is_file():
-        if raw_path.suffix != ".cpl":
-            print(f"Error: Test file '{raw_path}' is not a .cpl file", file=sys.stderr)
+        if raw_path.suffix != ".cpl" and raw_path.name != PROJECT_MANIFEST_NAME:
+            print(f"Error: Test file '{raw_path}' is neither a .cpl file nor project.json", file=sys.stderr)
             sys.exit(1)
 
         root = _find_nearest_test_root(raw_path)
@@ -1463,6 +1769,12 @@ def _resolve_test_selection(raw_path: Path) -> tuple[Path, list[Path], dict[Path
     return root, [root], {root: raw_path}
 
 def _collect_cpl_files(root: Path, all_roots: set[Path]) -> list[Path]:
+    manifest = root / PROJECT_MANIFEST_NAME
+    if manifest.is_file():
+        # A project directory is one test. Its auxiliary .cpl files must not be
+        # scheduled independently by the legacy recursive collector.
+        return [_project_entry_from_manifest(manifest)]
+
     cpl_files = []
     try:
         for entry in root.iterdir():
@@ -1597,7 +1909,12 @@ def _entry() -> None:
         need_leak_bin = False
         for cpl in cpl_files:
             try:
-                if ": LEAK_TRACE :" in cpl.read_text(encoding="utf-8"):
+                project = _project_test_for_source(cpl)
+                if project is not None:
+                    if project["leak_trace"]:
+                        need_leak_bin = True
+                        break
+                elif ": LEAK_TRACE :" in cpl.read_text(encoding="utf-8"):
                     need_leak_bin = True
                     break
             except Exception:
@@ -1627,13 +1944,35 @@ def _entry() -> None:
             print(f"Module {root} has no .cpl files to test.")
 
         for cpl in tqdm(cpl_files, desc=f"Module {rel}", leave=False, position=1, disable=not _verbose_logs()):
-            results.append(_run_test(
-                binary,
-                binary_leak,
-                cpl,
-                force_rewrite=args.force_rewrite,
-                asm_arch=asm_arch,
-            ))
+            try:
+                project = _project_test_for_source(cpl)
+            except Exception as ex:
+                results.append({
+                    "file": str(cpl.parent / PROJECT_MANIFEST_NAME),
+                    "asm_arch": asm_arch,
+                    "ok": False,
+                    "critical": True,
+                    "warning": False,
+                    "diff": str(ex),
+                    "metrics": None,
+                })
+                continue
+
+            if project is not None:
+                results.append(_run_project_test(
+                    binary,
+                    binary_leak,
+                    project,
+                    asm_arch=asm_arch,
+                ))
+            else:
+                results.append(_run_test(
+                    binary,
+                    binary_leak,
+                    cpl,
+                    force_rewrite=args.force_rewrite,
+                    asm_arch=asm_arch,
+                ))
 
     compile_pbar.close()
     passed: int = 0

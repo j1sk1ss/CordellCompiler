@@ -125,7 +125,7 @@ static int _insert_phi_preamble(cfg_block_t* block, long bid, symbol_id_t a, sym
             HIR_SUBJ_STKVAR(bvi.v_id, HIR_get_stktype(&bvi), bvi.vfs.ptr), 
             NULL
         );
-        
+        if (!union_command) continue;
         if (trg->hmap.entry && trg->hmap.exit) {
             if (trg->hmap.exit != trg->hmap.entry) HIR_insert_block_before(union_command, trg->hmap.exit);
             else {

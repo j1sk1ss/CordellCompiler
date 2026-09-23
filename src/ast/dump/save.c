@@ -7,8 +7,10 @@ static const char* _name_tkn_type(token_type_t t) {
         case GENERIC_TYPE_TOKEN:          return "GENERIC_TYPE_TOKEN";   
         case GENERIC_VARIABLE_TOKEN:      return "GENERIC_VARIABLE_TOKEN";
         case SIZEOF_TOKEN:                return "SIZEOF_TOKEN";
+        case PLACE_TOKEN:                 return "PLACE_TOKEN";
         case INDEXATION_TOKEN:            return "INDEXATION_TOKEN";
         case CALLING_TOKEN:               return "CALLING_TOKEN";
+        case SIGNATURE_TOKEN:             return "SIGNATURE_TOKEN";
         case UNKNOWN_FLOAT_NUMERIC_TOKEN: return "UNKNOWN_FLOAT_NUMERIC_TOKEN";
         case UNKNOWN_CHAR_TOKEN:          return "UNKNOWN_CHAR_TOKEN";
         case UNKNOWN_BRACKET_VALUE:       return "UNKNOWN_BRACKET_VALUE";
@@ -32,8 +34,8 @@ static const char* _name_tkn_type(token_type_t t) {
         case U8_TYPE_TOKEN:               return "U8_TYPE_TOKEN";
         case ARRAY_TYPE_TOKEN:            return "ARRAY_TYPE_TOKEN";
         case CONVERT_TOKEN:               return "CONVERT_TOKEN";
-        case IMPORT_TOKEN:                return "IMPORT_TOKEN";
-        case IMPORT_SELECT_TOKEN:         return "IMPORT_SELECT_TOKEN";
+        // case IMPORT_TOKEN:                return "IMPORT_TOKEN";
+        // case IMPORT_SELECT_TOKEN:         return "IMPORT_SELECT_TOKEN";
         case EXTERN_TOKEN:                return "EXTERN_TOKEN";
         case START_TOKEN:                 return "START_TOKEN";
         case RETURN_TOKEN:                return "RETURN_TOKEN";
@@ -106,20 +108,23 @@ static const char* _name_tkn_type(token_type_t t) {
 const char* DUMP_format_token_type(token_type_t t) {
     const char* base;
     switch (t) {
-        case I0_TYPE_TOKEN:  base = "i0";  break;
-        case I8_TYPE_TOKEN:  base = "i8";  break;
+        case I0_TYPE_TOKEN:    base = "i0";  break;
+        case I8_TYPE_TOKEN:    base = "i8";  break;
         case CUSTOM_TYPE_TOKEN:
-        case U8_TYPE_TOKEN:  base = "u8";  break;
-        case I16_TYPE_TOKEN: base = "i16"; break;
-        case U16_TYPE_TOKEN: base = "u16"; break;
-        case I32_TYPE_TOKEN: base = "i32"; break;
-        case U32_TYPE_TOKEN: base = "u32"; break;
-        case F32_TYPE_TOKEN: base = "f32"; break;
-        case I64_TYPE_TOKEN: base = "i64"; break;
-        case U64_TYPE_TOKEN: base = "u64"; break;
-        case F64_TYPE_TOKEN: base = "f64"; break;
-        default:             base = "";    break;
+        case U8_TYPE_TOKEN:    base = "u8";  break;
+        case I16_TYPE_TOKEN:   base = "i16"; break;
+        case U16_TYPE_TOKEN:   base = "u16"; break;
+        case I32_TYPE_TOKEN:   base = "i32"; break;
+        case U32_TYPE_TOKEN:   base = "u32"; break;
+        case F32_TYPE_TOKEN:   base = "f32"; break;
+        case I64_TYPE_TOKEN:   base = "i64"; break;
+        case U64_TYPE_TOKEN:   base = "u64"; break;
+        case F64_TYPE_TOKEN:   base = "f64"; break;
+        case ARRAY_TYPE_TOKEN: base = "arr"; break;
+        case SIGNATURE_TOKEN:  base = "fn";  break;
+        default:               base = "";    break;
     }
+    
     return base;
 }
 

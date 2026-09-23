@@ -2,17 +2,17 @@
 
 DEFINE_PARSER(cpl_parse_conv, {
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
-    PARSER_DO_OR_THROW(!base, NULL, "Can't create a base for a cast!");
+    PARSER_ASSERT(!base, NULL, "Can't create a base for a cast!");
 
     forward_token(it, 1);
     symbol_id_t type = type_lookup(CURRENT_TOKEN, ctx, smt);
-    PARSER_DO_OR_THROW(
+    PARSER_ASSERT(
         CURRENT_TOKEN && (!TKN_is_builtin_type(CURRENT_TOKEN) && type == NO_SYMBOL_ID), base,
         "Expected a type of a token in a cast!"
     );
 
     ast_node_t* type_node = AST_create_node(CURRENT_TOKEN);
-    PARSER_DO_OR_THROW(!type_node, base, "Can't create a base for a type in a cast!");
+    PARSER_ASSERT(!type_node, base, "Can't create a base for a type in a cast!");
 
     AST_add_node(base, type_node);
     if (type != NO_SYMBOL_ID) {

@@ -2,8 +2,8 @@
 
 DEFINE_PARSER(cpl_parse_syscall, {
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
-    PARSER_DO_OR_THROW(!base, NULL, "Can't create a base for the syscall statement!");
-    PARSER_DO_OR_THROW(
+    PARSER_ASSERT(!base, NULL, "Can't create a base for the syscall statement!");
+    PARSER_ASSERT(
         !consume_token(it, OPEN_BRACKET_TOKEN), base, 
         "Expected the 'OPEN_BRACKET_TOKEN' token during a parse of the 'syscall' statement!"
     );
@@ -16,7 +16,7 @@ DEFINE_PARSER(cpl_parse_syscall, {
         }
 
         ast_node_t* arg = cpl_parse_expression(it, ctx, smt, 1);
-        PARSER_DO_OR_THROW(!arg, base, "Error during the syscall's argument parsing! syscall(<statement>)!");
+        PARSER_ASSERT(!arg, base, "Error during the syscall's argument parsing! syscall(<statement>)!");
         AST_add_node(base, arg);
     }
 

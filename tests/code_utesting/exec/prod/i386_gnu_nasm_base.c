@@ -77,10 +77,12 @@ int main(int argc, char* argv[]) {
     }
 
     finder_ctx_t finctx = { .bpath = argv[2] };
+    deftb_t macros;
+    MCTB_init(&macros);
     pp_ctx_t ppctx;
     PP_init_pp_ctx(&ppctx);
-
-    fd = PP_perform(fd, &finctx, &ppctx);
+    fd = PP_perform(fd, &finctx, &ppctx, &macros);
+    MCTB_unload(&macros);
     if (fd < 0) {
         fprintf(stderr, "Processed file %s isn't found!\n", argv[1]);
         return 1;
@@ -126,7 +128,7 @@ int main(int argc, char* argv[]) {
 
     RELOAD_CFG; // Rebuild after Last_ret + TRE
 
-    // HIR_CFG_finilize_before_dom(&cfgctx);
+    // HIR_CFG_finalize_before_dom(&cfgctx);
     HIR_CFG_create_domdata(&cfgctx);
     ltree_ctx_t lctx;
     map_init(&lctx.lmap, MAP_NO_CMP);
@@ -135,14 +137,14 @@ int main(int argc, char* argv[]) {
     HIR_FUNC_perform_inline(&cfgctx, &lctx, &smt);
     HIR_LTREE_unload_ctx(&lctx);
     RELOAD_CFG; // Rebuild after inlined functions
-    // HIR_CFG_finilize_before_dom(&cfgctx);
+    // HIR_CFG_finalize_before_dom(&cfgctx);
     HIR_CFG_create_domdata(&cfgctx);
     map_init(&lctx.lmap, MAP_NO_CMP);
     HIR_LOOP_mark_loops(&cfgctx, &lctx);
 
     HIR_LTREE_canonicalization(&cfgctx, &lctx);
     HIR_CFG_unload_domdata(&cfgctx);
-    HIR_CFG_finilize_before_dom(&cfgctx);
+    HIR_CFG_finalize_before_dom(&cfgctx);
     HIR_CFG_create_domdata(&cfgctx);
 
     ssa_ctx_t ssactx;

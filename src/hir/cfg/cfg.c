@@ -138,7 +138,7 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
     return 1;
 }
 
-int HIR_CFG_finilize_before_dom(cfg_ctx_t* ctx) {
+int HIR_CFG_finalize_before_dom(cfg_ctx_t* ctx) {
     /* Clean the CFG by destroying the link from blocks,
        without any predecessors (except initial). */
     foreach (cfg_func_t* fb, &ctx->funcs) {
@@ -202,7 +202,7 @@ int HIR_CFG_squeeze_blocks(cfg_ctx_t* ctx) {
                 (cb->l && !cb->jmp)
             ) {
                 cfg_block_t* next = cb->l ? cb->l : cb->jmp;
-                if (set_size(&next->pred) == 1 && cb != next && (next->l && next->jmp)) {
+                if (set_size(&next->pred) == 1 && cb != next) {
                     hir_block_t* curr = HIR_get_next(next->hmap.entry, next->hmap.exit, 0);
                     while (curr) {
                         hir_block_t* tmp = HIR_get_next(curr, next->hmap.exit, 1);

@@ -3,7 +3,7 @@
 int HIR_generate_start_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     HIR_SET_CURRENT_POS(ctx, node);
     HIR_BLOCK1(ctx, HIR_STRT, HIR_SUBJ_FUNCNAME(node));
-    HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(node->sinfo.s_id));
+    HIR_BLOCK0(ctx, HIR_MKSCOPE);
 
     int argnum = 0;
     ast_node_t* t;
@@ -20,7 +20,7 @@ int HIR_generate_start_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt)
         HIR_dump_cold(ctx);
     }
 
-    HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(node->sinfo.s_id));
+    HIR_BLOCK0(ctx, HIR_ENDSCOPE);
     HIR_BLOCK0(ctx, HIR_STEND);
     return 1;
 }

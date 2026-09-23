@@ -97,7 +97,7 @@ Generic functions are instantiated for the selected type arguments. Generic type
 
 ## Function pointers
 
-A function can be stored in `ptr i0` and called through that pointer:
+A function can be stored in `ptr i0` or in a signature `ptr fn()i0` and called through that pointer:
 
 ```cpl
 function inc(i64 a) -> i64 {
@@ -105,8 +105,9 @@ function inc(i64 a) -> i64 {
 }
 
 start() {
-    ptr i0 f = inc;
-    exit f(4) as u8;
+    ptr i0 f1         = inc;
+    ptr fn(i64)i64 f2 = inc;
+    exit (f1(4) + f2(4)) as u8;
 }
 ```
 
@@ -142,7 +143,7 @@ start() {
 Block form:
 
 ```cpl
-ptr i0 logic = (i64 a, i64 b) => {
+ptr fn(i64,i64)i64 logic = (i64 a, i64 b) => {
     a += b;
     return a + b;
 };

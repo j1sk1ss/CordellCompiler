@@ -1,0 +1,17 @@
+{
+  "name": "17_virtual_pointer_arg_mutation_cross_tu",
+  "description": "Virtual method mutates caller-owned state through a pointer across source-unit boundaries.",
+  "entry": "main.cpl",
+  "sources": [
+    "impl.cpl",
+    "workflow.cpl",
+    "main.cpl"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "interface",
+    "pointer_argument",
+    "mutation",
+    "cross_tu"
+  ]
+}

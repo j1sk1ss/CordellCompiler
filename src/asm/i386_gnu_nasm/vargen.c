@@ -27,7 +27,7 @@ static const char* _format_lir_register(lir_registers_t reg) {
         /* 8-bit */
         case AL:   return "al";   case BL:   return "bl";   case CL:   return "cl";   case DL:   return "dl";
         case AH:   return "ah";   case BH:   return "bh";   case CH:   return "ch";   case DH:   return "dh";
-        default:   return "<unknown>";
+        default:   return "reg<unknown>";
     }
 }
 
@@ -71,7 +71,7 @@ const char* i386_gnu_nasm_format_lir_subject(lir_subject_t* v, sym_table_t* smt,
                 }
             }
 
-            return "<unknown>";
+            return "str<unknown>";
         }
         case LIR_FNAME: {
             func_info_t fi;
@@ -94,7 +94,20 @@ const char* i386_gnu_nasm_format_lir_subject(lir_subject_t* v, sym_table_t* smt,
                 return buffer;
             }
 
-            return "<unknown>";
+            return "fn<unknown>";
+        }
+        case LIR_VTABLE: {
+            vtable_info_t vi;
+            type_info_t ti;
+            if (
+                VTTB_get_info_id(v->storage.str.sid, &vi, &smt->vt) &&
+                TPTB_get_info_id(vi.t_id, &ti, &smt->t)
+            ) {
+                snprintf(buffer, sizeof(_buffers[0]), v->storage.str.rel ? "[rel _cpl_vtable_%s]" : "_cpl_vtable_%s", ti.name->body);
+                return buffer;
+            }
+
+            return "vtable<unknown>";
         }
         case LIR_GLVARIABLE:
         case LIR_VARIABLE: {
@@ -122,7 +135,7 @@ const char* i386_gnu_nasm_format_lir_subject(lir_subject_t* v, sym_table_t* smt,
                 }
             }
             
-            return "<unknown>";
+            return "var<unknown>";
         }
         case LIR_MEMORY: {
 _shifted_to_memory: {}

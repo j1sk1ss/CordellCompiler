@@ -242,6 +242,14 @@ static char* _get_formatted_subject(char* dst, char* end, hir_subject_t* s, sym_
 
                 break;
             }
+            case HIR_VTABLE: {
+                vtable_info_t vi;
+                if (VTTB_get_info_id(s->storage.str.s_id, &vi, &smt->vt)) {
+                    APPEND("vtable_%lu", vi.id);
+                }
+
+                break;
+            }
             case HIR_PHISET: {
                 APPEND("set ");
                 set_foreach (int_tuple_t* tpl, &s->storage.set.h) {

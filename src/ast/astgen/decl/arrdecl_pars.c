@@ -5,10 +5,7 @@ Params:
     - <Parser args> - Arguments.
 
 Returns an AST node of a type. */
-static ast_node_t* _parse_array_type(PARSER_ARGS) {
-    PARSER_ARGS_USE;
-    SAVE_TOKEN_POINT;
-
+static DEFINE_PARSER(_parse_array_type, {
     ast_node_t* type = NULL;
     forward_token(it, 1);
     switch (CURRENT_TOKEN->t_type) {
@@ -16,13 +13,13 @@ static ast_node_t* _parse_array_type(PARSER_ARGS) {
             type = AST_create_node(CURRENT_TOKEN);
             forward_token(it, 2);
             ast_node_t* arr_size = cpl_parse_expression(it, ctx, smt, carry);
-            PARSER_DO_OR_THROW_DO(
+            PARSER_ASSERT_DO(
                 !type || !arr_size || CURRENT_TOKEN->t_type != COMMA_TOKEN, "Can't parse nested array type! Expected the ',' token!", 
                 { AST_unload(type); AST_unload(arr_size); }
             );
 
             ast_node_t* arr_type = _parse_array_type(it, ctx, smt, carry);
-            PARSER_DO_OR_THROW_DO(
+            PARSER_ASSERT_DO(
                 !consume_token(it, CLOSE_INDEX_TOKEN), "Can't create the size and the type for an array!", 
                 { AST_unload(type); AST_unload(arr_size); AST_unload(arr_type); }
             );
@@ -33,13 +30,13 @@ static ast_node_t* _parse_array_type(PARSER_ARGS) {
         }
         default: {
             type = AST_create_node(CURRENT_TOKEN);
-            PARSER_DO_OR_THROW(!type, NULL, "Can't create a base for the array's type!");
+            PARSER_ASSERT(!type, NULL, "Can't create a base for the array's type!");
             break;
         }
     }
 
     return type;
-}
+})
 
 static symbol_id_t _resolve_array_type(ast_node_t* type, ast_ctx_t* ctx, sym_table_t* smt);
 
@@ -70,7 +67,7 @@ static symbol_id_t _resolve_array_type(ast_node_t* type, ast_ctx_t* ctx, sym_tab
 
     ast_node_t* length     = type->c;
     ast_node_t* elem_type  = length ? length->siblings.n : NULL;
-    long long const_length = -1;
+    long long const_length = SMT_NULL;
     if (
         length && 
         length->t->t_type == UNKNOWN_NUMERIC_TOKEN
@@ -85,52 +82,52 @@ static symbol_id_t _resolve_array_type(ast_node_t* type, ast_ctx_t* ctx, sym_tab
 
 DEFINE_PARSER(cpl_parse_array_declaration, {
     ast_node_t* base = AST_create_node(CURRENT_TOKEN);
-    PARSER_DO_OR_THROW(!base, NULL, "Can't create a base for the array's declaration!");
+    PARSER_ASSERT(!base, NULL, "Can't create a base for the array's declaration!");
 
-    annotations_summary_t annots = { .align = CONF_get_full_bytness(), .section = NULL, .salign = -1 };
+    annotations_summary_t annots = { .align = CONF_get_full_bytness(), .section = NULL, .salign = SMT_NULL };
     ANNOT_read_annotations(&ctx->annots, &annots);
 
     forward_token(it, 1);
     ast_node_t* name = AST_create_node(CURRENT_TOKEN);
-    PARSER_DO_OR_THROW_DO(
+    PARSER_ASSERT_DO(
         !name, "Can't create a base for the array's name!", 
         { AST_unload(base); ANNOT_destroy_summary(&annots); }
     );
     AST_add_node(base, name);
 
-    PARSER_DO_OR_THROW_DO(
+    PARSER_ASSERT_DO(
         !consume_token(it, OPEN_INDEX_TOKEN), "Error during array parsing! arr <name>[<size>, <type>]! Expected the '[' token!", 
         { AST_unload(base); ANNOT_destroy_summary(&annots); }
     );
 
     forward_token(it, 1);
     ast_node_t* length = cpl_parse_expression(it, ctx, smt, 0);
-    PARSER_DO_OR_THROW_DO(
+    PARSER_ASSERT_DO(
         !length, "Can't create a base for the array's size!", 
         { AST_unload(base); ANNOT_destroy_summary(&annots); }
     );
 
     AST_add_node(base, length);
     
-    PARSER_DO_OR_THROW_DO(
+    PARSER_ASSERT_DO(
         CURRENT_TOKEN->t_type != COMMA_TOKEN, "Error during array parsing! arr <name>[<size>, <type>]! Expected the ',' token!", 
         { AST_unload(base); ANNOT_destroy_summary(&annots); }
     );
 
     ast_node_t* type = _parse_array_type(it, ctx, smt, carry);
-    PARSER_DO_OR_THROW_DO(
+    PARSER_ASSERT_DO(
         !type, "Can't create a base for the array's type!", 
         { AST_unload(base); ANNOT_destroy_summary(&annots); }
     );
 
     AST_add_node(base, type);
 
-    PARSER_DO_OR_THROW_DO(
+    PARSER_ASSERT_DO(
         !consume_token(it, CLOSE_INDEX_TOKEN), "Error during array parsing! arr <name>[<size>, <type>]! Expected the ']' token!", 
         { AST_unload(base); ANNOT_destroy_summary(&annots); }
     );
 
-    long long const_length = -1;
+    long long const_length = SMT_NULL;
     if (length->t->t_type != UNKNOWN_NUMERIC_TOKEN) base->t->flags.vla = 1;
     else const_length = length->t->body->to_llong(length->t->body);
     ast_node_t* init_values = cpl_parse_declaration_value(it, ctx, smt, &const_length);
@@ -146,12 +143,16 @@ DEFINE_PARSER(cpl_parse_array_declaration, {
         CONF_set_parser_error();
     }
 
-    base->sinfo.t_id = TPTB_add_info_from_token(name->sinfo.s_id, base->t, name->sinfo.v_id, &smt->t);            /* register as a type                       */
+    base->sinfo.t_id = TPTB_add_info_from_token(name->sinfo.s_id, base->t, NO_SYMBOL_ID, &smt->t);               /* register as a type                       */
     ARTB_add_info(name->sinfo.v_id, const_length, base->t->flags.vla, type->t->t_type, type->t->flags, &smt->a);  /* register as an array                     */
     TPTB_set_memory_size_id(base->sinfo.t_id, array_size, &smt->t);                                               /* select the type of the array             */
     TPTB_link_child(base->sinfo.t_id, type->sinfo.t_id, &smt->t);                                                 /*                                          */
     VRTB_update_type(name->sinfo.v_id, FIELD_NO_CHANGE, base->sinfo.t_id, &smt->v);                               /* link type to the variable's id           */
-    TPTB_add_as_child(ctx->t_id, base->sinfo.t_id, name->t->body, array_size, &smt->t);                           /* ling array to a container (if it exists) */
+    
+    symbol_id_t pt_id;
+    if (stack_top(&ctx->types, (void**)&pt_id)) {
+        TPTB_add_as_child(pt_id, base->sinfo.t_id, name->t->body, array_size, &smt->t);                           /* ling array to a container (if it exists) */
+    }
 
     VRTB_update_memory(name->sinfo.v_id, FIELD_NO_CHANGE, FIELD_NO_CHANGE, FIELD_NO_CHANGE, annots.align, &smt->v);
     if (!TKN_in_stack(base->t)) {

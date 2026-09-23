@@ -59,6 +59,7 @@ dag_node_t* HIR_DAG_get_node(dag_ctx_t* ctx, hir_subject_t* src, int create) {
     if (create) {
         nd = _create_node(src);
         nd->id = ctx->curr_id++;
+        set_add(&ctx->sources, src);
         map_put(&ctx->dag, HIR_hash_subject(src), nd);
         return nd;
     }
@@ -75,7 +76,17 @@ int HIR_DAG_unload_node(dag_node_t* nd) {
     return 1;
 }
 
+int HIR_DAG_init(dag_ctx_t* dctx) {
+    if (!dctx) return 0;
+    dctx->memory_version = 0;
+    map_init(&dctx->dag, MAP_NO_CMP);
+    map_init(&dctx->groups, MAP_NO_CMP);
+    set_init(&dctx->sources, SET_NO_CMP);
+    return 1;
+}
+
 int HIR_DAG_unload(dag_ctx_t* ctx) {
     map_free(&ctx->groups);
+    set_free(&ctx->sources);
     return map_free_force_op(&ctx->dag, (int (*)(void*))HIR_DAG_unload_node);
 }

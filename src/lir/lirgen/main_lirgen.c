@@ -17,6 +17,7 @@ static lir_subject_t* _convert_hs_to_ls(hir_subject_t* subj) {
         case HIR_RAWASM: return LIR_SUBJ_RAWASM(subj->storage.str.s_id);
         case HIR_STRING: return LIR_SUBJ_STRING(subj->storage.str.s_id);
         case HIR_FNAME:  return LIR_SUBJ_ADDRFUNC(subj);
+        case HIR_VTABLE: return LIR_SUBJ_VTABLE(subj);
         case HIR_FPOS:   return LIR_SUBJ_LOCATION(&subj->storage.pos);
         
         case HIR_TMPVARF64: case HIR_TMPVARF32:
@@ -72,12 +73,8 @@ static int _convert_hir_to_lir(sstack_t* params, hir_block_t* h, lir_ctx_t* ctx,
         case HIR_FDCL:         return LIR_BLOCK1(ctx, LIR_FDCL, LIR_SUBJ_FUNCNAME(h->farg));
         case HIR_FRET:         return LIR_BLOCK1(ctx, LIR_FRET, _convert_hs_to_ls(h->farg));
         case HIR_FARGLD:       return LIR_BLOCK3(ctx, LIR_LOADFARG, _convert_hs_to_ls(h->farg), LIR_SUBJ_CONST(h->sarg->storage.cnst.value), LIR_SUBJ_CONST(h->targ->storage.cnst.value));
-        case HIR_UFCLL:
-        case HIR_FCLL:
-        case HIR_ECLL: 
-        case HIR_STORE_UFCLL:
-        case HIR_STORE_FCLL:
-        case HIR_STORE_ECLL: {
+        case HIR_UFCLL:       case HIR_FCLL:       case HIR_ECLL: 
+        case HIR_STORE_UFCLL: case HIR_STORE_FCLL: case HIR_STORE_ECLL: {
             lir_subject_t* sargs = LIR_SUBJ_LIST();
             _translate_params_list(LIR_STFARG, ctx, &h->targ->storage.list.h, &sargs->storage.list.h);
             LIR_BLOCK3(
@@ -87,12 +84,14 @@ static int _convert_hir_to_lir(sstack_t* params, hir_block_t* h, lir_ctx_t* ctx,
             );
 
             if (
-                h->op == HIR_STORE_UFCLL || h->op == HIR_STORE_FCLL || h->op == HIR_STORE_ECLL
+                h->op == HIR_STORE_UFCLL || 
+                h->op == HIR_STORE_FCLL  || 
+                h->op == HIR_STORE_ECLL
             ) LIR_BLOCK1(ctx, LIR_LOADFRET, _convert_hs_to_ls(h->farg));
             return 1;
         }
-        case HIR_MKSCOPE:  return LIR_BLOCK1(ctx, LIR_MKSCOPE, LIR_SUBJ_CONST(h->farg->storage.cnst.value));
-        case HIR_ENDSCOPE: return LIR_BLOCK1(ctx, LIR_ENDSCOPE, LIR_SUBJ_CONST(h->farg->storage.cnst.value));
+        case HIR_MKSCOPE:  return LIR_BLOCK0(ctx, LIR_MKSCOPE);
+        case HIR_ENDSCOPE: return LIR_BLOCK0(ctx, LIR_ENDSCOPE);
         case HIR_SYSC: 
         case HIR_STORE_SYSC: {
             lir_subject_t* sargs = LIR_SUBJ_LIST();
@@ -209,7 +208,7 @@ static int _iterate_block(sstack_t* params, cfg_block_t* bb, lir_ctx_t* ctx, sym
     }
 
     if (!bb->lmap.entry) bb->lmap.entry = ctx->h;
-    else bb->lmap.entry = bb->lmap.entry->next;
+    else                 bb->lmap.entry = bb->lmap.entry->next;
     bb->lmap.exit = ctx->t;
     return 1;
 }

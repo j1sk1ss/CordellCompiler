@@ -37,14 +37,6 @@ static int _replace_duplicate_node(dag_ctx_t* dctx, dag_node_t* duplicate, dag_n
     return 1;
 }
 
-int HIR_DAG_init(dag_ctx_t* dctx) {
-    if (!dctx) return 0;
-    dctx->memory_version = 0;
-    map_init(&dctx->dag, MAP_NO_CMP);
-    map_init(&dctx->groups, MAP_NO_CMP);
-    return 1;
-}
-
 int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* bb, &fb->blocks) {

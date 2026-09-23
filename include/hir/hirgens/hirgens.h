@@ -10,6 +10,18 @@
 #include <hir/hir.h>
 #include <hir/hir_types.h>
 
+/* Create a temp variable in a variables' table
+   - `t` - HIR type
+   - `f` - Flags
+   - `smt` - Symtable */
+#define VRTB_ADD_TMP(t, f, smt) \
+    VRTB_add_info(NULL, HIR_get_tmptkn_type(t), NO_SYMBOL_ID, f, &smt->v)
+/* Create a temp variable without flags */
+#define VRTB_ADD_TMP_NF(t, smt) VRTB_ADD_TMP(t, EMPTY_BASIC_FLAGS, smt)
+
+hir_subject_t* HIR_add_to_subject(hir_subject_t* src, sym_table_t* smt, long add, hir_ctx_t* ctx);
+hir_subject_t* HIR_gdref_subject(hir_subject_t* src, sym_table_t* smt, hir_ctx_t* ctx, int set_ptr);
+
 /* Check if node has an annotation.
    Params:
         - `t` - Target annotation Type.
@@ -449,8 +461,53 @@ Params:
 Return loaded member value.
 */
 hir_subject_t* HIR_generate_load_member_access(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
+
+/*
+Find variable metadata for a concrete container field type.
+Uses the field owner and field name when the type belongs to a container,
+falling back to a type-only lookup for non-field types.
+*/
+int HIR_find_member_variable(type_info_t* field_info, symbol_id_t owner_id, string_t* name, variable_info_t* var_info, sym_table_t* smt);
+
+/*
+Syntheticly move a head towards the field (by sub-type Id).
+Params:
+    - `root` - Container field access node.
+    - `ctx` - HIR ctx.
+    - `field_info` - Ouput field info. Will fill the structure
+                     if it will find the field.
+    - `smt` - Symtable.
+
+Returns a pointer to the field. 
+*/
 hir_subject_t* HIR_point_to_field(ast_node_t* root, hir_ctx_t* ctx, type_info_t* field_info, sym_table_t* smt);
+
+/* 
+Load the pointer stored in an array field header.
+Array fields keep the element buffer head separately from the container field.
+Params:
+    - `head` - Address of the array field header.
+    - `ai` - Array metadata.
+    - `ctx` - HIR context.
+    - `smt` - Symtable.
+
+Returns a temporary subject that points to the first array element. 
+*/
 hir_subject_t* HIR_load_array_field_head(hir_subject_t* head, array_info_t* ai, hir_ctx_t* ctx, sym_table_t* smt);
+
+/*
+Store data to a filed of a container.
+Params:
+    - `node` - Store operation node.
+    - `data` - The data which is stored in the field.
+    - `ctx` - HIR ctx.
+    - `smt` - Symtable.
+
+Returns 1 if there is no errors.
+*/
 int HIR_generate_store_member_access(ast_node_t* node, hir_subject_t* data, hir_ctx_t* ctx, sym_table_t* smt);
+
+hir_subject_t* HIR_load_vtable(type_info_t* ti, hir_ctx_t* ctx, variable_info_t* vi, sym_table_t* smt);
+hir_subject_t* HIR_generate_place(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
 #endif

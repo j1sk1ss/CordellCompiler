@@ -427,17 +427,3 @@ Use this table as a quick map. The detailed signatures are in the corresponding 
 Most non-container functions are `extern @[abi]` declarations. They call the host C runtime and follow the selected target ABI. On Mach-O targets the headers use `@[vname("_name")]` for linker symbols with leading underscores; on GNU-style targets they use the plain C names.
 
 Variadic functions such as `printf`, `scanf`, `open`, `fcntl`, and `execl` depend on the target calling convention. Cast arguments explicitly when a format string or ABI expects a specific width.
-
-## Examples
-
-Small executable examples are kept in:
-
-| Example | Demonstrates |
-|---|---|
-| `examples/small/cplib.cpl`         | `io_h.cpl` and `std::print`.                                      |
-| `examples/small/file_usecase.cpl`  | `file` stream creation, write/read, seeking, sizing, and cleanup. |
-| `examples/small/list_usecase.cpl`  | `linked_list` insertion, access, popping, and destruction.        |
-| `examples/small/queue_usecase.cpl` | FIFO `queue` behavior.                                            |
-| `examples/small/stack_usecase.cpl` | LIFO `stack` behavior.                                            |
-| `examples/small/http_page.cpl`     | `http_server` route handler serving an HTML file.                 |
-| `examples/small/raylib_window.cpl` | A small interactive raylib window with buttons, mouse input, text, and animation. |

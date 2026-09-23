@@ -6,14 +6,18 @@ Note: ! This shouldn't be used as the final size getter !
       bitness outcome. It doesn't know the target platform.
 Returns the variable bitness (size in bits). */
 type_size_t TKN_variable_bitness(token_t* token, char ptr) {
-    if (!token) return TYPE_FULL_SIZE;
-    if (ptr && token->flags.ptr) return TYPE_FULL_SIZE;
+    if (
+        !token ||
+        (ptr && token->flags.ptr)
+    ) return TYPE_FULL_SIZE;
     switch (token->t_type) {
         case UNKNOWN_NUMERIC_TOKEN:
         case UNKNOWN_FLOAT_NUMERIC_TOKEN:
+        case I0_TYPE_TOKEN: // exception
         case I64_TYPE_TOKEN:
         case U64_TYPE_TOKEN:
         case F64_TYPE_TOKEN:
+        case I0_VARIABLE_TOKEN: // exception
         case I64_VARIABLE_TOKEN:  
         case U64_VARIABLE_TOKEN: 
         case F64_VARIABLE_TOKEN: return TYPE_FULL_SIZE;
@@ -155,6 +159,7 @@ int TKN_is_close(token_t* token) {
 int TKN_is_builtin_type(token_t* token) {
     if (!token) return 0;
     switch (token->t_type) {
+        case SIGNATURE_TOKEN:
         case I0_TYPE_TOKEN:
         case I8_TYPE_TOKEN:
         case U8_TYPE_TOKEN:
@@ -336,6 +341,7 @@ token_type_t TKN_get_var_from_type(token_type_t t) {
         case I32_TYPE_TOKEN:     return I32_VARIABLE_TOKEN;
         case I16_TYPE_TOKEN:     return I16_VARIABLE_TOKEN;
         case I8_TYPE_TOKEN:      return I8_VARIABLE_TOKEN;
+        case SIGNATURE_TOKEN:
         case I0_TYPE_TOKEN:      return I0_VARIABLE_TOKEN;
         default:                 return U64_VARIABLE_TOKEN;
     }

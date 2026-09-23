@@ -21,6 +21,7 @@
 *.ir
 *.lir
 *.ast
+*.symtab
 *.log
 *.o
 *.s

@@ -36,7 +36,7 @@ Params:
     - `smt` - Symtable.
 
 Returns 1 if this is a register value, otherwise 0. */
-static int _get_abi_argument(int index, int offset, lir_subject_t* s, abi_argument_t* out, func_info_t* fi, sym_table_t* smt) {
+static int _get_abi_argument(int index, lir_subject_t* s, abi_argument_t* out, func_info_t* fi, sym_table_t* smt) {
     int dec_abi_regs[]  = { RDI,  RSI,  RDX,  RCX,  R8,   R9               };
     int simd_abi_regs[] = { XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7 };
 
@@ -63,7 +63,7 @@ static int _get_abi_argument(int index, int offset, lir_subject_t* s, abi_argume
     }
 
     if (index >= regs_count) {
-        out->off = (offset - regs_count + !fi->flags.naked + 1) * -8;
+        out->off = (index - regs_count + !fi->flags.naked + 1) * -8;
         return 0;
     }
     
@@ -113,6 +113,7 @@ static int _get_call_info(lir_block_t* arg, cfg_block_t* bb, func_info_t* out, s
 
 typedef struct {
     int clean_stack;
+    set_t callee_restored_blocks;
 } lir_translate_ctx_t;
 
 static cfg_dfs_action_t _instruction_selection_block(
@@ -190,7 +191,7 @@ static cfg_dfs_action_t _instruction_selection_block(
                 func_info_t callee;
                 if (!_get_call_info(lh, bb, &callee, smt)) callee = *fi;
                 abi_argument_t target;
-                if (!_get_abi_argument(lh->sarg->storage.cnst.value, 0, lh->farg, &target, &callee, smt)) {
+                if (!_get_abi_argument(lh->sarg->storage.cnst.value, lh->farg, &target, &callee, smt)) {
                     lh->op = LIR_PUSH;
                     ctx->clean_stack += 8;
                 }
@@ -210,7 +211,7 @@ static cfg_dfs_action_t _instruction_selection_block(
                 abi_argument_t target;
                 lir_subject_t* nfarg;
                 if (
-                    _get_abi_argument(lh->sarg->storage.cnst.value, lh->targ->storage.cnst.value, lh->farg, &target, fi, smt)
+                    _get_abi_argument(lh->sarg->storage.cnst.value, lh->farg, &target, fi, smt)
                 ) nfarg = x86_64_gnu_nasm_create_tmp(target.reg, lh->farg, smt, -1);
                 else nfarg = LIR_SUBJ_OFF(RBP, target.off, lh->farg->size);
                 LIR_unload_subject(lh->sarg);
@@ -268,18 +269,21 @@ static cfg_dfs_action_t _instruction_selection_block(
                 break;
             }
             case LIR_EXITOP:
+            case LIR_FEND:
             case LIR_FRET: {
-                if (lh->farg) {
+                if (lh->farg && lh->op != LIR_FEND) {
                     lir_subject_t* a = x86_64_gnu_nasm_create_tmp(lh->op == LIR_FRET ? RAX : RDI, lh->farg, smt, -1);
                     _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->farg, NULL), lh);
                     lh->farg = a;
                 }
 
                 if (
-                    lh->op == LIR_FRET &&
-                    fi->flags.abi && !fi->flags.entry
+                    (lh->op == LIR_FRET || lh->op == LIR_FEND) &&
+                    fi->flags.abi && !fi->flags.entry &&
+                    !set_has(&ctx->callee_restored_blocks, bb)
                 ) {
                     lir_registers_t saved[] = { RBX, R12, R13, R14, R15 };
+                    if (!set_add(&ctx->callee_restored_blocks, bb)) return CFG_DFS_STOP;
                     for (int i = (int)(sizeof(saved) / sizeof(saved[0])) - 1; i >= 0; i--) {
                         _insert_instruction_before(bb, LIR_create_block(LIR_POP, LIR_SUBJ_REG(saved[i], CONF_get_full_bytness()), NULL, NULL), lh);
                     }
@@ -316,13 +320,12 @@ static cfg_dfs_action_t _instruction_selection_block(
 
                 break;
             }
-            case LIR_CMP: {
-                if (lh->farg->t == LIR_VARIABLE) break;
+            CONDITIONAL_CASE(LIR_CMP, lh->farg->t != LIR_VARIABLE,
                 lir_subject_t* a = x86_64_gnu_nasm_create_tmp(RAX, lh->farg, smt, -1);
                 _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->farg, NULL), lh);
                 lh->farg = a;
                 break;
-            }
+            )
             case LIR_iLWR: case LIR_iLRE: case LIR_iLRG: case LIR_iLGE:
             case LIR_iCMP: case LIR_iNMP: {
                 lir_subject_t* a   = x86_64_gnu_nasm_create_tmp(RAX, lh->sarg, smt, -1);
@@ -378,6 +381,7 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
     lir_translate_ctx_t ctx = { 0 };
     queue_t dirty_regs;
     queue_init(&dirty_regs);
+    set_init(&ctx.callee_restored_blocks, SET_NO_CMP);
 
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
@@ -406,11 +410,13 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
 
             if (!CFG_DFS_WALK(list_get_head(&fb->blocks), _instruction_selection_block, fb, &fi, &dirty_regs, &ctx, smt)) {
                 queue_free(&dirty_regs);
+                set_free(&ctx.callee_restored_blocks);
                 return 0;
             }
         }
     }
 
     queue_free(&dirty_regs);
+    set_free(&ctx.callee_restored_blocks);
     return 1;
 }

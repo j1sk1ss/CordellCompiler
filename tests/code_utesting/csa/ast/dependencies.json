@@ -1,0 +1,24 @@
+{
+    "sources": [
+        "src/config.c",
+        "src/symtab/*.c",
+        "src/preproc/*.c",
+        "src/preproc/misc/*.c",
+        "src/prep/*.c",
+        "src/csa/misc/*.c", 
+        "src/ast/*.c",
+        "src/csa/*.c",
+        "src/csa/ast/*.c",
+        "src/csa/hir/*.c",
+        "src/csa/hir/syscall/*.c",
+        "src/ast/astgen/*.c", 
+        "src/ast/astgen/*/*.c",
+        "src/hir/*.c",
+        "src/hir/hirgen/*.c",
+        "src/hir/hirgen/*/*.c",
+        "src/hir/cfg/*.c",
+        "src/hir/func/*.c",
+        "src/hir/loop/*.c",
+        "std/*.c"
+    ]
+}

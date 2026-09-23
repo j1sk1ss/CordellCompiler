@@ -11,7 +11,7 @@ hir_subject_t* HIR_generate_lambda(ast_node_t* node, hir_ctx_t* ctx, sym_table_t
     HIR_BLOCK1(ctx, HIR_JMP, lguards);
     
     HIR_BLOCK1(ctx, HIR_FDCL, HIR_SUBJ_FUNCNAME(node));
-    HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(node->c->sinfo.s_id));
+    HIR_BLOCK0(ctx, HIR_MKSCOPE);
 
     ast_node_t* body = HIR_generate_argument_load(node->c, ctx, &fi);
     SET_AND_DUMP_POPARG(NULL, NULL, { HIR_generate_block(body, ctx, smt); });
@@ -21,7 +21,7 @@ hir_subject_t* HIR_generate_lambda(ast_node_t* node, hir_ctx_t* ctx, sym_table_t
         HIR_dump_cold(ctx);
     }
 
-    HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(node->c->sinfo.s_id));
+    HIR_BLOCK0(ctx, HIR_ENDSCOPE);
     HIR_BLOCK0(ctx, HIR_FEND);
     HIR_BLOCK1(ctx, HIR_MKLB, lguards);
 

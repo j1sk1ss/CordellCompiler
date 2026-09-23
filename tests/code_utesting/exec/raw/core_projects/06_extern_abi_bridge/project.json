@@ -1,0 +1,23 @@
+{
+  "name": "06_extern_abi_bridge",
+  "description": "A consumer calls a function declared extern+abi in a header, while another CPL translation unit provides the ABI-compatible definition.",
+  "entry": "main.cpl",
+  "sources": [
+    "provider.cpl",
+    "consumer.cpl",
+    "main.cpl"
+  ],
+  "headers": [
+    "model.inc",
+    "bridge.inc"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "extern",
+    "abi",
+    "container_pointer",
+    "cross_tu_symbol",
+    "header"
+  ],
+  "notes": "This intentionally tests whether a CPL-defined @[abi] symbol can satisfy an extern declaration from another translation unit."
+}

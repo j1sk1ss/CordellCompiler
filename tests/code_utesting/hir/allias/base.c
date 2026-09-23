@@ -3,15 +3,13 @@
 #include <unistd.h>
 #include <stdlib.h>
 
-#include "../../../misc/symtb_helper.h"
-
 #include <preproc/pp.h>
 #include <prep/token.h>
 #include <prep/markup.h>
 #include <ast/ast.h>
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
-#include <sem/misc/restore.h>
+#include <csa/misc/restore.h>
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
@@ -37,10 +35,12 @@ int main(int argc, char* argv[]) {
     }
 
     finder_ctx_t finctx = { .bpath = argv[2] };
+    deftb_t macros;
+    MCTB_init(&macros);
     pp_ctx_t ppctx;
     PP_init_pp_ctx(&ppctx);
-
-    fd = PP_perform(fd, &finctx, &ppctx);
+    fd = PP_perform(fd, &finctx, &ppctx, &macros);
+    MCTB_unload(&macros);
     if (fd < 0) {
         fprintf(stderr, "Processed file %s isn't found!\n", argv[1]);
         return 1;

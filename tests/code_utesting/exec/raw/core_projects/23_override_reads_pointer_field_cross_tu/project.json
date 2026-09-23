@@ -1,0 +1,17 @@
+{
+  "name": "23_override_reads_pointer_field_cross_tu",
+  "description": "Implementation stores a raw pointer field and dereferences it from a virtual method in another unit.",
+  "entry": "main.cpl",
+  "sources": [
+    "impl.cpl",
+    "attach.cpl",
+    "main.cpl"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "interface",
+    "pointer_field",
+    "deref",
+    "cross_tu"
+  ]
+}

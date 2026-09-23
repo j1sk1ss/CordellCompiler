@@ -16,11 +16,6 @@ Params:
 Returns an AST node. */
 static ast_node_t* _parse_primary(list_iter_t*, ast_ctx_t*, sym_table_t*, int);
 
-#define WRAP_REFERENCE_NODE(nd) \
-    ast_node_t* __pp = AST_create_node_bt(TKN_create_token(REF_TYPE_TOKEN, "ref", NULL)); \
-    AST_add_node(__pp, nd);                                                               \
-    nd = __pp;                                                                            \
-
 /* Parse expression that looks like: <stmt> <op> <stmt>. 
 Note: <stmt> here can be either a simple <(a..> or a complex sub-stmt.
 Params:
@@ -59,7 +54,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                 do {
                     ast_node_t* type_node = AST_create_node(CURRENT_TOKEN);
                     type = type_lookup(type_node->t, ctx, smt);
-                    PARSER_DO_OR_THROW(!type_node, left, "Error during a generic type operation parsing!");
+                    PARSER_ASSERT(!type_node, left, "Error during a generic type operation parsing!");
                     AST_add_node(left, type_node);
                     if (type != NO_SYMBOL_ID) {
                         type_node->sinfo.t_id = type;
@@ -77,26 +72,25 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
             case DOT_TOKEN: {
                 forward_token(it, 1);
                 symbol_id_t field_type = TPTB_resolve_child(left->sinfo.t_id, CURRENT_TOKEN->body, &smt->t);
-                PARSER_DO_OR_THROW(
+                PARSER_ASSERT(
                     left->sinfo.t_id == NO_SYMBOL_ID || field_type == NO_SYMBOL_ID, left, 
                     "Unknown container or a container's field!"
                 );
 
                 ast_node_t* member = AST_create_node(CURRENT_TOKEN);
-                PARSER_DO_OR_THROW(!member, left, "Can't create a member!");
+                PARSER_ASSERT(!member, left, "Can't create a member!");
 
                 type_info_t c_ti;
                 TPTB_get_info_id(field_type, &c_ti, &smt->t);
                 /* If this type is a method, we must stop going, remember
                    existed chain in the 'left' as a self pointer. */
                 if (c_ti.t == TYPE_METHOD) {
-                    member->sinfo.v_id = c_ti.link.v_id;
+                    member->sinfo.v_id = c_ti.body.method.f_id;
                     member->t->t_type  = CALL_ADDR_TOKEN;
 
                     func_info_t fi;
                     if (
-                        c_ti.t == TYPE_METHOD && 
-                        FNTB_get_info_id(member->sinfo.v_id, &fi, &smt->f) &&
+                        FNTB_get_info_id(member->sinfo.v_id, &fi, &smt->f) && 
                         fi.flags.self
                     ) member->self = left;
                     else AST_unload(left);
@@ -148,31 +142,37 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                         target = AST_create_node_bt(CREATE_CALL_TOKEN);
                         data   = cpl_parse_call_arguments(it, ctx, smt, 0);
                         if (left->self) {
+#define WRAP_REFERENCE_NODE(nd) do {                                                          \
+        ast_node_t* __pp = AST_create_node_bt(TKN_create_token(REF_TYPE_TOKEN, "ref", NULL)); \
+        AST_add_node(__pp, nd);                                                               \
+        nd = __pp;                                                                            \
+    } while (0)
+                            target->self = left->self;
                             type_info_t self_ti;
                             TPTB_get_info_id(left->self->sinfo.t_id, &self_ti, &smt->t);
                             variable_info_t self_vi;
-                            VRTB_get_info_id(self_ti.link.v_id, &self_vi, &smt->v);
+                            int self_is_field = left->self->t && left->self->t->t_type == MEMBER_ACCESS_TOKEN;
                             if (
-                                (!self_vi.vfs.ptr && self_ti.link.p != NO_SYMBOL_ID) ||
                                 (
-                                    !left->self->t->flags.ptr &&                 /* If self doesn't referenced                       */
+                                    VRTB_find_by_type_id(self_ti.id, &self_vi, &smt->v) && !self_vi.vfs.ptr &&
+                                    self_is_field
+                                ) ||
+                                (
+                                    !left->self->t->flags.ptr                 && /* If self doesn't referenced                       */
                                     left->self->t->t_type != INDEXATION_TOKEN && /* Any indexation operation already have referenced */
-                                    self_ti.link.p == NO_SYMBOL_ID               /* And this isn't a field in a container            */
+                                    !self_is_field                               /* And this isn't a field in a container            */
                                 )
-                            ) {
-                                WRAP_REFERENCE_NODE(left->self);
-                            }
-
+                            ) WRAP_REFERENCE_NODE(left->self);
                             AST_insert_node(data, left->self);
                             left->self = NULL;
                         }
-
+#undef WRAP_REFERENCE_NODE
                         break;
                     }
                     default: break;
                 }
 
-                PARSER_DO_OR_THROW_DO(
+                PARSER_ASSERT_DO(
                     !target, "Error during a postfix operation parsing!", 
                     { AST_unload(left); AST_unload(target); AST_unload(data); }
                 );
@@ -209,12 +209,15 @@ _default_operator: {}
                 }
 
                 ast_node_t* op_node = AST_create_node(CURRENT_TOKEN);
-                PARSER_DO_OR_THROW(!op_node, left, "Can't create the expression's base!");
+                PARSER_ASSERT(!op_node, left, "Can't create the expression's base!");
 
                 forward_token(it, 1);
                 int annot_off = annotation_reserve(ctx);
                 ast_node_t* right = _parse_binary_expression(it, ctx, smt, next_mp, na);
-                PARSER_DO_OR_THROW_DO(!right, "Error during the right part parse!", { AST_unload(op_node); AST_unload(left); });
+                PARSER_ASSERT_DO(
+                    !right, "Error during the right part parse!", 
+                    { AST_unload(op_node); AST_unload(left); }
+                );
 
                 annotation_unreserve(ctx, annot_off);
                 DUMP_ANNOTATION_TO_NODE(ctx, left);
@@ -230,6 +233,7 @@ _stop_expression_parsing: {}
     DUMP_ANNOTATION_TO_NODE(ctx, left);
     return left;
 }
+#undef WRAP_REFERENCE_NODE
 
 static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int na) {
     SAVE_TOKEN_POINT;
@@ -271,6 +275,7 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
                 annotation_unreserve(ctx, annot_off);
                 return node;
             }
+            case PLACE_TOKEN:     return cpl_parse_place(it, ctx, smt, 0);
             case SIZEOF_TOKEN:    return cpl_parse_sizeof(it, ctx, smt, 0);
             case SYSCALL_TOKEN:   return cpl_parse_syscall(it, ctx, smt, 0);
             case NOT_TOKEN:
@@ -283,7 +288,7 @@ static ast_node_t* _parse_primary(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* 
 _primary_resolve_complete: {}
 
     ast_node_t* node = AST_create_node(CURRENT_TOKEN);
-    PARSER_DO_OR_THROW(!node, NULL, "Can't create a base for a value!");
+    PARSER_ASSERT(!node, NULL, "Can't create a base for a value!");
 
     switch (node->t->t_type) {
         case STRING_VALUE_TOKEN: {

@@ -1,0 +1,22 @@
+{
+  "name": "05_linked_container_project",
+  "description": "A recursive node/container model is shared by four units implementing init, insertion, traversal, and the application entry point.",
+  "entry": "main.cpl",
+  "sources": [
+    "list_init.cpl",
+    "list_push.cpl",
+    "list_sum.cpl",
+    "main.cpl"
+  ],
+  "headers": [
+    "list.inc"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "recursive_container",
+    "pointers",
+    "self_methods",
+    "cross_tu_state",
+    "multi_method_project"
+  ]
+}

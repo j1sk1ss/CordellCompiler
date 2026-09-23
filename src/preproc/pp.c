@@ -39,7 +39,7 @@ Params:
 Returns 1 if succeeds. */
 int PP_init_pp_ctx(pp_ctx_t* ctx) {
     memset(ctx, 0, sizeof(pp_ctx_t));
-    return map_init(&ctx->defines.t, MAP_NO_CMP) && stack_init(&ctx->sources);
+    return stack_init(&ctx->sources);
 }
 
 /* Cleanup all mess that we've produced.
@@ -48,7 +48,6 @@ Params:
 
 Returns 1 if succeeds. */
 static int _unload_pp_ctx(pp_ctx_t* ctx) {
-    MCTB_unload(&ctx->defines);
     stack_free_force_op(&ctx->sources, (int (*)(void*))_destroy_info);
     if (ctx->line)    free(ctx->line);
     if (ctx->clean)   free(ctx->clean);
@@ -218,18 +217,32 @@ static inline int _permitted_character(char* p) {
     return 0;
 }
 
-#define PREDEFINE_FLAG(name)         MCTB_put_define(name, "1", &ppctx->defines);
-#define PREDEFINE_VALUE(name, value) MCTB_put_define(name, value, &ppctx->defines);
-
-int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx) {
+int PP_predefine(deftb_t* macros) {
+#define PREDEFINE_FLAG(name)         MCTB_put_define(name, "1", macros);
+#define PREDEFINE_VALUE(name, value) MCTB_put_define(name, value, macros);
     switch (CONF_get_system_type()) {
-        case MACHO64:   PREDEFINE_FLAG("CCPL_MACHO64");   break;
-        case LINUX64:   PREDEFINE_FLAG("CCPL_GNU64");     break;
-        case I386:      PREDEFINE_FLAG("CCPL_GNUI386");   break;
-        case WINDOWS64: PREDEFINE_FLAG("CCPL_WINDOWS64"); break;
+        case LINUX64:   PREDEFINE_FLAG("CCPL_GNU64");     goto _predefine_64size;
+        case WINDOWS64: PREDEFINE_FLAG("CCPL_WINDOWS64"); goto _predefine_64size;
+        case MACHO64: {
+            PREDEFINE_FLAG("CCPL_MACHO64");
+_predefine_64size: {}
+            PREDEFINE_VALUE("usize", "u64");
+            PREDEFINE_VALUE("isize", "i64");
+            break;
+        }
+        case I386: {
+            PREDEFINE_FLAG("CCPL_GNUI386");
+            PREDEFINE_VALUE("usize", "u32");
+            PREDEFINE_VALUE("isize", "i32");
+        }
         default: break;
     }
+#undef PREDEFINE_FLAG
+#undef PREDEFINE_VALUE
+    return 1;
+}
 
+int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx, deftb_t* macros) {
     ppctx->fd = fd;
     int ffd = PP_create_tmp_file();
     if (ffd < 0) return -1;
@@ -312,19 +325,19 @@ int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx) {
             if (!skip) {
                 char line_file[PP_PATH_MAX] = { 0 };
                 snprintf(line_file, sizeof(line_file), "\"%s\"", inf->n);
-                MCTB_put_define("__FILE__", line_file, &ppctx->defines);
+                MCTB_put_define("__FILE__", line_file, macros);
 
                 char line_num[32] = { 0 };
                 snprintf(line_num, sizeof(line_num), "%i", inf->l);
-                MCTB_put_define("__LINE__", line_num, &ppctx->defines);
+                MCTB_put_define("__LINE__", line_num, macros);
 
-                if (!PP_resolve_defines(&ppctx->clean, &ppctx->clean_size, &ppctx->defined, &ppctx->defined_size, &ppctx->defines)) {
+                if (!PP_resolve_defines(&ppctx->clean, &ppctx->clean_size, &ppctx->defined, &ppctx->defined_size, macros)) {
                     _unload_pp_ctx(ppctx);
                     return -1;
                 }
 
-                MCTB_remove_define("__FILE__", &ppctx->defines);
-                MCTB_remove_define("__LINE__", &ppctx->defines);
+                MCTB_remove_define("__FILE__", macros);
+                MCTB_remove_define("__LINE__", macros);
                 _lazy_fputs(ppctx->defined, ppctx->out);
                 needs_comment_line_macro = comment_removed_newline;
             }
@@ -358,7 +371,7 @@ int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx) {
                     return -1;
                 }
 
-                if (!MCTB_put_define(defname, defval, &ppctx->defines)) {
+                if (!MCTB_put_define(defname, defval, macros)) {
                     _unload_pp_ctx(ppctx);
                     return -1;
                 }
@@ -372,7 +385,7 @@ int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx) {
                     return -1;
                 }
 
-                if (!MCTB_remove_define(defname, &ppctx->defines)) {
+                if (!MCTB_remove_define(defname, macros)) {
                     _unload_pp_ctx(ppctx);
                     return -1;
                 }
@@ -386,7 +399,7 @@ int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx) {
                     return -1;
                 }
 
-                if (!_push_skip(&inf->cst.skips, skip || !MCTB_get_define(defname, NULL, &ppctx->defines))) {
+                if (!_push_skip(&inf->cst.skips, skip || !MCTB_get_define(defname, NULL, macros))) {
                     _unload_pp_ctx(ppctx);
                     return -1;
                 }
@@ -400,7 +413,7 @@ int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx) {
                     return -1;
                 }
 
-                if (!_push_skip(&inf->cst.skips, skip || MCTB_get_define(defname, NULL, &ppctx->defines))) {
+                if (!_push_skip(&inf->cst.skips, skip || MCTB_get_define(defname, NULL, macros))) {
                     _unload_pp_ctx(ppctx);
                     return -1;
                 }

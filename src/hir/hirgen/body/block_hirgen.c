@@ -19,6 +19,7 @@ Returns generated value from the AST node or the 'NULL' value. */
 static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret) {    
     hir_subject_t* res = NULL;
     switch (node->t->t_type) {
+        case PLACE_TOKEN:                 res = HIR_generate_place(node, ctx, smt);              break;
         case CALLING_TOKEN:               res = HIR_generate_funccall(node, ctx, smt, 1);        break;
         case SIZEOF_TOKEN:                res = HIR_generate_sizeof(node, ctx, smt);             break;
         case SYSCALL_TOKEN:               res = HIR_generate_syscall(node, ctx, smt, 1);         break;
@@ -109,7 +110,7 @@ Params:
     - `ctx` - HIR context.
     - `op` - 'HIR_MKSCOPE' or 'HIR_ENDSCOPE' command. */
 static inline void _insert_scope(ast_node_t* t, hir_ctx_t* ctx, hir_operation_t op) {
-    if (t->t && t->t->t_type == SCOPE_TOKEN) HIR_BLOCK1(ctx, op, HIR_SUBJ_CONST(t->sinfo.s_id));
+    if (t->t && t->t->t_type == SCOPE_TOKEN) HIR_BLOCK0(ctx, op);
 }
 
 int HIR_generate_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {

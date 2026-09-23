@@ -4,6 +4,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <stdio.h>
+#include <symtab/symtab.h>
 
 static inline int _NASMFMT_is_space(char c) {
     return c == ' ' || c == '\t';
@@ -27,7 +28,7 @@ static inline void _NASMFMT_split_first_token(const char* line, const char** res
     const char* cursor = line;
     while (*cursor && !_NASMFMT_is_space(*cursor)) cursor++;
     *token_len = (size_t)(cursor - line);
-    *rest = _NASMFMT_skip_spaces(cursor);
+    *rest      = _NASMFMT_skip_spaces(cursor);
 }
 
 static inline int _NASMFMT_is_directive(const char* token, size_t len) {
@@ -39,14 +40,14 @@ static inline int _NASMFMT_is_directive(const char* token, size_t len) {
 }
 
 static inline int _NASMFMT_is_data_op(const char* token, size_t len) {
-    return _NASMFMT_token_is(token, len, "db")   ||
-           _NASMFMT_token_is(token, len, "dw")   ||
-           _NASMFMT_token_is(token, len, "dd")   ||
-           _NASMFMT_token_is(token, len, "dq")   ||
+    return _NASMFMT_token_is(token, len, "db")    ||
+           _NASMFMT_token_is(token, len, "dw")    ||
+           _NASMFMT_token_is(token, len, "dd")    ||
+           _NASMFMT_token_is(token, len, "dq")    ||
            _NASMFMT_token_is(token, len, "times") ||
-           _NASMFMT_token_is(token, len, "resb") ||
-           _NASMFMT_token_is(token, len, "resw") ||
-           _NASMFMT_token_is(token, len, "resd") ||
+           _NASMFMT_token_is(token, len, "resb")  ||
+           _NASMFMT_token_is(token, len, "resw")  ||
+           _NASMFMT_token_is(token, len, "resd")  ||
            _NASMFMT_token_is(token, len, "resq");
 }
 
@@ -57,7 +58,6 @@ static inline int NASMFMT_is_blank(const char* line) {
 static inline int _NASMFMT_is_label(const char* line) {
     size_t len = 0;
     while (line[len]) len++;
-
     while (len > 0 && _NASMFMT_is_space(line[len - 1])) len--;
     return len > 0 && line[len - 1] == ':';
 }
@@ -113,7 +113,6 @@ static inline void _NASMFMT_emit_command(FILE* output, const char* fmt, ...) {
     va_start(args, fmt);
     vsnprintf(buffer, sizeof(buffer), fmt, args);
     va_end(args);
-
     _NASMFMT_emit_formatted_line(output, buffer, 1);
 }
 
@@ -123,12 +122,48 @@ static inline void _NASMFMT_emit_part_command(FILE* output, const char* fmt, ...
     va_start(args, fmt);
     vsnprintf(buffer, sizeof(buffer), fmt, args);
     va_end(args);
-
     _NASMFMT_emit_formatted_line(output, buffer, 0);
 }
 
 static inline void _NASMFMT_emit_data_label(FILE* output, const char* label) {
     _NASMFMT_emit_command(output, "%s:", label);
+}
+
+static inline const char* NASMFMT_format_func_value(symbol_id_t f_id, sym_table_t* smt, char* buffer, size_t size) {
+    func_info_t fi;
+    if (f_id == NO_SYMBOL_ID || !FNTB_get_info_id(f_id, &fi, &smt->f)) return "0";
+    if (fi.flags.entry || fi.flags.vname) snprintf(buffer, size, "%s", fi.virt->body);
+    else if (fi.flags.global || fi.flags.external) snprintf(buffer, size, "%s", fi.name->body);
+    else snprintf(buffer, size, "_cpl_%s", fi.virt->body);
+    return buffer;
+}
+
+static inline void NASMFMT_emit_typed_func(FILE* output, const char* name, long size, symbol_id_t f_id, sym_table_t* smt) {
+    const char* op = size == 8 ? "dq" : size == 4 ? "dd" : size == 2 ? "dw" : "db";
+    char buffer[256] = { 0 };
+    const char* value = NASMFMT_format_func_value(f_id, smt, buffer, sizeof(buffer));
+    if (name) _NASMFMT_emit_command(output, "%s %s %s", name, op, value);
+    else      _NASMFMT_emit_command(output, "%s %s", op, value);
+}
+
+static inline const char* NASMFMT_format_vtable_value(symbol_id_t vt_id, sym_table_t* smt, char* buffer, size_t size) {
+    type_info_t ti;
+    vtable_info_t vi;
+    if (
+        vt_id == NO_SYMBOL_ID                   ||
+        !VTTB_get_info_id(vt_id, &vi, &smt->vt) ||
+        !TPTB_get_info_id(vi.t_id, &ti, &smt->t)
+    ) return "0";
+    snprintf(buffer, size, "_cpl_vtable_%s", ti.name->body);
+    return buffer;
+}
+
+static inline void NASMFMT_emit_typed_vtable(FILE* output, const char* name, long size, symbol_id_t vt_id, sym_table_t* smt) {
+    const char* op = size == 8 ? "dq" : size == 4 ? "dd" : size == 2 ? "dw" : "db";
+    char buffer[256] = { 0 };
+    const char* value = NASMFMT_format_vtable_value(vt_id, smt, buffer, sizeof(buffer));
+    if (name) _NASMFMT_emit_command(output, "%s %s %s", name, op, value);
+    else      _NASMFMT_emit_command(output, "%s %s", op, value);
 }
 
 #ifndef EMIT_COMMAND

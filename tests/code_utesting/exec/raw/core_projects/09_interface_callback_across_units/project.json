@@ -1,0 +1,23 @@
+{
+  "name": "09_interface_callback_across_units",
+  "description": "A producer unit accepts an interface pointer and repeatedly invokes virtual mutating methods implemented in a separate container unit.",
+  "entry": "main.cpl",
+  "sources": [
+    "counter.cpl",
+    "producer.cpl",
+    "main.cpl"
+  ],
+  "headers": [
+    "sink.inc",
+    "counter.inc",
+    "producer.inc"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "interface_callback",
+    "mutating_virtual_method",
+    "container",
+    "cross_tu_argument",
+    "nested_headers"
+  ]
+}

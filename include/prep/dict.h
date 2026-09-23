@@ -18,12 +18,15 @@
 #define CLOSE_BLOCK             "}"
 
 #define CONTAINER_COMMAND       "container"
+#define INTERFACE_COMMAND       "interface"
+#define IMPLEMENTS_COMMAND      "implements"
 #define DOT_COMMAND             "."
 #define STAT_COMMAND            "::"
 #define SELF_COMMAND            "self"
 
 // Function
 #define FUNCTION_COMMAND        "function"
+#define SIGNATURE_COMMAND       "fn"
 #define VAR_ARGUMENTS_COMMAND   "..."
 #define LAMBDA_COMMAND          "=>"
 
@@ -66,6 +69,7 @@
 #define SYSCALL_COMMAND         "syscall"
 #define ASM_COMMAND             "asm"
 #define SIZEOF_COMMAND          "sizeof"
+#define PLACE_COMMAND           "place"
 
 // Symbols and statements (Operands)
 /* Update lexems */

@@ -1,5 +1,5 @@
 #include <lir/selector/x86_64_macho_nasm.h>
- // TODO: If this an ABI function, then don't save all regs, save just caller save
+
 /* Collect used registers in the provided function.
 Params:
     - `dirty` - Output set of used registers.

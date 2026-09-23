@@ -1,26 +1,18 @@
 #include <symtab/vartb.h>
-
-int VRTB_set_not_null(symbol_id_t id, vartab_ctx_t* ctx) {
-    print_log("VRTB_set_not_null(id=%li)", id);
-    variable_info_t* vi;
-    if (map_get(&ctx->vartb, id, (void**)&vi)) {
-        vi->csa.not_null = 1;
-        return 1;
+#define DEFINE_SETTER(name, field)                   \
+    int name(symbol_id_t id, vartab_ctx_t* ctx) {    \
+        print_log("%s(id=%li)", #name, id);          \
+        variable_info_t* vi;                         \
+        if (map_get(&ctx->vartb, id, (void**)&vi)) { \
+            vi->field = 1;                           \
+            return 1;                                \
+        }                                            \
+        return 0;                                    \
     }
-
-    return 0;
-}
-
-int VRTB_set_used(symbol_id_t id, vartab_ctx_t* ctx) {
-    print_log("VRTB_set_unused(id=%li)", id);
-    variable_info_t* vi;
-    if (map_get(&ctx->vartb, id, (void**)&vi)) {
-        vi->vmi.used = 1;
-        return 1;
-    }
-
-    return 0;
-}
+DEFINE_SETTER(VRTB_set_not_null, csa.not_null);
+DEFINE_SETTER(VRTB_set_volatile, vmi.vlatile);
+DEFINE_SETTER(VRTB_set_used, vmi.used);
+#undef DEFINE_SETTER
 
 int VRTB_update_memory(symbol_id_t id, long offset, long size, char reg, short align, vartab_ctx_t* ctx) {
     print_log("VRTB_update_memory(id=%li, offset=%li, size=%li, reg=%c, align=%i)", id, offset, size, reg, align);
@@ -107,6 +99,31 @@ int VRTB_get_info_id(symbol_id_t id, variable_info_t* info, vartab_ctx_t* ctx) {
     return 0;
 }
 
+int VRTB_find_by_type_id(symbol_id_t t_id, variable_info_t* info, vartab_ctx_t* ctx) {
+    map_foreach (variable_info_t* vi, &ctx->vartb) {
+        if (vi->t_id == t_id) {
+            if (info) str_memcpy(info, vi, sizeof(variable_info_t));
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
+int VRTB_find_by_type_id_name(symbol_id_t t_id, string_t* name, symbol_id_t s_id, variable_info_t* info, vartab_ctx_t* ctx) {
+    if (!name) return 0;
+    map_foreach (variable_info_t* vi, &ctx->vartb) {
+        if (vi->t_id != t_id) continue;
+        if (s_id != NO_SYMBOL_ID && vi->s_id != s_id) continue;
+        if (!vi->name || !name->equals(name, vi->name)) continue;
+
+        if (info) str_memcpy(info, vi, sizeof(variable_info_t));
+        return 1;
+    }
+
+    return 0;
+}
+
 int VRTB_get_info(string_t* varname, symbol_id_t s_id, variable_info_t* info, vartab_ctx_t* ctx) {
     map_foreach (variable_info_t* vi, &ctx->vartb) {
         if (((s_id == NO_SYMBOL_ID) || s_id == vi->s_id) && varname->equals(varname, vi->name)) {
@@ -125,8 +142,8 @@ static variable_info_t* _create_variable_info(string_t* name, token_type_t type,
     var->s_id        = s_id;
     if (name) var->name = name->copy(name);
     var->vfs         = flags;
-    var->vmi.reg     = -1;
-    var->vmi.offset  = -1;
+    var->vmi.reg     = SMT_NULL;
+    var->vmi.offset  = SMT_NULL;
     var->vmi.align   = CONF_get_full_bytness();
     var->vdi.defined = UNDEFINED_VARIABLE;
     var->p_id        = NO_SYMBOL_ID;
@@ -141,7 +158,7 @@ symbol_id_t VRTB_add_copy(variable_info_t* src, vartab_ctx_t* ctx) {
     if (!nnd) return NO_SYMBOL_ID;
     
     str_memcpy(nnd, src, sizeof(variable_info_t));
-    nnd->vmi.allocated = 0;
+    // nnd->vmi.allocated = 0;
     nnd->vdi.defined   = 0;
 
     nnd->v_id = ctx->curr_id++;

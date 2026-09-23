@@ -46,9 +46,6 @@ typedef struct {
 } source_pos_info_t;
 
 typedef struct {
-    /* Service information */
-    deftb_t        defines;      /* Defines table           */
-
     /* Lines information */
     char*          line;         /* Current line            */
     size_t         size;         /* Current line size       */
@@ -64,6 +61,7 @@ typedef struct {
 } pp_ctx_t;
 
 int PP_init_pp_ctx(pp_ctx_t* ctx);
+int PP_unload_pp_ctx(pp_ctx_t* ctx);
 
 /*
 Create and open temp file near to the source fd file.
@@ -155,6 +153,7 @@ typedef struct {
     const char* spath; /* Compiler-provided standard library directory */
 } finder_ctx_t;
 
-int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx);
+int PP_predefine(deftb_t* macros);
+int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx, deftb_t* macros);
 
 #endif

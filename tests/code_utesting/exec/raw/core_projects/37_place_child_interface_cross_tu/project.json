@@ -1,0 +1,20 @@
+{
+  "name": "37_place_child_interface_cross_tu",
+  "description": "A child-interface implementation is placed into raw storage, mutated through the child interface, and read through the root interface across units.",
+  "entry": "main.cpl",
+  "sources": [
+    "value.cpl",
+    "add.cpl",
+    "provider.cpl",
+    "mutate.cpl",
+    "read.cpl",
+    "main.cpl"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "interface_inheritance",
+    "place",
+    "cross_tu",
+    "upcast"
+  ]
+}

@@ -50,9 +50,9 @@ static void _pack_param(token_t* tkn, ast_ctx_t* ctx, sym_table_t* smt, int allo
     box->value  = tkn->body ? tkn->body->to_llong(tkn->body) : SMT_NULL;
 }
 
-#define ADD_ANNOTATION_HANDLER(n, t)                                                \
-    if (raw_annot->requals(raw_annot, n)) {                                         \
-        return ANNOT_create_annotation(t, &a, &b);                                  \
+#define ADD_ANNOTATION_HANDLER(n, t)               \
+    if (raw_annot->requals(raw_annot, n)) {        \
+        return ANNOT_create_annotation(t, &a, &b); \
     }
 static annotation_t* _parse_annotation_content(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt) {
     token_t *fp = NULL, *sp = NULL;
@@ -77,6 +77,7 @@ static annotation_t* _parse_annotation_content(list_iter_t* it, ast_ctx_t* ctx, 
     ADD_ANNOTATION_HANDLER(COLDS_ANNOTATION_COMMAND, COLD_ANNOTATION);
     ADD_ANNOTATION_HANDLER(REGST_ANNOTATION_COMMAND, REGISTER_ANNOTATION);
     ADD_ANNOTATION_HANDLER(POPRG_ANNOTATION_COMMAND, POPARG_ANNOTATION);
+    ADD_ANNOTATION_HANDLER(PPREG_ANNOTATION_COOMAND, POPREG_ANNOTATION);
     ADD_ANNOTATION_HANDLER(INLNE_ANNOTATION_COMMAND, INLINE_ANNOTATION);
     ADD_ANNOTATION_HANDLER(SSELF_ANNOTATION_COMMAND, SELF_ANNOTATION);
     ADD_ANNOTATION_HANDLER(LIKEC_ANNOTATION_COMMAND, LIKEC_ANNOTATION);
@@ -86,15 +87,19 @@ static annotation_t* _parse_annotation_content(list_iter_t* it, ast_ctx_t* ctx, 
     ADD_ANNOTATION_HANDLER(BODYO_ANNOTATION_COMMAND, ONLYBODY_ANNOTATION);
     ADD_ANNOTATION_HANDLER(VNAME_ANNOTATION_COMMAND, VNAME_ANNOTATION);
     ADD_ANNOTATION_HANDLER(NNULL_ANNOTATION_COMMAND, NOTNULL_ANNOTATION);
+    ADD_ANNOTATION_HANDLER(VOLAT_ANNOTATION_COMMAND, VOLATILE_ANNOTATION);
+    ADD_ANNOTATION_HANDLER(VTABL_ANNOTATION_COMMAND, VTABLE_ANNOTATION);
+    ADD_ANNOTATION_HANDLER(ABSTR_ANNOTATION_COMMAND, ABSTRACT_ANNOTATION);
+    ADD_ANNOTATION_HANDLER(OVERD_ANNOTATION_COMMAND, OVERRIDE_ANNOTAITON);
     return ANNOT_create_annotation(UNKNOWN_ANNOTATION, NULL, NULL);
 }
 #undef ADD_ANNOTATION_HANDLER
 
 DEFINE_PARSER(cpl_parse_annot, {
-    PARSER_DO_OR_THROW(!consume_token(it, OPEN_INDEX_TOKEN), NULL, "'@' should be followed by '['!");
-    PARSER_DO_OR_THROW(!consume_token(it, UNKNOWN_STRING_TOKEN), NULL, "Expected a string token after the annotation's start!");
+    PARSER_ASSERT(!consume_token(it, OPEN_INDEX_TOKEN), NULL, "'@' should be followed by '['!");
+    PARSER_ASSERT(!consume_token(it, UNKNOWN_STRING_TOKEN), NULL, "Expected a string token after the annotation's start!");
     annotation_t* annot = _parse_annotation_content(it, ctx, smt);
-    PARSER_DO_OR_THROW(!annot, NULL, "Annotation parse error!");
+    PARSER_ASSERT(!annot, NULL, "Annotation parse error!");
     stack_push(&ctx->annots, annot);
     return NULL;
 })

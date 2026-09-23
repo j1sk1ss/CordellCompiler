@@ -7,7 +7,7 @@ DEFINE_PARSER(cpl_parse_declaration_value, {
 
     if (consume_token(it, ASSIGN_TOKEN)) {
         base = AST_create_node(CURRENT_TOKEN);
-        PARSER_DO_OR_THROW(!base, NULL, "Can't create a base for a declaration value!");
+        PARSER_ASSERT(!base, NULL, "Can't create a base for a declaration value!");
 
         forward_token(it, 1);
         switch (CURRENT_TOKEN->t_type) {
@@ -21,7 +21,7 @@ DEFINE_PARSER(cpl_parse_declaration_value, {
                     }
 
                     ast_node_t* elem = cpl_parse_expression(it, ctx, smt, 1);
-                    PARSER_DO_OR_THROW(!elem, base, "Error during parsing of the array's initial element!");
+                    PARSER_ASSERT(!elem, base, "Error during parsing of the array's initial element!");
                     AST_add_node(base, elem);
                     const_length = MAX(const_length, act_size++);
                 }
@@ -31,14 +31,14 @@ DEFINE_PARSER(cpl_parse_declaration_value, {
             }
             case STRING_VALUE_TOKEN: {
                 ast_node_t* elem = AST_create_node(CURRENT_TOKEN);
-                PARSER_DO_OR_THROW(!elem, base, "Error during parsing of the array's initial element!");
+                PARSER_ASSERT(!elem, base, "Error during parsing of the array's initial element!");
                 AST_add_node(base, elem);
                 const_length = MAX(const_length, CURRENT_TOKEN->body->len(CURRENT_TOKEN->body) + 1);
                 break;
             }
             default: {
                 ast_node_t* value_node = cpl_parse_expression(it, ctx, smt, 1);
-                PARSER_DO_OR_THROW(!value_node, base, "Error during parsing of a declaration statement!");
+                PARSER_ASSERT(!value_node, base, "Error during parsing of a declaration statement!");
                 AST_add_node(base, value_node);
                 break;
             }

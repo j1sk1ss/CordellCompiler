@@ -262,7 +262,7 @@ def _copy_binary(src: Path, dst: Path) -> Path:
 def _linker_passthrough_arg() -> str:
     if platform.system() == "Darwin":
         return "-Wl,-dead_strip"
-    return "-Wl,--as-needed"
+    return "-Wl,-z,noexecstack"
 
 
 def _build_fault_preload(output_dir: Path) -> Path:
@@ -828,6 +828,7 @@ class BuilderCLITests(unittest.TestCase):
 
             result = self.run_cplc(
                 "-O3",
+                "--no-z3opt",  # Z3 is optional; exercise the built-in optimization passes.
                 "--emit-ast",
                 "--emit-ir",
                 "--emit-hir-cfg", "main",

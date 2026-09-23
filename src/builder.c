@@ -77,6 +77,7 @@ static int _print_help_message() {
         { "-L<dir>, -l<name>, -Wl,<arg>",                     NULL,       "Pass library search paths, libraries, and driver linker options to the linker" },
         { OPTION_LINKER_ARG_SHORT ", " OPTION_LINKER_ARG,     "<arg>",    "Pass one raw argument to the linker command"                                   },
         { OPTION_COMPILE_ONLY_SHORT ", " OPTION_COMPILE_ONLY, NULL,       "Build an object file and skip linking"                                         },
+        { OPTION_NO_OBJECT_SHORT ", " OPTION_NO_OBJECT,       NULL,       "Don't build anything, just compile what you've got"                            },
         { OPTION_LINKER_NO_PIE,                               NULL,       "Disable PIE"                                                                   },
         { OPTION_LINKER_PIE,                                  NULL,       "Enable PIE"                                                                    },
         { OPTION_LINKER_M32,                                  NULL,       "Enable m32 mode"                                                               },
@@ -334,8 +335,7 @@ static int _link_objects(const options_t* options, list_t* objects) {
         !_push_cmd_arg(&cmd, options->locations.output ? options->locations.output : "a.out")
     ) goto _fail;
 
-    char* object = NULL;
-    foreach (object, objects) {
+    foreach (char* object, objects) {
         if (!_push_cmd_arg(&cmd, object)) goto _fail;
     }
 
@@ -344,8 +344,7 @@ static int _link_objects(const options_t* options, list_t* objects) {
         !_push_cmd_arg(&cmd, options->locations.runtime)
     ) goto _fail;
 
-    char* linker_arg = NULL;
-    foreach (linker_arg, (list_t*)&options->tools.linker_args) {
+    foreach (char* linker_arg, (list_t*)&options->tools.linker_args) {
         if (!_push_cmd_arg(&cmd, linker_arg)) goto _fail;
     }
 
@@ -423,8 +422,7 @@ static int _emit_symtab(sym_table_t* smt, const char* type) {
 }
 
 static int _emit_requested_symtabs(sym_table_t* smt, list_t* types) {
-    char* type = NULL;
-    foreach (type, types) {
+    foreach (char* type, types) {
         if (!_emit_symtab(smt, type)) return 0;
     }
 
@@ -488,6 +486,7 @@ static void _set_optimization_profile(options_t* out, int level) {
     out->config.constant      = 0;
     out->config.peephole      = 0;
     out->config.copy_prop     = 0;
+    out->config.z3opt         = 0;
 
     if (level >= 2) {
         out->config.licm      = 1;
@@ -496,6 +495,7 @@ static void _set_optimization_profile(options_t* out, int level) {
     }
 
     if (level >= 3) {
+        out->config.z3opt     = 1;
         out->config.copy_prop = 1;
         out->config.tre       = 1;
         out->config.finline   = 1;
@@ -551,13 +551,6 @@ static config_t _make_config(const options_t* options) {
                 .e_bytness  = options->config.eight_bytness,
             },
             .sys_type       = options->config.sys_type,
-        },
-        .optimization_flags = {
-            .tre            = options->config.tre      ? 1 : 0,
-            .finline        = options->config.finline  ? 1 : 0,
-            .licm           = options->config.licm     ? 1 : 0,
-            .constant       = options->config.constant ? 1 : 0,
-            .peephole       = options->config.peephole ? 1 : 0,
         },
         .compilation_flags  = {
             .debug          = options->config.debug  ? 1 : 0,
@@ -652,15 +645,10 @@ static int _add_linker_arg(options_t* out, const char* arg) {
     return 1;
 }
 
-static inline void _apply_cli_defines(pp_ctx_t* ppctx, list_t* defines) {
-    if (!ppctx || !defines) return;
-    cli_define_t* define = NULL;
-    foreach (define, defines) {
-        MCTB_put_define(
-            define->name, 
-            define->value, 
-            &ppctx->defines
-        );
+static inline void _apply_cli_defines(deftb_t* macros, list_t* defines) {
+    if (!macros || !defines) return;
+    foreach (cli_define_t* define, defines) {
+        MCTB_put_define(define->name,  define->value,  macros);
     }
 }
 
@@ -798,6 +786,12 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
         ) {
             if (!_set_build_mode(out, BUILD_MODE_OBJECT)) goto _fail;
         }
+        else if (
+            !strcmp(argv[i], OPTION_NO_OBJECT_SHORT) ||
+            !strcmp(argv[i], OPTION_NO_OBJECT)
+        ) {
+            if (!_set_build_mode(out, BUILD_MODE_RAW)) goto _fail;
+        }
         else if (!strcmp(argv[i], OPTION_LINKER_NO_PIE)) out->tools.linker_no_pie = 1;
         else if (!strcmp(argv[i], OPTION_LINKER_PIE))    out->tools.linker_no_pie = 0;
         else if (!strcmp(argv[i], OPTION_LINKER_M32))    out->tools.linker_m32    = 1;
@@ -844,6 +838,8 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
         else if (!strcmp(argv[i], OPTION_NO_FINLINE))           out->config.finline     = 0;
         else if (!strcmp(argv[i], OPTION_LICM))                 out->config.licm        = 1;
         else if (!strcmp(argv[i], OPTION_NO_LICM))              out->config.licm        = 0;
+        else if (!strcmp(argv[i], OPTION_Z3OPT))                out->config.z3opt       = 1;
+        else if (!strcmp(argv[i], OPTION_NO_Z3OPT))             out->config.z3opt       = 0;
         else if (!strcmp(argv[i], OPTION_CONSTANT))             out->config.constant    = 1;
         else if (!strcmp(argv[i], OPTION_NO_CONSTANT))          out->config.constant    = 0;
         else if (!strcmp(argv[i], OPTION_COPYPROP))             out->config.copy_prop   = 1;
@@ -996,8 +992,12 @@ int main(int argc, char* argv[]) {
     ast_ctx_t sctx;
     AST_init_ctx(&sctx);
 
-    char* input_file = NULL;
-    foreach (input_file, &options.locations.files) {
+    deftb_t macros;
+    MCTB_init(&macros);
+    PP_predefine(&macros);
+    _apply_cli_defines(&macros, &options.locations.defines);
+
+    foreach (char* input_file, &options.locations.files) {
         files_left--;
 
         int fd = open(input_file, O_RDONLY);
@@ -1013,9 +1013,8 @@ int main(int argc, char* argv[]) {
 
         pp_ctx_t ppctx;
         PP_init_pp_ctx(&ppctx);
-        _apply_cli_defines(&ppctx, &options.locations.defines);
 
-        fd = PP_perform(fd, &finctx, &ppctx);
+        fd = PP_perform(fd, &finctx, &ppctx, &macros);
         if (fd < 0) {
             fprintf(stderr, "Failed to preprocess %s\n", input_file);
             return 1;
@@ -1122,7 +1121,7 @@ int main(int argc, char* argv[]) {
 
         RELOAD_CFG;
         
-        // HIR_CFG_finilize_before_dom(&cfgctx);
+        // HIR_CFG_finalize_before_dom(&cfgctx);
         HIR_CFG_create_domdata(&cfgctx);
         ltree_ctx_t lctx;
         map_init(&lctx.lmap, MAP_NO_CMP);
@@ -1132,7 +1131,7 @@ int main(int argc, char* argv[]) {
             HIR_FUNC_perform_inline(&cfgctx, &lctx, &smt);
             HIR_LTREE_unload_ctx(&lctx);
             RELOAD_CFG;
-            // HIR_CFG_finilize_before_dom(&cfgctx);
+            // HIR_CFG_finalize_before_dom(&cfgctx);
             HIR_CFG_create_domdata(&cfgctx);
             map_init(&lctx.lmap, MAP_NO_CMP);
             HIR_LOOP_mark_loops(&cfgctx, &lctx);
@@ -1142,7 +1141,7 @@ int main(int argc, char* argv[]) {
         HIR_LOOP_perform_dle(&lctx);
 
         HIR_CFG_unload_domdata(&cfgctx);
-        HIR_CFG_finilize_before_dom(&cfgctx);
+        HIR_CFG_finalize_before_dom(&cfgctx);
         HIR_CFG_create_domdata(&cfgctx);
 
         ssa_ctx_t ssactx;
@@ -1156,16 +1155,24 @@ int main(int argc, char* argv[]) {
             HIR_LTREE_licm(&cfgctx, &lctx, &smt);
         }
 
+        if (options.config.z3opt) {
+#ifndef CPL_ENABLE_Z3
+            fprintf(stderr, "'--z3opt' flag is active, but Z3 isn't installed! Install Z3 to use Z3 optimizations!\n");
+#endif
+            Z3OPT_deadbranch(&cfgctx, &smt);
+        }
+
         HIR_CFG_make_allias(&cfgctx, &smt);
         dag_ctx_t dagctx = { .curr_id = 0 };
         HIR_DAG_init(&dagctx);
         int needs_hir_analysis = options.flags.hir_analysis || options.build_mode == BUILD_MODE_ANALYSIS;
-        if (options.config.constant || needs_hir_analysis) {
+        if (options.config.constant || options.config.z3opt || needs_hir_analysis) {
             HIR_DAG_generate(&cfgctx, &dagctx, &smt);
         }
 
         if (options.config.constant) {
             HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);
+            HIR_DAG_mark_unused_entries(&cfgctx, &dagctx);
             int folded = 0;
             do {
                 folded = 0;
@@ -1173,6 +1180,9 @@ int main(int argc, char* argv[]) {
                 folded = HIR_sparse_const_funcall_propagation(&cfgctx, &smt) || folded;
                 folded = HIR_sparce_const_fret_propagation(&cfgctx, &smt)    || folded;
             } while (folded);
+        }
+        else if (options.config.z3opt) {
+            HIR_DAG_mark_unused_entries(&cfgctx, &dagctx);
         }
 
         HIR_CFG_squeeze_blocks(&cfgctx);
@@ -1402,14 +1412,14 @@ int main(int argc, char* argv[]) {
         }
     }
 
-    char* object_file = NULL;
-    foreach (object_file, &object_files) {
+    foreach (char* object_file, &object_files) {
         if (object_file) {
             unlink(object_file);
             mm_free(object_file);
         }
     }
 
+    MCTB_unload(&macros);
     list_free(&object_files);
     _unload_token_lists(&token_lists);
     _unload_options(&options);

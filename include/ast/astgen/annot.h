@@ -24,9 +24,14 @@
 #define COLDS_ANNOTATION_COMMAND "cold"
 #define REGST_ANNOTATION_COMMAND "register"
 #define POPRG_ANNOTATION_COMMAND "poparg"
+#define PPREG_ANNOTATION_COOMAND "popreg"
 #define SSELF_ANNOTATION_COMMAND "self"
 #define VNAME_ANNOTATION_COMMAND "vname"
 #define NNULL_ANNOTATION_COMMAND "not_null"
+#define VOLAT_ANNOTATION_COMMAND "volatile"
+#define VTABL_ANNOTATION_COMMAND "vtable"
+#define ABSTR_ANNOTATION_COMMAND "abstract"
+#define OVERD_ANNOTATION_COMMAND "override"
 
 #define INLNE_ANNOTATION_COMMAND "inline" /* inline / inline(always) / inline(never) */
 #define INLNE_YES_OPTION         "always"
@@ -75,6 +80,7 @@ typedef struct {
     int                  align;
     annotation_counter_t counter;
     short                reg;
+    short                pop_register;
     char                 is_vname    : 1;
     char                 is_nosec    : 1;
     char                 is_naked    : 1;
@@ -92,6 +98,10 @@ typedef struct {
     char                 is_abi      : 1;
     char                 is_onlybody : 1;
     char                 is_notnull  : 1;
+    char                 is_volatile : 1;
+    char                 is_vtable   : 1;
+    char                 is_abstract : 1;
+    char                 is_override : 1;
 } annotations_summary_t;
 
 typedef enum {
@@ -109,6 +119,7 @@ typedef enum {
     COLD_ANNOTATION,      /* Will make the linked then branch hot           */
     REGISTER_ANNOTATION,  /* Will link the selected register to a decl      */
     POPARG_ANNOTATION,    /* Will pop value from the stack to a linked      */
+    POPREG_ANNOTATION,    /* Will load value from a specific register       */
     INLINE_ANNOTATION,    /* Will change inline decider result              */
     SELF_ANNOTATION,      /* Will tell devirt that a function is static     */
     LIKEC_ANNOTATION,     /* Will tell container to generate C offsets      */
@@ -118,6 +129,10 @@ typedef enum {
     ONLYBODY_ANNOTATION,  /* Will say that the function is just a container */
     VNAME_ANNOTATION,     /* Will set a vartial name for a function         */
     NOTNULL_ANNOTATION,   /* Will mark a variable as a not Null variable    */
+    VOLATILE_ANNOTATION,  /* Will mark variable as a important variable     */
+    VTABLE_ANNOTATION,    /* Will enable vtable in a container              */
+    ABSTRACT_ANNOTATION,  /* Will mark a method as an abstract method       */
+    OVERRIDE_ANNOTAITON,  /* Will mark function as an override for somebody */
 } annotation_type_t;
 
 typedef struct {
@@ -135,9 +150,9 @@ typedef struct {
     } data;
 } annotation_t;
 
-int ANNOT_read_annotations(sstack_t* annots, annotations_summary_t* summary);
-int ANNOT_destroy_summary(annotations_summary_t* summray);
+int           ANNOT_read_annotations(sstack_t* annots, annotations_summary_t* summary);
+int           ANNOT_destroy_summary(annotations_summary_t* summray);
 annotation_t* ANNOT_create_annotation(annotation_type_t t, annotation_param_t* fp, annotation_param_t* sp);
-int ANNOT_destroy_annotation(annotation_t* annot);
+int           ANNOT_destroy_annotation(annotation_t* annot);
 
 #endif

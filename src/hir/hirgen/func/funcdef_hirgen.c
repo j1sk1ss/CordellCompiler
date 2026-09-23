@@ -44,7 +44,7 @@ int HIR_generate_function_block(ast_node_t* node, symbol_id_t f_id, hir_ctx_t* c
     }
     
     HIR_BLOCK1(ctx, HIR_FDCL, HIR_SUBJ_FUNCNAME(node->c));
-    HIR_BLOCK1(ctx, HIR_MKSCOPE, HIR_SUBJ_CONST(node->c->siblings.n->sinfo.s_id));
+    HIR_BLOCK0(ctx, HIR_MKSCOPE);
 
     ast_node_t* body     = HIR_generate_argument_load(node->c->siblings.n, ctx, &fi);
     hir_subject_t* vargs = NULL;
@@ -62,7 +62,7 @@ int HIR_generate_function_block(ast_node_t* node, symbol_id_t f_id, hir_ctx_t* c
         HIR_dump_cold(ctx);
     }
     
-    HIR_BLOCK1(ctx, HIR_ENDSCOPE, HIR_SUBJ_CONST(node->c->siblings.n->sinfo.s_id));
+    HIR_BLOCK0(ctx, HIR_ENDSCOPE);
     HIR_BLOCK0(ctx, HIR_FEND);
     if (lguards) HIR_BLOCK1(ctx, HIR_MKLB, lguards);
     return 1;

@@ -42,10 +42,19 @@ Params:
     - `static_init` - Whether we're able to emit instructions for an element or not.
 
 Returns a HIR subject list with local initializer elements. */
-static hir_subject_t* _generate_init_args(variable_info_t* vi, ast_node_t* elems, hir_ctx_t* ctx, sym_table_t* smt, int static_init) {
-    hir_subject_t* init_elems = HIR_SUBJ_LIST();
+static hir_subject_t* _generate_init_args(variable_info_t* vi, ast_node_t* elems, hir_ctx_t* ctx, sym_table_t* smt, int static_init, hir_subject_t* init_elems) {
     if (!elems) return init_elems;
     for (ast_node_t* ast_el = elems->c; ast_el; ast_el = ast_el->siblings.n) {
+        if (
+            static_init                                      &&
+            ast_el->t->t_type == REF_TYPE_TOKEN              &&
+            ast_el->c && ast_el->c->t                        &&
+            ast_el->c->t->t_type == STRING_VALUE_TOKEN
+        ) {
+            ARTB_add_elems(vi->v_id, (array_elem_info_t){ .s.s_id = ast_el->c->sinfo.v_id, .t = ARRAY_ELEM_STRING_TYPE }, &smt->a);
+            continue;
+        }
+
         hir_subject_t* el = HIR_generate_elem(ast_el, ctx, smt);
         if (!el) continue;
         if (static_init) {
@@ -107,7 +116,8 @@ static int _arr_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) 
             alloc_size = HIR_SUBJ_CONST(type_size);
         }
 
-        HIR_BLOCK3(ctx, HIR_ARRDECL, HIR_SUBJ_ASTVAR(name), alloc_size, _generate_init_args(&vi, elems, ctx, smt, vi.vfs.glob));
+        hir_subject_t* init_elems = HIR_SUBJ_LIST();
+        HIR_BLOCK3(ctx, HIR_ARRDECL, HIR_SUBJ_ASTVAR(name), alloc_size, _generate_init_args(&vi, elems, ctx, smt, vi.vfs.glob, init_elems));
     }
 
     return 1;
@@ -120,17 +130,25 @@ Params:
     - `smt` - Symtable.
 
 Returns 1 if succeeds, otherwise 0. */
-static inline int _cnt_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+static int _cnt_declaration(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     ast_node_t* name  = node->c;
     ast_node_t* elems = name->siblings.n;
     type_info_t ti;
-    if (!TPTB_get_info_id(node->sinfo.t_id, &ti, &smt->t)) return 0;
+    if (!TPTB_get_info_id(TPTB_resolve_parent(node->sinfo.t_id, &smt->t), &ti, &smt->t)) return 0;
     variable_info_t vi;
     if (!VRTB_get_info_id(name->sinfo.v_id, &vi, &smt->v)) return 0;
-    HIR_BLOCK3(
-        ctx, HIR_ARRDECL, HIR_SUBJ_ASTVAR(node->c), HIR_SUBJ_CONST(ti.memory.size), 
-        _generate_init_args(&vi, elems, ctx, smt, vi.vfs.glob || !TKN_in_stack(name->t))
-    );
+
+    hir_subject_t* init_elems = HIR_SUBJ_LIST();
+    if (
+        ti.t == TYPE_CUSTOM && init_elems && 
+        ti.body.custom.layout.vtable
+    ) {
+        hir_subject_t* vtable = HIR_load_vtable(&ti, ctx, &vi, smt);
+        if (vtable) list_add(&init_elems->storage.list.h, vtable);
+    }
+
+    _generate_init_args(&vi, elems, ctx, smt, vi.vfs.glob || !TKN_in_stack(name->t), init_elems);
+    HIR_BLOCK3(ctx, HIR_ARRDECL, HIR_SUBJ_ASTVAR(node->c), HIR_SUBJ_CONST(TPTB_get_memory_size_id(ti.id, &smt->t)), init_elems);
     return 1;
 }
 
@@ -176,26 +194,32 @@ int HIR_generate_declaration_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t
 
         hir_subject_t* decl = HIR_SUBJ_ASTVAR(name);
         HIR_BLOCK2(ctx, HIR_GDREF, decl, HIR_copy_subject(ctx->carry.varg));
-        hir_subject_t* res = HIR_SUBJ_TMPVAR(
-            ctx->carry.varg->t, 
-            VRTB_add_info(NULL, HIR_get_tmptkn_type(ctx->carry.varg->t), NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v)
-        );
-        res->ptr = ctx->carry.varg->ptr;
-        HIR_BLOCK3(
-            ctx, HIR_iADD, res, HIR_copy_subject(ctx->carry.varg), 
-            HIR_SUBJ_CONST(CONF_get_full_bytness())
-        );
+        hir_subject_t* res = HIR_add_to_subject(HIR_copy_subject(ctx->carry.varg), smt, CONF_get_full_bytness(), ctx);
         HIR_BLOCK2(ctx, HIR_STORE, HIR_copy_subject(ctx->carry.varg), res);
         return 1;
     });
 
+    HAS_ANNOTATION(POPREG_ANNOTATION, node, {
+        hir_subject_t* decl = HIR_SUBJ_ASTVAR(name);
+        hir_subject_t* reg_src = HIR_SUBJ_TMPVAR(
+            HIR_get_tmp_type(decl->t), 
+            VRTB_add_info(NULL, TKN_get_tmp_type(name->t->t_type), NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v)
+        );
+        variable_info_t vi;
+        if (
+            !VRTB_get_info_id(reg_src->storage.var.v_id, &vi, &smt->v) ||
+            !VRTB_update_memory(vi.v_id, FIELD_NO_CHANGE, FIELD_NO_CHANGE, annot->data.regval, FIELD_NO_CHANGE, &smt->v)
+        ) return 0;
+        HIR_BLOCK2(ctx, HIR_STORE, decl, reg_src);
+        return 1;
+    });
+
     if (!name->siblings.n) return 1;
-    ast_node_t* left   = node->c;
-    hir_subject_t* src = HIR_generate_elem(left->siblings.n->c, ctx, smt);
+    hir_subject_t* src = HIR_generate_elem(name->siblings.n->c, ctx, smt);
     if (!src) {
         HIRGEN_ERROR(ctx, "Assign: The right part generation error!");
         return 0;
     }
     
-    return HIR_generate_store_block(left, src, ctx, smt);
+    return HIR_generate_store_block(name, src, ctx, smt);
 }

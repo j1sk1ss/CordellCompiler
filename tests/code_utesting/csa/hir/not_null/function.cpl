@@ -1,0 +1,38 @@
+: BUG :
+function free(@[not_null] ptr i0 p) -> i0;
+
+start() {
+    i32 a;
+    ptr i32 buffer = ref a;
+
+    ptr i32 empty_buffer = 0;
+
+    free(buffer);
+    free(empty_buffer);
+
+    if a == 1; empty_buffer = buffer;
+
+    free(buffer);
+    free(empty_buffer);
+}
+
+:/ OUTPUT
+[WARNING] not_null argument violation in call to 'free': argument #1 ('p') can be NULL (variable 'empty_buffer' is
+          NULL)!
+    at: /tmp/tmp1dxl494q.cpl:10:25
+[WARNING] The 'free' function expects non-NULL argument 'ptr', but the provided value is NULL! (variable 'empty_buffer'
+          is NULL)!
+    at: /tmp/tmp1dxl494q.cpl:10:25
+[WARNING] Possible not_null argument violation in call to 'free': argument #1 ('p') can be NULL (variable 'buffer' is
+          NULL)!
+    at: /tmp/tmp1dxl494q.cpl:14:19
+[WARNING] Possible The 'free' function expects non-NULL argument 'ptr', but the provided value is NULL! (variable
+          'buffer' is NULL)!
+    at: /tmp/tmp1dxl494q.cpl:14:19
+[WARNING] Possible not_null argument violation in call to 'free': argument #1 ('p') can be NULL (variable 'empty_buffer'
+          is NULL)!
+    at: /tmp/tmp1dxl494q.cpl:15:25
+[WARNING] Possible The 'free' function expects non-NULL argument 'ptr', but the provided value is NULL! (variable
+          'empty_buffer' is NULL)!
+    at: /tmp/tmp1dxl494q.cpl:15:25
+/:

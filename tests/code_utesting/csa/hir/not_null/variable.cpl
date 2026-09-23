@@ -1,0 +1,23 @@
+: BUG :
+function always_zero() -> ptr i32 {
+    0
+}
+start() {
+    @[not_null] ptr i32 buffer = 0xB0700;
+    i32 a = 0;
+
+    if a; buffer = a as ptr i32;
+    else buffer = 1;
+
+    buffer = always_zero();
+}
+
+
+:/ OUTPUT
+[WARNING] Can't reach the 'then' branch! Consider to refactor the code.
+    at: /tmp/tmpsfo2s2_6.cpl:8:8
+[WARNING] The @[not_null] variable buffer has a store operation which can store a NULL value!
+    at: /tmp/tmpsfo2s2_6.cpl:8:8
+[WARNING] The @[not_null] variable buffer has a store operation which can store a NULL value!
+    at: /tmp/tmpsfo2s2_6.cpl:11:15
+/:

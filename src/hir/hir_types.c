@@ -40,6 +40,24 @@ int HIR_is_tmptype(hir_subject_type_t t) {
     }
 }
 
+int HIR_is_global(hir_subject_type_t t) {
+    switch (t) {
+        case HIR_GLBVARARR:
+        case HIR_GLBVARF64:
+        case HIR_GLBVARU64:
+        case HIR_GLBVARI64:
+        case HIR_GLBVARF32:
+        case HIR_GLBVARU32:
+        case HIR_GLBVARI32:
+        case HIR_GLBVARU16:
+        case HIR_GLBVARI16:
+        case HIR_GLBVARU8:
+        case HIR_GLBVARI8:
+        case HIR_GLBVARI0: return 1;
+        default:           return 0;
+    }
+}
+
 int HIR_is_vartype(hir_subject_type_t t) {
     switch (t) {
         case HIR_STKVARI0: 

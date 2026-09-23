@@ -1,0 +1,17 @@
+{
+  "name": "16_virtual_array_field_cross_tu",
+  "description": "Virtual method reads an array field while initialization and call live in other units.",
+  "entry": "main.cpl",
+  "sources": [
+    "impl.cpl",
+    "consumer.cpl",
+    "main.cpl"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "interface",
+    "array_field",
+    "virtual_dispatch",
+    "cross_tu"
+  ]
+}

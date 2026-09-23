@@ -76,10 +76,7 @@ static hir_subject_t* _get_final_head(
 
     /* The final offset for the base address is the result of the
         expression 'real_offset = offset * element_size' */
-    hir_subject_t* real_offset = HIR_SUBJ_TMPVAR(
-        HIR_TMPVARU64, 
-        VRTB_add_info(NULL, HIR_get_tmptkn_type(HIR_promote_types(offt->t, HIR_I8CONSTVAL)), NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v)
-    );
+    hir_subject_t* real_offset = HIR_SUBJ_TMPVAR(HIR_TMPVARU64, VRTB_ADD_TMP_NF(HIR_promote_types(offt->t, HIR_I8CONSTVAL), smt));
     real_offset->ptr = offt->ptr;
 
     HIR_BLOCK3(
@@ -108,10 +105,10 @@ hir_subject_t* HIR_generate_load_indexation(ast_node_t* node, hir_ctx_t* ctx, sy
     if (
         TPTB_get_info_id(node->c->sinfo.t_id, &p_ti, &smt->t) && p_ti.t == TYPE_ARRAY &&
         TPTB_get_info_id(TPTB_get_first_child(node->c->sinfo.t_id, &smt->t), &c_ti, &smt->t) &&
-        (c_ti.t == TYPE_ARRAY || c_ti.t == TYPE_CUSTOM) && !c_ti.memory.ptr
+        (c_ti.t == TYPE_ARRAY || c_ti.t == TYPE_CUSTOM) && !c_ti.ptr
     ) return final_head;
 
-    hir_subject_t* res = HIR_SUBJ_TMPVAR(indexed_type, VRTB_add_info(NULL, HIR_get_tmptkn_type(indexed_type), NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v));
+    hir_subject_t* res = HIR_SUBJ_TMPVAR(indexed_type, VRTB_ADD_TMP_NF(indexed_type, smt));
     res->ptr = MAX(final_head->ptr - 1, 0);
     
     HIR_BLOCK2(ctx, HIR_GDREF, res, final_head);

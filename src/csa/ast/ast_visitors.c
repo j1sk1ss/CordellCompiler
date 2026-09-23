@@ -1,0 +1,775 @@
+#include <csa/ast/ast_visitors.h>
+
+static inline const char* _format_location(file_position_t* p) {
+    static char buff[256] = { 0 };
+    if (p->file) snprintf(buff, sizeof(buff), "[%s:%li:%li]", p->file->body, p->line, p->column);
+    else snprintf(buff, sizeof(buff), "[%li:%li]", p->line, p->column);
+    return buff;
+}
+
+static const char* _fmt_tkn_op(token_type_t t) {
+    switch (t) {
+        case CUSTOM_TYPE_TOKEN:
+        case I0_TYPE_TOKEN:
+        case F64_TYPE_TOKEN: case I64_TYPE_TOKEN: case U64_TYPE_TOKEN:
+        case F32_TYPE_TOKEN: case I32_TYPE_TOKEN: case U32_TYPE_TOKEN:
+        case I16_TYPE_TOKEN: case U16_TYPE_TOKEN:
+        case I8_TYPE_TOKEN:  case U8_TYPE_TOKEN:
+        case ARRAY_TYPE_TOKEN:    return "declaration";
+
+        case BITORASSIGN_TOKEN:   return "|=";
+        case MODULOASSIGN_TOKEN:  return "%%=";
+        case BITANDASSIGN_TOKEN:  return "&=";
+        case BITXORASSIGN_TOKEN:  return "^=";
+
+        case ASSIGN_TOKEN:        return "=";
+        case ADDASSIGN_TOKEN:     return "+=";
+        case SUBASSIGN_TOKEN:     return "-=";
+        case MULASSIGN_TOKEN:     return "*=";
+        case DIVASSIGN_TOKEN:     return "/=";
+
+        case OR_TOKEN:            return "||";
+        case AND_TOKEN:           return "&&";
+        case PLUS_TOKEN:          return "+";
+        case BITOR_TOKEN:         return "|";
+        case LOWER_TOKEN:         return "<";
+        case MINUS_TOKEN:         return "-";
+        case LARGER_TOKEN:        return ">";
+        case DIVIDE_TOKEN:        return "/";
+        case MODULO_TOKEN:        return "%%";
+        case BITAND_TOKEN:        return "&";
+        case BITXOR_TOKEN:        return "^";
+        case LOWEREQ_TOKEN:       return "<=";
+        case COMPARE_TOKEN:       return "==";
+        case MULTIPLY_TOKEN:      return "*";
+        case NCOMPARE_TOKEN:      return "!=";
+        case LARGEREQ_TOKEN:      return ">=";
+        case BITMOVE_LEFT_TOKEN:  return "<<";
+        case BITMOVE_RIGHT_TOKEN: return ">>";
+        default: break;
+    }
+
+    return "";
+}
+
+static const char* _fmt_type_size(type_size_t s) {
+    switch (s) {
+        case TYPE_FULL_SIZE:    return "max";
+        case TYPE_HALF_SIZE:    return "max/2";
+        case TYPE_QUARTER_SIZE: return "max/4";
+        default:                return "max/8";
+    }
+}
+
+int ASTWLKR_ro_assign(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
+    ast_node_t* larg = nd->c;
+    if (!larg) return 1;
+    ast_node_t* rarg = larg->siblings.n;
+    if (!rarg) return 1;
+
+    if (larg->t->flags.ro) {
+        SEMANTIC_ERROR(" %s Read-only variable '%s' is used to store a value!", _format_location(&larg->t->finfo), larg->t->body->body);
+        REBUILD_CODE_2TRG(nd, larg, rarg);
+        return 0;
+    }
+
+    return 1;
+}
+
+/* Get basic type token from the AST node.
+If this is a cast node, extract a cast type.
+Params:
+    - `nd` - AST node.
+
+Returns a token with a type */
+static inline token_t* _get_base_type_token(ast_node_t* nd, int* ptr) {
+    switch (nd->t->t_type) {
+        case REF_TYPE_TOKEN: if (ptr) *ptr = TYPE_FULL_SIZE; 
+                             __attribute__((fallthrough));
+        case NOT_TOKEN:
+        case NEGATIVE_TOKEN:
+        case DREF_TYPE_TOKEN:
+        case CONVERT_TOKEN:  return nd->c->t;
+        default: break;
+    }
+    
+    return nd->t;
+}
+
+static inline ast_node_t* _call_args(ast_node_t* nd) {
+    if (!nd || !nd->c) return NULL;
+    if (nd->t && nd->t->t_type == CALLING_TOKEN) {
+        return nd->c->siblings.n ? nd->c->siblings.n->c : NULL;
+    }
+
+    return nd->c->c;
+}
+
+static inline ast_node_t* _call_callee(ast_node_t* nd) {
+    if (!nd) return NULL;
+    return nd->t && nd->t->t_type == CALLING_TOKEN ? nd->c : nd;
+}
+
+static token_t* _get_token_from_ast(ast_node_t* n, int* ptr, sym_table_t* smt);
+
+static int _has_parent_token(ast_node_t* nd, token_type_t t) {
+    for (ast_node_t* p = nd ? nd->p : NULL; p; p = p->p) {
+        if (p->t && p->t->t_type == t) return 1;
+    }
+
+    return 0;
+}
+
+int ASTWLKR_rtype_assign(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
+    
+    ast_node_t* larg = nd->c;
+    if (!larg) return 1;
+    ast_node_t* rarg = larg->siblings.n;
+    if (!rarg || rarg->t->t_type != CALLING_TOKEN) return 1;
+
+    func_info_t fi;
+    if (!rarg->c || !FNTB_get_info_id(rarg->c->sinfo.v_id, &fi, &smt->f)) return 1;
+    if (!fi.rtype) return 1;
+
+    int ptr = 0;
+    token_t* ltype = _get_token_from_ast(larg, &ptr, smt);
+    if (!ltype) return 1;
+    if (TKN_variable_bitness(fi.rtype->t, 1) != MAX(TKN_variable_bitness(ltype, 1), (type_size_t)ptr)) {
+        SEMANTIC_WARNING(
+            " %s Function '%s' has the '%s' return type, and it doesn't match to the %s type '%s'!", 
+            _format_location(&larg->t->finfo), fi.name->body,
+            RST_restore_type(fi.rtype->t), _fmt_tkn_op(nd->t->t_type), RST_restore_type(ltype)
+        );
+
+        REBUILD_CODE_1TRG(nd, rarg);
+        return 0;
+    }
+
+    return 1;
+}
+
+int ASTWLKR_not_init(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
+    if (nd->t->t_type == ARRAY_TYPE_TOKEN) return 1;
+    if (_has_parent_token(nd, CONTAINER_TOKEN)) return 1;
+
+    ast_node_t* larg = nd->c;
+    if (!larg) return 1;
+    if (nd->t->t_type == CUSTOM_TYPE_TOKEN) return 1;
+    if (
+        nd->p &&      /* If we have a parent     */
+        nd->p->p &&   /* The parent has a parent */
+        (
+            nd->p->p->t->t_type == FUNC_TOKEN ||  /* And this isn't a function              */
+                                                  /* Note: We don't fire a warning          */
+                                                  /*       if this is a argument from       */
+                                                  /*       function's body                  */
+                                                  /* Note 2: The function has a structure,  */
+                                                  /*         that a arg has a parent,       */
+                                                  /*         and this parent has a function */
+                                                  /*         as a parent                    */
+            nd->p->t->t_type == START_TOKEN ||
+            nd->p->p->t->t_type == FUNC_PROT_TOKEN
+        )
+    ) return 1;
+
+    foreach (annotation_t* annot, &nd->annots) {
+        if (annot->t == POPARG_ANNOTATION) return 1;
+    }
+
+    variable_info_t vi;
+    if (
+        VRTB_get_info_id(larg->sinfo.v_id, &vi, &smt->v) && 
+        vi.vmi.reg != NO_SYMBOL_ID
+    ) return 1;
+
+    ast_node_t* rarg = larg->siblings.n;
+    if (!rarg) {
+        SEMANTIC_WARNING(
+            " %s Variable '%s' doesn't have any initial value! If it used elsewhere below without store operation, "
+            "it will cause the UB. Consider to init this variable with '0'.", 
+            _format_location(&larg->t->finfo), larg->t->body->body
+        );
+        REBUILD_CODE_0TRG(nd);
+        return 0;
+    }
+
+    return 1;
+}
+
+static type_size_t _get_token_bitness(token_t* tkn) {
+    if (!TKN_is_numeric(tkn)) return TKN_variable_bitness(tkn, 1);
+    else {
+        long long val = tkn->body->to_llong(tkn->body);
+        if (val <= UCHAR_MAX)      return TYPE_EIGHTH_SIZE;
+        else if (val <= USHRT_MAX) return TYPE_QUARTER_SIZE;
+        else if (val <= UINT_MAX)  return TYPE_HALF_SIZE;
+        return TYPE_FULL_SIZE;
+    }
+}
+
+static token_t* _get_token_from_type_id(symbol_id_t t_id, typetab_ctx_t* tctx) {
+    type_info_t ti;
+    if (t_id == NO_SYMBOL_ID || !TPTB_get_info_id(t_id, &ti, tctx)) return NULL;
+
+    static token_t tokens[32];
+    static int index = 0;
+    token_t* t = &tokens[index++ % 32];
+    str_memset(t, 0, sizeof(token_t));
+    switch (ti.t) {
+        case TYPE_GENERICS:  t->t_type = ti.body.generic.token;   break;
+        case TYPE_CUSTOM:    t->t_type = CUSTOM_TYPE_TOKEN;       break;
+        case TYPE_METHOD:    t->t_type = FUNC_TOKEN;              break;
+        case TYPE_ARRAY:     t->t_type = ARRAY_TYPE_TOKEN;        break;
+        case TYPE_SIGNATURE: t->t_type = SIGNATURE_TOKEN;         break;
+        case TYPE_PRIMITIVE: t->t_type = ti.body.primitive.token; break;
+        default:             t->t_type = UNKNOWN_STRING_TOKEN;    break;
+    }
+    
+    t->body      = ti.name;
+    t->flags.ptr = ti.ptr;
+    return t;
+}
+
+static token_t* _get_token_from_ast(ast_node_t* n, int* ptr, sym_table_t* smt) {
+    if (!n || !n->t) return NULL;
+    if (n->t->t_type == CALLING_TOKEN) {
+        func_info_t fi;
+        if (
+            n->c &&
+            FNTB_get_info_id(n->c->sinfo.v_id, &fi, &smt->f) &&
+            fi.rtype
+        ) return fi.rtype->t;
+
+        return NULL;
+    }
+
+    if (
+        n->sinfo.t_id != NO_SYMBOL_ID &&
+        (
+            n->t->t_type == MEMBER_ACCESS_TOKEN ||
+            n->t->t_type == INDEXATION_TOKEN
+        )
+    ) return _get_token_from_type_id(n->sinfo.t_id, &smt->t);
+
+    if (TKN_is_operand(n->t)) {
+        int lptr = 0, rptr = 0;
+        token_t* l = _get_token_from_ast(n->c, &lptr, smt);
+        token_t* r = _get_token_from_ast(n->c->siblings.n, &rptr, smt);
+
+        if (!l && !r) return NULL;
+        else if (!l) return r;
+        else if (!r) return l;
+
+        if (MAX(_get_token_bitness(l), (type_size_t)lptr) < MAX(_get_token_bitness(r), (type_size_t)rptr)) return r;
+        return l;
+    }
+
+    return _get_base_type_token(n, ptr);
+}
+
+static int _check_assign_types(const char* msg, ast_node_t* l, ast_node_t* r, sym_table_t* smt) {
+    if (
+        !l || !r || 
+        l->t->t_type == VAR_ARGUMENTS_TOKEN || r->t->t_type == VAR_ARGUMENTS_TOKEN
+    ) return 1;
+
+    int ltptr = 0, rtptr = 0;
+    token_t* lt = _get_token_from_ast(l, &ltptr, smt);
+    token_t* rt = _get_token_from_ast(r, &rtptr, smt);
+    if (!lt || !rt || !lt->body || !rt->body) return 1;
+
+    type_size_t lb = l->t->t_type == DREF_TYPE_TOKEN ? TKN_variable_bitness(lt, 0) : _get_token_bitness(lt);
+    type_size_t rb = r->t->t_type == DREF_TYPE_TOKEN ? TKN_variable_bitness(rt, 0) : _get_token_bitness(rt);
+    if (MAX(lb, (type_size_t)ltptr) < MAX(rb, (type_size_t)rtptr)) {
+        if (TKN_is_numeric(rt)) {
+            SEMANTIC_WARNING(
+                " %s %s of '%s' with '%s' (Number's bitness is '%s', but '%s' can handle bitness '%s')!", _format_location(&rt->finfo), msg,
+                lt->body->body, rt->body->body, _fmt_type_size(rb), 
+                RST_restore_type(lt), _fmt_type_size(lb)
+            );
+        }
+        else {
+            SEMANTIC_WARNING(
+                " %s %s of '%s' with '%s'! '%s' can't handle bitness '%s'!", _format_location(&rt->finfo), msg,
+                lt->body->body, rt->body->body, RST_restore_type(lt), _fmt_type_size(MAX(rb, (type_size_t)rtptr))
+            );
+        }
+
+        return 0;
+    }
+
+    return 1;
+}
+
+/* Search for the 'return' or for the 'exit' statement in the provided AST node.
+Params:
+    - `nd` - Target AST node.
+    - `found` - External flag. Will hold the `1` value if this function
+                finds the 'return' or the 'exit' statement.
+    - `type` - External flag. Will hold the next list of values:
+                - 1 - Found the 'exit' statement.
+                - 2 - Found the 'return' statement.
+
+Returns 1 if succeeds */
+static int _search_term_node(ast_node_t* nd, int* found, int* type) {
+    if (!nd) return 0;
+    if (!nd->t) {
+        _search_term_node(nd->c, found, type);
+        return 1;
+    }
+
+    switch (nd->t->t_type) {
+        case IF_TOKEN:
+        case LOOP_TOKEN:
+        case WHILE_TOKEN: {
+            ast_node_t* cnd     = nd->c;
+            ast_node_t* lbranch = nd->t->t_type != LOOP_TOKEN ? cnd->siblings.n : nd->c;
+            ast_node_t* rbranch = lbranch->siblings.n;
+
+            int nret = 0, lret = 0, rret = 0;
+            _search_term_node(lbranch->c, &lret, type);
+            if (rbranch) _search_term_node(rbranch->c, &rret, type);
+            _search_term_node(nd->siblings.n, &nret, type);
+
+            if (!rbranch)      rret = nret;
+            if (rret && lret)  nret = 1;
+            if (found && nret) *found = 1;
+            return 1;
+        }
+        case SWITCH_TOKEN: {
+            int nret = 0, caseret = 1;
+            ast_node_t* cnd   = nd->c;
+            ast_node_t* cases = cnd->siblings.n->c;
+            for (; cases; cases = cases->siblings.n) {
+                int curret = 0;
+                _search_term_node(cases->c, &curret, type);
+                caseret = caseret && curret;
+            }
+
+            _search_term_node(nd->siblings.n, &nret, type);
+            if (nret || caseret) *found = 1;
+            break;
+        }
+        case EXIT_TOKEN:   if (type) *type = 1; goto _set_found_flag;
+        case RETURN_TOKEN: if (type) *type = 2;
+        {
+_set_found_flag: {}
+            if (found) *found = 1;
+            return 1;
+        }
+        default: {
+            _search_term_node(nd->c, found, type);
+            if (found && *found) break;
+            _search_term_node(nd->siblings.n, found, type);
+            break;
+        }
+    }
+
+    return 1;
+}
+
+int ASTWLKR_no_exit(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
+    int has_ret = 0;
+    _search_term_node(nd->c, &has_ret, NULL);
+    if (!has_ret) {
+        SEMANTIC_WARNING(" %s Start doesn't have the 'exit' keyword on all paths!", _format_location(&nd->t->finfo));
+        REBUILD_CODE_1TRG(nd, NULL);
+        return 0;
+    }
+
+    return 1;
+}
+
+int ASTWLKR_wrong_arg_type(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
+
+    func_info_t fi;
+    ast_node_t* callee = _call_callee(nd);
+    if (!callee || !FNTB_get_info_id(callee->sinfo.v_id, &fi, &smt->f)) {
+        if (
+            !callee || !callee->t ||
+            (
+                callee->t->t_type != FUNC_NAME_TOKEN &&
+                callee->t->t_type != CALL_ADDR_TOKEN
+            )
+        ) return 1;
+
+        SEMANTIC_ERROR(
+            " %s Function '%s' isn't registered for some reason! Check previous logs!",
+            _format_location((callee && callee->t) ? &callee->t->finfo : &nd->t->finfo),
+            (callee && callee->t && callee->t->body) ? callee->t->body->body : ""
+        );
+
+        return 0;
+    }
+    if (!fi.args) return 1;
+
+    ast_node_t* provided_arg = _call_args(nd);
+    ast_node_t* expected_arg = fi.args->c;
+    for (
+        ; provided_arg && expected_arg && expected_arg->t && expected_arg->t->t_type != SCOPE_TOKEN; 
+        provided_arg = provided_arg->siblings.n, expected_arg = expected_arg->siblings.n
+    ) {
+        if (!_check_assign_types("Illegal argument", expected_arg, provided_arg, smt)) {
+            REBUILD_CODE_1TRG(nd, provided_arg);
+        }
+    }
+
+    return 1;
+}
+
+int ASTWLKR_duplicated_branches(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
+    ast_node_t* lbranch = nd->c->siblings.n;
+    if (!lbranch) return 1;
+    ast_node_t* rbranch = lbranch->siblings.n;
+    if (!rbranch) return 1;
+    
+    if (AST_hash_node(lbranch) == AST_hash_node(rbranch)) {
+        SEMANTIC_WARNING(
+            " Possible branch duplication! The branch at %s is similar to the branch at %s! "
+            "Consider to refactor the logic and delete the copied branch. If this isn't possible, "
+            "ignore this warning.",
+            _format_location(&lbranch->t->finfo), _format_location(&rbranch->t->finfo)
+        );
+        REBUILD_CODE_2TRG(nd, lbranch, rbranch);
+        return 0;
+    }
+
+    return 1;
+}
+
+/* Format format name by the provided type.
+Params:
+    - `t` - Case type.
+
+Returns a formatted case type */
+static inline char* _format_name(int t) {
+    switch (t) {
+        case 0:  return "camelCase";
+        case 1:  return "PascalCase";
+        case 2:  return "Kebab-Case";
+        case 3:  return "snake_case";
+        default: return "unknown";
+    }
+}
+
+/* Check the string's case style.
+Params: 
+    - `s` - String.
+    
+Returns -1 for an unknown format;
+Returns 0 if the input string is camelCase;
+Returns 1 if the input string is PascalCase;
+Returns 2 if the input string is kebab-case;
+Returns 3 if the input string is snake_case */
+static int _determine_string_style(const char* s) {
+    int has_upper      = 0;
+    int has_hyphen     = 0;
+    int has_underscore = 0;
+    if (!s || !*s) return -1;
+
+    for (const char *p = s; *p; p++) {
+        if (str_isupper(*p)) has_upper      = 1;
+        if (*p == '-')       has_hyphen     = 1;
+        if (*p == '_')       has_underscore = 1;
+    }
+
+    if (has_hyphen && !has_underscore) {
+        for (const char *p = s; *p; p++) {
+            if (*p != '-' && !str_islower((unsigned char)*p) && !str_isdigit((unsigned char)*p)) {
+                return -1;
+            }
+        }
+
+        return 2;
+    }
+
+    if ((!has_upper || has_underscore) && !has_hyphen) {
+        int at_start = 1;
+        for (const char *p = s; *p; p++) {
+            if (*p != '_' && !str_islower((unsigned char)*p) && !str_isdigit((unsigned char)*p) && !at_start) {
+                return -1;
+            }
+
+            if (*p != '_' && str_islower((unsigned char)*p)) at_start = 0;
+        }
+
+        return 3;
+    }
+
+    if (!has_hyphen && !has_underscore && str_islower((unsigned char)s[0])) {
+        for (const char *p = s; *p; p++) {
+            if (!str_isalnum((unsigned char)*p)) {
+                return -1;
+            }
+        }
+
+        return 0;
+    }
+
+    if (!has_hyphen && !has_underscore && str_isupper((unsigned char)s[0])) {
+        for (const char *p = s; *p; p++) {
+            if (!str_isalnum((unsigned char)*p)) {
+                return -1;
+            }
+        }
+
+        return 1;
+    }
+
+    return -1;
+}
+
+int ASTWLKR_valid_function_name(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
+    ast_node_t* fname = nd->c;
+    if (!fname) return 1;
+
+    func_info_t fi;
+    if (!FNTB_get_info_id(fname->sinfo.v_id, &fi, &smt->f)) {
+        SEMANTIC_ERROR(
+            " %s Function='%s' is not registered for some reason! Check previous logs!",
+            _format_location(&fname->t->finfo), fname->t->body->body
+        );
+
+        return 0;
+    }
+
+    if (
+        fi.name->body[0] == '_' && 
+        (fi.name->len(fi.name) > 0 && fi.name->body[1] == '_')
+    ) {
+        SEMANTIC_WARNING(
+            " %s Function '%s' has an underscore symbol at the name's start! These functions (with an underscore) are allocated for the compiler. "
+            "Consider to rename it, or save the same name and igone this warning, but be ready to face some possible fatal outcomes. In other words: "
+            "This action will have consequences.",
+            _format_location(&fname->t->finfo), fname->t->body->body
+        );
+    }
+
+    if (fi.name->requals(fi.name, "chloe")) {
+        SEMANTIC_INFO(
+            " %s Used 'Chloe' as a function name, and I'm not happy about it.",
+            _format_location(&fname->t->finfo)
+        );
+    }
+    else if (fi.name->requals(fi.name, "max&chloe")) {
+        SEMANTIC_INFO(
+            " %s Used 'Max' and 'Chloe' as a function name, and this is the worst name that is possible.", 
+            _format_location(&fname->t->finfo)
+        );
+    }
+    else if (fi.name->requals(fi.name, "fang")) {
+        SEMANTIC_INFO(
+            " %s Used 'Fang' as a function dragon-name, and now let's play some guitar songs, I guess? "
+            "Also, this type of a warning is pretty annoing, isn't it? But why did you call a function with such a name?", 
+            _format_location(&fname->t->finfo)
+        );
+    }
+    
+    int name_format = _determine_string_style(fi.name->body);
+    if (name_format != 3) {
+        SEMANTIC_INFO(
+            " %s Function name='%s' isn't in the 'snake' case! Current case is '%s', consider to rename the function.", 
+            _format_location(&fname->t->finfo), fi.name->body, _format_name(name_format)
+        );
+    }
+
+    return 1;
+}
+
+/* Check if the function's return type matches to the actual return value's type.
+Params:
+    - `fname` - Target function name.
+    - `nd` - Base function node.
+    - `rtype` - Function return type.
+
+Returns 1 if return types are equal */
+static int _check_return_statement(const char* fname, ast_node_t* nd, token_t* rtype, sym_table_t* smt) {
+    if (!nd) return 0;
+    if (!nd->t) {
+        _check_return_statement(fname, nd->c, rtype, smt);
+        return 0;
+    }
+
+    switch (nd->t->t_type) {
+        case EXIT_TOKEN:
+        case RETURN_TOKEN: {
+            int ptr = 0;
+            token_t* rval = _get_token_from_ast(nd->c, &ptr, smt);
+            if (!rval && rtype->t_type == I0_TYPE_TOKEN && !rtype->flags.ptr) return 1;
+            if (rval && rtype->t_type == I0_TYPE_TOKEN && !rtype->flags.ptr) {
+                SEMANTIC_WARNING(
+                    " %s Function='%s' has its return value, but isn't supposed to!", 
+                    _format_location(&rval->finfo), fname
+                );
+                REBUILD_CODE_1TRG(nd, nd->c);
+                return 0;
+            }
+            
+            if (!rval) return 1;
+            if (MAX(_get_token_bitness(rval), (type_size_t)ptr) > _get_token_bitness(rtype)) {
+                SEMANTIC_WARNING(
+                    " %s Function '%s' has the wrong return value, that must be the '%s', but isn't!", 
+                    _format_location(&rval->finfo), fname, RST_restore_type(rtype)
+                );
+                REBUILD_CODE_1TRG(nd, nd->c);
+                return 0;
+            }
+
+            break;
+        }
+        default: {
+            _check_return_statement(fname, nd->c, rtype, smt);
+            _check_return_statement(fname, nd->siblings.n, rtype, smt);
+            break;
+        }
+    }
+
+    return 1;
+}
+
+int ASTWLKR_wrong_rtype(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
+    ast_node_t* fname = nd->c;
+    if (!fname) return 1;
+
+    func_info_t fi;
+    if (!FNTB_get_info_id(fname->sinfo.v_id, &fi, &smt->f)) return 0;
+    if (!fi.rtype) {
+        SEMANTIC_INFO(
+            " %s Consider to add a return type to the '%s' function! It can be performed with '-> type' lexem and "
+            "will provide to the compiler and the static analyzer all essential information for work.", 
+            _format_location(&nd->t->finfo), fname->t->body->body
+        );
+        return 1;
+    }
+
+    return _check_return_statement(fi.name->body, nd->c, fi.rtype->t, smt);
+}
+
+int ASTWLKR_deadcode(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
+    if (nd->siblings.n) {
+        SEMANTIC_WARNING(" %s 'Dead Code' after the termination statement!", _format_location(&nd->t->finfo));
+        REBUILD_CODE_1TRG(nd->p, nd->siblings.n);
+        return 0;
+    }
+
+    return 1;
+}
+
+int ASTWLKR_inefficient_while(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
+    ast_node_t* cond = nd->c;
+    if (!cond || cond->t->t_type != UNKNOWN_NUMERIC_TOKEN) return 0;
+    if (cond->t->body->to_llong(cond->t->body)) {
+        SEMANTIC_INFO(
+            " %s Consider to use a 'loop' statement instead of the 'while 1;'! It is more efficient and won't create additional compare", 
+            _format_location(&nd->t->finfo)
+        );
+        REBUILD_CODE_1TRG(nd, cond);
+        return 0;
+    }
+
+    return 1;
+}
+
+int ASTWLKR_wrong_exit(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
+
+    long f_id = 0;
+    if (nd->t->t_type == START_TOKEN) f_id = nd->sinfo.v_id;
+    else f_id = nd->c->sinfo.v_id;
+
+    func_info_t fi;
+    if (
+        !FNTB_get_info_id(f_id, &fi, &smt->f) || 
+        !fi.flags.entry
+    ) return 1;
+
+    int f = 0, t = 0;
+    _search_term_node(nd->c, &f, &t);
+    if (f && t == 2) {
+        SEMANTIC_INFO(
+            " %s The function '%s' is an entry point! Consider the usage of the 'exit' statement over the 'return' statement!", 
+            _format_location(&nd->t->finfo), fi.name->body
+        );
+
+        return 0;
+    }
+
+    return 1;
+}
+
+int ASTWLKR_break_without_statement(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
+    if (
+        !flags->in_loop  && 
+        !flags->in_while &&
+        !flags->in_switch
+    ) {
+        SEMANTIC_WARNING(" %s The 'break' statement without any loop that uses it!", _format_location(&nd->t->finfo));
+        REBUILD_CODE_1TRG(nd->p, nd);
+        return 0;
+    }
+
+    return 1;
+}
+
+int ASTWLKR_incorrect_align(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
+    if (!nd->c) return 1;
+    variable_info_t vi;
+    if (!VRTB_get_info_id(nd->c->sinfo.v_id, &vi, &smt->v)) return 0;
+    if (vi.vmi.align % 2 != 0) {
+        SEMANTIC_WARNING(
+            " %s The '%s' variable has align that isn't even! '%i' %% 2 != 0.", 
+            _format_location(&nd->t->finfo), vi.name->body, vi.vmi.align
+        );
+        REBUILD_CODE_1TRG(nd, nd);
+        return 0;
+    }
+
+    return 1;
+}
+
+int ASTWLKR_inefficient_switch(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
+    int case_count = 0;
+    for (ast_node_t* ccase = nd->c->siblings.n->c; ccase; ccase = ccase->siblings.n) {
+        case_count++;
+    }
+
+    int has_annot = 0;
+    foreach (annotation_t* annot, &nd->annots) {
+        if (annot->t == STRAIGHT_ANNOTATION) {
+            has_annot = 1;
+            break;
+        }
+    }
+
+    if (case_count < 10 && !has_annot) {
+        SEMANTIC_WARNING(
+            " %s Switch statement here has '%i' cases and uses the binary search. Consider to add @[straight].", 
+            _format_location(&nd->t->finfo), case_count
+        );
+        REBUILD_CODE_1TRG(nd, nd);
+        return 0;
+    }
+    else if (case_count > 10 && has_annot) {
+        SEMANTIC_WARNING(
+            " %s Switch statement here has '%i' cases and uses the straight search. Consider to remove @[straight].", 
+            _format_location(&nd->t->finfo), case_count
+        );
+        REBUILD_CODE_1TRG(nd, nd);
+        return 0;
+    }
+
+    return 1;
+}

@@ -33,6 +33,32 @@ static inline int _fit_custom_type(ast_node_t* arg, hir_subject_t* hir_arg, sym_
             -1; /* otherwise - punish */
 }
 
+typedef struct {
+    symbol_id_t        f_id;
+    hir_subject_type_t t;
+    token_type_t       tt;
+    int                ptr;
+} ret_type_t;
+
+static inline ret_type_t _convert_type_to_htype(symbol_id_t t_id, sym_table_t* smt) {
+    t_id = TPTB_resolve_parent(t_id, &smt->t);
+
+    type_info_t ti;
+    if (TPTB_get_info_id(t_id, &ti, &smt->t)) {
+        switch (ti.t) {
+            case TYPE_PRIMITIVE: {
+                token_t _ = { .t_type = ti.body.primitive.token, .flags.ptr = ti.ptr };
+                return (ret_type_t) { .f_id = NO_SYMBOL_ID, .ptr = ti.ptr, .t = HIR_get_tmptype_tkn(&_, 0), .tt = _.t_type };
+            }
+            case TYPE_SIGNATURE: return _convert_type_to_htype(ti.body.signature.ret_type, smt);
+            case TYPE_CUSTOM:    return (ret_type_t) { .f_id = NO_SYMBOL_ID, .ptr = ti.ptr, .t = HIR_STKVARU8, .tt = U8_TYPE_TOKEN };
+            default:             return (ret_type_t) { .f_id = NO_SYMBOL_ID, .ptr = 0, .t = HIR_STKVARU64, .tt = U64_TYPE_TOKEN };
+        }
+    }
+
+    return (ret_type_t) { .f_id = NO_SYMBOL_ID, .ptr = 0, .t = HIR_STKVARU64, .tt = U64_TYPE_TOKEN };
+}
+
 /* De-overload for functions in HIR.
 The idea to determine which function is beign called:
 ```cpl
@@ -56,26 +82,28 @@ Params:
     - `smt` - Symtable.
 
 Returns 1 if succeeds */
-static symbol_id_t _resolve_function_overload(
-    hir_subject_t* callee, symbol_id_t s_id, hir_subject_t* args, sym_table_t* smt, int ret, token_t* out
-) {
-    out->t_type = I64_TYPE_TOKEN;
-    if (!callee) return NO_SYMBOL_ID;
+static ret_type_t _resolve_function_overload(hir_subject_t* callee, func_info_t* target_fi, hir_subject_t* args, sym_table_t* smt, int ret) {
+    if (!callee) return (ret_type_t) { .f_id = NO_SYMBOL_ID, .ptr = 0, .t = HIR_STKVARU64 };
 
-    func_info_t fi;
-    if (
-        callee->t != HIR_FNAME || 
-        !FNTB_get_info_id(callee->storage.str.s_id, &fi, &smt->f)
-    ) return callee->storage.str.s_id;
+    ret_type_t info;
+    if (callee->t != HIR_FNAME && target_fi->id == NO_SYMBOL_ID) {
+        info = (ret_type_t) { .ptr = 0, .t = HIR_STKVARU64 };
+        variable_info_t vi;
+        if (
+            HIR_is_vartype(callee->t) && 
+            VRTB_get_info_id(callee->storage.var.v_id, &vi, &smt->v)
+        ) info = _convert_type_to_htype(vi.t_id, smt);
+        return info;
+    }
 
-    if (fi.rtype) {
-        str_memcpy(out, fi.rtype->t, sizeof(token_t));
+    if (target_fi->rtype) {
+        info = _convert_type_to_htype(target_fi->rtype->sinfo.t_id, smt);
     }
 
     list_t funcs;
     list_init(&funcs);
     if (
-        FNTB_collect_info(fi.name, s_id, &funcs, &smt->f, &smt->sc) && 
+        FNTB_collect_info(target_fi->name, target_fi->s_id, &funcs, &smt->f, &smt->sc) && 
         list_size(&funcs) > 1
     ) {
         func_info_t* resolved = NULL;
@@ -109,13 +137,14 @@ static symbol_id_t _resolve_function_overload(
         }
 
         if (resolved) {
-            if (ret && resolved->rtype) str_memcpy(out, resolved->rtype->t, sizeof(token_t));
+            if (ret && resolved->rtype) info = _convert_type_to_htype(resolved->rtype->sinfo.t_id, smt);
             callee->storage.str.s_id = resolved->id;
         }
     }
 
     list_free(&funcs);
-    return callee->storage.str.s_id;
+    info.f_id = callee->storage.str.s_id;
+    return info;
 }
 
 hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret) {
@@ -128,16 +157,33 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
     }
 
     ast_node_t* args_node = node->c->siblings.n->c;
-    func_info_t fi = { 0 };
-    if (
+    func_info_t fi = { .id = NO_SYMBOL_ID, 0 };
+    if ( /* Get function from the expression */
         node->c->t->t_type != FUNC_NAME_TOKEN || 
         !FNTB_get_info_id(node->c->sinfo.v_id, &fi, &smt->f)
     ) call_subj = HIR_generate_elem(node->c, ctx, smt);
     else {
-        op        = fi.flags.external ? HIR_ECLL : HIR_FCLL;
-        st_op     = fi.flags.external ? HIR_STORE_ECLL : HIR_STORE_FCLL;
-        call_subj = HIR_SUBJ_FUNCNAME(node->c);
-        if (node->c->sinfo.s_id != NO_SYMBOL_ID) fi.s_id = node->c->sinfo.s_id;
+        type_info_t self_ti;
+        int vtable_index;
+        if ( /* Get function from the virtual table */
+            node->self                                                                                     && /* it has self node  */
+            TPTB_get_info_id(TPTB_resolve_parent(node->self->sinfo.t_id, &smt->t), &self_ti, &smt->t)      && /* self has a type   */
+            ((vtable_index = TPTB_get_vtable_index(self_ti.id, node->c->sinfo.v_id, &smt->t)) != SMT_NULL)    /* call is a method  */
+        ) {
+            hir_subject_t *self = HIR_generate_elem(node->self, ctx, smt), *ref_self = !self->ptr ? HIR_reference_subject(self, smt, 1) : self;
+            if (self != ref_self) HIR_BLOCK2(ctx, HIR_REF, ref_self, self);
+            hir_subject_t* vtable_entry = HIR_add_to_subject(
+                HIR_gdref_subject(ref_self, smt, ctx, 1),        /* pointer to the first virtual method */
+                smt, vtable_index * CONF_get_full_bytness(), ctx /* move to the target method           */
+            );
+            call_subj = HIR_gdref_subject(vtable_entry, smt, ctx, 1);
+        } /* Get function from the name */
+        else {
+            op        = fi.flags.external ? HIR_ECLL       : HIR_FCLL;
+            st_op     = fi.flags.external ? HIR_STORE_ECLL : HIR_STORE_FCLL;
+            call_subj = HIR_SUBJ_FUNCNAME(node->c);
+            if (node->c->sinfo.s_id != NO_SYMBOL_ID) fi.s_id = node->c->sinfo.s_id;
+        }
     }
     
     if (!call_subj) {
@@ -163,9 +209,9 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
         list_add(&args->storage.list.h, el);
     }
     
-    token_t tmp = { 0 };
     func_info_t resolved;
-    if (FNTB_get_info_id(_resolve_function_overload(call_subj, fi.s_id, args, smt, ret, &tmp), &resolved, &smt->f)) {
+    ret_type_t ret_info = _resolve_function_overload(call_subj, &fi, args, smt, ret);
+    if (FNTB_get_info_id(ret_info.f_id, &resolved, &smt->f)) {
         int arg_offset = 0, arg_count = list_size(&args->storage.list.h);
         fn_iterate_args (&resolved) {
             if (arg_offset++ < arg_count || !arg->c || !arg->c->siblings.n) continue;
@@ -185,7 +231,8 @@ hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table
     }
 
     hir_subject_t* res = HIR_SUBJ_TMPVAR(
-        HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, tmp.flags, &smt->v)
+        ret_info.t, VRTB_add_info(NULL, ret_info.tt, NO_SYMBOL_ID, 
+        (basic_object_info_t) { .ptr = ret_info.ptr }, &smt->v)
     );
     
     res->ptr = fi.rtype ? fi.rtype->t->flags.ptr : 0;

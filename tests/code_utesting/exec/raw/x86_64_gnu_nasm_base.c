@@ -43,9 +43,16 @@
     HIR_CG_perform_dfe(&callctx, &smt);     \
     HIR_CG_apply_dfe(&cfgctx, &smt);
 
+static int unload_token_list(list_t* tokens) {
+    if (!tokens) return 0;
+    list_free_force_op(tokens, (int (*)(void *))TKN_unload_token);
+    mm_free(tokens);
+    return 1;
+}
+
 int main(int argc, char* argv[]) {
-    if (argc != 3) {
-        fprintf(stderr, "Not enough arguments! Expected 3, got %i!\n", argc);
+    if (argc < 3) {
+        fprintf(stderr, "Not enough arguments! Expected at least 3, got %i!\n", argc);
         return 1;
     }
 
@@ -66,44 +73,67 @@ int main(int argc, char* argv[]) {
     };
     CONF_set_config(cfg);
 
-    int fd = open(argv[1], O_RDONLY);
-    if (fd < 0) {
-        fprintf(stderr, "File %s isn't found!\n", argv[1]);
-        return 1;
-    }
-
-    finder_ctx_t finctx = { .bpath = argv[2] };
-    pp_ctx_t ppctx;
-    PP_init_pp_ctx(&ppctx);
-
-    fd = PP_perform(fd, &finctx, &ppctx);
-    if (fd < 0) {
-        fprintf(stderr, "Processed file %s isn't found!\n", argv[1]);
-        return 1;
-    }
-
-    char pdata[2048] = { 0 };
-    pread(fd, pdata, 2048, 0);
-
-    list_t tokens;
-    list_init(&tokens);
-    if (!TKN_tokenize(fd, &tokens) || !list_size(&tokens)) {
-        fprintf(stderr, "ERROR! tkn == NULL!\n");
-        return 1;
-    }
-
-    MRKP_mnemonics(&tokens);
-    MRKP_variables(&tokens);
-
     sym_table_t smt;
     SMT_init(&smt);
 
     ast_ctx_t sctx;
     AST_init_ctx(&sctx);
 
-    if (!AST_parse_tokens(&tokens, &sctx, &smt)) {
-        fprintf(stderr, "AST tree creation error!\n");
-        return 1;
+    list_t token_lists;
+    list_init(&token_lists);
+
+    const char* include_root = argv[argc - 1];
+    for (int i = 1; i < argc - 1; i++) {
+        const char* input_file = argv[i];
+        int fd = open(input_file, O_RDONLY);
+        if (fd < 0) {
+            fprintf(stderr, "File %s isn't found!\n", input_file);
+            return 1;
+        }
+
+        finder_ctx_t finctx = { .bpath = include_root };
+        
+        deftb_t macros;
+        MCTB_init(&macros);
+        PP_predefine(&macros);
+
+        pp_ctx_t ppctx;
+        PP_init_pp_ctx(&ppctx);
+        
+        fd = PP_perform(fd, &finctx, &ppctx, &macros);
+        MCTB_unload(&macros);
+        if (fd < 0) {
+            fprintf(stderr, "Processed file %s isn't found!\n", input_file);
+            return 1;
+        }
+
+        list_t* tokens = (list_t*)mm_malloc(sizeof(list_t));
+        if (!tokens) {
+            fprintf(stderr, "Can't allocate token list\n");
+            return 1;
+        }
+
+        list_init(tokens);
+        if (!list_push_back(&token_lists, tokens)) {
+            mm_free(tokens);
+            fprintf(stderr, "Can't save token list\n");
+            return 1;
+        }
+
+        if (!TKN_tokenize(fd, tokens) || !list_size(tokens)) {
+            fprintf(stderr, "ERROR! tkn == NULL!\n");
+            return 1;
+        }
+
+        MRKP_mnemonics(tokens);
+        MRKP_variables(tokens);
+
+        if (!AST_parse_tokens(tokens, &sctx, &smt)) {
+            fprintf(stderr, "AST tree creation error!\n");
+            return 1;
+        }
+
+        close(fd);
     }
 
     AST_finalize_parse(&sctx, &smt);
@@ -125,7 +155,7 @@ int main(int argc, char* argv[]) {
     map_init(&lctx.lmap, MAP_NO_CMP);
     HIR_LOOP_mark_loops(&cfgctx, &lctx);
 
-    HIR_CFG_finilize_before_dom(&cfgctx);
+    HIR_CFG_finalize_before_dom(&cfgctx);
     HIR_LTREE_canonicalization(&cfgctx, &lctx);
     HIR_CFG_unload_domdata(&cfgctx);
     HIR_CFG_create_domdata(&cfgctx);
@@ -176,10 +206,9 @@ int main(int argc, char* argv[]) {
     HIR_CG_unload(&callctx);
     HIR_CFG_unload(&cfgctx);
     HIR_unload_blocks(hirctx.hot.h);
-    list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);
+    list_free_force_op(&token_lists, (int (*)(void *))unload_token_list);
     AST_unload_ctx(&sctx);
 
     SMT_unload(&smt);
-    close(fd);
     return EXIT_SUCCESS;
 }

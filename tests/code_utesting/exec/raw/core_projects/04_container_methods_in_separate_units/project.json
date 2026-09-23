@@ -1,0 +1,22 @@
+{
+  "name": "04_container_methods_in_separate_units",
+  "description": "One container is declared once, while different self-method bodies are emitted by different translation units.",
+  "entry": "main.cpl",
+  "sources": [
+    "add.cpl",
+    "multiply.cpl",
+    "pipeline.cpl",
+    "main.cpl"
+  ],
+  "headers": [
+    "accumulator.inc"
+  ],
+  "expected_exit_code": 42,
+  "features": [
+    "container",
+    "self_methods",
+    "method_prototypes",
+    "cross_tu_methods",
+    "header"
+  ]
+}

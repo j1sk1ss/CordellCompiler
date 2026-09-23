@@ -1,0 +1,44 @@
+container smth {
+    i32 a;
+}
+container els {
+    i32 a;
+}
+
+start() {
+    ptr fn(i32,i32)i32 fnc;
+    fnc(1, 1);
+
+    ptr fn(ptr els)i0 a;
+    ptr fn(ptr smth)i0 b;
+
+    smth d;
+    els k;
+
+    a(ref d);
+    b(ref k);
+
+    a(ref k);
+    b(ref d);
+}
+
+:/ OUTPUT
+[WARNING] Call of 'fnc' has some arguments, which have a wrong type! Consider to use the 'as' operator!
+    at: {X}.cpl:10:13
+    trace: Value '1' has the 'i8' type! Consider the 'as i32' command!
+      at: {X}.cpl:10:13
+    trace: Value '1' has the 'i8' type! Consider the 'as i32' command!
+      at: {X}.cpl:10:13
+[WARNING] Call of 'a' has some arguments, which have a wrong type! Consider to use the 'as' operator!
+    at: {X}.cpl:18:13
+    trace: Variable 'tmp' has the 'smth' type! Consider the 'as ptr els' command!
+      at: {X}.cpl:18:13
+    trace: Variable 'tmp' declared here!
+      at: {X}.cpl:18:13
+[WARNING] Call of 'b' has some arguments, which have a wrong type! Consider to use the 'as' operator!
+    at: {X}.cpl:19:13
+    trace: Variable 'tmp' has the 'els' type! Consider the 'as ptr smth' command!
+      at: {X}.cpl:19:13
+    trace: Variable 'tmp' declared here!
+      at: {X}.cpl:19:13
+/:
