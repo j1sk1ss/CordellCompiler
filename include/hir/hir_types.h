@@ -38,6 +38,8 @@ typedef enum hir_operation {
         HIR_FEND,        // function end
         HIR_OEXT,        // extern object      extern [id from variable symtable]
         HIR_FEXT,        // extern function    extern [id from function symtable]
+        HIR_DEFER_START, // defer block start
+        HIR_DEFER_END,   // defer block end
 
         /* Jump instructions */
         HIR_BREAK,       // Cosmetic command for the 'break' statement. ! Dont' handle it in the further translation !

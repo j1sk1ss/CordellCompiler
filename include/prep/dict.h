@@ -29,6 +29,7 @@
 #define SIGNATURE_COMMAND       "fn"
 #define VAR_ARGUMENTS_COMMAND   "..."
 #define LAMBDA_COMMAND          "=>"
+#define DEFER_COMMAND           "defer"
 
 // Modifiers
 #define DREF_COMMAND            "dref"

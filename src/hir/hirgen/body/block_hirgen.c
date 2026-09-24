@@ -78,6 +78,7 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* sm
         case ASM_TOKEN:             return HIR_generate_asmblock(node, ctx, smt);
         case FUNC_TOKEN:            return HIR_generate_function_block(node, NO_SYMBOL_ID, ctx, smt);
         case EXIT_TOKEN:            return HIR_generate_exit_block(node, ctx, smt);
+        case DEFER_TOKEN:           return HIR_generate_defer_block(node, ctx, smt);
         case CALLING_TOKEN:         return HIR_generate_funccall(node, ctx, smt, 0) == NULL;
         case LOOP_TOKEN:            return HIR_generate_loop_block(node, ctx, smt);
         case BREAK_TOKEN:           return HIR_generate_break_block(node, ctx);

@@ -107,6 +107,8 @@ static const char* _get_operation_template(hir_operation_t op) {
         case HIR_VARDECL:      return "%s = alloc;";
         case HIR_STASM:        return "asm(%s%s%s) {";
         case HIR_ENDASM:       return "}";
+        case HIR_DEFER_START:  return "defer {";
+        case HIR_DEFER_END:    return "}";
         case HIR_GDREF:        return "%s = *(%s);";
         case HIR_LDREF:        return "*(%s) = %s;";
         case HIR_REF:          return "%s = &(%s);";
@@ -319,8 +321,11 @@ static int _get_formatted_block(char* dst, size_t dst_size, hir_block_t* block, 
     char arg3[HIR_DUMP_SUBJECT_BUFFER] = { 0 };
     if (block->targ) _get_formatted_subject(arg3, arg3 + sizeof(arg3), block->targ, smt, style);
     
-    if (block->op == HIR_ENDSCOPE || block->op == HIR_ENDASM) depth--;
-
+    if (
+        block->op == HIR_ENDSCOPE || 
+        block->op == HIR_ENDASM   || 
+        block->op == HIR_DEFER_END
+    ) depth--;
     if (block->op == HIR_FEND || block->op == HIR_STEND) goto _force_end;
 
     for (int i = 0; i < depth; i++) APPEND("    ");
@@ -329,7 +334,11 @@ static int _get_formatted_block(char* dst, size_t dst_size, hir_block_t* block, 
     APPEND(fmt, arg1, arg2, arg3);
     
 _force_end: {}
-    if (block->op == HIR_MKSCOPE || block->op == HIR_STASM) depth++;
+    if (
+        block->op == HIR_MKSCOPE || 
+        block->op == HIR_STASM   || 
+        block->op == HIR_DEFER_START
+    ) depth++;
 #undef APPEND
     return depth;
 }
