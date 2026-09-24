@@ -999,7 +999,7 @@ int main(int argc, char* argv[]) {
 
         HIR_FUNC_set_unused_duplicated_functions(&cfgctx);
         HIR_FUNC_set_last_return(&cfgctx);
-        HIR_FUNC_set_defere_calls(&cfgctx);
+        HIR_FUNC_set_defer_calls(&cfgctx);
 
         if (options.config.tre) {
             HIR_FUNC_perform_tre(&cfgctx, &smt);

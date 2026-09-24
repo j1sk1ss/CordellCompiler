@@ -31,7 +31,7 @@ static inline hir_block_t* _get_last_valid_instruction(cfg_block_t* bb) {
     return last;
 }
 
-int HIR_FUNC_set_defere_calls(cfg_ctx_t* cctx) {
+int HIR_FUNC_set_defer_calls(cfg_ctx_t* cctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         list_t func_defer;
         list_init(&func_defer);

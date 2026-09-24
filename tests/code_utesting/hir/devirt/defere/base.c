@@ -76,7 +76,7 @@ int main(int argc, char* argv[]) {
     cfg_ctx_t cfgctx = { .cid = 0 };
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
     HIR_FUNC_set_last_return(&cfgctx);
-    HIR_FUNC_set_defere_calls(&cfgctx);
+    HIR_FUNC_set_defer_calls(&cfgctx);
 
     DUMP_format_hirctx(&hirctx, &smt, 0, 1, stdout);
 
