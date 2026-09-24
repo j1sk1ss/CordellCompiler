@@ -108,6 +108,7 @@ static const markup_token_t _lexems[] = {
     /* Debug */
     LEXEM(BREAKPOINT_COMMAND,     BREAKPOINT_TOKEN),
 };
+#undef LEXEM
 
 /* Convert the lexem list to the lexem map.
 Params:

@@ -128,7 +128,7 @@ Params:
 static inline void _reset_tkn_ctx(tkn_ctx_t* ctx) {
     ctx->in_token  = 0;
     ctx->token_len = 0;
-    ctx->ttype = LINE_BREAK_TOKEN;
+    ctx->ttype     = LINE_BREAK_TOKEN;
 }
 
 /* Get a new type for a symbol according to the current token type and 
