@@ -567,4 +567,7 @@ Returns an AST node.
 */
 ast_node_t* cpl_parse_declaration_value(PARSER_ARGS);
 
+// TODO: docs
+ast_node_t* cpl_parse_defer(PARSER_ARGS);
+
 #endif

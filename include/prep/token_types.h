@@ -109,7 +109,8 @@ typedef enum {
     FUNC_NAME_TOKEN,       // function <name>
     ADDR_CALL_TOKEN,       // something(...) - doesn't support default args, etc, but can handle addr to anything
     CALL_ADDR_TOKEN,       // fname without () operation. Means that we're working with the address of a function
-    SIZEOF_TOKEN,
+    SIZEOF_TOKEN,          // sizeof
+    DEFER_TOKEN,           // defer
     
     // Condition scope
     SWITCH_TOKEN,          // switch

@@ -122,4 +122,7 @@ Returns 1 on success, otherwise 0.
 */
 int HIR_FUNC_set_unused_duplicated_functions(cfg_ctx_t* ctx);
 
+// TODO: docs
+int HIR_FUNC_set_defer_calls(cfg_ctx_t* cctx);
+
 #endif

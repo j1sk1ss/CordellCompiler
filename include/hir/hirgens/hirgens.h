@@ -410,6 +410,8 @@ Params:
 Return parsed from AST HIR subject.
 */
 hir_subject_t* HIR_generate_load_indexation(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
+
+// TODO: docs
 hir_subject_t* HIR_generate_ref_indexation(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
 /*
@@ -507,7 +509,13 @@ Returns 1 if there is no errors.
 */
 int HIR_generate_store_member_access(ast_node_t* node, hir_subject_t* data, hir_ctx_t* ctx, sym_table_t* smt);
 
+// TODO: docs
 hir_subject_t* HIR_load_vtable(type_info_t* ti, hir_ctx_t* ctx, variable_info_t* vi, sym_table_t* smt);
+
+// TODO: docs
 hir_subject_t* HIR_generate_place(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
+
+// TODO: docs
+int HIR_generate_defer_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
 #endif

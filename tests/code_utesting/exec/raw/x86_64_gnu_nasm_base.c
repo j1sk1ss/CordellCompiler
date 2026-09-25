@@ -147,6 +147,7 @@ int main(int argc, char* argv[]) {
     HIR_CG_build(&cfgctx, &callctx, &smt);
 
     HIR_FUNC_set_last_return(&cfgctx);
+    HIR_FUNC_set_defer_calls(&cfgctx);
 
     RELOAD_CFG;
 

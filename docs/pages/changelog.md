@@ -3,6 +3,50 @@ Logs for the first and second versions are quite short because I do not remember
 
 ----------------------------------------
 
+## defer
+<div class="change-date">Date: 2026-09-24</div>
+`Defer` in Go is a good example of a perfect languge design. Just imagine, how it's convenient to delay imprtant memory cleanup for every function exit? At first glanze it's redundant, given that the `deref` doesn't involve any async logic. But let's consider the next example:
+
+```cpl
+:/
+function malloc(usize size) -> ptr i0;
+function free(ptr i0 p) -> i0;
+/:
+
+function anything() -> i0 {
+    ptr i0 data = malloc(100);
+    if :/ something /:; {
+        foo();
+        return;
+    }
+
+    free(data);
+}
+```
+
+Here in the `anything` we allocate `data` variable and then deallcate it. But during the development stage, we've added a new exit path - when something is `true`. Actually, we need to add another `free` function call to the body of the `if`, and that's it. But what if there is several allocations? And there is several new exit paths? Indeed, we can manualy set new free logic to new exit paths, incapsulate free logic to a function to minimize additional code, etc. But if I told you, that we can simplify our life with one simple keyword `defer`? Let's consider another one example:
+
+```cpl
+:/
+function malloc(usize size) -> ptr i0;
+function free(ptr i0 p) -> i0;
+/:
+
+function anything() -> i0 {
+    ptr i0 data = malloc(100);
+    defer free(data);
+    if :/ something /:; {
+        foo();
+        return;
+    }
+    else :/ something /:; {
+        return;
+    }
+}
+```
+
+Now the compiler will put the `free` before every function's exit.
+
 ## implements instead of '::'
 <div class="change-date">Date: 2026-09-18</div>
 Usually, `::` means being somewhere in a scope of an element. This breaks when we try to implement an interface for a container. That's why I've taken a keyword from Java: `implements`. Now, to link an interface to a container, you need to use `implements` keyword:
