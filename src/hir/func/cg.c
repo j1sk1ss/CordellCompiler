@@ -113,7 +113,10 @@ Returns 1 if succeeds. */
 static int _mark_block(call_graph_node_t* nd, call_graph_t* ctx) {
     nd->flag = 1;
     set_foreach (call_graph_node_t* nnd, &nd->edges) {
-        if (nd->f_id == nnd->f_id) continue;
+        if (
+            nd->f_id == nnd->f_id ||
+            nnd->flag // already alive
+        ) continue;
         _mark_block(nnd, ctx);
     }
     

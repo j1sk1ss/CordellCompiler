@@ -26,7 +26,11 @@ static inline hir_block_t* _get_last_valid_instruction(cfg_block_t* bb) {
     hir_block_t* last = bb->hmap.exit;
     while (
         last && 
-        (HIR_is_syst(last->op) || last->op == HIR_FRET)
+        (
+            HIR_is_syst(last->op) || 
+            last->op == HIR_FRET  || 
+            last->op == HIR_EXITOP
+        )
     ) last = last->prev;
     return last;
 }
@@ -43,7 +47,14 @@ int HIR_FUNC_set_defer_calls(cfg_ctx_t* cctx) {
                 hir_block_t* ancor = _get_last_valid_instruction(bb);
                 foreach (hir_block_t* defer_block, &func_defer) {
                     hir_block_t* copy = HIR_copy_block(defer_block, 0);
-                    HIR_insert_block_before(copy, ancor);
+                    if (
+                        ancor->op == HIR_FRET ||
+                        ancor->op == HIR_EXITOP
+                    ) HIR_insert_block_before(copy, ancor);
+                    else {
+                        HIR_insert_block_after(copy, ancor);
+                        ancor = copy;
+                    }
                 }
             }
 
