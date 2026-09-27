@@ -68,3 +68,76 @@ int is_same_dir(string_t* a, string_t* b) {
     return S_ISDIR(sa.st_mode) && S_ISDIR(sb.st_mode) &&
            sa.st_dev == sb.st_dev && sa.st_ino == sb.st_ino;
 }
+
+static int _count_components(const char* path) {
+    int count = 0, in_component = 0;
+    if (!path) return -1;
+    while (*path) {
+        if (*path == '/') in_component = 0; 
+        else if (!in_component) {
+            count++;
+            in_component = 1;
+        }
+
+        path++;
+    }
+
+    return count;
+}
+
+static int _common_components(const char* a, const char* b) {
+    const char* pa = a;
+    const char* pb = b;
+    int common = 0;
+
+    if (!a || !b) return -1;
+
+    while (*pa == '/') pa++;
+    while (*pb == '/') pb++;
+
+    while (*pa && *pb) {
+        const char* a_start = pa;
+        const char* b_start = pb;
+        size_t a_len = 0, b_len = 0;
+
+        while (pa[a_len] && pa[a_len] != '/') a_len++;
+        while (pb[b_len] && pb[b_len] != '/') b_len++;
+        if (
+            a_len != b_len || 
+            str_memcmp(a_start, b_start, a_len)
+        ) break;
+        
+        common++;
+
+        pa += a_len;
+        pb += b_len;
+
+        while (*pa == '/') pa++;
+        while (*pb == '/') pb++;
+    }
+
+    return common;
+}
+
+int get_dir_distance(string_t* a, string_t* b) {
+    char da[PATH_BUF_SIZE] = { 0 };
+    char db[PATH_BUF_SIZE] = { 0 };
+
+    int depth_a, depth_b, common;
+    if (
+        !_get_parent_dir(a, da, sizeof(da)) ||
+        !_get_parent_dir(b, db, sizeof(db))
+    ) return -1;
+
+    depth_a = _count_components(da);
+    depth_b = _count_components(db);
+
+    if (
+        (depth_a < 0 || depth_b < 0) ||
+        ((da[0] == '/') != (db[0] == '/'))
+    ) return -1;
+
+    common = _common_components(da, db);
+    if (common < 0) return -1;
+    return (depth_a - common) + (depth_b - common);
+}

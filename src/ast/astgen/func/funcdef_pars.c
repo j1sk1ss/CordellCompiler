@@ -167,7 +167,7 @@ DEFINE_PARSER(cpl_parse_function, {
             .abi      = annots.is_abi,                  .weak     = annots.is_weak,   .vname    = annots.is_vname,
             .abstract = annots.is_abstract,             .override = annots.is_override
         },
-        name->sinfo.s_id, args, ret_type, &smt->f
+        name->sinfo.s_id, args, ret_type, base, &smt->f
     );
     
     if (preserved_tid != NO_SYMBOL_ID) {

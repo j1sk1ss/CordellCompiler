@@ -188,32 +188,38 @@ static loop_node_t* _find_loop(list_t* loops, cfg_block_t* bb) {
 
 typedef struct {
     struct { /* Information about a function        */
-        int  loop_count;     /* Loops count                                             */
-        int  loop_nested;    /* Max depth for a loop nested size                        */
-        int  bb_size;        /* The source function size in base blocks                 */
-        int  hir_size;       /* The source function size in hir blocks                  */
-        int  funccals;       /* Count of funcalls in the function                       */
-        int  syscalls;       /* Count of syscalls in the function                       */
-        char has_inline_mod; /* Whether the function has or not an inline modifier      */
-        char has_sideeff;    /* Whether the function has a syscall, memmory, etc.       */
-        int  ifs_count;      /* How many ifs in the functions                           */
-        int  returns_count;  /* How many returns in the function                        */
-        int  params_count;   /* How mny parameters in the function's signature          */
-        char is_void_ret;    /* Whether the function returns void                       */
+        int     loop_count;     /* Loops count                                             */
+        int     loop_nested;    /* Max depth for a loop nested size                        */
+        int     bb_size;        /* The source function size in base blocks                 */
+        int     hir_size;       /* The source function size in hir blocks                  */
+        int     funccals;       /* Count of funcalls in the function                       */
+        int     syscalls;       /* Count of syscalls in the function                       */
+        char    has_inline_mod; /* Whether the function has or not an inline modifier      */
+        char    has_sideeff;    /* Whether the function has a syscall, memmory, etc.       */
+        int     ifs_count;      /* How many ifs in the functions                           */
+        int     returns_count;  /* How many returns in the function                        */
+        int     params_count;   /* How many parameters in the function's signature         */
+        char    is_void_ret;    /* Whether the function returns void                       */
+        int     var_decls;      /* How many variable were declared in a function           */
+        struct {
+            int cparams_count;  /* How many constant params in the function's signature    */
+            int node_count;     /* How many AST nodes in a function                        */
+        } ast;
     } src_info;
     struct { /* Information about the dest location */
-        int  loop_nested;    /* If it in a loop, is it a nested loop? And how deep?     */
-        int  loop_size_bb;   /* If it in a loop, how big is it (in bb)?                 */
-        int  loop_size_hir;  /* If it in a loop, how big is it (in hir)?                */
-        int  func_count;     /* How many functions in the past and in the further code? */
-        int  near_break;     /* Distance to nearest 'break' statement or -1             */
-        char is_dom;         /* Is this function will go to one of the branches?        */
-        char is_start;       /* Is this is a start function?                            */
-        int  params_count;   /* How mny parameters in the function's signature          */
+        int     loop_nested;    /* If it in a loop, is it a nested loop? And how deep?     */
+        int     loop_size_bb;   /* If it in a loop, how big is it (in bb)?                 */
+        int     loop_size_hir;  /* If it in a loop, how big is it (in hir)?                */
+        int     func_count;     /* How many functions in the past and in the further code? */
+        int     near_break;     /* Distance to nearest 'break' statement or -1             */
+        char    is_dom;         /* Is this function will go to one of the branches?        */
+        char    is_start;       /* Is this is a start function?                            */
+        int     params_count;   /* How mny parameters in the function's signature          */
     } dst_info;
     struct {
-        char in_same_file;   /* Whether functions in the same file                      */
-        char in_same_dir;    /* Whether functions in the same directory                 */
+        char    in_same_file;   /* Whether functions in the same file                      */
+        char    in_same_dir;    /* Whether functions in the same directory                 */
+        int     distance;       /* Distance beetween twp files                             */
     } general_info;
 } inline_candidate_info_t;
 
@@ -290,6 +296,29 @@ static inline int _count_params(cfg_func_t* f, sym_table_t* smt) {
     return count;
 }
 
+/* Count how many declarations in a function
+Params:
+    - `fb` - Function from CFG context.
+
+Return count of loca variables. */
+static int _count_local_variables(cfg_func_t* fb) {
+    int count = 0;
+    foreach (cfg_block_t* bb, &fb->blocks) {
+        iterate_hir_instructions (bb) {
+            if (hh->op == HIR_VARDECL) count++;
+        }
+    }
+
+    return count;
+}
+
+static int _count_ast_node_count(ast_node_t* nd) {
+    int result = 0;
+    if (!nd) return result;
+    result = 1;
+    return _count_ast_node_count(nd->c) + _count_ast_node_count(nd->siblings.n);
+}
+
 /* Collect essential information for inline candidate decisiion.
 Params:
     - `f` - Target function to inline.
@@ -318,6 +347,7 @@ static int _collect_information(
     ) {
         info->general_info.in_same_file = is_same_file(src_pos->file, dst_pos->file);
         info->general_info.in_same_dir  = is_same_dir(src_pos->file, dst_pos->file);
+        info->general_info.distance     = get_dir_distance(src_pos->file, dst_pos->file);
     }
 
     info->dst_info.params_count = _count_params(pos->pfunc, smt);
@@ -329,7 +359,7 @@ static int _collect_information(
     }
     
     info->src_info.loop_count = list_size(src_floops);
-    info->src_info.bb_size = list_size(&f->blocks);
+    info->src_info.bb_size    = list_size(&f->blocks);
     foreach (cfg_block_t* bb, &f->blocks) {
         info->src_info.hir_size += HIR_CFG_count_blocks_in_bb(bb, 0);
         iterate_hir_instructions (bb) {
@@ -348,17 +378,22 @@ static int _collect_information(
         if (info->src_info.syscalls) info->src_info.has_sideeff = 1;
     }
     
+    info->src_info.var_decls = _count_local_variables(f);
+
     func_info_t fi;
+    // Destination function info
     if (FNTB_get_info_id(pos->pfunc->f_id, &fi, &smt->f)) {
         info->dst_info.is_start = fi.flags.entry;
     }
     
+    // inlined function info
     if (FNTB_get_info_id(f->f_id, &fi, &smt->f)) {
         if (
             fi.rtype && 
             fi.rtype->t->t_type == I0_TYPE_TOKEN && !fi.rtype->t->flags.ptr
         ) info->src_info.is_void_ret = 1;
         if (fi.flags.inln == SOFT_YES_INLINE) info->src_info.has_inline_mod = 1;
+        info->src_info.ast.node_count = _count_ast_node_count(fi.ast_root);
     }
 
     return 1;
@@ -403,7 +438,6 @@ static int _inline_candidate(
     return checker((int*)&iinfo, (int)sizeof(inline_candidate_info_t));
 }
 
-
 static int _inline_heuristic_desider(int* data, int size) {
     if (!data || size != sizeof(inline_candidate_info_t)) return 0;
     inline_candidate_info_t* parsed = (inline_candidate_info_t*)data;
@@ -422,21 +456,17 @@ static int _inline_model_desider(int* data, int size) {
     if (!data || size != sizeof(inline_candidate_info_t)) return 0;
     inline_candidate_info_t* parsed = (inline_candidate_info_t*)data;
 
-    double x[INLINE_FEATURE_COUNT] = { 0 };
-    x[INLINE_FEATURE_SITE_CALLEE_IN_SAME_FILE]             = parsed->general_info.in_same_file;
-    x[INLINE_FEATURE_SITE_CALLEE_IN_SAME_DIR]              = parsed->general_info.in_same_dir;
-    x[INLINE_FEATURE_CALLEE_SIGNATURE_HAS_INLINE_MODIFIER] = parsed->src_info.has_inline_mod;
-    x[INLINE_FEATURE_CALLEE_AST_HAS_SIDE_EFFECTS]          = parsed->src_info.has_sideeff;
-    x[INLINE_FEATURE_CALLEE_INFO_IR_COUNT]                 = parsed->src_info.hir_size;
-    x[INLINE_FEATURE_CALLEE_INFO_FUNCCALLS]                = parsed->src_info.funccals;
-    x[INLINE_FEATURE_CALLEE_AST_BRANCH_COUNT]              = parsed->src_info.ifs_count;
-    x[INLINE_FEATURE_CALLEE_BODY_RETURN_COUNT]             = parsed->src_info.returns_count;
-    x[INLINE_FEATURE_CALLEE_SIGNATURE_PARAM_COUNT]         = parsed->src_info.params_count;
-    x[INLINE_FEATURE_CALLEE_SIGNATURE_RETURNS_VOID]        = parsed->src_info.is_void_ret;
-    x[INLINE_FEATURE_CALLER_CALLSITE_ARG_COUNT]            = parsed->dst_info.params_count;
-    x[INLINE_FEATURE_CALLER_INSTRUCTION_INFO_IS_DOM]       = parsed->dst_info.is_dom;
+    double x[INLINE_MODEL_FEATURE_COUNT] = { 0 };
+    x[0] = parsed->general_info.in_same_file;
+    x[1] = parsed->general_info.distance;
+    x[2] = parsed->src_info.funccals;
+    x[3] = parsed->src_info.has_inline_mod;
+    x[4] = parsed->src_info.ast.node_count;
+    x[5] = parsed->src_info.var_decls;
+    x[6] = parsed->src_info.params_count;
+    x[7] = parsed->src_info.ast.cparams_count;
 
-    return inline_model_predict(x);
+    return inline_model_should_inline(x);
 }
 
 int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt) {

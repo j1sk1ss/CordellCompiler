@@ -26,7 +26,7 @@ DEFINE_PARSER(cpl_parse_lambda, {
     );
 
     string_t* anon_name = create_string("__anon_function_lambda");
-    base->sinfo.v_id = FNTB_add_info(anon_name, NULL,  (func_info_flags_t){ .local = 1 }, base->sinfo.s_id, args, NULL, &smt->f);
+    base->sinfo.v_id = FNTB_add_info(anon_name, NULL,  (func_info_flags_t){ .local = 1 }, base->sinfo.s_id, args, NULL, base, &smt->f);
     FNTB_add_local(ctx->carry.pfunc, base->sinfo.v_id, &smt->f);
     destroy_string(anon_name);
 

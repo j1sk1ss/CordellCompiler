@@ -45,6 +45,9 @@ typedef struct {
         map_t         generic;          /* Generic base types. TypeId <-> TokenType */
         list_t        resolutions;      /* Resolved copies (use the generic field)  */
     } template;
+
+    ast_node_t*       ast_root;         /* !! CAN BE NULL !! 
+                                        The root node for a function from AST       */
 } func_info_t;
 
 typedef struct func_ctx {
@@ -103,7 +106,7 @@ Params:
 Returns -1 if fails or a new function's ID.
 */
 symbol_id_t FNTB_add_info(
-    string_t* name, string_t* vname, func_info_flags_t flags, symbol_id_t s_id, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
+    string_t* name, string_t* vname, func_info_flags_t flags, symbol_id_t s_id, ast_node_t* args, ast_node_t* rtype, ast_node_t* root, functab_ctx_t* ctx
 );
 
 /*

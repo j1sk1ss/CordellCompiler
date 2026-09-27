@@ -8,5 +8,6 @@
 
 int is_same_file(string_t* a, string_t* b);
 int is_same_dir(string_t* a, string_t* b);
+int get_dir_distance(string_t* a, string_t* b);
 
 #endif
