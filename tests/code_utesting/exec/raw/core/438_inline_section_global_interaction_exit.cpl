@@ -15,9 +15,9 @@ function sum438(ptr i32 p) -> i32 {
 }
 
 start() {
-    set438(ref values438, 0, 7);
-    set438(ref values438, 1, 13);
-    set438(ref values438, 2, 22);
+    set438(ref values438, 0 as i32, 7 as i32);
+    set438(ref values438, 1 as i32, 13 as i32);
+    set438(ref values438, 2 as i32, 22 as i32);
     exit sum438(ref values438) as u8;
 }
 
