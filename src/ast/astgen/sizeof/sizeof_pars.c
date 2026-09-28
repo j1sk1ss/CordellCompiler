@@ -10,7 +10,9 @@ DEFINE_PARSER(cpl_parse_sizeof, {
     PARSER_ASSERT(!body, base, "Error during the sizeof body parse! sizeof(<exp>)!");
 
     AST_add_node(base, body);
-    body->sinfo.t_id = type_lookup(body->t, ctx, smt);
+    if (body->sinfo.t_id == NO_SYMBOL_ID) {
+        body->sinfo.t_id = type_lookup(body->t, ctx, smt);
+    }
 
     forward_token(it, 1);
     return base;

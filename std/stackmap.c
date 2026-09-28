@@ -13,29 +13,25 @@ static inline void _bit_clear(stack_map_t* smap, int idx) {
 }
 
 int stack_map_init(int offset, stack_map_t* smap) {
-    if (
-        !smap      ||
-        offset < 0 ||
-        offset >= STACK_MAP_MAX
-    ) return 0;
+    if (!smap || offset < 0) return 0;
+
     smap->base_offset = offset;
     smap->offset      = offset;
     smap->last_offset = offset;
-    str_memset(smap->bitmap, 0, sizeof(smap->bitmap));
+    smap->bsize       = offset + STACK_MAP_DEFAULT;
+    
+    smap->bitmap = (unsigned long*)mm_malloc(((smap->bsize + (CELLS_PER_BLOCK - 1)) / CELLS_PER_BLOCK) * sizeof(unsigned long));
+    str_memset(smap->bitmap, 0, ((smap->bsize + (CELLS_PER_BLOCK - 1)) / CELLS_PER_BLOCK) * sizeof(unsigned long));
     return 1;
 }
 
+int stack_map_destroy(stack_map_t* smap) {
+    return mm_free(smap->bitmap);
+}
+
 int stack_map_alloc(int n, stack_map_t* smap) {
-    if (
-        !smap  ||
-        n <= 0 ||
-        n > STACK_MAP_MAX
-    ) return -1;
-
-    int start_i = smap->base_offset;
-    for (int i = start_i; i < STACK_MAP_MAX; ++i) {
-        if (i + n > STACK_MAP_MAX) return -1;
-
+    if (!smap || n <= 0) return -1;
+    for (int i = smap->base_offset; i + n <= smap->bsize; ++i) {
         int ok = 1;
         for (int j = 0; j < n; ++j) {
             int idx = i + j;
@@ -54,11 +50,32 @@ int stack_map_alloc(int n, stack_map_t* smap) {
         int end = i + n;
         smap->last_offset = MAX(smap->last_offset, end);
         smap->offset = end;
-
         return end;
     }
 
-    return -1;
+    int start      = smap->bsize;
+    int old_bsize  = smap->bsize;
+    int new_bsize  = smap->bsize + MAX(n, STACK_MAP_DEFAULT);
+    int old_blocks = (old_bsize + (CELLS_PER_BLOCK - 1)) / CELLS_PER_BLOCK;
+    int new_blocks = (new_bsize + (CELLS_PER_BLOCK - 1)) / CELLS_PER_BLOCK;
+
+    unsigned long* bitmap = mm_realloc(smap->bitmap, new_blocks * sizeof(unsigned long));
+
+    if (!bitmap) return -1;
+    smap->bitmap = bitmap;
+    if (new_blocks > old_blocks) {
+        str_memset(smap->bitmap + old_blocks, 0, (new_blocks - old_blocks) * sizeof(unsigned long));
+    }
+
+    smap->bsize = new_bsize;
+    for (int i = 0; i < n; ++i) {
+        _bit_set(smap, start + i);
+    }
+
+    int end = start + n;
+    smap->last_offset = MAX(smap->last_offset, end);
+    smap->offset = end;
+    return end;
 }
 
 int stack_map_free(int offset, int n, stack_map_t* smap) {
@@ -66,20 +83,20 @@ int stack_map_free(int offset, int n, stack_map_t* smap) {
         !smap                  ||
         n <= 0                 ||
         offset < 0             || 
-        offset >= STACK_MAP_MAX
+        offset >= smap->bsize
     ) return 0;
 
     int sequence_start = offset - n;
     int is_valid_sequence = (
         sequence_start >= 0 &&
         sequence_start >= smap->base_offset &&
-        sequence_start + n <= STACK_MAP_MAX
+        sequence_start + n <= smap->bsize
     );
 
     int is_valid_offset = (
         offset >= 0 &&
         offset >= smap->base_offset &&
-        offset + n <= STACK_MAP_MAX
+        offset + n <= smap->bsize
     );
 
     int start = -1;
@@ -130,7 +147,7 @@ int stack_map_set_base(int offset, stack_map_t* smap) {
     if (
         !smap      ||
         offset < 0 ||
-        offset >= STACK_MAP_MAX
+        offset >= smap->bsize
     ) return 0;
 
     smap->base_offset = offset;

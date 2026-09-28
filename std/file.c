@@ -85,9 +85,9 @@ static int _count_components(const char* path) {
     return count;
 }
 
-static int _common_components(const char* a, const char* b) {
-    const char* pa = a;
-    const char* pb = b;
+static int _common_components(char* a, char* b) {
+    char* pa = a;
+    char* pb = b;
     int common = 0;
 
     if (!a || !b) return -1;
@@ -96,8 +96,8 @@ static int _common_components(const char* a, const char* b) {
     while (*pb == '/') pb++;
 
     while (*pa && *pb) {
-        const char* a_start = pa;
-        const char* b_start = pb;
+        char* a_start = pa;
+        char* b_start = pb;
         size_t a_len = 0, b_len = 0;
 
         while (pa[a_len] && pa[a_len] != '/') a_len++;

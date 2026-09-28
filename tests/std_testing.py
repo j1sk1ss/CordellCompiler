@@ -13,15 +13,21 @@ from misc.builder import (
 
 def _run_test(binary: str) -> bool:
     proc = subprocess.run(
-        [ binary ],
+        [binary],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         text=True
     )
 
-    if proc.stderr:
-        print(proc.stderr, end="")
-    
+    if proc.returncode != 0:
+        if proc.stdout:
+            print(proc.stdout, end="")
+
+        if proc.stderr:
+            print(proc.stderr, file=sys.stderr, end="")
+
+        print(f"Return code: {proc.returncode}", file=sys.stderr)
+
     return proc.returncode == 0
 
 def _entry() -> None:
