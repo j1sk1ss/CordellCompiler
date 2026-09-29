@@ -86,8 +86,10 @@ static int _inline_arguments(cfg_func_t* f, list_t* args, hir_block_t* pos, map_
             if (hh->op == HIR_FARGLD) {
                 hir_block_t* copy = _copy_inline_block(hh, var_map, NULL, smt);
                 HIR_unload_subject(copy->sarg);
+                HIR_unload_subject(copy->targ);
                 copy->op   = HIR_STORE;
                 copy->sarg = HIR_copy_subject(args_flatten[index++]);
+                copy->targ = NULL;
                 HIR_insert_block_before(copy, pos);
             }
         }

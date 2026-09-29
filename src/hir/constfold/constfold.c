@@ -46,7 +46,10 @@ _parse_number_complete: {}
         }
         default: {
             variable_info_t vi;
-            if (HIR_is_vartype(nd->src->t) && VRTB_get_info_id(nd->src->storage.var.v_id, &vi, &smt->v) && vi.vdi.defined) {
+            if (
+                HIR_is_vartype(nd->src->t) && 
+                VRTB_get_info_id(nd->src->storage.var.v_id, &vi, &smt->v) && vi.vdi.defined
+            ) {
                 cnst->t     = HIR_I64CONSTVAL;
                 cnst->value = vi.vdi.definition;
                 if (vi.vdi.defined == OVERDEFINED_VARIABLE) {

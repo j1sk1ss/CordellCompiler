@@ -105,7 +105,9 @@ static int _propagate_params(cfg_ctx_t* cctx, sym_table_t* smt, map_t* fcalls) {
                     if (folded && _extract_variable_value(folded, smt, &value)) {
                         hh->op = HIR_STORE;
                         HIR_unload_subject(hh->sarg);
+                        HIR_unload_subject(hh->targ);
                         hh->sarg = HIR_SUBJ_CONST(value);
+                        hh->targ = NULL;
                         VRTB_update_definition(hh->farg->storage.var.v_id, value, NO_SYMBOL_ID, &smt->v, 0);
                         changed = 1;
                     }
