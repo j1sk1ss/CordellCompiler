@@ -80,7 +80,7 @@ Params:
     - `off` - Lir block off.
 
 Returns 1 on success, otherwise 0. */
-static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_t* bbh, lir_block_t* off) {
+static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_t* bbh, lir_block_t* off) {// TODO: Segfault on empty loop
     if (!bbh || !set_size(dirty)) return 0;
     if (bbh->visited != _visit_counter) bbh->visited = _visit_counter;
     else {

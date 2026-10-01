@@ -1,0 +1,12 @@
+#include <stdio_h.cpl>
+start() {
+    i32 a = 2;
+    @[no_fall] @[straight]
+    switch a; {
+        case 1; {}
+        case 2; {
+            printf(ref "Hi!\n");
+            loop {}
+        }
+    }
+}
