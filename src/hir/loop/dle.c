@@ -1,5 +1,15 @@
 #include <hir/loop.h>
 
+static int _is_op_interesting(hir_operation_t op) {
+    switch (op) {
+        case HIR_IFOP2:        case HIR_JMP:         case HIR_MKLB:   case HIR_MKSCOPE: case HIR_ENDSCOPE:
+        case HIR_STASM:        case HIR_ENDASM:      case HIR_SETPOS: case HIR_NOP:     case HIR_PHI:
+        case HIR_DEFER_END:    case HIR_DEFER_START:
+        case HIR_PHI_PREAMBLE: return 1;
+        default:               return 0;
+    }
+}
+
 /* Count live commands in a CFG block, ignoring loop-control and inductive updates.
 Params:
     - `bb` - CFG block to inspect.
@@ -10,17 +20,11 @@ static inline int _count_commands(cfg_block_t* bb, set_t* ind) {
     int res = 0;
     iterate_hir_instructions (bb) {
         switch (hh->op) {
-            case HIR_IFOP2:     case HIR_JMP:    case HIR_MKLB:   case HIR_MKSCOPE: case HIR_ENDSCOPE:
-            case HIR_STASM:     case HIR_ENDASM: case HIR_SETPOS: case HIR_NOP:     case HIR_PHI:
-            case HIR_DEFER_END: case HIR_DEFER_START:
-            case HIR_PHI_PREAMBLE: break;
-            default: {
-                if (
-                    hh->farg && HIR_is_vartype(hh->farg->t) && 
-                    set_has(ind, (void*)hh->farg->storage.var.v_id)
-                ) break;
-                res++;
-            }
+            case HIR_PHI_PREAMBLE: 
+            case HIR_FCLL:       case HIR_UFCLL:       case HIR_ECLL:
+            case HIR_STORE_FCLL: case HIR_STORE_UFCLL: case HIR_STORE_ECLL:
+            case HIR_SYSC:       case HIR_STORE_SYSC:  res++; break;
+            default: break;
         }
     }
 
@@ -45,7 +49,9 @@ static int _mark_loop_dead(loop_node_t* root) {
     if (!loop_content) {
         set_foreach (cfg_block_t* bb, &root->blocks) {
             iterate_hir_instructions (bb) {
-                hh->unused = 1;
+                if (!_is_op_interesting(hh->op)) {
+                    hh->unused = 1;
+                }
             }
         }
     }
@@ -56,7 +62,7 @@ static int _mark_loop_dead(loop_node_t* root) {
 int HIR_LOOP_perform_dle(ltree_ctx_t* lctx) {
     map_foreach (list_t* loops, &lctx->lmap) {
         foreach (loop_node_t* loop, loops) {
-            // _mark_loop_dead(loop); TODO: Marks too many instructions after a dead loop
+            _mark_loop_dead(loop);
         }
     }
 

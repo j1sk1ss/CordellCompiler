@@ -45,7 +45,7 @@ static unsigned long long _visit_counter = 0;
 
 static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_t* bbh, lir_block_t* off);
 
-static void _collect_local_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_t* bbh, lir_block_t* off) {
+static void _collect_local_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_t* bbh, lir_block_t* off, int term) {
     if (!bbh || !set_size(dirty)) return;
     lir_block_t* lh = off ? off : bbh->lmap.entry;
     while (lh) {
@@ -63,7 +63,7 @@ static void _collect_local_out_function_reg_usage(set_t* dirty, set_t* save, cfg
             set_add(save, (void*)LIR_format_register(arg->storage.reg.reg, CONF_get_full_bytness()));
         }
 
-        if (lh->op == LIR_JMP) {
+        if (lh->op == LIR_JMP && !term) {
             _collect_out_function_reg_usage(dirty, save, bbh->jmp, NULL);
             return;
         }
@@ -80,15 +80,15 @@ Params:
     - `off` - Lir block off.
 
 Returns 1 on success, otherwise 0. */
-static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_t* bbh, lir_block_t* off) {// TODO: Segfault on empty loop
+static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_t* bbh, lir_block_t* off) {
     if (!bbh || !set_size(dirty)) return 0;
     if (bbh->visited != _visit_counter) bbh->visited = _visit_counter;
     else {
-        _collect_local_out_function_reg_usage(dirty, save, bbh, off);
+        _collect_local_out_function_reg_usage(dirty, save, bbh, off, 1);
         return 0;
     }
 
-    _collect_local_out_function_reg_usage(dirty, save, bbh, off);
+    _collect_local_out_function_reg_usage(dirty, save, bbh, off, 0);
 
     set_t copy;
 
