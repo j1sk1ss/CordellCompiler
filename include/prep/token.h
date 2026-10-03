@@ -10,6 +10,7 @@
 #include <std/str.h>
 #include <std/hash.h>
 #include <std/list.h>
+#include <prep/dict.h>
 #include <preproc/directives.h>
 #include <prep/token_types.h>
 

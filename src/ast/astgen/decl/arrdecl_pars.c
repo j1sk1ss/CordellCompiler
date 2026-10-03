@@ -69,8 +69,7 @@ static symbol_id_t _resolve_array_type(ast_node_t* type, ast_ctx_t* ctx, sym_tab
     ast_node_t* elem_type  = length ? length->siblings.n : NULL;
     long long const_length = SMT_NULL;
     if (
-        length && 
-        length->t->t_type == UNKNOWN_NUMERIC_TOKEN
+        length && TKN_is_unknown_numeric(length->t->t_type)
     ) const_length = length->t->body->to_llong(length->t->body);
     
     _resolve_array_type(elem_type, ctx, smt);

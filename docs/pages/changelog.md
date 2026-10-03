@@ -3,6 +3,15 @@ Logs for the first and second versions are quite short because I do not remember
 
 ----------------------------------------
 
+## Specific numerics
+<div class="change-date">Date: 2026-10-03</div>
+Now to specify the numeric's type, use the same way as in Rust:
+
+```cpl
+i32 a = 123i32;
+i8  b = 123i8;
+```
+
 ## defer
 <div class="change-date">Date: 2026-09-24</div>
 `Defer` in Go is a good example of a perfect languge design. Just imagine, how it's convenient to delay imprtant memory cleanup for every function exit? At first glanze it's redundant, given that the `deref` doesn't involve any async logic. But let's consider the next example:

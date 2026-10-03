@@ -44,6 +44,14 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
         case CUSTOM_VARIABLE_TOKEN:
         case UNKNOWN_NUMERIC_TOKEN:
         case GENERIC_VARIABLE_TOKEN:
+        case UNKNOWN_I8NUMERIC_TOKEN: 
+        case UNKNOWN_U8NUMERIC_TOKEN: 
+        case UNKNOWN_I16NUMERIC_TOKEN:
+        case UNKNOWN_I32NUMERIC_TOKEN:
+        case UNKNOWN_I64NUMERIC_TOKEN:
+        case UNKNOWN_U16NUMERIC_TOKEN:
+        case UNKNOWN_U32NUMERIC_TOKEN:
+        case UNKNOWN_U64NUMERIC_TOKEN:
         case UNKNOWN_FLOAT_NUMERIC_TOKEN: res = HIR_generate_load(node, ctx, smt);               break;
         default: break;
     }

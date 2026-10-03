@@ -22,6 +22,16 @@ typedef enum {
     UNKNOWN_FLOAT_NUMERIC_TOKEN, // 123.123
     UNKNOWN_SIGN_TOKEN,          // +, -, *, /, etc
 
+    // Numeric unknowns
+    UNKNOWN_I8NUMERIC_TOKEN,     // 123i8
+    UNKNOWN_I16NUMERIC_TOKEN,    // 123i16
+    UNKNOWN_I32NUMERIC_TOKEN,    // 123i32
+    UNKNOWN_I64NUMERIC_TOKEN,    // 123i64
+    UNKNOWN_U8NUMERIC_TOKEN,     // 123u8
+    UNKNOWN_U16NUMERIC_TOKEN,    // 123u16
+    UNKNOWN_U32NUMERIC_TOKEN,    // 123u32
+    UNKNOWN_U64NUMERIC_TOKEN,    // 123u64
+
     LINE_BREAK_TOKEN,      // \n, ' '
 
     DELIMITER_TOKEN,       // ;
@@ -207,21 +217,22 @@ typedef enum {
     TYPE_EIGHTH_SIZE      = 1  /* 8-bit                       */
 } type_size_t;
 
-int TKN_is_pointer(token_t* token);
-int TKN_is_one_slot(token_t* token);
-int TKN_in_stack(token_t* token);
-int TKN_is_block(token_t* token);
-int TKN_is_builtin_type(token_t* token);
-int TKN_is_close(token_t* token);
-int TKN_is_operand(token_t* token);
-int TKN_is_numeric(token_t* token);
-int TKN_is_variable(token_t* token);
-int TKN_is_sign(token_t* token, char ptr);
-int TKN_is_float(token_t* token);
-int TKN_is_update_operator(token_t* token);
-type_size_t TKN_variable_bitness(token_t* token, char ptr);
-long TKN_convert_type_size(type_size_t t);
-int TKN_token_priority(token_t* token);
+int          TKN_is_pointer(token_t* token);
+int          TKN_is_one_slot(token_t* token);
+int          TKN_in_stack(token_t* token);
+int          TKN_is_block(token_t* token);
+int          TKN_is_builtin_type(token_t* token);
+int          TKN_is_close(token_t* token);
+int          TKN_is_operand(token_t* token);
+int          TKN_is_numeric(token_t* token);
+int          TKN_is_variable(token_t* token);
+int          TKN_is_sign(token_t* token, char ptr);
+int          TKN_is_float(token_t* token);
+int          TKN_is_update_operator(token_t* token);
+type_size_t  TKN_variable_bitness(token_t* token, char ptr);
+long         TKN_convert_type_size(type_size_t t);
+int          TKN_token_priority(token_t* token);
 token_type_t TKN_get_var_from_type(token_type_t t);
+int          TKN_is_unknown_numeric(token_type_t t);
 
 #endif

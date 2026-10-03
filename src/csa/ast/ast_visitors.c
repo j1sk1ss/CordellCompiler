@@ -667,7 +667,7 @@ int ASTWLKR_deadcode(AST_VISITOR_ARGS) {
 int ASTWLKR_inefficient_while(AST_VISITOR_ARGS) {
     AST_VISITOR_ARGS_USE;
     ast_node_t* cond = nd->c;
-    if (!cond || cond->t->t_type != UNKNOWN_NUMERIC_TOKEN) return 0;
+    if (!cond || TKN_is_unknown_numeric(cond->t->t_type)) return 0;
     if (cond->t->body->to_llong(cond->t->body)) {
         SEMANTIC_INFO(
             " %s Consider to use a 'loop' statement instead of the 'while 1;'! It is more efficient and won't create additional compare", 

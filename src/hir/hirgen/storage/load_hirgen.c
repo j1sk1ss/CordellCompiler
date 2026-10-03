@@ -4,6 +4,14 @@ hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* 
     HIR_SET_CURRENT_POS(ctx, node);
     hir_subject_t* res = NULL;
     switch (node->t->t_type) {
+        case UNKNOWN_I8NUMERIC_TOKEN:     res = HIR_SUBJ_NUMBER(HIR_I8NUMBER, node->t->body);  break;
+        case UNKNOWN_I16NUMERIC_TOKEN:    res = HIR_SUBJ_NUMBER(HIR_I16NUMBER, node->t->body); break;
+        case UNKNOWN_I32NUMERIC_TOKEN:    res = HIR_SUBJ_NUMBER(HIR_I32NUMBER, node->t->body); break;
+        case UNKNOWN_I64NUMERIC_TOKEN:    res = HIR_SUBJ_NUMBER(HIR_I64NUMBER, node->t->body); break;
+        case UNKNOWN_U8NUMERIC_TOKEN:     res = HIR_SUBJ_NUMBER(HIR_U8NUMBER, node->t->body);  break;
+        case UNKNOWN_U16NUMERIC_TOKEN:    res = HIR_SUBJ_NUMBER(HIR_U16NUMBER, node->t->body); break;
+        case UNKNOWN_U32NUMERIC_TOKEN:    res = HIR_SUBJ_NUMBER(HIR_U32NUMBER, node->t->body); break;
+        case UNKNOWN_U64NUMERIC_TOKEN:    res = HIR_SUBJ_NUMBER(HIR_U64NUMBER, node->t->body); break;
         case UNKNOWN_NUMERIC_TOKEN: {
             unsigned long long number = node->t->body->to_ullong(node->t->body, 10);
             if (number <= CHAR_MAX)       res = HIR_SUBJ_NUMBER(HIR_I8NUMBER, node->t->body);

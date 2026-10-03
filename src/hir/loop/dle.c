@@ -16,7 +16,7 @@ Params:
     - `ind` - Set of inductive variable IDs.
 
 Returns the number of live commands. */
-static inline int _count_commands(cfg_block_t* bb, set_t* ind) {
+static inline int _count_commands(cfg_block_t* bb) {
     int res = 0;
     iterate_hir_instructions (bb) {
         switch (hh->op) {
@@ -43,7 +43,7 @@ static int _mark_loop_dead(loop_node_t* root) {
 
     int loop_content = 0;
     set_foreach (cfg_block_t* bb, &root->blocks) {
-        loop_content += _count_commands(bb, &root->ind);
+        loop_content += _count_commands(bb);
     }
 
     if (!loop_content) {
