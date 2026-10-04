@@ -161,11 +161,11 @@ DEFINE_PARSER(cpl_parse_function, {
     name->sinfo.v_id = FNTB_add_info(
         name->t->body, virt_name, 
         (func_info_flags_t) {
-            .global   = base->t->flags.glob,            .local    = local,            .entry    = annots.is_entry, 
-            .naked    = annots.is_naked ? 1 : 0,        .vargs    = vargs,            .onlybody = annots.is_onlybody,
-            .generic  = list_size(&generic_types) != 0, .inln     = annots.do_inline, .self     = annots.is_self, 
-            .abi      = annots.is_abi,                  .weak     = annots.is_weak,   .vname    = annots.is_vname,
-            .abstract = annots.is_abstract,             .override = annots.is_override
+            .global   = base->t->flags.glob,            .local    = local,              .entry    = annots.is_entry, 
+            .naked    = annots.is_naked ? 1 : 0,        .vargs    = vargs,              .onlybody = annots.is_onlybody,
+            .generic  = list_size(&generic_types) != 0, .inln     = annots.do_inline,   .self     = annots.is_self, 
+            .abi      = annots.is_abi,                  .weak     = annots.is_weak,     .vname    = annots.is_vname,
+            .abstract = annots.is_abstract,             .override = annots.is_override, .testf    = annots.is_test_f
         },
         name->sinfo.s_id, args, ret_type, base, &smt->f
     );

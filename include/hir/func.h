@@ -25,6 +25,9 @@ typedef struct {
     map_t  verts;   /* Existed functions in a program                    */
 } call_graph_t;
 
+// TODO: docs
+cfg_func_t* HIR_func_create_funcblock(hir_block_t* entry);
+
 /*
 [Transformation] Apply call graph information to CFG.
 Note: Will mark functions as unused if they aren't connected to each other
@@ -132,5 +135,7 @@ Params:
 Returns 1 on success.
 */
 int HIR_FUNC_set_defer_calls(cfg_ctx_t* cctx);
+
+int HIR_FUNC_generate_test_function(hir_ctx_t* hctx, cfg_ctx_t* cctx, sym_table_t* smt);
 
 #endif

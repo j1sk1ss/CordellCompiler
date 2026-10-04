@@ -173,7 +173,8 @@ Params:
     - `bb` - CFG block to unload.
 
 Returns 1 if succeeds. */
-static int _unload_cfg_block(cfg_block_t* bb) {
+int HIR_CFG_unload_block(cfg_block_t* bb) {
+    if (!bb) return 0;
     set_free(&bb->def);
     set_free(&bb->use);
     set_free(&bb->curr_in);
@@ -225,7 +226,7 @@ int HIR_CFG_squeeze_blocks(cfg_ctx_t* ctx) {
                     }
 
                     list_remove(&fb->blocks, next);
-                    _unload_cfg_block(next);
+                    HIR_CFG_unload_block(next);
                     merged = 1;
                 }
             }
@@ -263,16 +264,16 @@ int HIR_CFG_unload(cfg_ctx_t* ctx) {
     ctx->cid = 0;
     foreach (cfg_func_t* fb, &ctx->funcs) {
         foreach (cfg_block_t* cb, &fb->blocks) {
-            _unload_cfg_block(cb);
+            HIR_CFG_unload_block(cb);
         }
 
         set_free(&fb->leaders);
-        list_free_force(&fb->blocks);
+        list_free(&fb->blocks);
         set_free(&fb->locals);
         mm_free(fb);
     }
 
-    list_free_force(&ctx->funcs);
+    list_free(&ctx->funcs);
     list_free(&ctx->outs.hout);
     list_free(&ctx->outs.lout);
     map_free(&ctx->fmap);

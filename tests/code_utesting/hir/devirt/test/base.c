@@ -13,7 +13,7 @@
 
 #include <hir/hirgen.h>
 #include <hir/hirgens/hirgens.h>
-#include "../../../misc/cfg_helper.h"
+#include "../../../../misc/cfg_helper.h"
 
 #include <hir/cfg.h>
 #include <hir/func.h>
@@ -23,6 +23,9 @@ int main(int argc, char* argv[]) {
         fprintf(stderr, "Not enough arguments! Expected 3, got %i!\n", argc);
         return 1;
     }
+
+    config_t cfg = { .compilation_flags.test = 1 };
+    CONF_set_config(cfg);
 
     mm_init();
 
@@ -76,6 +79,11 @@ int main(int argc, char* argv[]) {
     cfg_ctx_t cfgctx = { .cid = 0 };
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
     HIR_FUNC_set_last_return(&cfgctx);
+    HIR_FUNC_set_defer_calls(&cfgctx);
+    if (!HIR_FUNC_generate_test_function(&hirctx, &cfgctx, &smt)) {
+        fprintf(stderr, "Test entry generation failed\n");
+        return EXIT_FAILURE;
+    }
 
     DUMP_format_hirctx(&hirctx, &smt, 0, 1, stdout);
 

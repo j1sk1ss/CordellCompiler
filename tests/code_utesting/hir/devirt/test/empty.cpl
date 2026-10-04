@@ -1,0 +1,12 @@
+start() {
+    exit 9;
+}
+
+:/ OUTPUT
+{
+    fn _main()
+    {
+        exit csu8 0;
+    }
+}
+/:

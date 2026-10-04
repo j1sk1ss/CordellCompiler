@@ -1,0 +1,23 @@
+@[entry("test_main")]
+function main() -> i0 {
+    exit 9;
+}
+
+@[test]
+function check() -> i0 {
+}
+
+:/ OUTPUT
+{
+    fn test_main() -> i0
+    {
+        check1();
+        exit csu8 0;
+    }
+    fn check1() -> i0
+    {
+        {
+        }
+    }
+}
+/:

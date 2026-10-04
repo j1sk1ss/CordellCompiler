@@ -89,3 +89,7 @@ config_flag_field_t CONF_is_symtab_error() {
 void CONF_set_symtab_error() {
     _config.compilation_flags.symtab_error = 1;
 }
+
+config_flag_field_t CONF_is_test_compilation() {
+    return _config.compilation_flags.test;
+}

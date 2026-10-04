@@ -390,6 +390,9 @@ Return cfg base block or NULL if something goes wrong.
 */
 cfg_block_t* HIR_CFG_create_cfg_block(hir_block_t* e);
 
+// TODO: docs
+int HIR_CFG_unload_block(cfg_block_t* bb);
+
 /*
 Complete leaders list in function CFG.
 Params:

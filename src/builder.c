@@ -441,7 +441,8 @@ static config_t _make_config(const options_t* options) {
             .debug          = options->config.debug  ? 1 : 0,
             .strict         = options->config.strict ? 1 : 0,
             .parser_error   = 0,
-            .symtab_error   = 0
+            .symtab_error   = 0,
+            .test           = options->flags.test_compilation ? 1 : 0
         },
     };
 
@@ -649,6 +650,7 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
             else if (!strcmp(mode, "raw") || !strcmp(mode, "ld")) out->tools.linker_use_c_driver = 0;
             else goto _fail;
         }
+        else if (!strcmp(argv[i], OPTION_TEST_COMPILATION))       out->flags.test_compilation    = 1;
         else if (!strcmp(argv[i], OPTION_LINKER_ARG_SHORT) || !strcmp(argv[i], OPTION_LINKER_ARG)) {
             if (i + 1 >= argc || !_add_linker_arg(out, argv[i + 1])) goto _fail;
             i++;
@@ -1000,6 +1002,17 @@ int main(int argc, char* argv[]) {
         HIR_FUNC_set_unused_duplicated_functions(&cfgctx);
         HIR_FUNC_set_last_return(&cfgctx);
         HIR_FUNC_set_defer_calls(&cfgctx);
+        if (!HIR_FUNC_generate_test_function(&hirctx, &cfgctx, &smt)) {
+            fprintf(stderr, "Test entry generation failed\n");
+            HIR_CG_unload(&callctx);
+            HIR_CFG_unload(&cfgctx);
+            HIR_unload_blocks(hirctx.hot.h);
+            _unload_token_lists(&token_lists);
+            AST_unload_ctx(&sctx);
+            SMT_unload(&smt);
+            close(fd);
+            return 1;
+        }
 
         if (options.config.tre) {
             HIR_FUNC_perform_tre(&cfgctx, &smt);

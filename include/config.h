@@ -46,6 +46,7 @@ typedef struct {
         FLAG(strict);                        /* The compiler stops on casts or not    */
         FLAG(parser_error);                  /* If there is a parser error            */
         FLAG(symtab_error);                  /* If there is a symtab error            */ 
+        FLAG(test);                          /* Is this a test compilation            */
     } compilation_flags;
 } config_t;
 #undef FLAG
@@ -64,6 +65,7 @@ config_int_field_t    CONF_get_eight_bytness();
 config_int_field_t    CONF_get_attention_level();
 config_int_field_t    CONF_get_acceptance_level();
 config_flag_field_t   CONF_is_debug_compilation();
+config_flag_field_t   CONF_is_test_compilation();
 arch_type_t           CONF_get_system_type();
 config_flag_field_t   CONF_is_strict_compilation();
 

@@ -3,6 +3,24 @@ Logs for the first and second versions are quite short because I do not remember
 
 ----------------------------------------
 
+## Tests!
+<div class="change-date">Date: 2026-10-04</div>
+Add a special annotation for testing. To use it, folow the example below:
+
+```cpl
+start() {
+    :/ Default pipeline /:
+}
+
+@[test]
+function test_something() -> i0 {
+    i32 a = 10 + 10;
+    assert(a == 20);
+}
+```
+
+Will generate those functions (with `@[test]` annotation) only with `--test` flag. Also, this flag will replace the main function with sequence of tests.
+
 ## Specific numerics
 <div class="change-date">Date: 2026-10-03</div>
 Now to specify the numeric's type, use the same way as in Rust:

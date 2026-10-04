@@ -81,6 +81,7 @@ _set_vname: {}
             case REGISTER_ANNOTATION:  summary->reg          = annot->data.regval;  break;
             case COUNTER_ANNOTATION:   summary->counter      = annot->data.counter; break;
             /* Flag annotations */
+            case TESTF_ANNOTATION:     summary->is_test_f    = 1;                   break;
             case NOSECTION_ANNOTATION: summary->is_nosec     = 1;                   break;
             case NAKED_ANNOTATION:     summary->is_naked     = 1;                   break;
             case NOFALL_ANNOTATION:    summary->is_nofall    = 1;                   break;

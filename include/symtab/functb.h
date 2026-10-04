@@ -27,6 +27,7 @@ typedef struct {
     signed char vname;    /* annot     */
     signed char abstract; /* annot     */
     signed char override; /* annot     */
+    signed char testf;    /* annot     */
 } func_info_flags_t;
 
 typedef struct {
@@ -171,15 +172,17 @@ int FNTB_rewrite_flags(symbol_id_t id, func_info_flags_t flags, functab_ctx_t* c
 #define FNTB_EXPLICIT_EXTERN 1
 #define FNTB_NO_EXTERN       0
 #define FNTB_NO_FLAGS_CHANGE ((func_info_flags_t){ .global=-1, .abi=-1, .weak=-1, .external=-1, .entry=-1, .used=-1,  \
-    .local=-1, .vargs=-1, .generic=-1, .self=-1, .naked=-1, .inln=-1 })
+    .local=-1, .vargs=-1, .generic=-1, .self=-1, .naked=-1, .inln=-1, .testf=-1 })
 #define FNTB_SET_EXTERNAL(n) ((func_info_flags_t){ .global=-1, .abi=-1, .weak=-1, .external=n, .entry=-1, .used=-1,   \
-    .local=-1, .vargs=-1, .generic=-1, .self=-1, .naked=-1, .inln=-1 })
+    .local=-1, .vargs=-1, .generic=-1, .self=-1, .naked=-1, .inln=-1, .testf=-1 })
 #define FNTB_SET_NAKED(n)    ((func_info_flags_t){ .global=-1, .abi=-1, .weak=-1, .external=-1, .entry=-1, .used=-1,  \
-    .local=-1, .vargs=-1, .generic=-1, .self=-1, .naked=(n), .inln=-1 })
+    .local=-1, .vargs=-1, .generic=-1, .self=-1, .naked=(n), .inln=-1, .testf=-1 })
 #define FNTB_SET_GENERIC(n)  ((func_info_flags_t){ .global=-1, .abi=-1, .weak=-1, .external=-1, .entry=-1, .used=-1,  \
-    .local=-1, .vargs=-1, .generic=(n), .self=-1, .naked=-1, .inln=-1 })
+    .local=-1, .vargs=-1, .generic=(n), .self=-1, .naked=-1, .inln=-1, .testf=-1 })
 #define FNTB_SET_USED(n)     ((func_info_flags_t){ .global=-1, .abi=-1, .weak=-1, .external=-1, .entry=-1, .used=(n), \
-    .local=-1, .vargs=-1, .generic=-1, .self=-1, .naked=-1, .inln=-1 })
+    .local=-1, .vargs=-1, .generic=-1, .self=-1, .naked=-1, .inln=-1, .testf=-1 })
+#define FNTB_SET_ENTRY(n)    ((func_info_flags_t){ .global=-1, .abi=-1, .weak=-1, .external=-1, .entry=(n), .used=-1, \
+    .local=-1, .vargs=-1, .generic=-1, .self=-1, .naked=-1, .inln=-1, .testf=-1 })
 /*
 Update an existed function.
 Note: Will update the virtual name of a function.
@@ -199,9 +202,7 @@ Params:
 
 Returns 1 on success, otherwise 0.
 */
-int FNTB_update_func(
-    symbol_id_t id, string_t* name, func_info_flags_t flags, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
-);
+int FNTB_update_func(symbol_id_t id, string_t* name, func_info_flags_t flags, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx);
 
 /*
 Create a copy with resolved generic types. Will create a copy with a modified name. Consider

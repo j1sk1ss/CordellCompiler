@@ -184,6 +184,7 @@ according you system requirements. */
 #define OPTION_IR_OUTPUT             "--ir-output"
 #define OPTION_LIR_OUTPUT            "--lir-output"
 #define OPTION_ASM_OUTPUT            "--asm-output"
+#define OPTION_TEST_COMPILATION      "--test"
 
 typedef struct {
     const char* option;
@@ -258,6 +259,7 @@ typedef struct {
         int          print_stdlib         : 1;
         int          show_something       : 1;
         int          preprocess_only      : 1;
+        int          test_compilation     : 1;
     } flags;
 } options_t;
 
@@ -300,7 +302,8 @@ static inline int _print_help_message() {
         { OPTION_DEBUG,                                 NULL,           "Enable debug mode"                                             },
         { OPTION_NO_DEBUG,                              NULL,           "Disable debug mode"                                            },
         { OPTION_STRICT,                                NULL,           "Enable compiler errors, strict typing and static analysis"     },
-        { OPTION_NON_STRICT,                            NULL,           "Disables compiler errors, strict typing and static analysis"   }
+        { OPTION_NON_STRICT,                            NULL,           "Disables compiler errors, strict typing and static analysis"   },
+        { OPTION_TEST_COMPILATION,                      NULL,           "Sets compilation to a test mode. Will compile test binary"     }
     };
     static const cli_help_option_t _optimization_options[] = {
         { OPTION_NO_OPTIMIZATION,     NULL, "Disable optimizations"                 },

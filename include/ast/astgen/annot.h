@@ -32,6 +32,7 @@
 #define VTABL_ANNOTATION_COMMAND "vtable"
 #define ABSTR_ANNOTATION_COMMAND "abstract"
 #define OVERD_ANNOTATION_COMMAND "override"
+#define TESTF_ANNOTATION_COMMAND "test"
 
 #define INLNE_ANNOTATION_COMMAND "inline" /* inline / inline(always) / inline(never) */
 #define INLNE_YES_OPTION         "always"
@@ -102,6 +103,7 @@ typedef struct {
     char                 is_vtable   : 1;
     char                 is_abstract : 1;
     char                 is_override : 1;
+    char                 is_test_f   : 1;
 } annotations_summary_t;
 
 typedef enum {
@@ -133,6 +135,7 @@ typedef enum {
     VTABLE_ANNOTATION,    /* Will enable vtable in a container              */
     ABSTRACT_ANNOTATION,  /* Will mark a method as an abstract method       */
     OVERRIDE_ANNOTAITON,  /* Will mark function as an override for somebody */
+    TESTF_ANNOTATION,     /* Will mark function as a test function          */
 } annotation_type_t;
 
 typedef struct {
