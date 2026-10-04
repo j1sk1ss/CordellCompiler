@@ -139,7 +139,7 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_bSHL:       EMIT_COMMAND("shl %s, %s", i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->targ, smt, NO_FLAG));       break;
         case LIR_iBRHT:
         case LIR_bSHR:       EMIT_COMMAND("shr %s, %s", i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->targ, smt, NO_FLAG));       break;
-        case LIR_bSAR:       EMIT_COMMAND("sar %s, %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));       break;
+        case LIR_bSAR:       EMIT_COMMAND("sar %s, %s", i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->targ, smt, NO_FLAG));       break;
         case LIR_RAW: {
             string_t* raw_line = create_string(i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG));
             int percent_pos = raw_line->index_of(raw_line, '%');

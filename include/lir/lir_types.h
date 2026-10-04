@@ -143,8 +143,8 @@ typedef enum {
         LIR_bOR,   // bit or
         LIR_bXOR,  // bit xor
         LIR_bSHL,  // bitleft
-        LIR_bSHR,  // bitright
-        LIR_bSAR,  // bitleft unsgn
+        LIR_bSHR,  // bitright !!! for unsigned
+        LIR_bSAR,  // bitright !!! for signed
 
     /* Other */
     LIR_RAW,

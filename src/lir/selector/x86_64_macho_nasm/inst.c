@@ -331,24 +331,27 @@ static cfg_dfs_action_t _instruction_selection_block(
                 break;
             }
             case LIR_iBRHT: case LIR_iBLFT:
-            case LIR_bSHR:  case LIR_bSHL:
             case LIR_bOR:   case LIR_bXOR: case LIR_bAND:
             case LIR_iMUL:  case LIR_iSUB: case LIR_iADD: {
-                int is_shift = 
-                    lh->op == LIR_iBRHT || lh->op == LIR_iBLFT ||
-                    lh->op == LIR_bSHR  || lh->op == LIR_bSHL;
+                lir_operation_t nop = lh->op;
                 if (
-                    !is_shift &&
-                    lh->farg->t == LIR_REGISTER && 
+                    !(lh->op == LIR_iBRHT || lh->op == LIR_iBLFT) &&
+                    lh->farg->t == LIR_REGISTER                   && 
                     lh->sarg->t == LIR_REGISTER
                 ) break;
+                if (
+                    x86_64_macho_nasm_is_sign_type(lh->farg, smt) &&
+                    x86_64_macho_nasm_is_sign_type(lh->sarg, smt) &&
+                    lh->op == LIR_iBRHT
+                ) nop = LIR_bSAR; 
+
                 int shared_size = -1;
                 if (lh->op == LIR_iMUL) shared_size = lh->sarg->size < 4 ? 4 : lh->sarg->size; 
                 lir_subject_t* a_entry = x86_64_macho_nasm_create_tmp(RAX, lh->sarg, smt, shared_size);
                 lir_subject_t* a_exit  = x86_64_macho_nasm_create_tmp(RAX, lh->farg, smt, shared_size);
                 _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a_entry, lh->sarg, NULL), lh);
 
-                if (is_shift) {
+                if (lh->op == LIR_iBRHT || lh->op == LIR_iBLFT) {
                     lir_subject_t* b_entry = x86_64_macho_nasm_create_tmp(RCX, lh->targ, smt, 1);
                     _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, b_entry, lh->targ, NULL), lh);
                     lh->targ = b_entry;
@@ -357,6 +360,7 @@ static cfg_dfs_action_t _instruction_selection_block(
                 _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, lh->farg, a_exit, NULL), lh);
                 lh->farg = a_exit;
                 lh->sarg = a_entry;
+                lh->op   = nop;
                 break;
             }
             case LIR_EXITOP:

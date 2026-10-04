@@ -305,6 +305,11 @@ shr obj, const 0
 delete
 /
 
+sar obj, const 0
+->
+delete
+/
+
 not areg_1
 not areg_1
 ->

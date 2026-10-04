@@ -93,6 +93,7 @@ static const char* _op_to_fmtstring(lir_operation_t op) {
         case LIR_STAE:       return "stae %s;";
         case LIR_bSHL:
         case LIR_iBLFT:      return "%s = %s << %s;";
+        case LIR_bSAR:
         case LIR_bSHR:
         case LIR_iBRHT:      return "%s = %s >> %s;";
         case LIR_iLWR:       return "%s = %s < %s;";
