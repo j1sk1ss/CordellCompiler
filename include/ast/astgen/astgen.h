@@ -567,7 +567,13 @@ Returns an AST node.
 */
 ast_node_t* cpl_parse_declaration_value(PARSER_ARGS);
 
-// TODO: docs
+/*
+Parse a defer statement.
+Params:
+    - <parser_args>
+
+Returns an AST node.
+*/
 ast_node_t* cpl_parse_defer(PARSER_ARGS);
 
 #endif

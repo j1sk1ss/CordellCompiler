@@ -411,7 +411,15 @@ Return parsed from AST HIR subject.
 */
 hir_subject_t* HIR_generate_load_indexation(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
-// TODO: docs
+/*
+Convert `ref smth[X]` node with respect of the array's type.
+Params:
+    - `node` - AST node.
+    - `ctx` - HIR context.
+    - `smt` - Symbol table.
+
+Returns a subject with a stored data of a referenced element.
+*/
 hir_subject_t* HIR_generate_ref_indexation(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
 /*
@@ -509,13 +517,41 @@ Returns 1 if there is no errors.
 */
 int HIR_generate_store_member_access(ast_node_t* node, hir_subject_t* data, hir_ctx_t* ctx, sym_table_t* smt);
 
-// TODO: docs
+/*
+Take a virtual table from a type information and a variable information. Then,
+return a subject which points to the head of a virtual table.
+Params:
+    - `ti` - Type information.
+    - `ctx` - HIR context.
+    - `vi` - Variable information.
+    - `smt` - Symbol table.
+
+Returns a subject with a virtual table.
+*/
 hir_subject_t* HIR_load_vtable(type_info_t* ti, hir_ctx_t* ctx, variable_info_t* vi, sym_table_t* smt);
 
-// TODO: docs
+/*
+Generate special `place` command, where it will take a subject with a virtuals table,
+allocate it in a provided memory region, and set its virtual table.
+Params:
+    - `node` - Place node.
+    - `ctx` - HIR context.
+    - `smt` - Symbol table.
+
+Returns a subject of a container with an allocated virtual table.
+*/
 hir_subject_t* HIR_generate_place(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
-// TODO: docs
+/*
+Register defer block via entry and exit defer blocks.
+Actually, this is a default ELEM generator, but with guards.
+Params:
+    - `node` - Defer node.
+    - `ctx` - HIR context.
+    - `smt` - Symbol table.
+
+Returns 1 if succeeds.
+*/
 int HIR_generate_defer_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
 #endif

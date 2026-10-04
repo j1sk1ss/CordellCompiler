@@ -122,7 +122,15 @@ Returns 1 on success, otherwise 0.
 */
 int HIR_FUNC_set_unused_duplicated_functions(cfg_ctx_t* ctx);
 
-// TODO: docs
+/*
+Iterate recursuvelly the input CFG, register defer calls,
+and put them at exit commands.
+!! Will work after setret pass !!
+Params: 
+    - `cctx` - CFG context.
+
+Returns 1 on success.
+*/
 int HIR_FUNC_set_defer_calls(cfg_ctx_t* cctx);
 
 #endif

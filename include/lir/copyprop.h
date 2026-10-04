@@ -36,7 +36,15 @@ Returns 1 if succeeds.
 */
 int LIR_register_copy_propagation(cfg_ctx_t* cctx);
 
-// TODO: docs
+/*
+Traverse the LIR context, find unused global variables (by setting
+'set' to used variables only)? and set 'unuset' to rest of variables.
+Params:
+    - `cctx` - CFG context.
+    - `smt` - Symbol table.
+
+Returns 1 if succeeds.
+*/
 int LIR_clear_global_variables(cfg_ctx_t* cctx, sym_table_t* smt);
 
 #endif
