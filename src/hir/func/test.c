@@ -9,7 +9,7 @@ static void _unload_test_info(func_info_t* info) {
     mm_free(info);
 }
 
-static func_info_t* _create_test_info(symbol_id_t id) {
+static func_info_t* _create_info_for_test_function(symbol_id_t id) {
     func_info_t* info = mm_malloc(sizeof(func_info_t));
     if (!info) return NULL;
 
@@ -24,7 +24,12 @@ static func_info_t* _create_test_info(symbol_id_t id) {
         .vname = 1, .inln   = NEVER_INLINE
     };
 
-    if (!info->name || !info->virt || !info->args || !map_init(&info->template.generic, MAP_CMP)) {
+    if (
+        !info->name || 
+        !info->virt || 
+        !info->args || 
+        !map_init(&info->template.generic, MAP_CMP)
+    ) {
         _unload_test_info(info);
         return NULL;
     }
@@ -150,7 +155,7 @@ int HIR_FUNC_generate_test_function(hir_ctx_t* hctx, cfg_ctx_t* cctx, sym_table_
         if (!map_get(&smt->f.functb, original->f_id, (void**)&info) || info->flags.local) goto _fail;
     }
     else {
-        info = _create_test_info(smt->f.curr_id);
+        info = _create_info_for_test_function(smt->f.curr_id);
         if (!info) goto _fail;
     }
 
@@ -169,10 +174,7 @@ int HIR_FUNC_generate_test_function(hir_ctx_t* hctx, cfg_ctx_t* cctx, sym_table_
         if (
             fi.flags.vargs || fi.flags.self || fi.flags.generic ||
             (fi.args && fi.args->c && (!fi.args->c->t || fi.args->c->t->t_type != SCOPE_TOKEN))
-        ) {
-            print_error("Test function '%s' must not require arguments", fi.name->body);
-            goto _fail;
-        }
+        ) goto _fail;
 
         if (!_append_test_call(&generated, fi.id)) goto _fail;
     }
@@ -189,8 +191,7 @@ int HIR_FUNC_generate_test_function(hir_ctx_t* hctx, cfg_ctx_t* cctx, sym_table_
     if (!fb || !set_is_init(&fb->locals) || !set_init(&fb->leaders, SET_NO_CMP)) goto _fail;
     fb->id        = original ? original->id : cctx->cid;
     fb->f_id      = info->id;
-    fb->used      = 1;
-    fb->fentry    = 1;
+    fb->used      = fb->fentry = 1;
     fb->hmap.exit = generated.hot.t;
 
     block = HIR_CFG_create_cfg_block(generated.hot.h);
@@ -231,16 +232,20 @@ int HIR_FUNC_generate_test_function(hir_ctx_t* hctx, cfg_ctx_t* cctx, sym_table_
     if (!section) {
         new_section = 1;
         section     = _create_test_section();
-        if (!section) goto _fail;
-        if (map_get(&smt->c.sectb, (long)section->name->hash, NULL)) goto _fail;
+        if (
+            !section ||
+            map_get(&smt->c.sectb, (long)section->name->hash, NULL)
+        ) goto _fail;
     }
 
-    if (map_get(&smt->f.functb, info->id, NULL) || map_get(&cctx->fmap, info->id, NULL)) goto _fail;
-    if (!map_put(&smt->f.functb, info->id, info))          goto _fail;
-    if (!list_add(&cctx->funcs, fb))                       goto _rollback_info;
-    if (!map_put(&cctx->fmap, info->id, fb))               goto _rollback_funcs;
-    if (!set_add(&section->func, (void*)info->id))         goto _rollback_fmap;
-    if (!list_add(&section->sorted.func, (void*)info->id)) goto _rollback_section_func;
+    if (
+        map_get(&smt->f.functb, info->id, NULL) || map_get(&cctx->fmap, info->id, NULL) ||
+        !map_put(&smt->f.functb, info->id, info)
+    )                                                                    goto _fail;
+    if (!list_add(&cctx->funcs, fb))                                     goto _rollback_info;
+    if (!map_put(&cctx->fmap, info->id, fb))                             goto _rollback_funcs;
+    if (!set_add(&section->func, (void*)info->id))                       goto _rollback_fmap;
+    if (!list_add(&section->sorted.func, (void*)info->id))               goto _rollback_section_func;
     if (new_section) {
         if (!map_put(&smt->c.sectb, (long)section->name->hash, section)) goto _rollback_section_list;
         if (!list_add(&smt->c.sorted.sectb, section)) {
@@ -251,10 +256,10 @@ int HIR_FUNC_generate_test_function(hir_ctx_t* hctx, cfg_ctx_t* cctx, sym_table_
 
     if (!hctx->hot.h) hctx->hot.h = generated.hot.h;
     else {
-        hir_block_t* tail = hctx->hot.h;
+        hir_block_t* tail       = hctx->hot.h;
         while (tail->next) tail = tail->next;
-        tail->next            = generated.hot.h;
-        generated.hot.h->prev = tail;
+        tail->next              = generated.hot.h;
+        generated.hot.h->prev   = tail;
     }
 
     hctx->hot.t = generated.hot.t;
@@ -262,17 +267,17 @@ int HIR_FUNC_generate_test_function(hir_ctx_t* hctx, cfg_ctx_t* cctx, sym_table_
     cctx->cid += 2;
     return 1;
 
-_rollback_section_list:
+_rollback_section_list: {}
     list_remove(&section->sorted.func, (void*)info->id);
-_rollback_section_func:
+_rollback_section_func: {}
     set_remove(&section->func, (void*)info->id);
-_rollback_fmap:
+_rollback_fmap: {}
     map_remove(&cctx->fmap, info->id);
-_rollback_funcs:
+_rollback_funcs: {}
     list_remove(&cctx->funcs, fb);
-_rollback_info:
+_rollback_info: {}
     map_remove(&smt->f.functb, info->id);
-_fail:
+_fail: {}
     if (new_section) _unload_test_section(section);
     HIR_CFG_unload_block(block);
     _unload_test_func(fb);
