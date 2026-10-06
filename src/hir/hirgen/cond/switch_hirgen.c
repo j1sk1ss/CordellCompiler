@@ -86,7 +86,11 @@ int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
 
         int prev_cold = ctx->is_cold, fall = 0;
         HAS_ANNOTATION(COLD_ANNOTATION, curr_case, { ctx->is_cold = 1; });
-        HAS_ANNOTATION(FALL_ANNOTATION, curr_case, { fall = 1; })
+        HAS_ANNOTATION(FALL_ANNOTATION, curr_case, { fall = 1; });
+
+        if ((!no_fall || fall) && ctx->is_cold) {
+            HIRGEN_ERROR(ctx, "No fall switch with a cold section can create UB code!");
+        }
 
         hir_subject_t* clb = HIR_SUBJ_LABEL();
         HIR_BLOCK1(ctx, HIR_MKLB, clb);
