@@ -1,9 +1,9 @@
 \documentclass[10pt,twocolumn]{article}
 
 \usepackage[a4paper,margin=0.75in]{geometry}
-\usepackage[T1]{fontenc}
+\usepackage[T2A]{fontenc}
 \usepackage[utf8]{inputenc}
-\usepackage{lmodern}
+\usepackage[main=russian,english]{babel}
 \usepackage{microtype}
 \usepackage{booktabs}
 \usepackage{longtable}
@@ -33,7 +33,11 @@
 }
 
 \lstdefinelanguage{CPL}{
-  morekeywords={start,exit,function,container,return,if,else,while,loop,switch,case,default,glob,ro,dref,ref,ptr,lis,break,extern,from,import,syscall,asm,as,f64,f32,i64,i32,i16,i8,u64,u32,u16,u8,i0,str,arr,not,neg,poparg,sizeof,section,align,line,include,define,undef,ifdef,ifndef,endif,self,like_c},
+  morekeywords={
+    start,exit,function,container,return,if,else,while,loop,switch,case,default,glob,ro,dref,ref,ptr,lis,
+    break,extern,from,import,syscall,asm,as,f64,f32,i64,i32,i16,i8,u64,u32,u16,u8,i0,str,arr,not,neg,poparg,
+    sizeof,section,align,line,include,define,undef,ifdef,ifndef,endif,self,like_c,interface
+  },
   sensitive=true,
   morecomment=[s]{:/}{/:},
   morestring=[b]",
@@ -61,25 +65,34 @@
   captionpos=b,
 }
 
-\title{CPL: A Compact C-like Systems Language with Explicit Low-Level Control}
+\title{CPL: Переход от простоты и опасности C до удобства и безопасности Rust}
 \author{
-  \normalsize Nikolai Fot \and \normalsize Alexander Vinarskiy \\
-  \normalsize Compiler Technology Department, \\
-  \normalsize Ivannikov Institute for System Programming of the Russian Academy of Sciences (ISP RAS)
+    \normalsize Nikolai Fot \and \normalsize Alexander Vinarskiy \\
+    \normalsize Compiler Technology Department, \\
+    \normalsize Ivannikov Institute for System Programming of the Russian Academy of Sciences (ISP RAS)
 }
 \date{}
-
+    
 \begin{document}
+
+\twocolumn[
+\begin{@twocolumnfalse}
 \maketitle
 
 \begin{abstract}
-\par This paper presents Cordell Programming Language (CPL), a compact C-like systems language that keeps C's direct access to memory, layout, and machine interfaces while experimenting with a smaller grammar and selected conveniences from newer languages. Also this page studies whether it is more comvenient to use C-like modified languages as testbeds for compiler experiments or use modern approaches and paradigms. While the langauge and compiler provides primitive values, pointers, arrays, containers with methods, unions, generic functions, overloads, entry-point and section control, system calls, and inline assembly, it doesn't provide any high-level instructions such as classes, in-built methods, standart library, memory protection, etc. The article describes the language design, compiler pipeline, target backends, static-analysis architecture, and OS-facing use cases, then evaluates the prototype backend with reproducible x86\_64 and i386 microbenchmarks against C compiler baselines. The gathered results show that the compiler can produce code which can be compared with code that is produced by production compilers such as GCC, CLang and small compilers such as TinyC, SmallerC, etc.
+    \par Данная работа посвящена специализированному языку программирования под названием <<Cordell Programming Language>> (далее CPL). Являясь изначально языком системного уровня, он берёт основные механизмы передачи доступа пользователю от языка C, не вынуждая последнего как избегать небезопасных инструкций и конструкций, так и оборачивать их в специальные идиоматичные механизмы, как это представлено в языке Rust. Отличием от обоих этих языков является комбинация двух разных подходов по проектированию языка --- высокоуровневый и низкоуровневый. В данной работе представлен вариант языка, сочитающий возможности языка C (ассемблерные вставки, явное и детерминированное поведение при компиляции) и языков высокого уровня (полиморфизм функций, интерфейсы, стандартные значения параметров, неявные указатели и методы). В работе дополнительно обсуждаются проблемы проектирования языков для решения целей системного программирования с сохранением возможности применения языка в повседневных задачах по быстрому проектированию и развитию программного обеспечения. Рассмотрен вариант реализации компилятора и статического анализатора такого языка, с реализацией большинства современных техник оптимизации исходного программного кода. Рассмотрен подход по использованию DSL (domain-specific languages) при проектировании компиляторов для таких языков, и возможности по применению компактных моделей машинного обучения. Рассмотрена сложность интеграции средств для символьного исполнения и путечуствительного анализа. Проведено тестирование на ряде синтетических тестов, и сравнение этих результатов с компиляторами \textit{RustC}, \textit{GCC} и \textit{CLang}.
 \end{abstract}
 
-\section{Introduction}
-\par Systems programming languages expose machine-level details while attempting to keep programs tractable. Mature languages such as C~\cite{ritchie1978c,kernighan1988c}, C++~\cite{stroustrup2007cpp,stroustrup2013cpp}, Rust~\cite{klabnik2023rust,jung2018rustbelt}, and Zig~\cite{ziglangref} provide large ecosystems, but their full syntactic and semantic complexity makes them expensive targets for compiler experiments. Conversely, many teaching compilers are intentionally small but do not expose enough low-level mechanisms to study system-oriented code generation, platform-specific interfaces, and optimization under realistic constraints.
-\par To address this issue it's a great idea to build a new small compiler (and a language) to create a convenient testbed for learning and experiments. The compiler has more opportunities for available experiments given the nature of optimizations and a new language can reflect modern syntax that is common among the languages such as Rust, C, C++ and Zig. The reason of a new grammar lays in a fact, that a faithful C-like, Rust-like, Zig-like, etc. subset would either require a substantially more complex parser and semantic model, or would create misleading expectations that the rest of the language should also be supported. The design instead favors a compact parser-friendly grammar, explicit syntax for functions and pointer-like operations, and compiler-supported low-level constructs.
-\par The central research problem is the tension between implementation compactness and systems-level adequacy. Reducing a language and compiler makes experimentation and inspection easier, but can remove the layout controls, ABI mechanisms, analyses, and backend structure needed for realistic low-level programs. This article studies CPL as a C-like language design that keeps the directness of C while experimenting with a smaller grammar and selected modern conveniences.
+\end{@twocolumnfalse}
+]
+
+\section{Введение}
+
+\par Языки системного уровня являются популярными языками, включая в себя как языки C~\cite{ritchie1978c,kernighan1988c} и C++~\cite{stroustrup2007cpp,stroustrup2013cpp}, языки Rust~\cite{klabnik2023rust,jung2018rustbelt} и Zig~\cite{ziglangref} и др. Главным отличием от языков высокого уровня можно назвать их близость к итоговой архитектуре, и часто, возможность прямой работы с этой архитектурой. Частично, такое свойство сильно понижает порог входа для проектирования языков системного уровня, что можно видеть в большом числе новых проектов с таким классификатором. % TODO: надо найти, а реально ли так?
+
+% TODO: Картинка уровня созданий реп по годам (первый коммит) с названием \ описанием \ тегом системный язык
+
+% TODO: По сути, тут необходимо сказать, что системные языки - это частая вещь для реализации людьми, что они в принципе хороши для разработки, но у них либо есть перекос в одну сторону (например C++ в сторону высокого уровня), либо перекос в низкую (язык ассемблера). Дополнительно, нельзя сказать что все компиляторы системных языков легко поддаются модификации для проведения экспериментов с компиляторами, потому создание своей масштабируемой архитектуры тоже важно. А гипотеза тут - а есть ли такой подход по проектированию языка, который возьмёт синтаксис Си, и не превращаяя его в С++ (слишком высокого) и в Раст (слишком безопасно) или Зиг (недостаточно низко) превратит его в высокоуровневый язык? Для этого надо выделить что определяет синтаксис системного низкоуровневого языка, далее определить что превратит низкоуровневый в высокоуровневый, что бы не превратить наш язык в таковой, а далее выделим то - что можно добавить. 
 
 \section{Language Overview}
 \par The language stays close to assembly and C by exposing pointers, explicit dereferencing, C-like structures, direct system calls, inline assembly, manual entry points, and annotations for placement and control. It deliberately avoids reproducing the full C grammar and semantics. The compiler includes enough phase separation to study SSA-form construction~\cite{cytron1991ssa}, diagnostics, scalar optimization, low-level selection, register allocation, and peephole rewriting.
