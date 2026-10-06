@@ -17,6 +17,7 @@
 #define NOSEC_ANNOTATION_COMMAND "nosection"
 #define BODYO_ANNOTATION_COMMAND "only_body"
 #define NOFAL_ANNOTATION_COMMAND "no_fall"
+#define FALLC_ANNOTATION_COMMAND "fall"
 #define NTLAZ_ANNOTATION_COMMAND "not_lazy"
 #define STRGH_ANNOTATION_COMMAND "straight"
 #define COUNT_ANNOTATION_COMMAND "counter"
@@ -87,6 +88,7 @@ typedef struct {
     char                 is_naked    : 1;
     char                 is_entry    : 1;
     char                 is_nofall   : 1;
+    char                 is_fall     : 1;
     char                 is_notlazy  : 1;
     char                 is_straight : 1;
     char                 is_hot      : 1;
@@ -114,6 +116,7 @@ typedef enum {
     NAKED_ANNOTATION,     /* Don't unpack START, FDECL                      */
     ENTRY_ANNOTATION,     /* Is this an entry function?                     */
     NOFALL_ANNOTATION,    /* switch with a break as a default command       */
+    FALL_ANNOTATION,      /* case will disable no_fall for itself           */
     NOTLAZY_ANNOTATION,   /* && and || with full evaluation                 */
     STRAIGHT_ANNOTATION,  /* switch based on if-elseif-else                 */
     COUNTER_ANNOTATION,   /* hidden counter-break instructure               */

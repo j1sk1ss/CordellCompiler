@@ -32,9 +32,7 @@ static void _pack_param(token_t* tkn, ast_ctx_t* ctx, sym_table_t* smt, int allo
         str_memset(&tmp, 0, sizeof(ast_node_t));
 
         tmp.t          = lookup_tkn;
-        tmp.sinfo.s_id = NO_SYMBOL_ID;
-        tmp.sinfo.v_id = NO_SYMBOL_ID;
-        tmp.sinfo.t_id = NO_SYMBOL_ID;
+        tmp.sinfo.s_id = tmp.sinfo.v_id = tmp.sinfo.t_id = NO_SYMBOL_ID;
 
         if (var_lookup(&tmp, ctx, smt) && TKN_is_variable(lookup_tkn) && tmp.sinfo.v_id != NO_SYMBOL_ID) {
             box->t    = ANNOTATION_VARIABLE_PARAM;
@@ -70,6 +68,7 @@ static annotation_t* _parse_annotation_content(list_iter_t* it, ast_ctx_t* ctx, 
     ADD_ANNOTATION_HANDLER(NAKED_ANNOTATION_COMMAND, NAKED_ANNOTATION);
     ADD_ANNOTATION_HANDLER(ENTRY_ANNOTATION_COMMAND, ENTRY_ANNOTATION);
     ADD_ANNOTATION_HANDLER(NOFAL_ANNOTATION_COMMAND, NOFALL_ANNOTATION);
+    ADD_ANNOTATION_HANDLER(FALLC_ANNOTATION_COMMAND, FALL_ANNOTATION);
     ADD_ANNOTATION_HANDLER(NTLAZ_ANNOTATION_COMMAND, NOTLAZY_ANNOTATION);
     ADD_ANNOTATION_HANDLER(STRGH_ANNOTATION_COMMAND, STRAIGHT_ANNOTATION);
     ADD_ANNOTATION_HANDLER(COUNT_ANNOTATION_COMMAND, COUNTER_ANNOTATION);

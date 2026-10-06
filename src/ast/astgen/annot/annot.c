@@ -85,6 +85,7 @@ _set_vname: {}
             case NOSECTION_ANNOTATION: summary->is_nosec     = 1;                   break;
             case NAKED_ANNOTATION:     summary->is_naked     = 1;                   break;
             case NOFALL_ANNOTATION:    summary->is_nofall    = 1;                   break;
+            case FALL_ANNOTATION:      summary->is_fall      = 1;                   break;
             case NOTLAZY_ANNOTATION:   summary->is_notlazy   = 1;                   break;
             case STRAIGHT_ANNOTATION:  summary->is_straight  = 1;                   break;
             case HOT_ANNOTATION:       summary->is_hot       = 1;                   break;
