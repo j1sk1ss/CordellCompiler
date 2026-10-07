@@ -178,7 +178,8 @@ hir_subject_t* HIR_generate_operand(ast_node_t* node, hir_ctx_t* ctx, sym_table_
                 return NULL;
             }
 
-            res = HIR_SUBJ_TMPVAR(HIR_promote_types(lt1->t, lt2->t), VRTB_ADD_TMP_NF(HIR_promote_types(lt1->t, lt2->t), smt));
+            hir_subject_type_t res_type = op->t->t_type != RTAKE_BIT_TOKEN ? HIR_promote_types(lt1->t, lt2->t) : lt2->t;
+            res = HIR_SUBJ_TMPVAR(res_type, VRTB_ADD_TMP_NF(res_type, smt));
             res->ptr = MAX(lt1->ptr, lt2->ptr);
             
             lt1 = HIR_generate_implconv(ctx, res->ptr, res->t, lt1, smt);
@@ -200,6 +201,20 @@ hir_subject_t* HIR_generate_operand(ast_node_t* node, hir_ctx_t* ctx, sym_table_
                 case MULTIPLY_TOKEN:      HIR_BLOCK3(ctx, HIR_iMUL, res, lt1, lt2);  break;
                 case BITMOVE_LEFT_TOKEN:  HIR_BLOCK3(ctx, HIR_iBLFT, res, lt1, lt2); break;
                 case BITMOVE_RIGHT_TOKEN: HIR_BLOCK3(ctx, HIR_iBRHT, res, lt1, lt2); break;
+                case RTAKE_BIT_TOKEN: {
+                    if (HIR_is_sign(res_type)) { // sign extension is needed
+                        hir_subject_t *moved_cont = HIR_SUBJ_TMPVAR(res_type, VRTB_ADD_TMP_NF(res_type, smt)),
+                                      *move       = HIR_SUBJ_TMPVAR(res_type, VRTB_ADD_TMP_NF(res_type, smt));
+                        HIR_BLOCK3(
+                            ctx, HIR_iSUB, move, 
+                            HIR_generate_implconv(ctx, 0, res_type, HIR_SUBJ_CONST(HIR_get_type_size(res_type) * CONF_get_full_bytness()), smt), lt2
+                        );
+                        HIR_BLOCK3(ctx, HIR_iBLFT, moved_cont, lt1, move);
+                        HIR_BLOCK3(ctx, HIR_iBRHT, res, moved_cont, move);
+                    }
+                    
+                    break;
+                }
                 default: break;
             }
 

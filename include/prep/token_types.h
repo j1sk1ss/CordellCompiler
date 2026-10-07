@@ -158,6 +158,7 @@ typedef enum {
     BITAND_TOKEN,          // &
     BITOR_TOKEN,           // |
     BITXOR_TOKEN,          // ^
+    RTAKE_BIT_TOKEN,       // |~
     AND_TOKEN,             // &&
     OR_TOKEN,              // ||
     

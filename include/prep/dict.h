@@ -83,6 +83,8 @@
 #define BITORASSIGN_STATEMENT   "|="
 #define BITXORASSIGN_STATEMENT  "^="
 
+#define BITS_GET_R_STATEMENT    "|~"  // get N bits from the right with extension (sign or unsign is desided by N sign)
+
 #define ASSIGN_STATEMENT        "="
 #define COMPARE_STATEMENT       "=="
 #define NCOMPARE_STATEMENT      "!="

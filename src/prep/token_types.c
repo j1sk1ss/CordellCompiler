@@ -222,6 +222,7 @@ int TKN_is_operand(token_t* token) {
         case SUBASSIGN_TOKEN:
         case MULASSIGN_TOKEN:
         case DIVASSIGN_TOKEN:
+        case RTAKE_BIT_TOKEN:
         case BITORASSIGN_TOKEN:
         case MODULOASSIGN_TOKEN:
         case BITANDASSIGN_TOKEN:
@@ -239,6 +240,7 @@ int TKN_token_priority(token_t* token) {
         case AND_TOKEN:            return 2;
         case BITOR_TOKEN:          return 3;
         case BITXOR_TOKEN:         return 4;
+        case RTAKE_BIT_TOKEN:
         case BITAND_TOKEN:         return 5;
         case COMPARE_TOKEN:
         case NCOMPARE_TOKEN:

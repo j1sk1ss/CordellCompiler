@@ -114,6 +114,7 @@ static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
         case MULTIPLY_TOKEN:
         case NCOMPARE_TOKEN:
         case LARGEREQ_TOKEN:
+        case RTAKE_BIT_TOKEN:
         case BITMOVE_LEFT_TOKEN:
         case BITMOVE_RIGHT_TOKEN:  return EXPRESSION_NODE;
         default: break;

@@ -3,6 +3,22 @@ Logs for the first and second versions are quite short because I do not remember
 
 ----------------------------------------
 
+## Take right bits operation
+<div class="change-date">Date: 2026-10-06</div>
+Sometimes we need just to take several bits from the right of a variable. Why won't we use simple bit mask? Because we need to save the sign for the new number. Before, the one proper way to do this was this:
+
+```cpl
+(0b1111111101u16 << 6) >> 6
+```
+
+Doesn't look good, yes? We need to move the number up to it's type limit, than move it back. Now we can do the same thing much easier:
+
+```cpl
+1000u16 |~ 6i16
+```
+
+There `6` is amount of bits that we want to save. And `i16` is the final type of a new number.
+
 ## Tests!
 <div class="change-date">Date: 2026-10-04</div>
 Add a special annotation for testing. To use it, folow the example below:

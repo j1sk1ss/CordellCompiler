@@ -32,6 +32,7 @@ static const char* _fmt_tkn_op(token_type_t t) {
         case AND_TOKEN:           return "&&";
         case PLUS_TOKEN:          return "+";
         case BITOR_TOKEN:         return "|";
+        case RTAKE_BIT_TOKEN:     return "|~";
         case LOWER_TOKEN:         return "<";
         case MINUS_TOKEN:         return "-";
         case LARGER_TOKEN:        return ">";

@@ -90,6 +90,7 @@ static const char* _name_tkn_type(token_type_t t) {
         case BITMOVE_RIGHT_TOKEN:         return "BITMOVE_RIGHT_TOKEN";
         case BITAND_TOKEN:                return "BITAND_TOKEN";
         case BITOR_TOKEN:                 return "BITOR_TOKEN";
+        case RTAKE_BIT_TOKEN:             return "RTAKE_BIT_TOKEN";
         case BITXOR_TOKEN:                return "BITXOR_TOKEN";
         case AND_TOKEN:                   return "AND_TOKEN";
         case OR_TOKEN:                    return "OR_TOKEN";
