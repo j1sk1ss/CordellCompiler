@@ -19,23 +19,19 @@ static loop_node_t* _loop_node_create(cfg_block_t* header, cfg_block_t* latch, s
     return n;
 }
 
-/* Get blocks in reverse order with the 'pred' field usage.
+/* Collect a natural loop by walking predecessors from the latch.
+The header is already in `b`, so the walk stops before its external predecessors.
 Params:
     - `entry` - Current entry block.
-    - `exit` - Exit block.
     - `b` - Output set.
 
 Returns 1 if succeeds. */
-static int _get_loop_blocks(cfg_block_t* entry, cfg_block_t* exit, set_t* b, set_t* visited) {
-    if (
-        !set_add(b, entry) || 
-        entry == exit      || 
-        !set_add(visited, entry)
-    ) return 0;
+static int _get_loop_blocks(cfg_block_t* entry, set_t* b) {
+    if (set_has(b, entry)) return 1;
+    if (!set_add(b, entry)) return 0;
 
     set_foreach (cfg_block_t* bb, &entry->pred) {
-        bb->type = CFG_LOOP_BLOCK;
-        _get_loop_blocks(bb, exit, b, visited);
+        if (!_get_loop_blocks(bb, b)) return 0;
     }
 
     return 1;
@@ -70,21 +66,13 @@ static int _collect_loops_for_func(cfg_func_t* fb, list_t* l) {
         cfg_block_t* succs[] = { cb->jmp, cb->l };
         for (int i = 0; i < (int)(sizeof(succs) / sizeof(cfg_block_t*)); i++) {
             cfg_block_t* succ = succs[i];
-            if (set_has(&cb->dom, succ)) {
+            if (succ && set_has(&cb->dom, succ)) {
                 cfg_block_t* header = succ;
                 cfg_block_t* latch  = cb;
 
-                header->type = CFG_LOOP_HEADER;
-                latch->type  = CFG_LOOP_LATCH;
-
                 set_t loop_blocks;
-                set_init(&loop_blocks, SET_NO_CMP);
-                set_add(&loop_blocks, header);
-
-                set_t visited;
-                set_init(&visited, SET_NO_CMP);
-                int res = _get_loop_blocks(latch, header, &loop_blocks, &visited);
-                set_free(&visited);
+                if (!set_init(&loop_blocks, SET_NO_CMP)) return 0;
+                int res = set_add(&loop_blocks, header) && _get_loop_blocks(latch, &loop_blocks);
 
                 if (!res) {
                     print_error("Can't obtain loop blocks from the loop!");
@@ -93,12 +81,14 @@ static int _collect_loops_for_func(cfg_func_t* fb, list_t* l) {
                     return 0;
                 }
 
-                foreach (cfg_block_t* bb, &fb->blocks) {
-                    if (set_has(&bb->dom, header) && !set_has(&loop_blocks, bb)) {
-                        set_add(&loop_blocks, bb);
+                set_foreach (cfg_block_t* bb, &loop_blocks) {
+                    if (bb->type == CFG_DEFAULT_BLOCK) {
                         bb->type = CFG_LOOP_BLOCK;
                     }
                 }
+
+                latch->type  = CFG_LOOP_LATCH;
+                header->type = CFG_LOOP_HEADER;
 
                 loop_node_t* node = _loop_node_create(header, latch, &loop_blocks);
                 if (!node) {
