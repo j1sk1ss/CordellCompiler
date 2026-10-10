@@ -368,6 +368,7 @@ static void _set_optimization_profile(options_t* out, int level) {
     out->config.tre           = 0;
     out->config.finline       = 0;
     out->config.licm          = 0;
+    out->config.unroll        = 0;
     out->config.constant      = 0;
     out->config.peephole      = 0;
     out->config.copy_prop     = 0;
@@ -725,6 +726,8 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
         else if (!strcmp(argv[i], OPTION_NO_FINLINE))           out->config.finline     = 0;
         else if (!strcmp(argv[i], OPTION_LICM))                 out->config.licm        = 1;
         else if (!strcmp(argv[i], OPTION_NO_LICM))              out->config.licm        = 0;
+        else if (!strcmp(argv[i], OPTION_UNROLL))               out->config.unroll      = 1;
+        else if (!strcmp(argv[i], OPTION_NO_UNROLL))            out->config.unroll      = 0;
         else if (!strcmp(argv[i], OPTION_Z3OPT))                out->config.z3opt       = 1;
         else if (!strcmp(argv[i], OPTION_NO_Z3OPT))             out->config.z3opt       = 0;
         else if (!strcmp(argv[i], OPTION_CONSTANT))             out->config.constant    = 1;
@@ -1034,6 +1037,29 @@ int main(int argc, char* argv[]) {
             HIR_CFG_create_domdata(&cfgctx);
             map_init(&lctx.lmap, MAP_NO_CMP);
             HIR_LOOP_mark_loops(&cfgctx, &lctx);
+        }
+
+        if (options.config.unroll) {
+            int unrolled = HIR_LTREE_unroll(&lctx, &smt);
+            if (unrolled < 0) {
+                fprintf(stderr, "Loop unrolling failed\n");
+                HIR_LTREE_unload_ctx(&lctx);
+                HIR_CG_unload(&callctx);
+                HIR_CFG_unload(&cfgctx);
+                HIR_unload_blocks(hirctx.hot.h);
+                _unload_token_lists(&token_lists);
+                AST_unload_ctx(&sctx);
+                SMT_unload(&smt);
+                close(fd);
+                return 1;
+            }
+            if (unrolled) {
+                HIR_LTREE_unload_ctx(&lctx);
+                RELOAD_CFG;
+                HIR_CFG_create_domdata(&cfgctx);
+                map_init(&lctx.lmap, MAP_NO_CMP);
+                HIR_LOOP_mark_loops(&cfgctx, &lctx);
+            }
         }
 
         HIR_LTREE_canonicalization(&cfgctx, &lctx);

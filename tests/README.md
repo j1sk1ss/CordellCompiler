@@ -164,6 +164,7 @@ To make sure, that the std library works properly, the project has the `std_test
 - `cfg/`: exact dominator sets, immediate dominators, dominance frontiers and tree links; CFG traversal, cycle handling, skip/stop and branch-local state.
 - `ltree/`: natural loop membership, exits, self-loops, sibling loops and nested loop trees.
 - `token/`: token creation, literal conversion, source positions, deep copies, hashing and memory cleanup.
+- `unroll/`: guarded loop cloning, label and temporary remapping, CFG rebuild and unsupported cases.
 
 The graph tests build small CFGs directly. Dominance and nested-loop cases also check a different block list order, and the tests check memory cleanup.
 
@@ -172,4 +173,5 @@ make std-test                             # All standard and graph algorithm tes
 make std-test STD_UTEST=std_utesting/cfg   # Dominance and CFG traversal
 make std-test STD_UTEST=std_utesting/ltree # Natural loops and loop trees
 make std-test STD_UTEST=std_utesting/token # Token creation and copying
+make std-test STD_UTEST=std_utesting/unroll # Loop cloning before SSA
 ```

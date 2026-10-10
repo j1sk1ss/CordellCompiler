@@ -165,6 +165,8 @@ according you system requirements. */
 #define OPTION_NO_FINLINE            "--no-finline"
 #define OPTION_LICM                  "--licm"
 #define OPTION_NO_LICM               "--no-licm"
+#define OPTION_UNROLL                "--unroll"
+#define OPTION_NO_UNROLL             "--no-unroll"
 #define OPTION_Z3OPT                 "--z3opt"
 #define OPTION_NO_Z3OPT              "--no-z3opt"
 #define OPTION_CONSTANT              "--constant"
@@ -239,6 +241,7 @@ typedef struct {
         int          finline              : 1;
         int          z3opt                : 1;
         int          licm                 : 1;
+        int          unroll               : 1;
         int          constant             : 1;
         int          peephole             : 1;
         int          copy_prop            : 1;
@@ -314,6 +317,8 @@ static inline int _print_help_message() {
         { OPTION_NO_FINLINE,          NULL, "Disable function inlining"             },
         { OPTION_LICM,                NULL, "Enable LICM"                           },
         { OPTION_NO_LICM,             NULL, "Disable LICM"                          },
+        { OPTION_UNROLL,              NULL, "Enable guarded loop unrolling by two"  },
+        { OPTION_NO_UNROLL,           NULL, "Disable loop unrolling"                },
         { OPTION_CONSTANT,            NULL, "Enable constant propagation/folding"   },
         { OPTION_NO_CONSTANT,         NULL, "Disable constant propagation/folding"  },
         { OPTION_COPYPROP,            NULL, "Enable LIR copy propagation"           },

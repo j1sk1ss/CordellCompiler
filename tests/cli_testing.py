@@ -450,6 +450,8 @@ class BuilderCLITests(unittest.TestCase):
                 "--no-finline",
                 "--licm",
                 "--no-licm",
+                "--unroll",
+                "--no-unroll",
                 "--constant",
                 "--no-constant",
                 "--copyprop",
@@ -852,6 +854,62 @@ class BuilderCLITests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue(all(default_outputs_exist), default_outputs)
         self.assert_no_stderr(result)
+
+    def test_loop_unroll_preserves_execution(self) -> None:
+        if platform.system() != "Linux" or platform.machine().lower() not in ("x86_64", "amd64"):
+            self.skipTest("Runtime unroll tests use the Linux x86_64 target")
+        if not shutil.which("nasm") or not shutil.which("gcc"):
+            self.skipTest("Runtime unroll tests require nasm and gcc")
+        cases = [
+            (f"while_{n}", f"start() {{ i32 i = 0; i32 sum = 0; while i < {n}; {{ i += 1; sum += i; }} exit sum as u8; }}", n * (n + 1) // 2)
+            for n in (0, 1, 5, 6)
+        ]
+        cases += [
+            ("counted", "start() { i32 sum = 0; @[counter(5)] loop { sum += 2; } exit sum as u8; }", 10),
+            ("descending", "start() { i32 i = 6; i32 sum = 0; while i > 0; { sum += i; i -= 1; } exit sum as u8; }", 21),
+            ("branches", "start() { i32 i = 0; i32 sum = 0; while i < 5; { if i % 2 == 0; { sum += 3; } else { sum += 7; } i += 1; } exit sum as u8; }", 23),
+            ("counted_break", "start() { i32 sum = 0; @[counter(5)] loop { sum += 2; if sum == 4; { break; } } exit sum as u8; }", 4),
+            ("condition_call", "glob i32 checks = 0; function check(i32 i) -> i32 { checks += 1; return i < 3; } start() { i32 i = 0; while check(i); { i += 1; } exit (checks * 10 + i) as u8; }", 43),
+            ("body_call", "function inc(i32 i) -> i32 { return i + 1; } start() { i32 i = 0; i32 sum = 0; while i < 5; { sum += inc(i); i += 1; } exit sum as u8; }", 15),
+            ("nested", "start() { i32 i = 0; i32 j = 0; i32 sum = 0; while i < 3; { j = 0; while j < 2; { sum += 1; j += 1; } i += 1; } exit sum as u8; }", 6),
+            ("declaration", "start() { i32 i = 0; i32 sum = 0; while i < 3; { i32 value = i + 1; sum += value; i += 1; } exit sum as u8; }", 6),
+        ]
+        with _tmpdir() as tmp:
+            root = Path(tmp)
+            for name, code, expected in cases:
+                source = root / f"{name}.cpl"
+                source.write_text(code, encoding="utf-8")
+                profiles = (("-O0", "--no-unroll"), ("-O0", "--unroll"), ("-O2", "--unroll"))
+                if name == "condition_call":
+                    # Existing -O2 codegen loses this global side effect even
+                    # without unrolling. Check this case with -O0 instead.
+                    profiles = profiles[:2]
+                for profile, option in profiles:
+                    with self.subTest(case=name, profile=profile, option=option):
+                        output = root / f"{name}{profile}{option}"
+                        result = self.run_cplc(
+                            "--arch", "x86_64", "--sys-type", "linux64", "--asm-format", "elf64",
+                            "--linker", "gcc", "--linker-no-pie", profile, option,
+                            "--output", output, source,
+                        )
+                        self.assertEqual(result.returncode, 0, result.stderr)
+                        executed = subprocess.run([str(output)], capture_output=True, text=True, timeout=3)
+                        self.assertEqual(executed.returncode, expected, executed.stderr)
+
+    def test_loop_unroll_flag_controls_condition_cloning(self) -> None:
+        with _tmpdir() as tmp:
+            root = Path(tmp)
+            source = root / "loop.cpl"
+            source.write_text("start() { i32 i = 0; while i < 3; { i += 1; } exit i as u8; }", encoding="utf-8")
+            for options, expected in ((["--no-unroll"], 1), (["--unroll"], 2), (["--unroll", "--no-unroll"], 1)):
+                with self.subTest(options=options):
+                    ir = root / "loop.ir"
+                    result = self.run_cplc(
+                        "-O0", *options, "--emit-ir", "--ir-output", ir,
+                        "-c", "--output", root / "loop.o", source,
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    self.assertEqual(ir.read_text(encoding="utf-8").count(" < "), expected)
 
     def test_compile_only_emits_explicit_outputs(self) -> None:
         with _tmpdir() as tmp:

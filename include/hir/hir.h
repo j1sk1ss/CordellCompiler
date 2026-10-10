@@ -2,6 +2,7 @@
 #define HIR_H_
 
 #include <position.h>
+#include <utils.h>
 #include <std/mm.h>
 #include <std/mem.h>
 #include <std/str.h>
@@ -98,20 +99,21 @@ Return `i64`:hash.
 long HIR_hash_subject(hir_subject_t* s);
 
 hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strval, unsigned long intval);
-int HIR_subject_shallow_equals(hir_subject_t* a, hir_subject_t* b);
+int            HIR_subject_shallow_equals(hir_subject_t* a, hir_subject_t* b);
 hir_subject_t* HIR_copy_subject(hir_subject_t* s);
-hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject_t* sa, hir_subject_t* ta);
-int HIR_block_shallow_equals(hir_block_t* a, hir_block_t* b);
-hir_block_t* HIR_copy_block(hir_block_t* b, int copy_labels);
-int HIR_insert_block_before(hir_block_t* block, hir_block_t* pos);
-int HIR_insert_block_after(hir_block_t* block, hir_block_t* pos);
-int HIR_compute_homes(hir_ctx_t* ctx);
-int HIR_append_block(hir_block_t* block, hir_ctx_t* ctx);
-int HIR_dump_cold(hir_ctx_t* ctx);
-int HIR_unlink_block(hir_block_t* block);
-int HIR_unload_subject(hir_subject_t* s);
-int HIR_unload_block(hir_block_t* block);
-int HIR_unload_blocks(hir_block_t* block);
+hir_subject_t* HIR_copy_subject_and_label(hir_subject_t* s);
+hir_block_t*   HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject_t* sa, hir_subject_t* ta);
+int            HIR_block_shallow_equals(hir_block_t* a, hir_block_t* b);
+hir_block_t*   HIR_copy_block(hir_block_t* b, int copy_labels);
+int            HIR_insert_block_before(hir_block_t* block, hir_block_t* pos);
+int            HIR_insert_block_after(hir_block_t* block, hir_block_t* pos);
+int            HIR_compute_homes(hir_ctx_t* ctx);
+int            HIR_append_block(hir_block_t* block, hir_ctx_t* ctx);
+int            HIR_dump_cold(hir_ctx_t* ctx);
+int            HIR_unlink_block(hir_block_t* block);
+int            HIR_unload_subject(hir_subject_t* s);
+int            HIR_unload_block(hir_block_t* block);
+int            HIR_unload_blocks(hir_block_t* block);
 
 static inline hir_subject_type_t _get_token_stktype(token_t* tkn, int ptr) {
     variable_info_t vi = { .type = tkn->t_type, .vfs = { .ptr = ptr, .glob = tkn->flags.glob, .ro = tkn->flags.ro } };

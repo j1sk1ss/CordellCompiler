@@ -7,14 +7,16 @@ Params:
     - `loop_locks` - Related loop blocks.
 
 Returns a pointer to a new loop node. */
-static loop_node_t* _loop_node_create(cfg_block_t* header, cfg_block_t* latch, set_t* loop_blocks) {
+static loop_node_t* _loop_node_create(cfg_block_t* header, cfg_block_t* latch, set_t* loop_blocks, list_t* loop_blocks_sorted) {
     loop_node_t* n = (loop_node_t*)mm_malloc(sizeof(loop_node_t));
     if (!n) return NULL;
     n->header = header;
     n->latch  = latch;
     n->p      = NULL;
     list_init(&n->children);
+    list_init(&n->blocks_sorted);
     set_copy(&n->blocks, loop_blocks);
+    list_copy(loop_blocks_sorted, &n->blocks_sorted);
     set_init(&n->ind, SET_NO_CMP);
     return n;
 }
@@ -26,12 +28,12 @@ Params:
     - `b` - Output set.
 
 Returns 1 if succeeds. */
-static int _get_loop_blocks(cfg_block_t* entry, set_t* b) {
+static int _get_loop_blocks(cfg_block_t* entry, set_t* b, list_t* bs) {
     if (set_has(b, entry)) return 1;
-    if (!set_add(b, entry)) return 0;
+    if (!set_add(b, entry) || !list_add(bs, entry)) return 0;
 
     set_foreach (cfg_block_t* bb, &entry->pred) {
-        if (!_get_loop_blocks(bb, b)) return 0;
+        if (!_get_loop_blocks(bb, b, bs)) return 0;
     }
 
     return 1;
@@ -49,6 +51,7 @@ static int _loop_node_free(loop_node_t* n) {
     }
 
     list_free(&n->children);
+    list_free(&n->blocks_sorted);
     set_free(&n->blocks);
     set_free(&n->ind);
     mm_free(n);
@@ -71,8 +74,11 @@ static int _collect_loops_for_func(cfg_func_t* fb, list_t* l) {
                 cfg_block_t* latch  = cb;
 
                 set_t loop_blocks;
-                if (!set_init(&loop_blocks, SET_NO_CMP)) return 0;
-                int res = set_add(&loop_blocks, header) && _get_loop_blocks(latch, &loop_blocks);
+                list_t loop_blocks_sorted;
+                if (!set_init(&loop_blocks, SET_NO_CMP) || !list_init(&loop_blocks_sorted)) return 0;
+                int res = 
+                    set_add(&loop_blocks, header) && list_add(&loop_blocks_sorted, header) &&
+                    _get_loop_blocks(latch, &loop_blocks, &loop_blocks_sorted);
 
                 if (!res) {
                     print_error("Can't obtain loop blocks from the loop!");
@@ -90,7 +96,11 @@ static int _collect_loops_for_func(cfg_func_t* fb, list_t* l) {
                 latch->type  = CFG_LOOP_LATCH;
                 header->type = CFG_LOOP_HEADER;
 
-                loop_node_t* node = _loop_node_create(header, latch, &loop_blocks);
+                loop_node_t* node = _loop_node_create(
+                    header, latch, 
+                    &loop_blocks, &loop_blocks_sorted
+                );
+
                 if (!node) {
                     print_error("Can't create the loop node from blocks!");
                     list_free_force_op(l, (int (*)(void*))_loop_node_free);

@@ -10,22 +10,17 @@ static int _is_op_interesting(hir_operation_t op) {
     }
 }
 
-/* Count live commands in a CFG block, ignoring loop-control and inductive updates.
+/* Count actual work in a CFG block, ignoring structural commands.
+   Before SSA/liveness, an arithmetic operation or store cannot be assumed dead:
+   it may update the condition, a live-out variable, or memory.
 Params:
     - `bb` - CFG block to inspect.
-    - `ind` - Set of inductive variable IDs.
 
 Returns the number of live commands. */
 static inline int _count_commands(cfg_block_t* bb) {
     int res = 0;
     iterate_hir_instructions (bb) {
-        switch (hh->op) {
-            case HIR_PHI_PREAMBLE: 
-            case HIR_FCLL:       case HIR_UFCLL:       case HIR_ECLL:
-            case HIR_STORE_FCLL: case HIR_STORE_UFCLL: case HIR_STORE_ECLL:
-            case HIR_SYSC:       case HIR_STORE_SYSC:  res++; break;
-            default: break;
-        }
+        if (!hh->unused && (!_is_op_interesting(hh->op) || hh->op == HIR_PHI_PREAMBLE)) res++;
     }
 
     return res;

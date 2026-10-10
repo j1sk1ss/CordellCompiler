@@ -70,6 +70,8 @@ _cplc()
         --no-finline
         --licm
         --no-licm
+        --unroll
+        --no-unroll
         --constant
         --no-constant
         --copyprop

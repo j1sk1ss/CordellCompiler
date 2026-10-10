@@ -180,7 +180,7 @@ int HIR_block_shallow_equals(hir_block_t* a, hir_block_t* b) {
     return HIR_is_operations_similar(a->op, b->op);
 }
 
-hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
+int _copy_subject(hir_subject_t* s, int copy_lb) {
     if (!s) return NULL;
     hir_subject_t* ns = HIR_create_subject(s->t, s->storage.var.v_id, NULL, s->storage.cnst.value);
     if (!ns) return NULL;
@@ -189,6 +189,10 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
     ns->ptr = s->ptr;
 
     switch (ns->t) {
+        CONDITIONAL_CASE(HIR_LABEL, copy_lb, {
+            ns->id = s->id;
+            break;
+        })
         case HIR_PHISET: {
             set_foreach (int_tuple_t* tpl, &s->storage.set.h) {
                 set_add(&ns->storage.set.h, inttuple_create(tpl->x, tpl->y));
@@ -199,7 +203,7 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
         case HIR_ARGLIST: {
             hir_subject_t* arg;
             foreach (arg, &s->storage.list.h) {
-                list_add(&ns->storage.list.h, HIR_copy_subject(arg));
+                list_add(&ns->storage.list.h, _copy_subject(arg, copy_lb));
             }
 
             break;
@@ -237,6 +241,14 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
     }
 
     return ns;
+}
+
+hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
+    return _copy_subject(s, 0);
+}
+
+hir_subject_t* HIR_copy_subject_and_label(hir_subject_t* s) {
+    return _copy_subject(s, 1);
 }
 
 hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject_t* sa, hir_subject_t* ta) {

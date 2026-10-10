@@ -316,6 +316,9 @@ int HIR_is_conv(hir_operation_t op) {
 
 int HIR_is_writeop(hir_operation_t op) {
     switch (op) {
+        case HIR_GDREF:
+        case HIR_NEG:
+        case HIR_NOT:
         case HIR_REF:
         case HIR_FARGLD:
         case HIR_REF_ARGS:
@@ -326,28 +329,16 @@ int HIR_is_writeop(hir_operation_t op) {
         case HIR_STORE_SYSC:
         case HIR_STORE_UFCLL:
         case HIR_TPTR:
-        case HIR_TF64: case HIR_TF32:
-        case HIR_TI64: case HIR_TI32: case HIR_TI16: case HIR_TI8:
-        case HIR_TU64: case HIR_TU32: case HIR_TU16: case HIR_TU8:
-        case HIR_iOR:
-        case HIR_bOR:
+        case HIR_TF64:  case HIR_TF32:
+        case HIR_TI64:  case HIR_TI32: case HIR_TI16: case HIR_TI8:
+        case HIR_TU64:  case HIR_TU32: case HIR_TU16: case HIR_TU8:
         case HIR_PHI:
-        case HIR_iADD:
-        case HIR_iSUB:
-        case HIR_iMUL:
-        case HIR_iDIV:
-        case HIR_iMOD:
-        case HIR_iLRG:
-        case HIR_iLGE:
-        case HIR_iLWR:
-        case HIR_iLRE:
-        case HIR_iCMP:
-        case HIR_iNMP:
-        case HIR_iAND:
-        case HIR_bAND:
-        case HIR_bXOR:
-        case HIR_iBLFT:
-        case HIR_iBRHT:
+        case HIR_iADD:  case HIR_iSUB: case HIR_iMUL: case HIR_iDIV: case HIR_iMOD:
+        case HIR_iLRG:  case HIR_iLGE: case HIR_iLWR: case HIR_iLRE:
+        case HIR_iCMP:  case HIR_iNMP:
+        case HIR_iAND:  case HIR_iOR:
+        case HIR_bAND:  case HIR_bXOR:  case HIR_bOR:
+        case HIR_iBLFT: case HIR_iBRHT:
         case HIR_STORE: return 1;
         default:        return 0;
     }

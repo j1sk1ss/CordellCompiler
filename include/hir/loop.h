@@ -13,6 +13,7 @@ typedef struct loop_node {
     cfg_block_t*      header;   /* Loop header                */
     cfg_block_t*      latch;    /* Loop latch                 */
     set_t             blocks;   /* cfg_block_t* blocks        */
+    list_t            blocks_sorted;
     list_t            children; /* loop_node_t* nested        */
     set_t             ind;      /* Inductive variables (v_id) */
     struct loop_node* p;
@@ -44,6 +45,14 @@ Params:
 Returns 1 on success, otherwise 0.
 */
 int HIR_LTREE_canonicalization(cfg_ctx_t* cctx, ltree_ctx_t* lctx);
+
+/*
+Partially unroll eligible non-nested loops by a factor of two before SSA.
+Both copies retain their conditions and updates. Mutates only the HIR sequence.
+The caller must rebuild CFG, dominance and loop tree before further analysis.
+Returns the number of transformed loops, 0 if none qualify, or -1 on failure.
+*/
+int HIR_LTREE_unroll(ltree_ctx_t* lctx, sym_table_t* smt);
 
 /*
 [Transformation] Perform LICM optimization on the canonicolized loops.
