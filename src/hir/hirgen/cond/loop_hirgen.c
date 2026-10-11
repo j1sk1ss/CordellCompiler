@@ -1,29 +1,24 @@
 #include <hir/hirgens/hirgens.h>
 
-/* Pick the smallest stack integer type that can hold a positive loop count.
-Params:
-    - `val` - Counter initial value.
-
-Returns the HIR stack variable type for the counter */
-static inline hir_subject_type_t _get_valid_sizes(unsigned long val) {
-    if (val <= CHAR_MAX)       return HIR_STKVARI8;
-    else if (val <= UCHAR_MAX) return HIR_STKVARU8;
-    else if (val <= SHRT_MAX)  return HIR_STKVARI16;
-    else if (val <= USHRT_MAX) return HIR_STKVARU16;
-    else if (val <= INT_MAX)   return HIR_STKVARI32;
-    else if (val <= UINT_MAX)  return HIR_STKVARU32;
-    else if (val <= LONG_MAX)  return HIR_STKVARI64;
-    else                       return HIR_STKVARU64;
-}
-
 static inline void _read_counter_data(
-    annotation_counter_t* counter_data, hir_ctx_t* ctx, sym_table_t* smt,
-    hir_subject_t** index, hir_subject_t** step, int* index_owned_by_blocks
+    annotation_counter_t* counter_data, hir_ctx_t* ctx, sym_table_t* smt, hir_subject_t** index, hir_subject_t** step, int* index_owned_by_blocks
 ) {
     if (!counter_data || !counter_data->has_index) return;
 
     if (counter_data->idx_t == ANNOTATION_VALUE_PARAM) {
-        hir_subject_type_t tt = _get_valid_sizes(counter_data->index.value);
+        hir_subject_type_t tt;
+        ACTION_ON_BITNESS(
+            counter_data->index.value,
+            { tt = HIR_STKVARI8;  },
+            { tt = HIR_STKVARU8;  },
+            { tt = HIR_STKVARI16; },
+            { tt = HIR_STKVARU16; },
+            { tt = HIR_STKVARI32; },
+            { tt = HIR_STKVARU32; },
+            { tt = HIR_STKVARI64; },
+            { tt = HIR_STKVARU64; }
+        );
+
         *index = HIR_SUBJ_STKVAR(VRTB_ADD_TMP_NF(tt, smt), tt, 0);
         HIR_BLOCK1(ctx, HIR_VARDECL, *index);
         HIR_BLOCK2(ctx, HIR_STORE, *index, HIR_SUBJ_CONST(counter_data->index.value));
@@ -36,8 +31,10 @@ static inline void _read_counter_data(
         }
     }
 
-    if (!*index) return;
-    if (!counter_data->has_step) return;
+    if (
+        !*index ||
+        !counter_data->has_step
+    ) return;
 
     if (counter_data->stp_t == ANNOTATION_VALUE_PARAM) *step = HIR_SUBJ_CONST(counter_data->step.value);
     else {

@@ -11,4 +11,16 @@
             break;                               \
         }
 
+#define ACTION_ON_BITNESS(val, c, uc, s, us, i, ui, l, ul) \
+    do {                                                   \
+        if (val <= CHAR_MAX)       { c  }                  \
+        else if (val <= UCHAR_MAX) { uc }                  \
+        else if (val <= SHRT_MAX)  { s  }                  \
+        else if (val <= USHRT_MAX) { us }                  \
+        else if (val <= INT_MAX)   { i  }                  \
+        else if (val <= UINT_MAX)  { ui }                  \
+        else if (val <= LONG_MAX)  { l  }                  \
+        else                       { ul }                  \
+    } while (0);
+
 #endif

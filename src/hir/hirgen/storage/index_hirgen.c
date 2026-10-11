@@ -42,33 +42,31 @@ Params:
     - `smt` - Symtable.
     - `indexed_type` - Output final dereferenced type (The type of the element).
 
-Returns the subject which represents a pointer to a head of the data 
+Returns a subject which represents a pointer to a head of the data 
 (In correct reference level and type). */
-static hir_subject_t* _get_final_head(
-    ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, hir_subject_type_t* indexed_type
-) {
-    ast_node_t* base_node = node->c;
-    ast_node_t* offt_node = node->c->siblings.n;
-    hir_subject_t* base = HIR_generate_elem(base_node, ctx, smt);
-    hir_subject_t* offt = HIR_generate_elem(offt_node, ctx, smt);
-    hir_subject_t* head = HIR_reference_subject(base, smt, 0);
+static hir_subject_t* _get_final_head(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, hir_subject_type_t* indexed_type) {
+    ast_node_t *base_node = node->c, *offt_node = node->c->siblings.n;
+    hir_subject_t *base = HIR_generate_elem(base_node, ctx, smt),
+                  *offt = HIR_generate_elem(offt_node, ctx, smt),
+                  *head = HIR_reference_subject(base, smt, 0);
     hir_operation_t base_op = HIR_STORE;
-    hir_subject_type_t _dummy;
-    if (!indexed_type) indexed_type = &_dummy;
+
+    hir_subject_type_t _;
+    if (!indexed_type) indexed_type = &_;
 
     array_info_t ai;
     *indexed_type = base->t;
     if (
-        HIR_is_arrtype(base->t) &&                              /* If this is an array type                    */
-        ARTB_get_info(base->storage.var.v_id, &ai, &smt->a) &&  /* and it is registered in smt as an array     */
-        !ai.vla                                                 /* and this array isn't a vla array           */
-    ) {                                                         /* We 'lea' the base to a referenced variable  */
+        HIR_is_arrtype(base->t)                             && /* If this is an array type                   */
+        ARTB_get_info(base->storage.var.v_id, &ai, &smt->a) && /* and it is registered in smt as an array    */
+        !ai.vla                                                /* and this array isn't a vla array           */
+    ) {                                                        /* We 'lea' the base to a referenced variable */
         if (!base->ptr) {
             head->ptr = MAX(ai.elements_info.el_flags.ptr + 1, head->ptr + 1);
             base_op   = HIR_REF;
         }
         
-        token_t tmp = { .t_type = ai.elements_info.el_type };
+        token_t tmp   = { .t_type = ai.elements_info.el_type };
         *indexed_type = HIR_get_tmptype_tkn(&tmp, 0);
     }
 

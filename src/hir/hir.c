@@ -111,14 +111,18 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strv
         case HIR_U64NUMBER: case HIR_U32NUMBER: case HIR_U16NUMBER: case HIR_U8NUMBER:
         case HIR_NUMBER: if (strval) subj->storage.num.value = strval->copy(strval); break;
         case HIR_CONSTVAL: {
-            if (intval <= CHAR_MAX)       subj->t = HIR_I8CONSTVAL;
-            else if (intval <= UCHAR_MAX) subj->t = HIR_U8CONSTVAL;
-            else if (intval <= SHRT_MAX)  subj->t = HIR_I16CONSTVAL;
-            else if (intval <= USHRT_MAX) subj->t = HIR_U16CONSTVAL;
-            else if (intval <= INT_MAX)   subj->t = HIR_I32CONSTVAL;
-            else if (intval <= UINT_MAX)  subj->t = HIR_U32CONSTVAL;
-            else if (intval <= LONG_MAX)  subj->t = HIR_I64CONSTVAL;
-            else                          subj->t = HIR_U64CONSTVAL;
+            ACTION_ON_BITNESS(
+                intval, 
+                { subj->t = HIR_I8CONSTVAL;  }, 
+                { subj->t = HIR_U8CONSTVAL;  }, 
+                { subj->t = HIR_I16CONSTVAL; },
+                { subj->t = HIR_U16CONSTVAL; },
+                { subj->t = HIR_I32CONSTVAL; },
+                { subj->t = HIR_U32CONSTVAL; },
+                { subj->t = HIR_I64CONSTVAL; },
+                { subj->t = HIR_U64CONSTVAL; }
+            );
+
             subj->storage.cnst.value = intval;
             break;
         }
