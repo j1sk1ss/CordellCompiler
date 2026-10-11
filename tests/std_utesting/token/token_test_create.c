@@ -10,6 +10,7 @@ static int _check_value(token_type_t input_type, const char* input, token_type_t
         TKN_unload_token(token);
         return 1;
     }
+
     assert(TKN_unload_token(token), "Token cleanup failed!");
     assert(mm_get_allocated() == allocated, "Token creation leaked memory!");
     return 0;
@@ -44,38 +45,39 @@ static int _test_metadata() {
 static int _test_values() {
     const struct {
         token_type_t input_type;
-        const char* input;
+        const char*  input;
         token_type_t expected_type;
-        const char* expected;
+        const char*  expected;
     } cases[] = {
-        {UNKNOWN_STRING_TOKEN, "", UNKNOWN_STRING_TOKEN, ""},
-        {STRING_VALUE_TOKEN, "hello\nworld", STRING_VALUE_TOKEN, "hello\nworld"},
-        {DELIMITER_TOKEN, ";", DELIMITER_TOKEN, ";"},
-        {UNKNOWN_SIGN_TOKEN, "+=", UNKNOWN_CHAR_TOKEN, "+="},
-        {CHAR_VALUE_TOKEN, "A", UNKNOWN_NUMERIC_TOKEN, "65"},
-        {CHAR_VALUE_TOKEN, "\n", UNKNOWN_NUMERIC_TOKEN, "10"},
-        {CHAR_VALUE_TOKEN, "\t", UNKNOWN_NUMERIC_TOKEN, "9"},
-        {UNKNOWN_NUMERIC_TOKEN, "0", UNKNOWN_NUMERIC_TOKEN, "0"},
-        {UNKNOWN_NUMERIC_TOKEN, "42", UNKNOWN_NUMERIC_TOKEN, "42"},
-        {UNKNOWN_NUMERIC_TOKEN, "-42", UNKNOWN_NUMERIC_TOKEN, "-42"},
-        {UNKNOWN_NUMERIC_TOKEN, "0x2a", UNKNOWN_NUMERIC_TOKEN, "42"},
-        {UNKNOWN_NUMERIC_TOKEN, "0XFF", UNKNOWN_NUMERIC_TOKEN, "255"},
-        {UNKNOWN_NUMERIC_TOKEN, "0b101010", UNKNOWN_NUMERIC_TOKEN, "42"},
-        {UNKNOWN_NUMERIC_TOKEN, "0B11", UNKNOWN_NUMERIC_TOKEN, "3"},
-        {UNKNOWN_NUMERIC_TOKEN, "077", UNKNOWN_NUMERIC_TOKEN, "63"},
-        {UNKNOWN_NUMERIC_TOKEN, "1.5", UNKNOWN_FLOAT_NUMERIC_TOKEN, "4609434218613702656"},
-        {UNKNOWN_NUMERIC_TOKEN, "42i8", UNKNOWN_I8NUMERIC_TOKEN, "42"},
-        {UNKNOWN_NUMERIC_TOKEN, "42i16", UNKNOWN_I16NUMERIC_TOKEN, "42"},
-        {UNKNOWN_NUMERIC_TOKEN, "-42i32", UNKNOWN_I32NUMERIC_TOKEN, "-42"},
-        {UNKNOWN_NUMERIC_TOKEN, "42i64", UNKNOWN_I64NUMERIC_TOKEN, "42"},
-        {UNKNOWN_NUMERIC_TOKEN, "42u8", UNKNOWN_U8NUMERIC_TOKEN, "42"},
-        {UNKNOWN_NUMERIC_TOKEN, "42u16", UNKNOWN_U16NUMERIC_TOKEN, "42"},
-        {UNKNOWN_NUMERIC_TOKEN, "42u32", UNKNOWN_U32NUMERIC_TOKEN, "42"},
-        {UNKNOWN_NUMERIC_TOKEN, "18446744073709551615u64", UNKNOWN_U64NUMERIC_TOKEN, "18446744073709551615"},
-        {UNKNOWN_NUMERIC_TOKEN, "0xffu16", UNKNOWN_U16NUMERIC_TOKEN, "255"},
-        {UNKNOWN_NUMERIC_TOKEN, "0b11i8", UNKNOWN_I8NUMERIC_TOKEN, "3"},
-        {UNKNOWN_NUMERIC_TOKEN, "077u32", UNKNOWN_U32NUMERIC_TOKEN, "63"},
+        { UNKNOWN_STRING_TOKEN,  "",                        UNKNOWN_STRING_TOKEN,        ""                     },
+        { STRING_VALUE_TOKEN,    "hello\nworld",            STRING_VALUE_TOKEN,          "hello\nworld"         },
+        { DELIMITER_TOKEN,       ";",                       DELIMITER_TOKEN,             ";"                    },
+        { UNKNOWN_SIGN_TOKEN,    "+=",                      UNKNOWN_CHAR_TOKEN,          "+="                   },
+        { CHAR_VALUE_TOKEN,      "A",                       UNKNOWN_NUMERIC_TOKEN,       "65"                   },
+        { CHAR_VALUE_TOKEN,      "\n",                      UNKNOWN_NUMERIC_TOKEN,       "10"                   },
+        { CHAR_VALUE_TOKEN,      "\t",                      UNKNOWN_NUMERIC_TOKEN,       "9"                    },
+        { UNKNOWN_NUMERIC_TOKEN, "0",                       UNKNOWN_NUMERIC_TOKEN,       "0"                    },
+        { UNKNOWN_NUMERIC_TOKEN, "42",                      UNKNOWN_NUMERIC_TOKEN,       "42"                   },
+        { UNKNOWN_NUMERIC_TOKEN, "-42",                     UNKNOWN_NUMERIC_TOKEN,       "-42"                  },
+        { UNKNOWN_NUMERIC_TOKEN, "0x2a",                    UNKNOWN_NUMERIC_TOKEN,       "42"                   },
+        { UNKNOWN_NUMERIC_TOKEN, "0XFF",                    UNKNOWN_NUMERIC_TOKEN,       "255"                  },
+        { UNKNOWN_NUMERIC_TOKEN, "0b101010",                UNKNOWN_NUMERIC_TOKEN,       "42"                   },
+        { UNKNOWN_NUMERIC_TOKEN, "0B11",                    UNKNOWN_NUMERIC_TOKEN,       "3"                    },
+        { UNKNOWN_NUMERIC_TOKEN, "077",                     UNKNOWN_NUMERIC_TOKEN,       "63"                   },
+        { UNKNOWN_NUMERIC_TOKEN, "1.5",                     UNKNOWN_FLOAT_NUMERIC_TOKEN, "4609434218613702656"  },
+        { UNKNOWN_NUMERIC_TOKEN, "42i8",                    UNKNOWN_I8NUMERIC_TOKEN,     "42"                   },
+        { UNKNOWN_NUMERIC_TOKEN, "42i16",                   UNKNOWN_I16NUMERIC_TOKEN,    "42"                   },
+        { UNKNOWN_NUMERIC_TOKEN, "-42i32",                  UNKNOWN_I32NUMERIC_TOKEN,    "-42"                  },
+        { UNKNOWN_NUMERIC_TOKEN, "42i64",                   UNKNOWN_I64NUMERIC_TOKEN,    "42"                   },
+        { UNKNOWN_NUMERIC_TOKEN, "42u8",                    UNKNOWN_U8NUMERIC_TOKEN,     "42"                   },
+        { UNKNOWN_NUMERIC_TOKEN, "42u16",                   UNKNOWN_U16NUMERIC_TOKEN,    "42"                   },
+        { UNKNOWN_NUMERIC_TOKEN, "42u32",                   UNKNOWN_U32NUMERIC_TOKEN,    "42"                   },
+        { UNKNOWN_NUMERIC_TOKEN, "18446744073709551615u64", UNKNOWN_U64NUMERIC_TOKEN,    "18446744073709551615" },
+        { UNKNOWN_NUMERIC_TOKEN, "0xffu16",                 UNKNOWN_U16NUMERIC_TOKEN,    "255"                  },
+        { UNKNOWN_NUMERIC_TOKEN, "0b11i8",                  UNKNOWN_I8NUMERIC_TOKEN,     "3"                    },
+        { UNKNOWN_NUMERIC_TOKEN, "077u32",                  UNKNOWN_U32NUMERIC_TOKEN,    "63"                   },
     };
+    
     for (unsigned long i = 0; i < sizeof(cases) / sizeof(cases[0]); i++) {
         assert(!_check_value(cases[i].input_type, cases[i].input, cases[i].expected_type, cases[i].expected), "Token value test failed!");
     }
