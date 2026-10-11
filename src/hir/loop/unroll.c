@@ -67,18 +67,18 @@ Will return 1 if we can, and 0 if not.
 static int _is_valid_loop(unroll_plan_t* plan) {
     loop_node_t* loop = plan->loop;
     if (
-        loop->p || list_size(&loop->children) || set_size(&loop->blocks) > UNROLL_MAX_BLOCKS || /* too big                             */
-        !loop->header->hmap.entry || loop->header->hmap.entry->op != HIR_MKLB ||                /* doesn't have a lable in the header  */
-        loop->latch->hmap.exit->op != HIR_JMP && loop->latch->hmap.exit->op != HIR_IFOP2        /* doesn't have a condition            */
+        (loop->p || list_size(&loop->children) || set_size(&loop->blocks) > UNROLL_MAX_BLOCKS) || /* too big                             */
+        (!loop->header->hmap.entry || loop->header->hmap.entry->op != HIR_MKLB) ||                /* doesn't have a lable in the header  */
+        (loop->latch->hmap.exit->op != HIR_JMP && loop->latch->hmap.exit->op != HIR_IFOP2)        /* doesn't have a condition            */
     ) return 0;
 
     int backedges = 0, instructions = 0;
     cfg_block_t* exit_target = NULL;
-    set_foreach (cfg_block_t* bb, &loop->blocks_sorted) {
+    foreach (cfg_block_t* bb, &loop->blocks_sorted) {
         if (
-            !set_has(&bb->dom, loop->header) ||                                                 /* If this is a non-dominated block    */
-            !bb->hmap.entry || !bb->hmap.exit || bb->hmap.exit->unused ||                       /* it doesn't have an entry and exit   */
-            !_can_copy_fallthrough(loop, bb)                                                    /* or we can't simply copy it          */
+            !set_has(&bb->dom, loop->header) ||                                                   /* If this is a non-dominated block    */
+            !bb->hmap.entry || !bb->hmap.exit || bb->hmap.exit->unused ||                         /* it doesn't have an entry and exit   */
+            !_can_copy_fallthrough(loop, bb)                                                      /* or we can't simply copy it          */
         ) return 0;
 
         if (bb->l == loop->header)   backedges++;
@@ -89,14 +89,14 @@ static int _is_valid_loop(unroll_plan_t* plan) {
         for (int i = 0; i < 2; i++) {
             cfg_block_t* succ = successors[i];
             if (!succ || set_has(&loop->blocks, succ)) continue;
-            if (exit_target && exit_target != succ)    return 0;                                /* several exit targets                */
+            if (exit_target && exit_target != succ)    return 0;                                  /* several exit targets                */
             exit_target = succ;
         }
 
         set_foreach (cfg_block_t* pred, &bb->pred) {
             if (
                 bb != loop->header && 
-                !set_has(&loop->blocks, pred)                                                   /* several entry points                */
+                !set_has(&loop->blocks, pred)                                                     /* several entry points                */
             ) return 0;
         }
 
@@ -182,7 +182,7 @@ static int _allocate_names(unroll_plan_t* plan, sym_table_t* smt) {
     return 1;
 }
 
-static hir_subject_t* _copy_subject(hir_subject_t* s, unroll_plan_t* plan, int latch_terminator) {
+static hir_subject_t* _copy_subject(hir_subject_t* s, unroll_plan_t* plan) {
     hir_subject_t* copy = HIR_copy_subject_and_label(s);
     if (copy && HIR_is_tmptype(copy->t)) {
         void* new_id = NULL;
@@ -195,10 +195,10 @@ static hir_subject_t* _copy_subject(hir_subject_t* s, unroll_plan_t* plan, int l
     return copy;
 }
 
-static hir_block_t* _copy_instruction(hir_block_t* hh, unroll_plan_t* plan, int latch_terminator) {
+static hir_block_t* _copy_instruction(hir_block_t* hh, unroll_plan_t* plan) {
     hir_subject_t* copies[3] = { 0 };
     iterate_hir_args (hir_subject_t* arg, hh, 0) {
-        copies[i] = _copy_subject(arg, plan, latch_terminator);
+        copies[i] = _copy_subject(arg, plan);
         if (arg && !copies[i]) goto _failure;
     }
 
@@ -217,8 +217,7 @@ static int _clone_loop_region(unroll_plan_t* plan, hir_ctx_t* fragment) {
         HIR_BLOCK1(fragment, HIR_MKLB, HIR_copy_subject_and_label(label));
         iterate_hir_instructions (bb) {
             if (hh == bb->hmap.entry && hh->op == HIR_MKLB) continue;
-            int latch_terminator = bb == plan->loop->latch && hh == bb->hmap.exit;
-            if (!HIR_append_block(_copy_instruction(hh, plan, latch_terminator), fragment)) return 0;
+            if (!HIR_append_block(_copy_instruction(hh, plan), fragment)) return 0;
         }
 
         if (!_is_flow_break(bb->hmap.exit->op)) {
@@ -276,7 +275,7 @@ static int _unroll_loop(loop_node_t* loop, sym_table_t* smt) {
 
     hir_subject_t* copy_header = NULL;
     map_get(&plan.block_labels, (long)loop->header, (void**)&copy_header);
-    back_target = _copy_label(copy_header);
+    back_target = HIR_copy_subject_and_label(copy_header);
     if (!back_target) goto _cleanup;
 
     hir_subject_t** operand = _backedge_operand(loop);

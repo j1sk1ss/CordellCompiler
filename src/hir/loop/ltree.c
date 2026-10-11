@@ -30,13 +30,13 @@ Params:
 Returns 1 if succeeds. */
 static int _get_loop_blocks(cfg_block_t* entry, set_t* b, list_t* bs) {
     if (set_has(b, entry)) return 1;
-    if (!set_add(b, entry) || !list_add(bs, entry)) return 0;
+    if (!set_add(b, entry)) return 0;
 
     set_foreach (cfg_block_t* bb, &entry->pred) {
         if (!_get_loop_blocks(bb, b, bs)) return 0;
     }
 
-    return 1;
+    return list_add(bs, entry);
 }
 
 /* Unload the input loop node.
@@ -83,6 +83,7 @@ static int _collect_loops_for_func(cfg_func_t* fb, list_t* l) {
                 if (!res) {
                     print_error("Can't obtain loop blocks from the loop!");
                     list_free_force_op(l, (int (*)(void*))_loop_node_free);
+                    list_free(&loop_blocks_sorted);
                     set_free(&loop_blocks);
                     return 0;
                 }
@@ -104,11 +105,13 @@ static int _collect_loops_for_func(cfg_func_t* fb, list_t* l) {
                 if (!node) {
                     print_error("Can't create the loop node from blocks!");
                     list_free_force_op(l, (int (*)(void*))_loop_node_free);
+                    list_free(&loop_blocks_sorted);
                     set_free(&loop_blocks);
                     return 0;
                 }
 
                 list_push_back(l, (void*)node);
+                list_free(&loop_blocks_sorted);
                 set_free(&loop_blocks);
             }
         }

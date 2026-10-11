@@ -180,7 +180,7 @@ int HIR_block_shallow_equals(hir_block_t* a, hir_block_t* b) {
     return HIR_is_operations_similar(a->op, b->op);
 }
 
-int _copy_subject(hir_subject_t* s, int copy_lb) {
+hir_subject_t* _copy_subject(hir_subject_t* s, int copy_lb) {
     if (!s) return NULL;
     hir_subject_t* ns = HIR_create_subject(s->t, s->storage.var.v_id, NULL, s->storage.cnst.value);
     if (!ns) return NULL;
