@@ -1,6 +1,21 @@
 #include <hir/func.h>
 
-static int _collect_defer_blocks(cfg_block_t* bb, list_t* defer_blocks) {
+typedef struct {
+    list_t       blocks;
+    cfg_block_t* home;
+} defer_entry_t;
+
+static int _unload_defer_entry(defer_entry_t* entry) {
+    list_free(&entry->blocks);
+    return mm_free(entry);
+}
+
+static int _collect_defer_blocks(cfg_block_t* bb, list_t* entries) {
+    defer_entry_t* entry = (defer_entry_t*)mm_malloc(sizeof(defer_entry_t));
+    if (!entry) return 0;
+    list_init(&entry->blocks);
+    entry->home = bb;
+
     int defer = 0;
     iterate_hir_instructions (bb) {
         if (
@@ -14,9 +29,11 @@ static int _collect_defer_blocks(cfg_block_t* bb, list_t* defer_blocks) {
 
         if (!defer) continue;
         hh->unused = 1;
-        list_add(defer_blocks, hh);
+        list_add(&entry->blocks, hh);
     }
 
+    if (list_size(&entry->blocks)) list_add(entries, entry);
+    else _unload_defer_entry(entry);
     return 0;
 }
 
@@ -35,26 +52,30 @@ static inline hir_block_t* _get_last_valid_instruction(cfg_block_t* bb) {
 
 int HIR_FUNC_set_defer_calls(cfg_ctx_t* cctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
-        list_t func_defer;
-        list_init(&func_defer);
+        list_t defers;
+        list_init(&defers);
 
         int entry = 1;
         foreach (cfg_block_t* bb, &fb->blocks) {
-            _collect_defer_blocks(bb, &func_defer);
+            _collect_defer_blocks(bb, &defers);
             if (
                 !bb->l && !bb->jmp && 
                 (set_size(&bb->pred) || entry)
             ) {
-                hir_block_t* ancor = _get_last_valid_instruction(bb);
-                foreach (hir_block_t* defer_block, &func_defer) {
-                    hir_block_t* copy = HIR_copy_block(defer_block, 0);
-                    if (
-                        ancor->op == HIR_FRET ||
-                        ancor->op == HIR_EXITOP
-                    ) HIR_insert_block_before(copy, ancor);
-                    else {
-                        HIR_insert_block_after(copy, ancor);
-                        ancor = copy;
+                foreach (defer_entry_t* defer, &defers) {
+                    if (set_has(&bb->dom, defer->home)) {
+                        hir_block_t* ancor = _get_last_valid_instruction(bb);
+                        foreach (hir_block_t* defer_block, &defer->blocks) {
+                            hir_block_t* copy = HIR_copy_block(defer_block, 0);
+                            if (
+                                ancor->op == HIR_FRET ||
+                                ancor->op == HIR_EXITOP
+                            ) HIR_insert_block_before(copy, ancor);
+                            else {
+                                HIR_insert_block_after(copy, ancor);
+                                ancor = copy;
+                            }
+                        }
                     }
                 }
             }
@@ -62,7 +83,7 @@ int HIR_FUNC_set_defer_calls(cfg_ctx_t* cctx) {
             entry = 0;
         }
 
-        list_free(&func_defer);
+        list_free_force_op(&defers, (int (*)(void*))_unload_defer_entry);
     }
 
     return 1;

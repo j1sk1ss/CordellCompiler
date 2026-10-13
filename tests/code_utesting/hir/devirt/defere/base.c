@@ -76,10 +76,19 @@ int main(int argc, char* argv[]) {
     cfg_ctx_t cfgctx = { .cid = 0 };
     HIR_CFG_build(&hirctx, &cfgctx, &smt);
     HIR_FUNC_set_last_return(&cfgctx);
+
+    call_graph_t callctx;
+    HIR_CG_build(&cfgctx, &callctx, &smt);  // Analyzation
+    HIR_CG_perform_dfe(&callctx, &smt);     // Transformation
+    HIR_CG_apply_dfe(&cfgctx, &smt);        // Analyzation
+
+    HIR_CFG_create_domdata(&cfgctx);        // Analyzation
+
     HIR_FUNC_set_defer_calls(&cfgctx);
 
     DUMP_format_hirctx(&hirctx, &smt, 0, 1, stdout);
 
+    HIR_CG_unload(&callctx);
     HIR_CFG_unload(&cfgctx);
     HIR_unload_blocks(hirctx.hot.h);
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);

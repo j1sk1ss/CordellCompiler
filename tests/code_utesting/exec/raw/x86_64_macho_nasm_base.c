@@ -147,11 +147,12 @@ int main(int argc, char* argv[]) {
     HIR_CG_build(&cfgctx, &callctx, &smt);
 
     HIR_FUNC_set_last_return(&cfgctx);
-    HIR_FUNC_set_defer_calls(&cfgctx);
 
     RELOAD_CFG;
 
     HIR_CFG_create_domdata(&cfgctx);
+    HIR_FUNC_set_defer_calls(&cfgctx);
+
     ltree_ctx_t lctx;
     map_init(&lctx.lmap, MAP_NO_CMP);
     HIR_LOOP_mark_loops(&cfgctx, &lctx);

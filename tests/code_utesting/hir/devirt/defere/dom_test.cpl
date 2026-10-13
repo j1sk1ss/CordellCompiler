@@ -1,0 +1,43 @@
+function free(ptr i0 p) -> i0;
+
+start() {
+    if 1; {
+        defer free(0);
+        if 2; exit 1;
+        exit 2;
+    }
+    exit 3;
+}
+
+:/ OUTPUT
+{
+    fn _main()
+    {
+        {
+            if i8n 1, goto lb5, else goto lb7;
+            lb5:
+            {
+                [unused] defer {
+                    [unused] free0(i8n 0);
+                [unused] }
+                if i8n 2, goto lb14, else goto lb16;
+                lb14:
+                {
+                    u8t %1 = i8n 1 as u8;
+                    free0(i8n 0);
+                    exit u8t %1;
+                }
+                goto lb16;
+                lb16:
+                u8t %2 = i8n 2 as u8;
+                free0(i8n 0);
+                exit u8t %2;
+            }
+            goto lb7;
+            lb7:
+            u8t %3 = i8n 3 as u8;
+            exit u8t %3;
+        }
+    }
+}
+/:

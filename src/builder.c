@@ -1004,7 +1004,6 @@ int main(int argc, char* argv[]) {
 
         HIR_FUNC_set_unused_duplicated_functions(&cfgctx);
         HIR_FUNC_set_last_return(&cfgctx);
-        HIR_FUNC_set_defer_calls(&cfgctx);
         if (!HIR_FUNC_generate_test_function(&hirctx, &cfgctx, &smt)) {
             fprintf(stderr, "Test entry generation failed\n");
             HIR_CG_unload(&callctx);
@@ -1025,6 +1024,8 @@ int main(int argc, char* argv[]) {
         
         // HIR_CFG_finalize_before_dom(&cfgctx);
         HIR_CFG_create_domdata(&cfgctx);
+        HIR_FUNC_set_defer_calls(&cfgctx);
+        
         ltree_ctx_t lctx;
         map_init(&lctx.lmap, MAP_NO_CMP);
         HIR_LOOP_mark_loops(&cfgctx, &lctx);
