@@ -4,21 +4,22 @@ annotation_t* ANNOT_create_annotation(annotation_type_t t, annotation_param_t* f
     annotation_t* annot = (annotation_t*)mm_malloc(sizeof(annotation_t));
     if (!annot) return NULL;
     str_memset(annot, 0, sizeof(annotation_t));
+    
     annot->t = t;
     switch (t) {
-        case ALIGN_ANNOTATION:     annot->data.align = (int)fp->value;                                    break;
-        case REGISTER_ANNOTATION:  annot->data.regval = (short)fp->value;                                 break;
+        case ALIGN_ANNOTATION:     annot->data.align  = (int)fp->value;                                   break;
         case POPREG_ANNOTATION:    annot->data.regval = (short)fp->value;                                 break;
+        case REGISTER_ANNOTATION:  annot->data.regval = (short)fp->value;                                 break;
         case VNAME_ANNOTATION:
-        case ENTRY_ANNOTATION:     if (fp->string) annot->data.fname = fp->string->copy(fp->string);      break;
+        case ENTRY_ANNOTATION:     if (fp->string) annot->data.fname      = fp->string->copy(fp->string); break;
         case INLINE_ANNOTATION:    if (fp->string) annot->data.inline_opt = fp->string->copy(fp->string); break;
         case COUNTER_ANNOTATION: {
             if (fp && fp->filled) {
                 annot->data.counter.has_index = 1;
                 annot->data.counter.idx_t     = fp->t;
                 switch (fp->t) {
-                    case ANNOTATION_VARIABLE_PARAM: annot->data.counter.index.v_id  = fp->v_id;           break;
                     case ANNOTATION_VALUE_PARAM:    annot->data.counter.index.value = fp->value;          break;
+                    case ANNOTATION_VARIABLE_PARAM: annot->data.counter.index.v_id  = fp->v_id;           break;
                     default:                                                                              break;
                 }
             }
@@ -27,8 +28,8 @@ annotation_t* ANNOT_create_annotation(annotation_type_t t, annotation_param_t* f
                 annot->data.counter.has_step = 1;
                 annot->data.counter.stp_t    = sp->t;
                 switch (sp->t) {
-                    case ANNOTATION_VARIABLE_PARAM: annot->data.counter.step.v_id  = sp->v_id;            break;
                     case ANNOTATION_VALUE_PARAM:    annot->data.counter.step.value = sp->value;           break;
+                    case ANNOTATION_VARIABLE_PARAM: annot->data.counter.step.v_id  = sp->v_id;            break;
                     default:                                                                              break;
                 }
             }
@@ -51,7 +52,7 @@ int ANNOT_read_annotations(sstack_t* annots, annotations_summary_t* summary) {
     annotation_t* annot;
     while (stack_pop(annots, (void**)&annot)) {
         switch (annot->t) {
-            /* Value annotations */
+#pragma region [Annotations with values]
             case INLINE_ANNOTATION: {
                 if (!annot->data.inline_opt) summary->do_inline = SOFT_YES_INLINE;
                 else {
@@ -80,7 +81,8 @@ _set_vname: {}
             case POPREG_ANNOTATION:    summary->pop_register = annot->data.regval;  break;
             case REGISTER_ANNOTATION:  summary->reg          = annot->data.regval;  break;
             case COUNTER_ANNOTATION:   summary->counter      = annot->data.counter; break;
-            /* Flag annotations */
+#pragma endregion
+#pragma region [Annotations without a value (Flag)]
             case TESTF_ANNOTATION:     summary->is_test_f    = 1;                   break;
             case NOSECTION_ANNOTATION: summary->is_nosec     = 1;                   break;
             case NAKED_ANNOTATION:     summary->is_naked     = 1;                   break;
@@ -102,6 +104,7 @@ _set_vname: {}
             case VTABLE_ANNOTATION:    summary->is_vtable    = 1;                   break;
             case ABSTRACT_ANNOTATION:  summary->is_abstract  = 1;                   break;
             case OVERRIDE_ANNOTAITON:  summary->is_override  = 1;                   break;
+#pragma endregion
             default: break;
         }
 

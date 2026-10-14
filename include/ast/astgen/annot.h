@@ -45,8 +45,8 @@
 #define MODEL_INLINE             4
 
 typedef enum {
-    ANNOTATION_VALUE_PARAM,
-    ANNOTATION_VARIABLE_PARAM
+    ANNOTATION_VALUE_PARAM,   // if this is a raw parameter
+    ANNOTATION_VARIABLE_PARAM // if this is a varaible
 } annotation_param_type_t;
 
 typedef struct {
@@ -75,37 +75,37 @@ typedef struct {
 } annotation_counter_t;
 
 typedef struct {
-    string_t*            section;
-    int                  salign;    /* Section's align */
-    string_t*            fname;
-    int                  do_inline; /* 1 - strongly yes, 2 - strongly no, 3 - increase inline chance */
-    int                  align;
-    annotation_counter_t counter;
-    short                reg;
-    short                pop_register;
-    char                 is_vname    : 1;
-    char                 is_nosec    : 1;
-    char                 is_naked    : 1;
-    char                 is_entry    : 1;
-    char                 is_nofall   : 1;
-    char                 is_fall     : 1;
-    char                 is_notlazy  : 1;
-    char                 is_straight : 1;
-    char                 is_hot      : 1;
-    char                 is_cold     : 1;
-    char                 is_argpop   : 1;
-    char                 is_self     : 1;
-    char                 is_like_c   : 1;
-    char                 is_union    : 1;
-    char                 is_weak     : 1;
-    char                 is_abi      : 1;
-    char                 is_onlybody : 1;
-    char                 is_notnull  : 1;
-    char                 is_volatile : 1;
-    char                 is_vtable   : 1;
-    char                 is_abstract : 1;
-    char                 is_override : 1;
-    char                 is_test_f   : 1;
+    string_t*               section;
+    int                     salign;    /* Section's align */
+    string_t*               fname;
+    int                     do_inline; /* 1 - strongly yes, 2 - strongly no, 3 - increase inline chance */
+    int                     align;
+    annotation_counter_t    counter;
+    short                   reg;
+    short                   pop_register;
+    char                    is_vname    : 1;
+    char                    is_nosec    : 1;
+    char                    is_naked    : 1;
+    char                    is_entry    : 1;
+    char                    is_nofall   : 1;
+    char                    is_fall     : 1;
+    char                    is_notlazy  : 1;
+    char                    is_straight : 1;
+    char                    is_hot      : 1;
+    char                    is_cold     : 1;
+    char                    is_argpop   : 1;
+    char                    is_self     : 1;
+    char                    is_like_c   : 1;
+    char                    is_union    : 1;
+    char                    is_weak     : 1;
+    char                    is_abi      : 1;
+    char                    is_onlybody : 1;
+    char                    is_notnull  : 1;
+    char                    is_volatile : 1;
+    char                    is_vtable   : 1;
+    char                    is_abstract : 1;
+    char                    is_override : 1;
+    char                    is_test_f   : 1;
 } annotations_summary_t;
 
 typedef enum {

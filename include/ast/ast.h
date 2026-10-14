@@ -1,6 +1,7 @@
 #ifndef AST_H_
 #define AST_H_
 
+#include <utils.h>
 #include <std/mm.h>
 #include <std/list.h>
 #include <std/stack.h>
@@ -132,7 +133,7 @@ Params:
 
 Return hash sum of the AST-node.
 */
-unsigned long AST_hash_node(ast_node_t* node);
+hash_t AST_hash_node(ast_node_t* node);
 
 /*
 Hash an ast-node with the crc64 hash function.
@@ -143,6 +144,6 @@ Params:
 
 Return hash sum of the AST-node.
 */
-unsigned long AST_hash_node_stop(ast_node_t* node, int no_name, token_type_t stp);
+hash_t AST_hash_node_stop(ast_node_t* node, int no_name, token_type_t stp);
 
 #endif

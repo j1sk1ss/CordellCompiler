@@ -1,20 +1,20 @@
 #include <hir/dag.h>
 
-unsigned long HIR_DAG_compute_hash(dag_node_t* nd) {
+hash_t HIR_DAG_compute_hash(dag_node_t* nd) {
     if (!nd) return 0;
     if (nd->hash_busy) {
         return HIR_hash_subject(nd->src);
     }
 
     if (!set_size(&nd->args)) {
-        unsigned long h = HIR_hash_subject(nd->src);
-        if (nd->op == HIR_GDREF) h ^= (unsigned long)nd->memory_version * 0x9e3779b97f4a7c15UL;
+        hash_t h = HIR_hash_subject(nd->src);
+        if (nd->op == HIR_GDREF) h ^= (hash_t)nd->memory_version * 0x9e3779b97f4a7c15UL;
         return h;
     }
 
     nd->hash_busy = 1;
-    unsigned long h = nd->op * 1315423911UL;
-    if (nd->op == HIR_GDREF) h ^= (unsigned long)nd->memory_version * 0x9e3779b97f4a7c15UL;
+    hash_t h = nd->op * 1315423911UL;
+    if (nd->op == HIR_GDREF) h ^= (hash_t)nd->memory_version * 0x9e3779b97f4a7c15UL;
     set_foreach (dag_node_t* arg, &nd->args) {
         h ^= HIR_DAG_compute_hash(arg) + 0x9e3779b97f4a7c15UL + (h << 6) + (h >> 2);
     }
@@ -51,7 +51,7 @@ dag_node_t* HIR_DAG_get_node(dag_ctx_t* ctx, hir_subject_t* src, int create) {
     dag_node_t* nd;
     if (map_get(&ctx->dag, HIR_hash_subject(src), (void**)&nd)) return nd;
 
-    unsigned long sh = HIR_hash_subject(src);
+    hash_t sh = HIR_hash_subject(src);
     map_foreach (dag_node_t* nnd, &ctx->dag) {
         if (set_has(&nnd->link, (void*)sh)) return nnd;
     }

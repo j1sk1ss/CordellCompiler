@@ -1,8 +1,8 @@
 #ifndef HIR_H_
 #define HIR_H_
 
-#include <position.h>
 #include <utils.h>
+#include <position.h>
 #include <std/mm.h>
 #include <std/mem.h>
 #include <std/str.h>
@@ -96,7 +96,7 @@ Params:
 
 Return `i64`:hash.
 */
-long HIR_hash_subject(hir_subject_t* s);
+hash_t HIR_hash_subject(hir_subject_t* s);
 
 hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strval, unsigned long intval);
 int            HIR_subject_shallow_equals(hir_subject_t* a, hir_subject_t* b);

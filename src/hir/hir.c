@@ -17,7 +17,7 @@ Params:
     - `x` - Input value.
 
 Returns hashed value */
-static inline unsigned long _mix64(unsigned long x) {
+static inline hash_t _mix64(unsigned long x) {
     x ^= x >> 30;
     x *= 0xbf58476d1ce4e5b9;
     x ^= x >> 27;
@@ -26,11 +26,11 @@ static inline unsigned long _mix64(unsigned long x) {
     return x;
 }
 
-long HIR_hash_subject(hir_subject_t* s) {
+hash_t HIR_hash_subject(hir_subject_t* s) {
     if (!s) return 0;
     if (s->hash) return s->hash;
 
-    unsigned long h = ((unsigned long)s->t) * 0x123321;
+    hash_t h = ((hash_t)s->t) * 0x123321;
     switch (s->t) {
         case HIR_TMPVARARR: case HIR_TMPVARF64: case HIR_TMPVARU64:
         case HIR_TMPVARI64: case HIR_TMPVARF32: case HIR_TMPVARU32: case HIR_TMPVARI32:
@@ -43,10 +43,10 @@ long HIR_hash_subject(hir_subject_t* s) {
         case HIR_GLBVARARR: case HIR_GLBVARF64: case HIR_GLBVARU64:
         case HIR_GLBVARI64: case HIR_GLBVARF32: case HIR_GLBVARU32: case HIR_GLBVARI32:
         case HIR_GLBVARU16: case HIR_GLBVARI16: case HIR_GLBVARU8:  case HIR_GLBVARI8:
-        case HIR_GLBVARI0:
+        case HIR_GLBVARI0: {
             h ^= _mix64(s->storage.var.v_id);
-        break;
-
+            break;
+        }
         case HIR_F64NUMBER: case HIR_F32NUMBER:
         case HIR_I64NUMBER: case HIR_I32NUMBER: case HIR_I16NUMBER: case HIR_I8NUMBER:
         case HIR_U64NUMBER: case HIR_U32NUMBER: case HIR_U16NUMBER: case HIR_U8NUMBER:
@@ -55,21 +55,22 @@ long HIR_hash_subject(hir_subject_t* s) {
             while (*str) h = _mix64(h ^ (unsigned char)(*str++));
             break;
         }
-
         case HIR_U8CONSTVAL:  case HIR_I8CONSTVAL:
         case HIR_U16CONSTVAL: case HIR_I16CONSTVAL:
         case HIR_U32CONSTVAL: case HIR_I32CONSTVAL:
-        case HIR_U64CONSTVAL: case HIR_I64CONSTVAL: h ^= _mix64(s->storage.cnst.value); break;
-
+        case HIR_U64CONSTVAL: case HIR_I64CONSTVAL: {
+            h ^= _mix64(s->storage.cnst.value); 
+            break;
+        }
         case HIR_FNAME:
         case HIR_RAWASM:
         case HIR_STRING:
-        case HIR_VTABLE: h ^= _mix64(s->storage.str.s_id);              break;
-        case HIR_PHISET: h ^= _mix64((unsigned long)&s->storage.set.h); break;
-        default:         h ^= _mix64(s->id);                            break;
+        case HIR_VTABLE: h ^= _mix64(s->storage.str.s_id);       break;
+        case HIR_PHISET: h ^= _mix64((hash_t)&s->storage.set.h); break;
+        default:         h ^= _mix64(s->id);                     break;
     }
 
-    s->hash = (long)(h ^ (h >> 32));
+    s->hash = (hash_t)(h ^ (h >> 32));
     return s->hash;
 }
 

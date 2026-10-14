@@ -1,11 +1,12 @@
 #ifndef TKNZ_H_
 #define TKNZ_H_
 
-#include <position.h>
 #include <fcntl.h>
 #include <ctype.h>
 #include <stddef.h>
 #include <unistd.h>
+#include <utils.h>
+#include <position.h>
 #include <std/mm.h>
 #include <std/str.h>
 #include <std/hash.h>
@@ -55,7 +56,7 @@ Params:
 
 Return hash sum.
 */
-unsigned long TKN_hash_token(token_t* t, int no_body);
+hash_t TKN_hash_token(token_t* t, int no_body);
 
 /*
 Deallocated space that was claimed by the token.

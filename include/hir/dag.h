@@ -1,6 +1,7 @@
 #ifndef DAG_H_
 #define DAG_H_
 
+#include <utils.h>
 #include <std/mm.h>
 #include <std/mem.h>
 #include <std/str.h>
@@ -16,7 +17,7 @@
 typedef struct dag_node {
     /* Misc info */
     cfg_block_t*    home;
-    unsigned long   hash;
+    hash_t          hash;
     long            id;
     hir_operation_t op;
     unsigned char   hash_busy;
@@ -47,7 +48,7 @@ Params
 
 Returns hash of the node.
 */
-unsigned long HIR_DAG_compute_hash(dag_node_t* nd);
+hash_t HIR_DAG_compute_hash(dag_node_t* nd);
 
 /*
 Get DAG node from the context or create a new one.

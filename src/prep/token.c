@@ -454,11 +454,11 @@ int TKN_tokenize(int fd, list_t* tkn) {
     return 1;
 }
 
-unsigned long TKN_hash_token(token_t* t, int no_body) {
+hash_t TKN_hash_token(token_t* t, int no_body) {
     file_position_t tmp = { .column = t->finfo.column, .line = t->finfo.line, .file = t->finfo.file };
     str_memset(&t->finfo, 0, sizeof(file_position_t));
 
-    unsigned long hash = crc64((const unsigned char*)&t->flags, sizeof(basic_object_info_t), 0);
+    hash_t hash = crc64((const unsigned char*)&t->flags, sizeof(basic_object_info_t), 0);
     if (
         t->body && 
         !no_body

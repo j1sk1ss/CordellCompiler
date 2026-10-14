@@ -10,7 +10,7 @@ void* str_memcpy(void* dst, const void* src, unsigned long n) {
 
     unsigned int i = 0;
     for (i = 0; i < num_dwords; i++) dest_dword[i] = src_dword[i];
-    for (i = 0; i < num_bytes; i++) dest_byte[i] = src_byte[i];
+    for (i = 0; i < num_bytes; i++)  dest_byte[i]  = src_byte[i];
     return dst;
 }
 
@@ -31,7 +31,7 @@ void* str_memset(void* ptr, unsigned char v, unsigned long n) {
 
     unsigned int i = 0;
     for (i = 0; i < num_dwords; i++) dest_dword[i] = val_dword;
-    for (i = 0; i < num_bytes; i++) dest_byte[i] = val_byte;
+    for (i = 0; i < num_bytes; i++)  dest_byte[i]  = val_byte;
     return ptr;
 }
 

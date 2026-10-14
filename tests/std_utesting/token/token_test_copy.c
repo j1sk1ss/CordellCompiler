@@ -41,7 +41,7 @@ static int _test_hash() {
     assert(source, "Hash source creation failed!");
     token_t* copy = TKN_copy_token(source);
     assert(copy, "Hash copy creation failed!");
-    unsigned long hash = TKN_hash_token(source, 0);
+    hash_t hash = TKN_hash_token(source, 0);
     assert(hash == TKN_hash_token(copy, 0), "Identical tokens have different hashes!");
     copy->finfo.line = 999;
     copy->finfo.column = 888;
