@@ -11,9 +11,9 @@ function put_digit(i32 n) -> i0 {
 }
 
 start() {
-    i32 i = 0;
+    i32 i = 0i32;
+    defer put_digit(3i32);
     while i < 3; {
-        defer put_digit(i);
         i += 1;
     }
 

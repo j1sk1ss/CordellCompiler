@@ -17,7 +17,7 @@ function pick(i32 value) -> i32 {
 }
 
 start() {
-    i32 result = pick(1 as i32);
+    i32 result = pick(1i32);
     putc((result + '0') as i8);
     exit 0;
 }

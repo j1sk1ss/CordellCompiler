@@ -5,18 +5,18 @@
 function putc426(i8 c) -> i0 { syscall(RAW_SYS_WRITE, 1, ref c, 1); }
 
 function run426(i32 flag) -> i0 {
+    defer putc426('T');
+    defer putc426('F');
     if flag; {
-        defer putc426('T');
         putc426('A');
     } else {
-        defer putc426('F');
         putc426('B');
     }
 }
 
 start() {
-    run426(1);
-    run426(0);
+    run426(1i32);
+    run426(0i32);
     exit 0;
 }
 
