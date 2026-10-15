@@ -82,8 +82,10 @@ static int _cfg_block_walk(cfg_block_t* bb, hir_walker_t* ctx) {
         }
     }
 
-    if (_cfg_block_walk(bb->l, ctx) < 0)   return -1;
-    if (_cfg_block_walk(bb->jmp, ctx) < 0) return -1;
+    set_foreach (cfg_block_t* succ, &bb->succ) {
+        if (_cfg_block_walk(succ, ctx) < 0) return -1;
+    }
+    
     return 1;
 }
 

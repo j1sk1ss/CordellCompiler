@@ -43,7 +43,7 @@ typedef enum hir_operation {
 
         /* Jump instructions */
         HIR_BREAK,       // Cosmetic command for the 'break' statement. ! Dont' handle it in the further translation !
-        HIR_JMP,
+        HIR_JMP,         // goto x; y - optional jump table metadata
 
     /* Integer */
         /* Binary operations */

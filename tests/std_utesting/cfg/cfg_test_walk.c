@@ -25,11 +25,13 @@ static int _test_diamond_and_cycle() {
     cfg_fixture_edge(&f, 2, 3, 0);
     cfg_fixture_edge(&f, 3, 4, 0);
     cfg_fixture_edge(&f, 4, 0, 1);
-    unsigned long expected[] = {(1UL << CFG_TEST_MAX_BLOCKS) | 16, 1, 1, 6, 8, 0};
+    set_add(&f.blocks[0].succ, &f.blocks[5]);
+    set_add(&f.blocks[5].pred, &f.blocks[0]);
+    unsigned long expected[] = {(1UL << CFG_TEST_MAX_BLOCKS) | 16, 1, 1, 6, 8, 1};
     for (unsigned long long counter = 1; counter <= 2; counter++) {
         walk_t walk = { .skip = -1, .stop = -1 };
         assert(CFG_DFS_WALK_COUNTER(&f.blocks[0], -1, counter, _visit, &walk), "CFG walk failed!");
-        assert(walk.calls == 7 && !walk.duplicate, "CFG walk revisited an edge or missed an edge!");
+        assert(walk.calls == 8 && !walk.duplicate, "CFG walk revisited an edge or missed an edge!");
         for (int i = 0; i < 6; i++) {
             assert(walk.incoming[i] == expected[i], "CFG walk reported wrong predecessors!");
         }
@@ -64,11 +66,11 @@ typedef struct {
 } path_t;
 
 typedef struct {
-    int seen[5], bad_depth, skip, stop;
+    int seen[6], bad_depth, skip, stop;
 } state_walk_t;
 
 static cfg_dfs_action_t _visit_state(cfg_block_t* b, long pred, path_t* state, state_walk_t* walk) {
-    const int expected[] = {0,1,1,2,2};
+    const int expected[] = {0,1,1,2,2,1};
     (void)pred;
     walk->seen[b->id]++;
     if (state->depth != expected[b->id]) walk->bad_depth = 1;
@@ -80,16 +82,18 @@ static cfg_dfs_action_t _visit_state(cfg_block_t* b, long pred, path_t* state, s
 
 static int _test_path_state() {
     cfg_fixture_t f = { 0 };
-    cfg_fixture_init(&f, 5, 0);
+    cfg_fixture_init(&f, 6, 0);
     cfg_fixture_edge(&f, 0, 1, 0);
     cfg_fixture_edge(&f, 0, 2, 1);
     cfg_fixture_edge(&f, 1, 3, 0);
     cfg_fixture_edge(&f, 2, 4, 0);
+    set_add(&f.blocks[0].succ, &f.blocks[5]);
+    set_add(&f.blocks[5].pred, &f.blocks[0]);
     path_t initial = { .depth = 0 };
     state_walk_t walk = { .skip = -1, .stop = -1 };
     assert(CFG_DFS_WALK_STATE_COUNTER(&f.blocks[0], -1, 1, path_t, initial, _visit_state, &walk), "State walk failed!");
     assert(!walk.bad_depth && initial.depth == 0, "Branch state leaked into a sibling or caller!");
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 6; i++) {
         assert(walk.seen[i] == 1, "State walk missed or repeated a block!");
     }
     state_walk_t skip = { .skip = 1, .stop = -1 };

@@ -92,20 +92,13 @@ Returns 1 if succeeds. */
 static int _compute_out(cfg_block_t* cfg) {
     set_t out;
     set_init(&out, SET_CMP);
-    if (cfg->l) {
+    set_foreach (cfg_block_t* succ, &cfg->succ) {
         set_t next_out;
-        set_union(&next_out, &out, &cfg->l->curr_in);
+        set_union(&next_out, &out, &succ->curr_in);
         set_free(&out);
         out = next_out;
     }
 
-    if (cfg->jmp) {
-        set_t next_out;
-        set_union(&next_out, &out, &cfg->jmp->curr_in);
-        set_free(&out);
-        out = next_out;
-    }
-    
     set_free(&cfg->curr_out);
     set_copy(&cfg->curr_out, &out);
     set_free(&out);

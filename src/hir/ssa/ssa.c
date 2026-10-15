@@ -235,9 +235,10 @@ static int _iterate_block(cfg_block_t* bb, ssa_ctx_t* ctx, long prev_bid, sym_ta
 
     set_add(&bb->visitors, (void*)prev_bid);
 
-    if (!bb->jmp || !bb->l) {
-        _iterate_block(bb->jmp, ctx, bb->id, smt);
-        _iterate_block(bb->l, ctx, bb->id, smt);
+    if (set_size(&bb->succ) < 2) {
+        set_foreach (cfg_block_t* succ, &bb->succ) {
+            _iterate_block(succ, ctx, bb->id, smt);
+        }
     }
     else {
         map_t saved;
@@ -246,15 +247,16 @@ static int _iterate_block(cfg_block_t* bb, ssa_ctx_t* ctx, long prev_bid, sym_ta
             _add_varver(&saved, s->v_id, s->curr_id);
         }
 
-        _iterate_block(bb->jmp, ctx, bb->id, smt);
-        map_free_force(&ctx->vers);
-        map_init(&ctx->vers, MAP_NO_CMP);
-        
-        map_foreach (varver_t* s, &saved) {
-            _add_varver(&ctx->vers, s->v_id, s->curr_id);
+        set_foreach (cfg_block_t* succ, &bb->succ) {
+            map_free_force(&ctx->vers);
+            map_init(&ctx->vers, MAP_NO_CMP);
+            map_foreach (varver_t* s, &saved) {
+                _add_varver(&ctx->vers, s->v_id, s->curr_id);
+            }
+
+            _iterate_block(succ, ctx, bb->id, smt);
         }
         
-        _iterate_block(bb->l, ctx, bb->id, smt);
         map_free_force(&saved);
     }
 

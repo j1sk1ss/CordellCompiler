@@ -36,8 +36,11 @@ static int _peephole_subject_dead_after_rec(long pred, cfg_block_t* bb, lir_subj
         lh = LIR_get_next(lh, bb->lmap.exit, 1);
     }
 
-    return _peephole_subject_dead_after_rec(bb->id, bb->l, subj, NULL, counter) &&
-           _peephole_subject_dead_after_rec(bb->id, bb->jmp, subj, NULL, counter);
+    set_foreach (cfg_block_t* succ, &bb->succ) {
+        if (!_peephole_subject_dead_after_rec(bb->id, succ, subj, NULL, counter)) return 0;
+    }
+    
+    return 1;
 }
 
 static int _peephole_subject_dead_after(cfg_block_t* bb, lir_subject_t* subj, lir_block_t* start) {

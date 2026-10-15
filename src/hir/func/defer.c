@@ -59,7 +59,7 @@ int HIR_FUNC_set_defer_calls(cfg_ctx_t* cctx) {
         foreach (cfg_block_t* bb, &fb->blocks) {
             _collect_defer_blocks(bb, &defers);
             if (
-                !bb->l && !bb->jmp && 
+                !set_size(&bb->succ) &&
                 (set_size(&bb->pred) || entry)
             ) {
                 foreach (defer_entry_t* defer, &defers) {

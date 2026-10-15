@@ -59,6 +59,7 @@ typedef struct cfg_block {
     /* Block navigation */
     struct cfg_block*  l;
     struct cfg_block*  jmp;
+    set_t              succ;     /* cfg_block_t* set            */
     set_t              pred;     /* cfg_block_t* set            */
     set_t              visitors; /* long id set                 */
     unsigned long long visited;
@@ -191,10 +192,12 @@ Returns 1 if traversal finished without CFG_DFS_STOP, otherwise 0 */
                 continue;                                                                 \
             }                                                                             \
             if (__cfg_dfs_action == CFG_DFS_SKIP) continue;                               \
-            if (                                                                          \
-                !__cfg_dfs_push(&__cfg_dfs_stack, __cfg_dfs_bb->jmp, __cfg_dfs_bb->id) || \
-                !__cfg_dfs_push(&__cfg_dfs_stack, __cfg_dfs_bb->l, __cfg_dfs_bb->id)      \
-            ) __cfg_dfs_result = 0;                                                       \
+            set_foreach (cfg_block_t* succ, &__cfg_dfs_bb->succ) {                         \
+                if (!__cfg_dfs_push(&__cfg_dfs_stack, succ, __cfg_dfs_bb->id)) {            \
+                    __cfg_dfs_result = 0;                                                 \
+                    break;                                                                \
+                }                                                                         \
+            }                                                                             \
         }                                                                                 \
         stack_free_force(&__cfg_dfs_stack);                                               \
     }                                                                                     \
@@ -261,10 +264,12 @@ Returns 1 if traversal finished without CFG_DFS_STOP, otherwise 0 */
                 continue;                                                                               \
             }                                                                                           \
             if (__cfg_dfs_action == CFG_DFS_SKIP) continue;                                             \
-            if (                                                                                        \
-                !__cfg_dfs_state_push(&__cfg_dfs_stack, __cfg_dfs_bb->jmp, __cfg_dfs_bb->id, &__cfg_dfs_state, sizeof(__cfg_dfs_state)) || \
-                !__cfg_dfs_state_push(&__cfg_dfs_stack, __cfg_dfs_bb->l, __cfg_dfs_bb->id, &__cfg_dfs_state, sizeof(__cfg_dfs_state))      \
-            ) __cfg_dfs_result = 0;                                                                     \
+            set_foreach (cfg_block_t* succ, &__cfg_dfs_bb->succ) {                                       \
+                if (!__cfg_dfs_state_push(&__cfg_dfs_stack, succ, __cfg_dfs_bb->id, &__cfg_dfs_state, sizeof(__cfg_dfs_state))) { \
+                    __cfg_dfs_result = 0;                                                               \
+                    break;                                                                              \
+                }                                                                                       \
+            }                                                                                           \
         }                                                                                               \
         stack_free_force(&__cfg_dfs_stack);                                                             \
     }                                                                                                   \

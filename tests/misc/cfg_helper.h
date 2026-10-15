@@ -162,6 +162,9 @@ int export_dot_func_hir(cfg_func_t* f) {
 
         if (cb->l)   printf("  B%ld -> B%ld [label=\"fall\"];\n", cb->id, cb->l->id);
         if (cb->jmp) printf("  B%ld -> B%ld [label=\"jump\"];\n", cb->id, cb->jmp->id);
+        set_foreach (cfg_block_t* succ, &cb->succ) {
+            if (succ != cb->l && succ != cb->jmp) printf("  B%ld -> B%ld [label=\"table\"];\n", cb->id, succ->id);
+        }
     }
     
     printf("}\n");

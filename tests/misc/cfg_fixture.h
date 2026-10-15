@@ -21,6 +21,7 @@ static inline void cfg_fixture_init(cfg_fixture_t* f, int count, int reverse) {
         b->id = i;
         b->pfunc = &f->func;
         set_init(&b->pred, SET_NO_CMP);
+        set_init(&b->succ, SET_NO_CMP);
         set_init(&b->dom, SET_CMP);
         set_init(&b->domf, SET_NO_CMP);
         set_init(&b->visitors, SET_NO_CMP);
@@ -34,6 +35,7 @@ static inline void cfg_fixture_init(cfg_fixture_t* f, int count, int reverse) {
 static inline void cfg_fixture_edge(cfg_fixture_t* f, int from, int to, int jump) {
     if (jump) f->blocks[from].jmp = &f->blocks[to];
     else f->blocks[from].l = &f->blocks[to];
+    set_add(&f->blocks[from].succ, &f->blocks[to]);
     set_add(&f->blocks[to].pred, &f->blocks[from]);
 }
 
@@ -50,6 +52,7 @@ static inline int cfg_fixture_set_matches(cfg_fixture_t* f, set_t* set, unsigned
 static inline void cfg_fixture_free(cfg_fixture_t* f) {
     foreach (cfg_block_t* b, &f->func.blocks) {
         set_free(&b->pred);
+        set_free(&b->succ);
         set_free(&b->dom);
         set_free(&b->domf);
         set_free(&b->visitors);

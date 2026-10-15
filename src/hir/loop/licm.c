@@ -20,14 +20,24 @@ Params:
     - `preheader_label` - Label emitted for the inserted preheader block.
 
 Returns 1 if succeeds, otherwise 0. */
-static int _redirect_preheader_jump(cfg_block_t* pred, cfg_block_t* header, hir_subject_t* preheader_label) {
+static int _redirect_preheader_jump(cfg_block_t* pred, cfg_block_t* header, hir_subject_t* preheader_label, sym_table_t* smt) {
     if (
         !pred || !header || 
         !preheader_label || !pred->hmap.exit
     ) return 0;
     switch (pred->hmap.exit->op) {
         case HIR_JMP: {
-            if (pred->jmp == header) pred->hmap.exit->farg = preheader_label;
+            if (pred->hmap.exit->farg->t == HIR_LABEL) {
+                if (pred->jmp == header) pred->hmap.exit->farg = preheader_label;
+            }
+            else {
+                array_info_t ai;
+                if (!ARTB_get_info(pred->hmap.exit->sarg->storage.var.v_id, &ai, &smt->a)) return 0;
+                foreach (array_elem_info_t* elem, &ai.elems) {
+                    if (elem->s.value == (long long)header->hmap.entry->farg->id) elem->s.value = preheader_label->id;
+                }
+            }
+            
             break;
         }
         case HIR_IFOP2: {
@@ -48,7 +58,7 @@ Params:
     - `loop` - Current loop.
 
 Return the preheader block or the 'NULL' value. */
-static cfg_block_t* _insert_preheader(cfg_ctx_t* cctx, cfg_block_t* header, set_t* loop) {
+static cfg_block_t* _insert_preheader(cfg_ctx_t* cctx, cfg_block_t* header, set_t* loop, sym_table_t* smt) {
     /* Check if the current block has a 'preheader' as an
        ancestor. 
        We don't need to insert an extra preheader block. */
@@ -83,15 +93,18 @@ static cfg_block_t* _insert_preheader(cfg_ctx_t* cctx, cfg_block_t* header, set_
     preheader->type  = CFG_LOOP_PREHEADER;
     preheader->l     = header;
     preheader->pfunc = header->pfunc;
+    set_add(&preheader->succ, header);
 
     /* Redirect all external predecessors from header to preheader. */
     foreach (cfg_block_t* p, &external_preds) {
         if (set_has(loop, p)) continue; /* Skip all blocks from the current loop */
                                         /* We mustn't update blocks from the     */
                                         /* loop.                                 */
-        _redirect_preheader_jump(p, header, preheader_label);
+        _redirect_preheader_jump(p, header, preheader_label, smt);
         if (p->l && p->l == header)     p->l   = preheader;
         if (p->jmp && p->jmp == header) p->jmp = preheader;
+        set_remove(&p->succ, header);
+        set_add(&p->succ, preheader);
         set_add(&preheader->pred, p);
         set_remove(&header->pred, p);
     }
@@ -463,7 +476,7 @@ Params:
 
 Returns 1 on success, otherwise 0. */
 static int _licm_process(cfg_ctx_t* cctx, loop_node_t* loop, sym_table_t* smt, int licm) {
-    cfg_block_t* preheader = _insert_preheader(cctx, loop->header, &loop->blocks);
+    cfg_block_t* preheader = _insert_preheader(cctx, loop->header, &loop->blocks, smt);
     if (!preheader) return 0;
     if (!licm) return 1;
 

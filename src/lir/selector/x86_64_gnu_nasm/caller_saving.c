@@ -64,7 +64,6 @@ static void _collect_local_out_function_reg_usage(set_t* dirty, set_t* save, cfg
         }
 
         if (lh->op == LIR_JMP && !term) {
-            _collect_out_function_reg_usage(dirty, save, bbh->jmp, NULL);
             return;
         }
 
@@ -90,15 +89,12 @@ static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_
 
     _collect_local_out_function_reg_usage(dirty, save, bbh, off, 0);
 
-    set_t copy;
-
-    set_copy(&copy, dirty);
-    _collect_out_function_reg_usage(&copy, save, bbh->l, NULL);
-    set_free(&copy);
-    
-    set_copy(&copy, dirty);
-    _collect_out_function_reg_usage(&copy, save, bbh->jmp, NULL);
-    set_free(&copy);
+    set_foreach (cfg_block_t* succ, &bbh->succ) {
+        set_t copy;
+        set_copy(&copy, dirty);
+        _collect_out_function_reg_usage(&copy, save, succ, NULL);
+        set_free(&copy);
+    }
 
     return 0;
 }
@@ -230,7 +226,7 @@ int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx, call_graph_t* calls, sym_tabl
 
                         long dirty_regs[32];
                         int dirty_count = 0;
-                        if (bb->jmp) {
+                        if (bb->jmp || (!bb->l && set_size(&bb->succ))) {
                             set_foreach (long reg, &func_regs) {
                                 if (dirty_count >= (int)(sizeof(dirty_regs) / sizeof(dirty_regs[0]))) break;
                                 dirty_regs[dirty_count++] = reg;

@@ -29,6 +29,7 @@ cfg_block_t* HIR_CFG_create_cfg_block(hir_block_t* e) {
     block->hmap.entry = block->hmap.exit = e;
     set_init(&block->visitors,  SET_NO_CMP);
     set_init(&block->pred,      SET_NO_CMP);
+    set_init(&block->succ,      SET_NO_CMP);
     set_init(&block->curr_in,   SET_CMP);
     set_init(&block->curr_out,  SET_CMP);
     set_init(&block->prev_in,   SET_CMP);
@@ -109,7 +110,30 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
                 case HIR_FRET:  case HIR_FEND:
                 case HIR_STEND: case HIR_EXITOP: break;
                 case HIR_JMP: {
-                    cb->jmp = HIR_CFG_function_findlb(fb, cb->hmap.exit->farg->id);
+                    if (cb->hmap.exit->farg->t == HIR_LABEL) {
+                        cb->jmp = HIR_CFG_function_findlb(fb, cb->hmap.exit->farg->id);
+                    }
+                    else {
+                        array_info_t ai;
+                        hir_subject_t* meta = cb->hmap.exit->sarg;
+                        if (
+                            !meta || 
+                            !HIR_is_arrtype(meta->t) || !ARTB_get_info(meta->storage.var.v_id, &ai, &smt->a)
+                        ) {
+                            print_error("Indirect jump requires jump table metadata!");
+                            return 0;
+                        }
+
+                        foreach (array_elem_info_t* elem, &ai.elems) {
+                            cfg_block_t* succ = HIR_CFG_function_findlb(fb, elem->s.value);
+                            if (elem->t != ARRAY_ELEM_LABEL_TYPE || !succ) {
+                                print_error("Invalid jump table target!");
+                                return 0;
+                            }
+                            
+                            set_add(&cb->succ, succ);
+                        }
+                    }
                     break;
                 }
 
@@ -130,8 +154,11 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
     /* Register successors and predecessors */
     foreach (cfg_func_t* fb, &ctx->funcs) {
         foreach (cfg_block_t* cb, &fb->blocks) {
-            if (cb->l)   set_add(&cb->l->pred, cb);
-            if (cb->jmp) set_add(&cb->jmp->pred, cb);
+            if (cb->l)   set_add(&cb->succ, cb->l);
+            if (cb->jmp) set_add(&cb->succ, cb->jmp);
+            set_foreach (cfg_block_t* succ, &cb->succ) {
+                set_add(&succ->pred, cb);
+            }
         }
     }
 
@@ -153,8 +180,11 @@ int HIR_CFG_finalize_before_dom(cfg_ctx_t* ctx) {
                we need to destroy link from this block (this is the dead end),
                and mark all related HIR blocks as unused blocks. */
             if (!set_size(&cb->pred)) {
-                if (cb->l)   set_remove(&cb->l->pred, cb);
-                if (cb->jmp) set_remove(&cb->jmp->pred, cb);
+                set_foreach (cfg_block_t* succ, &cb->succ) {
+                    set_remove(&succ->pred, cb);
+                }
+                set_free(&cb->succ);
+                set_init(&cb->succ, SET_NO_CMP);
                 cb->l = cb->jmp = NULL;
                 hir_block_t* hh = HIR_get_next(cb->hmap.entry, cb->hmap.exit, 0);
                 while (hh) {
@@ -184,6 +214,7 @@ int HIR_CFG_unload_block(cfg_block_t* bb) {
     set_free(&bb->dom);
     set_free(&bb->domf);
     set_free(&bb->pred);
+    set_free(&bb->succ);
     set_free(&bb->visitors);
     set_free(&bb->phi);
     set_free(&bb->copy_gen);
@@ -213,16 +244,13 @@ int HIR_CFG_squeeze_blocks(cfg_ctx_t* ctx) {
                         curr = tmp;
                     }
 
-                    cb->l = next->l;
-                    if (cb->l) {
-                        set_remove(&cb->l->pred, next);
-                        set_add(&cb->l->pred, cb);
-                    }
-
+                    cb->l   = next->l;
                     cb->jmp = next->jmp;
-                    if (cb->jmp) {
-                        set_remove(&cb->jmp->pred, next);
-                        set_add(&cb->jmp->pred, cb);
+                    set_free(&cb->succ);
+                    set_copy(&cb->succ, &next->succ);
+                    set_foreach (cfg_block_t* succ, &cb->succ) {
+                        set_remove(&succ->pred, next);
+                        set_add(&succ->pred, cb);
                     }
 
                     list_remove(&fb->blocks, next);

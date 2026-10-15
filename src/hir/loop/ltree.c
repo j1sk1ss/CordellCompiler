@@ -66,9 +66,7 @@ Params:
 Returns 1 if succeeds. */
 static int _collect_loops_for_func(cfg_func_t* fb, list_t* l) {
     foreach (cfg_block_t* cb, &fb->blocks) {
-        cfg_block_t* succs[] = { cb->jmp, cb->l };
-        for (int i = 0; i < (int)(sizeof(succs) / sizeof(cfg_block_t*)); i++) {
-            cfg_block_t* succ = succs[i];
+        set_foreach (cfg_block_t* succ, &cb->succ) {
             if (succ && set_has(&cb->dom, succ)) {
                 cfg_block_t* header = succ;
                 cfg_block_t* latch  = cb;

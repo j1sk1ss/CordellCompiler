@@ -386,6 +386,9 @@ static int _print_hir_cfg_function(cfg_func_t* fb, func_info_t* fi, sym_table_t*
         fprintf(output, "\"];\n");
         if (cb->l)   fprintf(output, "  B%ld -> B%ld [label=\"fall\"];\n", cb->id, cb->l->id);
         if (cb->jmp) fprintf(output, "  B%ld -> B%ld [label=\"jump\"];\n", cb->id, cb->jmp->id);
+        set_foreach (cfg_block_t* succ, &cb->succ) {
+            if (succ != cb->l && succ != cb->jmp) fprintf(output, "  B%ld -> B%ld [label=\"table\"];\n", cb->id, succ->id);
+        }
     }
     
     fprintf(output, "}\n");

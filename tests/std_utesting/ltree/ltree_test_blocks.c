@@ -20,6 +20,7 @@ static void _init_fixture(fixture_t* f, int count) {
         b->pfunc = &f->func;
 
         set_init(&b->pred, SET_NO_CMP);
+        set_init(&b->succ, SET_NO_CMP);
         set_init(&b->dom, SET_CMP);
         list_push_back(&f->func.blocks, b);
     }
@@ -28,6 +29,7 @@ static void _init_fixture(fixture_t* f, int count) {
 static inline void _edge(cfg_block_t* from, cfg_block_t* to, int jump) {
     if (jump) from->jmp = to;
     else      from->l   = to;
+    set_add(&from->succ, to);
     set_add(&to->pred, from);
 }
 
@@ -35,6 +37,7 @@ static void _free_fixture(fixture_t* f) {
     HIR_LTREE_unload_ctx(&f->loops);
     foreach (cfg_block_t* b, &f->func.blocks) {
         set_free(&b->pred);
+        set_free(&b->succ);
         set_free(&b->dom);
     }
 

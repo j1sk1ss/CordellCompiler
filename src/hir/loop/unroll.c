@@ -81,14 +81,11 @@ static int _is_valid_loop(unroll_plan_t* plan) {
             !_can_copy_fallthrough(loop, bb)                                                      /* or we can't simply copy it          */
         ) return 0;
 
-        if (bb->l == loop->header)   backedges++;
-        if (bb->jmp == loop->header) backedges++;
+        if (set_has(&bb->succ, loop->header)) backedges++;
         if (backedges > 1) return 0;
 
-        cfg_block_t* successors[] = { bb->l, bb->jmp };
-        for (int i = 0; i < 2; i++) {
-            cfg_block_t* succ = successors[i];
-            if (!succ || set_has(&loop->blocks, succ)) continue;
+        set_foreach (cfg_block_t* succ, &bb->succ) {
+            if (set_has(&loop->blocks, succ)) continue;
             if (exit_target && exit_target != succ)    return 0;                                  /* several exit targets                */
             exit_target = succ;
         }
@@ -102,6 +99,7 @@ static int _is_valid_loop(unroll_plan_t* plan) {
 
         iterate_hir_instructions (bb) {
             if (++instructions > UNROLL_MAX_INSTRUCTIONS || IS_UNSUPPORTED(hh->op)) return 0;
+            if (hh->op == HIR_JMP && hh->farg->t != HIR_LABEL) return 0; /* Table labels need a separate copy. */
             if (!HIR_is_writeop(hh->op) || !hh->farg || !HIR_is_tmptype(hh->farg->t)) continue;
             symbol_id_t id = hh->farg->storage.var.v_id;
             if (HIR_is_arrtype(hh->farg->t) || map_get(&plan->definitions, id, NULL)) return 0;

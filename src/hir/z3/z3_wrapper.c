@@ -1023,10 +1023,7 @@ static int _z3c_any_path_to_block_rec(
     if (set_has(active, curr)) return 1;
     set_add(active, curr);
 
-    cfg_block_t* succs[] = { curr->l, curr->jmp };
-    for (int i = 0; i < 2; ++i) {
-        cfg_block_t* succ = succs[i];
-        if (!succ) continue;
+    set_foreach (cfg_block_t* succ, &curr->succ) {
         Z3_ast cond = _z3c_edge_condition(fctx, curr, succ);
         if (!cond) {
             set_remove(active, curr);
@@ -1069,14 +1066,11 @@ static int _z3c_any_terminal_path_rec(
 ) {
     if (!curr) return 0;
     if (depth > max_depth) return 1;
-    if (!curr->l && !curr->jmp) return _z3c_check_current(fctx, extra);
+    if (!set_size(&curr->succ)) return _z3c_check_current(fctx, extra);
     if (set_has(active, curr)) return 1;
     set_add(active, curr);
 
-    cfg_block_t* succs[] = { curr->l, curr->jmp };
-    for (int i = 0; i < 2; ++i) {
-        cfg_block_t* succ = succs[i];
-        if (!succ) continue;
+    set_foreach (cfg_block_t* succ, &curr->succ) {
         Z3_ast cond = _z3c_edge_condition(fctx, curr, succ);
         if (!cond) {
             set_remove(active, curr);

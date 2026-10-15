@@ -18,19 +18,36 @@ static hir_subject_t* _copy_inline_label(hir_subject_t* old, map_t* label_map) {
     return _copy_label_instance(label);
 }
 
-static symbol_id_t _copy_inline_tmp_id(symbol_id_t old_id, map_t* var_map, sym_table_t* smt) {
+static symbol_id_t _copy_inline_tmp_id(symbol_id_t old_id, map_t* var_map, map_t* label_map, sym_table_t* smt) {
     void* mapped = NULL;
     if (map_get(var_map, old_id, &mapped)) return (symbol_id_t)mapped;
 
     variable_info_t vi;
     if (!VRTB_get_info_id(old_id, &vi, &smt->v)) return old_id;
 
-    symbol_id_t new_id = VRTB_add_copy(&vi, &smt->v);
+    array_info_t ai;
+    int array = ARTB_get_info(old_id, &ai, &smt->a);
+    array_elem_info_t* first = array ? list_get_head(&ai.elems) : NULL;
+    int table = first && first->t == ARRAY_ELEM_LABEL_TYPE;
+    if (vi.vfs.glob && !table) return old_id;
+
+    symbol_id_t new_id = table ? VRTB_add_info(NULL, vi.type, vi.s_id, vi.vfs, &smt->v) : VRTB_add_copy(&vi, &smt->v);
     if (new_id == NO_SYMBOL_ID) return old_id;
 
-    array_info_t ai;
-    if (ARTB_get_info(old_id, &ai, &smt->a)) {
+    if (array) {
         ARTB_add_copy(new_id, &ai, &smt->a);
+        if (table) {
+            ARTB_get_info(new_id, &ai, &smt->a);
+            foreach (array_elem_info_t* elem, &ai.elems) {
+                hir_subject_t old = { .t = HIR_LABEL, .id = elem->s.value };
+                hir_subject_t* label = _copy_inline_label(&old, label_map);
+                elem->s.value = label->id;
+                HIR_unload_subject(label);
+            }
+            
+            string_t* section = SCTB_get_section_name(old_id, SECTION_ELEMENT_VARIABLE, &smt->c);
+            if (section) SCTB_add_to_section(section, FIELD_NO_CHANGE, new_id, SECTION_ELEMENT_VARIABLE, &smt->c);
+        }
     }
 
     map_put(var_map, old_id, (void*)new_id);
@@ -51,8 +68,8 @@ static hir_subject_t* _copy_inline_subject(hir_subject_t* s, map_t* var_map, map
     }
 
     hir_subject_t* copy = HIR_copy_subject(s);
-    if (copy && HIR_is_vartype(copy->t) && HIR_is_tmptype(copy->t)) {
-        copy->storage.var.v_id = _copy_inline_tmp_id(copy->storage.var.v_id, var_map, smt);
+    if (copy && HIR_is_vartype(copy->t) && (HIR_is_tmptype(copy->t) || copy->t == HIR_GLBVARARR)) {
+        copy->storage.var.v_id = _copy_inline_tmp_id(copy->storage.var.v_id, var_map, label_map, smt);
     }
 
     return copy;
@@ -260,8 +277,9 @@ static int _find_nearest_break(hir_block_t* pos, cfg_block_t* ibb) {
             hh = HIR_get_next(hh, block->hmap.exit, 1);
         }
 
-        if (!set_has(&visited, block->jmp) && block->jmp) queue_push(&blocks, inttuple_create((long)block->jmp, block_size));
-        if (!set_has(&visited, block->l) && block->l)     queue_push(&blocks, inttuple_create((long)block->l, block_size));
+        set_foreach (cfg_block_t* succ, &block->succ) {
+            if (!set_has(&visited, succ)) queue_push(&blocks, inttuple_create((long)succ, block_size));
+        }
     }
 
     queue_free(&blocks);

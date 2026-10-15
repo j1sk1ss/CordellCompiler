@@ -116,8 +116,10 @@ We add dominator as dominance frontier to the related set if:
 Params:
     - `b` - Current BasicBlock. */
 static void _compute_domf_rec(cfg_block_t* b) {
-    if (b->l && b->l->sdom != b)     set_add(&b->domf, b->l);
-    if (b->jmp && b->jmp->sdom != b) set_add(&b->domf, b->jmp);
+    set_foreach (cfg_block_t* succ, &b->succ) {
+        if (succ->sdom != b) set_add(&b->domf, succ);
+    }
+    
     for (cfg_block_t* c = b->dom_c; c; c = c->dom_s) {
         _compute_domf_rec(c);
         set_foreach (cfg_block_t* w, &c->domf) {

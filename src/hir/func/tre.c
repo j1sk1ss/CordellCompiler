@@ -3,10 +3,7 @@
 int HIR_FUNC_perform_tre(cfg_ctx_t* cctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* cb, &fb->blocks) {
-            if (
-                cb->l || /* Skip all blocks that have a linked successor */
-                cb->jmp  /* which will save only end (return) blocks.    */
-            ) continue;
+            if (set_size(&cb->succ)) continue; /* Skip blocks that have a successor. */
             
             func_info_t fi;
             if (!FNTB_get_info_id(fb->f_id, &fi, &smt->f)) continue;

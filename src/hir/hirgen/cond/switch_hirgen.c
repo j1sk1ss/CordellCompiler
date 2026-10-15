@@ -114,7 +114,7 @@ static int _generate_table_jump(case_info_t* values, int values_count, hir_subje
     HIR_BLOCK3(ctx, HIR_iADD, target_head, head, HIR_generate_implconv(ctx, head->ptr, head->t, offset, smt));
 
     hir_subject_t* target = HIR_gdref_subject(target_head, smt, ctx, FIELD_NO_CHANGE);
-    HIR_BLOCK1(ctx, HIR_JMP, target);
+    HIR_BLOCK2(ctx, HIR_JMP, target, HIR_copy_subject(j_table_sbj));
     return 1;
 }
 

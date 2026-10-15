@@ -1,6 +1,6 @@
 : BLOCK_TEST :
 : RUN_ASM[args="1"|args="2"|args="3"|args="4"] :
-@[abi]
+
 start(i32 argc, ptr ptr i8 argv) {
     i32 value = (argv[1][0] as i32) - 48;
     i32 result = 0i32;

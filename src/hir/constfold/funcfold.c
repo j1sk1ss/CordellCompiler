@@ -154,7 +154,7 @@ static int _collect_frets(cfg_ctx_t* cctx, map_t* frets) {
 
         int entry = 1;
         foreach (cfg_block_t* bb, &fb->blocks) {
-            if (!bb->l && !bb->jmp && (set_size(&bb->pred) || entry)) {
+            if (!set_size(&bb->succ) && (set_size(&bb->pred) || entry)) {
                 list_add(&ret_blocks, bb);
             }
 
