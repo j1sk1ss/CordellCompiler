@@ -3,17 +3,20 @@
 
 #include <utils.h>
 #include <position.h>
+
 #include <std/mm.h>
 #include <std/mem.h>
 #include <std/str.h>
 #include <std/set.h>
 #include <std/map.h>
 #include <std/stack.h>
+
 #include <prep/token_types.h>
 #include <symtab/symtab.h>
 #include <ast/ast.h>
 #include <ast/astgen.h>
 #include <ast/devirt.h>
+
 #include <hir/hir_types.h>
 
 typedef struct {
@@ -58,44 +61,42 @@ typedef struct {
 } hir_subject_t;
 
 typedef struct hir_block {
-    struct hir_block* prev;
-    struct hir_block* next;
-    hir_operation_t   op;
-    hir_subject_t*    farg;
-    hir_subject_t*    sarg;
-    hir_subject_t*    targ;
-    char              unused : 1;
+    struct hir_block*   prev;
+    struct hir_block*   next;
+    hir_operation_t     op;
+    hir_subject_t*      farg;
+    hir_subject_t*      sarg;
+    hir_subject_t*      targ;
+    char                unused : 1;
 } hir_block_t;
 
 typedef struct {
-    file_position_t    pos;           /* Current pos in a file                   */
+    file_position_t     pos;           /* Current pos in a file                   */
     struct {
-        hir_block_t*   h;             /* Current HIR head                        */
-        hir_block_t*   t;             /* Current HIR tail                        */
+        hir_block_t*    h;             /* Current HIR head                        */
+        hir_block_t*    t;             /* Current HIR tail                        */
     } hot;
     struct {
-        char           is_sup : 1;    /* Is cold section is supported by ctx     */
-        list_t         blocks;        /* Cold blocks storage for further place   */
+        char            is_sup : 1;    /* Is cold section is supported by ctx     */
+        list_t          blocks;        /* Cold blocks storage for further place   */
     } cold;
-    char               is_cold   : 1; /* If 1 - we save all input blocks as cold */
-    char               is_hidden : 1; /* If 1 - we will ignore all blocks        */
+    char                is_cold   : 1; /* If 1 - we save all input blocks as cold */
+    char                is_hidden : 1; /* If 1 - we will ignore all blocks        */
     struct {
-        hir_subject_t* brk;           /* pointer to a break target               */
-        token_t*       rtype;         /* function's return type                  */
-        hir_subject_t* varg;          /* function's varargs hidden variable      */
+        hir_subject_t*  brk;           /* pointer to a break target               */
+        token_t*        rtype;         /* function's return type                  */
+        hir_subject_t*  varg;          /* function's varargs hidden variable      */
     } carry;                          /* Additional carry for any specific data  */
 } hir_ctx_t;
 
 int HIR_init_extended_ctx(hir_ctx_t* ctx);
 int HIR_unload_extended_ctx(hir_ctx_t* ctx);
 
-/*
-Get hash (i64) from the provided subject.
+/* Get hash (i64) from the provided subject.
 Params:
     - `s` - Target hir subject.
 
-Return `i64`:hash.
-*/
+Return `i64`:hash. */
 hash_t HIR_hash_subject(hir_subject_t* s);
 
 hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strval, unsigned long intval);

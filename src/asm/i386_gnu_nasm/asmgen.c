@@ -182,7 +182,7 @@ Returns 1 if succeeds. */
 static int _generate_ro_string(symbol_id_t id, sym_table_t* smt, FILE* output) {
     str_info_t si;
     if (STTB_get_info_id(id, &si, &smt->s) && si.t == STR_INDEPENDENT) {
-        EMIT_PART_COMMAND("_str_%li_ db ", si.id);
+        EMIT_PART_COMMAND(NASMFMT_STRING_FMT " db ", si.id);
         for (unsigned long i = 0; i < si.value->size; ++i) {
             fprintf(output, "%u,", (unsigned int)(unsigned char)si.value->body[i]);
         }
@@ -202,11 +202,12 @@ static int _generate_vtable(symbol_id_t id, sym_table_t* smt, FILE* output) {
     ) return 0;
 
     char vtable_name[128] = { 0 };
-    snprintf(vtable_name, sizeof(vtable_name), "_cpl_vtable_%s", ti.name->body);
+    snprintf(vtable_name, sizeof(vtable_name), NASMFMT_VTABLE_FMT, ti.name->body);
     EMIT_DATA_LABEL(vtable_name);
     
     foreach (symbol_id_t f_id, &vi.funcs) {
-        NASMFMT_emit_typed_func(output, NULL, CONF_get_full_bytness(), f_id, smt);
+        array_elem_info_t elem = { .t = ARRAY_ELEM_FUNC_TYPE, .s.f_id = f_id };
+        NASMFMT_emit_typed_value(output, CONF_get_full_bytness(), &elem, smt);
     }
 
     return 1;
@@ -242,8 +243,8 @@ Params:
     - `output` - Output assembly stream. */
 static inline void _emit_typed_value(string_t* name, long size, long long value, FILE* output) {
     const char* op = size == 4 ? "dd" : size == 2 ? "dw" : "db";
-    if (name) EMIT_COMMAND("%s %s %lli", name->body, op, value);
-    else      EMIT_COMMAND("%s %lli", op, value);
+    if (name) EMIT_COMMAND("%s %s " NASMFMT_CONST_FMT, name->body, op, value);
+    else      EMIT_COMMAND("%s " NASMFMT_CONST_FMT, op, value);
 }
 
 /* Emit a typed aggregate initializer using type-layout slots and padding.
@@ -309,15 +310,13 @@ _continue_element_emmit: {}
                     string_pos++;
                 }
                 /* Put a pointer instead of initialization */
-                else EMIT_COMMAND("dd _str_%li_", elem->s.s_id);
+                else EMIT_COMMAND("dd " NASMFMT_STRING_FMT, elem->s.s_id);
                 break;
             }
-            case ARRAY_ELEM_FUNC_TYPE: {
-                NASMFMT_emit_typed_func(output, NULL, slot_info.slot_size, elem->s.f_id, smt);
-                break;
-            }
-            case ARRAY_ELEM_VTABLE_TYPE: {
-                NASMFMT_emit_typed_vtable(output, NULL, slot_info.slot_size, elem->s.vt_id, smt);
+            case ARRAY_ELEM_FUNC_TYPE:
+            case ARRAY_ELEM_VTABLE_TYPE:
+            case ARRAY_ELEM_LABEL_TYPE: {
+                NASMFMT_emit_typed_value(output, slot_info.slot_size, elem, smt);
                 break;
             }
             default: {
@@ -387,20 +386,8 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
             int el_count = list_size(&ai.elems);
             foreach (el, &ai.elems) {
                 last_elem = el;
-                switch (el->t) {
-                    case ARRAY_ELEM_STRING_TYPE: fprintf(output, "_str_%li_", el->s.s_id); break;
-                    case ARRAY_ELEM_FUNC_TYPE: {
-                        char buffer[256] = { 0 };
-                        fprintf(output, "%s", NASMFMT_format_func_value(el->s.f_id, smt, buffer, sizeof(buffer)));
-                        break;
-                    }
-                    case ARRAY_ELEM_VTABLE_TYPE: {
-                        char buffer[256] = { 0 };
-                        fprintf(output, "%s", NASMFMT_format_vtable_value(el->s.vt_id, smt, buffer, sizeof(buffer)));
-                        break;
-                    }
-                    default: fprintf(output, "%lli", el->s.value);                         break;
-                }
+                char buffer[256];
+                fprintf(output, "%s", NASMFMT_format_array_value(el, smt, buffer, sizeof(buffer)));
 
                 if (--el_count) fprintf(output, ",");
             }
@@ -408,20 +395,8 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
             long last_el = ai.size - list_size(&ai.elems);
             if (last_el > 0) fprintf(output, ",");
             while (last_el-- > 0) {
-                switch (last_elem ? last_elem->t : ARRAY_ELEM_CONST_TYPE) {
-                    case ARRAY_ELEM_STRING_TYPE: fprintf(output, "_str_%li_", last_elem->s.s_id); break;
-                    case ARRAY_ELEM_FUNC_TYPE: {
-                        char buffer[256] = { 0 };
-                        fprintf(output, "%s", last_elem ? NASMFMT_format_func_value(last_elem->s.f_id, smt, buffer, sizeof(buffer)) : "0");
-                        break;
-                    }
-                    case ARRAY_ELEM_VTABLE_TYPE: {
-                        char buffer[256] = { 0 };
-                        fprintf(output, "%s", last_elem ? NASMFMT_format_vtable_value(last_elem->s.vt_id, smt, buffer, sizeof(buffer)) : "0");
-                        break;
-                    }
-                    default: fprintf(output, "%lli", last_elem ? last_elem->s.value : 0);         break;
-                }
+                char buffer[256];
+                fprintf(output, "%s", NASMFMT_format_array_value(last_elem, smt, buffer, sizeof(buffer)));
 
                 if (last_el) fprintf(output, ",");
             }
@@ -434,9 +409,9 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
 
     switch (TKN_variable_bitness(&fst_tmptkn, 1)) {
         case TYPE_FULL_SIZE:
-        case TYPE_HALF_SIZE:    EMIT_COMMAND("%s dd %li", name, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
-        case TYPE_QUARTER_SIZE: EMIT_COMMAND("%s dw %li", name, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
-        default:                EMIT_COMMAND("%s db %li", name, vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0); break;
+        case TYPE_HALF_SIZE:    EMIT_COMMAND("%s dd " NASMFMT_CONST_FMT, name, (long long)(vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0)); break;
+        case TYPE_QUARTER_SIZE: EMIT_COMMAND("%s dw " NASMFMT_CONST_FMT, name, (long long)(vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0)); break;
+        default:                EMIT_COMMAND("%s db " NASMFMT_CONST_FMT, name, (long long)(vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0)); break;
     }
 
     return 1;

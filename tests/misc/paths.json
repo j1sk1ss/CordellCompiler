@@ -391,6 +391,7 @@
             "src/lir/regalloc/*.c",
             "src/lir/regalloc/gc/*.c",
             "src/asm/*.c",
+            "src/asm/formatters/*.c",
             "src/asm/x86_64_gnu_nasm/*.c",
             "std/*.c"
         ]
@@ -433,6 +434,7 @@
             "src/lir/regalloc/*.c",
             "src/lir/regalloc/gc/*.c",
             "src/asm/*.c",
+            "src/asm/formatters/*.c",
             "src/asm/x86_64_gnu_nasm/*.c",
             "std/*.c"
         ]
