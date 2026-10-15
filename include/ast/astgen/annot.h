@@ -20,6 +20,7 @@
 #define FALLC_ANNOTATION_COMMAND "fall"
 #define NTLAZ_ANNOTATION_COMMAND "not_lazy"
 #define STRGH_ANNOTATION_COMMAND "straight"
+#define JTABL_ANNOTATION_COMMAND "jtable"
 #define COUNT_ANNOTATION_COMMAND "counter"
 #define HOTSC_ANNOTATION_COMMAND "hot"
 #define COLDS_ANNOTATION_COMMAND "cold"
@@ -91,6 +92,7 @@ typedef struct {
     char                    is_fall     : 1;
     char                    is_notlazy  : 1;
     char                    is_straight : 1;
+    char                    is_jtable   : 1;
     char                    is_hot      : 1;
     char                    is_cold     : 1;
     char                    is_argpop   : 1;
@@ -119,6 +121,7 @@ typedef enum {
     FALL_ANNOTATION,      /* case will disable no_fall for itself           */
     NOTLAZY_ANNOTATION,   /* && and || with full evaluation                 */
     STRAIGHT_ANNOTATION,  /* switch based on if-elseif-else                 */
+    JTABLE_ANNOTATION,    /* switch based on a jump table                  */
     COUNTER_ANNOTATION,   /* hidden counter-break instructure               */
     HOT_ANNOTATION,       /* Will make the linked else branch cold          */
     COLD_ANNOTATION,      /* Will make the linked then branch hot           */

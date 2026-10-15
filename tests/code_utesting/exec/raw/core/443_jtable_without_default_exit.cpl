@@ -1,0 +1,32 @@
+: BLOCK_TEST :
+: RUN_ASM[args="0"|args="2"|args="3"|args="4"|args="5"] :
+
+start(i32 argc, ptr ptr i8 argv) {
+    i32 value = (argv[1][0] as i32) - 48;
+
+    @[jtable] @[no_fall]
+    switch value; {
+        case 2; exit 22;
+        case 4; exit 44;
+    }
+
+    exit 42;
+}
+
+:/ OUTPUT
+@case_index=0
+@exit_code=42
+---
+@case_index=1
+@exit_code=22
+---
+@case_index=2
+@exit_code=42
+---
+@case_index=3
+@exit_code=44
+---
+@case_index=4
+@exit_code=42
+---
+/:

@@ -25,6 +25,7 @@
         "src/lir/selector/x86_64_gnu_nasm/*.c",
         "src/lir/regalloc/*.c",
         "src/lir/regalloc/gc/*.c",
+        "src/lir/copyprop/*.c",
         "src/asm/*.c",
         "src/asm/formatters/*.c",
         "src/asm/x86_64_gnu_nasm/*.c",

@@ -84,7 +84,7 @@ static int _generate_table_jump(case_info_t* values, int values_count, hir_subje
     for (int i = 0; i < values_count; i++) {
         ARTB_add_elems(j_table, (array_elem_info_t) { .t = ARRAY_ELEM_LABEL_TYPE, .s.value = values[i].l->id }, &smt->a);
         if (i + 1 < values_count) {
-            for (int j = 0; j < values[i + 1].v - values[i].v; j++) {
+            for (int j = values[i].v; j < values[i + 1].v - 1; j++) {
                 ARTB_add_elems(j_table, (array_elem_info_t) { .t = ARRAY_ELEM_LABEL_TYPE, .s.value = def->id }, &smt->a);
             }
         }
@@ -120,9 +120,10 @@ static int _generate_table_jump(case_info_t* values, int values_count, hir_subje
 
 int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     HIR_SET_CURRENT_POS(ctx, node);
-    int no_fall = 0, straight = 0;
+    int no_fall = 0, straight = 0, jtable = 0;
     HAS_ANNOTATION(STRAIGHT_ANNOTATION, node, { straight = 1; });
     HAS_ANNOTATION(NOFALL_ANNOTATION, node,   { no_fall  = 1; });
+    HAS_ANNOTATION(JTABLE_ANNOTATION, node,   { jtable   = 1; });
 
     ast_node_t* cond  = node->c;
     ast_node_t* cases = cond->siblings.n;
@@ -174,8 +175,9 @@ int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
     hir_subject_t* condtmp = HIR_generate_elem(cond, ctx, smt);
 
     sort_qsort(cases_info, cases_count, sizeof(case_info_t), _cmp);
-    if (straight) _generate_sequent_jump(cases_info, cases_count, condtmp, def, ctx, smt);
-    else          _generate_case_binary_jump(cases_info, condtmp, 0, cases_count - 1, def, ctx, smt);
+    if (jtable && cases_count) _generate_table_jump(cases_info, cases_count, condtmp, def, ctx, smt);
+    else if (straight)         _generate_sequent_jump(cases_info, cases_count, condtmp, def, ctx, smt);
+    else                       _generate_case_binary_jump(cases_info, condtmp, 0, cases_count - 1, def, ctx, smt);
     
 
     HIR_BLOCK1(ctx, HIR_MKLB, end_lb);

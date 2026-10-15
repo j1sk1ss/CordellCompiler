@@ -90,6 +90,7 @@ _set_vname: {}
             case FALL_ANNOTATION:      summary->is_fall      = 1;                   break;
             case NOTLAZY_ANNOTATION:   summary->is_notlazy   = 1;                   break;
             case STRAIGHT_ANNOTATION:  summary->is_straight  = 1;                   break;
+            case JTABLE_ANNOTATION:    summary->is_jtable    = 1;                   break;
             case HOT_ANNOTATION:       summary->is_hot       = 1;                   break;
             case COLD_ANNOTATION:      summary->is_cold      = 1;                   break;
             case POPARG_ANNOTATION:    summary->is_argpop    = 1;                   break;
