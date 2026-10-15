@@ -28,7 +28,7 @@ static int _peephole_subject_dead_after_rec(long pred, cfg_block_t* bb, lir_subj
     set_add(&bb->visitors, (void*)pred);
 
     lir_block_t* lh = start ? start : bb->lmap.entry;
-    while (lh && lh != bb->lmap.exit) {
+    while (lh) {
         if (!lh->unused) {
             if (_peephole_subject_is_overwritten(lh, subj)) return 1;
             if (_peephole_subject_is_read(lh, subj)) return 0;

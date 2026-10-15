@@ -710,7 +710,7 @@ class CodeGenerator:
         b.line("set_add(&bb->visitors, (void*)pred);")
         b.line("")
         b.line("lir_block_t* lh = start ? start : bb->lmap.entry;")
-        b.open("while (lh && lh != bb->lmap.exit)")
+        b.open("while (lh)")
         b.open("if (!lh->unused)")
         b.line("if (_peephole_subject_is_overwritten(lh, subj)) return 1;")
         b.line("if (_peephole_subject_is_read(lh, subj)) return 0;")

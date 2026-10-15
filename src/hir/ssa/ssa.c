@@ -247,7 +247,9 @@ static int _iterate_block(cfg_block_t* bb, ssa_ctx_t* ctx, long prev_bid, sym_ta
             _add_varver(&saved, s->v_id, s->curr_id);
         }
 
+        _iterate_block(bb->jmp, ctx, bb->id, smt);
         set_foreach (cfg_block_t* succ, &bb->succ) {
+            if (succ == bb->jmp) continue;
             map_free_force(&ctx->vers);
             map_init(&ctx->vers, MAP_NO_CMP);
             map_foreach (varver_t* s, &saved) {
