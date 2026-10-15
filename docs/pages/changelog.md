@@ -3,6 +3,22 @@ Logs for the first and second versions are quite short because I do not remember
 
 ----------------------------------------
 
+## Successors and Jump tables
+<div class="change-date">Date: 2026-10-15</div>
+The compiler now supports `@[jtable]` annotation for switches. Actually - this is the fastest way to jump to a case. To use it, just add an annotation:
+
+```cpl
+start(i32 a) {
+    @[jtable] switch a; {
+        case 1; {}
+        case 2; {}
+        default {}
+    }
+}
+```
+
+To support this, I've changed the CFG blocks. Now they store successors in a set (+ and two additional variables, that help in the further analysis and transformation).
+
 ## Take right bits operation
 <div class="change-date">Date: 2026-10-06</div>
 Sometimes we need just to take several bits from the right of a variable. Why won't we use simple bit mask? Because we need to save the sign for the new number. Before, the one proper way to do this was this:
