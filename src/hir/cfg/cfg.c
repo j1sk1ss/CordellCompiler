@@ -1,12 +1,10 @@
 /* cfg.c - Create CFG */
 #include <hir/cfg.h>
 
-static unsigned long long _unique_counter = 0;
+static uid_t _unique_counter = 0;
 
-unsigned long long CFG_get_unique_counter() {
-    _unique_counter++;
-    if (!_unique_counter) _unique_counter++;
-    return _unique_counter;
+uid_t CFG_get_unique_counter() {
+    return ++_unique_counter;
 }
 
 int HIR_CFG_remove_hir_block(cfg_block_t* bb, hir_block_t* hh) {
@@ -61,9 +59,12 @@ static int _add_cfg_block(hir_block_t* entry, hir_block_t* exit, cfg_func_t* f, 
     return list_add(&f->blocks, b);
 }
 
-#define DRAGONBOOK_CFG_LEADER /* Note: Don't undef this flag given the current compiler's pipeline. */
-                              /*       If you want to change the leaders' creation method           */
-                              /*       be aware of the possible future issues.                      */
+/* Create leaders as it described in the DragonBook, which means:
+   find labels and second instructions after jumps - these instructions
+   are leaders. Than create blocks from one leader to another. */
+#define DRAGONBOOK_CFG_LEADER /* Note: DO NOT undef this flag given the current compiler's pipeline. */
+                              /*       If you want to change the leaders creation method             */
+                              /*       be aware of possible issues in the future.                    */
 int CFG_create_cfg_blocks(cfg_func_t* f, cfg_ctx_t* ctx) {
     hir_block_t* hh = HIR_FUNC_get_next(NULL, f, NULL, 0);
     while (hh) {
@@ -100,7 +101,7 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
                                                 /* given list of functions.                     */
 
     foreach (cfg_func_t* fb, &ctx->funcs) {
-        CFG_create_cfg_blocks(fb, ctx);         /* Create CFG blocks based on the leaders' list */
+        CFG_create_cfg_blocks(fb, ctx);         /* Create CFG blocks based on the leaders list  */
 
         list_iter_t bit;
         list_iter_hinit(&fb->blocks, &bit);
@@ -110,39 +111,27 @@ int HIR_CFG_build(hir_ctx_t* hctx, cfg_ctx_t* ctx, sym_table_t* smt) {
                 case HIR_FRET:  case HIR_FEND:
                 case HIR_STEND: case HIR_EXITOP: break;
                 case HIR_JMP: {
-                    if (cb->hmap.exit->farg->t == HIR_LABEL) {
-                        cb->jmp = HIR_CFG_function_findlb(fb, cb->hmap.exit->farg->id);
-                    }
+                    if (cb->hmap.exit->farg->t == HIR_LABEL) cb->jmp = HIR_CFG_function_findlb(fb, cb->hmap.exit->farg->id);
                     else {
                         array_info_t ai;
                         hir_subject_t* meta = cb->hmap.exit->sarg;
                         if (
                             !meta || 
                             !HIR_is_arrtype(meta->t) || !ARTB_get_info(meta->storage.var.v_id, &ai, &smt->a)
-                        ) {
-                            print_error("Indirect jump requires jump table metadata!");
-                            return 0;
-                        }
-
+                        ) return 0;
                         foreach (array_elem_info_t* elem, &ai.elems) {
                             cfg_block_t* succ = HIR_CFG_function_findlb(fb, elem->s.value);
-                            if (elem->t != ARRAY_ELEM_LABEL_TYPE || !succ) {
-                                print_error("Invalid jump table target!");
-                                return 0;
-                            }
-                            
+                            if (elem->t != ARRAY_ELEM_LABEL_TYPE || !succ) return 0;
                             set_add(&cb->succ, succ);
                         }
                     }
                     break;
                 }
-
                 case HIR_IFOP2: {
                     cb->l   = HIR_CFG_function_findlb(fb, cb->hmap.exit->sarg->id);
                     cb->jmp = HIR_CFG_function_findlb(fb, cb->hmap.exit->targ->id);
                     break;
                 }
-
                 default: {
                     cb->l = (cfg_block_t*)list_iter_current(&bit); 
                     break;
@@ -183,6 +172,7 @@ int HIR_CFG_finalize_before_dom(cfg_ctx_t* ctx) {
                 set_foreach (cfg_block_t* succ, &cb->succ) {
                     set_remove(&succ->pred, cb);
                 }
+
                 set_free(&cb->succ);
                 set_init(&cb->succ, SET_NO_CMP);
                 cb->l = cb->jmp = NULL;
@@ -198,11 +188,6 @@ int HIR_CFG_finalize_before_dom(cfg_ctx_t* ctx) {
     return 1;
 }
 
-/* Free CFG block analysis sets and the block itself.
-Params:
-    - `bb` - CFG block to unload.
-
-Returns 1 if succeeds. */
 int HIR_CFG_unload_block(cfg_block_t* bb) {
     if (!bb) return 0;
     set_free(&bb->def);
