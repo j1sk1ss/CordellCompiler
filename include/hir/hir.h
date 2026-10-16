@@ -44,9 +44,9 @@ typedef struct {
 } hir_list_t;
 
 typedef struct {
-    unsigned long       id;    /* Subject's ID            */
+    uid_t               id;    /* Subject's ID            */
     struct hir_block*   home;  /* Home HIR block          */
-    unsigned long       hash;  /* Subject's hash          */
+    hash_t              hash;  /* Subject's hash          */
     hir_subject_type_t  t;     /* Subject's type          */
     int                 ptr;   /* Subject reference level */
     union {

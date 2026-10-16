@@ -77,7 +77,7 @@ hash_t HIR_hash_subject(hir_subject_t* s) {
 /* Global HIR block ID for a unique indexing
    which helps a lot in distinguish HIR blocks
    from each other */
-static unsigned long _curr_id = 0;
+static uid_t _curr_id = 0;
 
 hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strval, unsigned long intval) {
     hir_subject_t* subj = mm_malloc(sizeof(hir_subject_t));
@@ -140,7 +140,7 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strv
 
 int HIR_subject_shallow_equals(hir_subject_t* a, hir_subject_t* b) {
     if (!a || !b) return 0;
-    if (a == b) return 1;
+    if (a == b)   return 1;
     switch (a->t) {
         case HIR_PHISET:  return (a->t == b->t) && (set_size(&a->storage.set.h) == set_size(&b->storage.set.h));     break;
         case HIR_ARGLIST: return (a->t == b->t) && (list_size(&a->storage.list.h) == list_size(&b->storage.list.h)); break;
