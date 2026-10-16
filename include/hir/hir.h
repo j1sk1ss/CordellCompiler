@@ -44,7 +44,7 @@ typedef struct {
 } hir_list_t;
 
 typedef struct {
-    uid_t               id;    /* Subject's ID            */
+    big_id_t            id;    /* Subject's ID            */
     struct hir_block*   home;  /* Home HIR block          */
     hash_t              hash;  /* Subject's hash          */
     hir_subject_type_t  t;     /* Subject's type          */

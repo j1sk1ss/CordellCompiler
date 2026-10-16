@@ -1,8 +1,8 @@
 #ifndef UTILS_H_
 #define UTILS_H_
 
-typedef unsigned long      hash_t; // hash values
-typedef unsigned long long uid_t;  // any very big value
+typedef unsigned long      hash_t;   // hash values
+typedef unsigned long long big_id_t; // any very big value
 
 /* If you have a case option which is used only under a
    condition, this macro will simplify it */

@@ -1,9 +1,9 @@
 /* cfg.c - Create CFG */
 #include <hir/cfg.h>
 
-static uid_t _unique_counter = 0;
+static big_id_t _unique_counter = 0;
 
-uid_t CFG_get_unique_counter() {
+big_id_t CFG_get_unique_counter() {
     return ++_unique_counter;
 }
 

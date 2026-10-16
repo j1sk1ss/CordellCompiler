@@ -35,7 +35,7 @@ typedef struct {
 } lir_number_t;
 
 typedef struct {
-    uid_t               lb_id;
+    big_id_t            lb_id;
 } lir_label_t;
 
 typedef struct {
@@ -48,7 +48,7 @@ typedef struct {
 } lir_list_t;
 
 typedef struct {
-    uid_t               id;
+    big_id_t            id;
     struct lir_block*   home;
     char                size;  /* Size of a subject              */
     char                dsize; /* Dereferenced size of a subject */

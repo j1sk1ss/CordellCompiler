@@ -75,7 +75,7 @@ typedef struct cfg_block {
     set_t              succ;     /* cfg_block_t* set            */
     set_t              pred;     /* cfg_block_t* set            */
     set_t              visitors; /* long id set                 */
-    uid_t              visited;
+    big_id_t           visited;
     
     /* Dominance frontier analysis */
     set_t              dom;      /* Dominators                  */
@@ -171,7 +171,7 @@ Logic returns:
 Returns 1 if traversal finished without CFG_DFS_STOP, otherwise 0 */
 #define CFG_DFS_WALK_COUNTER(head, start_pred, counter, logic, ...) ({             \
     int __cfg_dfs_result = 1;                                                      \
-    uid_t __cfg_dfs_active_counter = (counter);                                    \
+    big_id_t __cfg_dfs_active_counter = (counter);                                 \
     sstack_t __cfg_dfs_stack;                                                      \
     if (!stack_init(&__cfg_dfs_stack)) {                                           \
         __cfg_dfs_result = 0;                                                      \
@@ -239,7 +239,7 @@ Logic may mutate `state`; updated value will be copied to child frames.
 Returns 1 if traversal finished without CFG_DFS_STOP, otherwise 0 */
 #define CFG_DFS_WALK_STATE_COUNTER(head, start_pred, counter, state_type, initial_state, logic, ...) ({ \
     int __cfg_dfs_result = 1;                                                                           \
-    uid_t __cfg_dfs_active_counter = (counter);                                                         \
+    big_id_t __cfg_dfs_active_counter = (counter);                                                      \
     state_type __cfg_dfs_root_state = (initial_state);                                                  \
     sstack_t __cfg_dfs_stack;                                                                           \
     if (!stack_init(&__cfg_dfs_stack)) {                                                                \
@@ -311,7 +311,7 @@ typedef struct {
 
 /* Return a process-wide unique counter for CFG traversals.
 The zero value is reserved for blocks which haven't been visited. */
-uid_t CFG_get_unique_counter();
+big_id_t CFG_get_unique_counter();
 
 /* Perform cleanup operation for CFG blocks. Will clean all information related to navigation.
 Note: Will free and re-init all sets related to visitors, etc.
