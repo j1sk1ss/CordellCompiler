@@ -23,7 +23,7 @@ static const char* _fmt_annot_type(annotation_type_t t) {
         case ENTRY_ANNOTATION:    return "@[entry]";
         case NOFALL_ANNOTATION:   return "@[no_fall]";
         case NOTLAZY_ANNOTATION:  return "@[not_lazy]";
-        case STRAIGHT_ANNOTATION: return "@[straight]";
+        case STRAIGHT_ANNOTATION: return "@[select(straight)]";
         case COUNTER_ANNOTATION:  return "@[counter]";
         case HOT_ANNOTATION:      return "@[hot]";
         case COLD_ANNOTATION:     return "@[cold]";

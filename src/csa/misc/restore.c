@@ -308,7 +308,6 @@ static int _restore_annotation(rst_ln_ctx_t* x, int line, annotation_t* annot) {
         case NAKED_ANNOTATION:     _rst_ln_puts(x, line, NAKED_ANNOTATION_COMMAND); break;
         case NOFALL_ANNOTATION:    _rst_ln_puts(x, line, NOFAL_ANNOTATION_COMMAND); break;
         case NOTLAZY_ANNOTATION:   _rst_ln_puts(x, line, NTLAZ_ANNOTATION_COMMAND); break;
-        case STRAIGHT_ANNOTATION:  _rst_ln_puts(x, line, STRGH_ANNOTATION_COMMAND); break;
         case HOT_ANNOTATION:       _rst_ln_puts(x, line, HOTSC_ANNOTATION_COMMAND); break;
         case COLD_ANNOTATION:      _rst_ln_puts(x, line, COLDS_ANNOTATION_COMMAND); break;
         case POPARG_ANNOTATION:    _rst_ln_puts(x, line, POPRG_ANNOTATION_COMMAND); break;

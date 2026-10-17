@@ -28,7 +28,7 @@ start(i32 argc, ptr ptr i8 argv) {
 
     while i < n; {
         @[no_fall]
-        @[straight]
+        @[select(straight)]
         switch argv[1][i]; {
             case '['; {
                 l += 1;

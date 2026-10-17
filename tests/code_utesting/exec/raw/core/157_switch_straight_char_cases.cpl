@@ -4,7 +4,7 @@
 start(i64 argc, ptr ptr i8 argv) {
     i8 c = argv[1][0];
 
-    @[straight]
+    @[select(straight)]
     @[no_fall]
     switch c; {
         case 'A'; { exit 1; }

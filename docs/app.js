@@ -1534,7 +1534,7 @@ window.$docsify = {
           { label: '@[vname]', insertText: '@[vname("${1:symbol}")]', documentation: 'Set backend/linker-visible symbol name.' },
           { label: '@[like_c]', insertText: '@[like_c]', documentation: 'Use C-like container layout.' },
           { label: '@[no_fall]', insertText: '@[no_fall]', documentation: 'Make switch cases not fall through.' },
-          { label: '@[straight]', insertText: '@[straight]', documentation: 'Use linear switch generation.' },
+          { label: '@[select(straight)]', insertText: '@[select(straight)]', documentation: 'Use linear switch generation.' },
           { label: '@[counter]', insertText: '@[counter(${1:10})]', documentation: 'Counted loop annotation.' }
         ];
 

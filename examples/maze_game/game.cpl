@@ -56,7 +56,7 @@ function game::step(ptr game self, i32 input) -> i0 {
     i32 ny = self.py;
 
     @[no_fall]
-    @[straight]
+    @[select(straight)]
     switch input; {
         case 'w'; { ny -= 1; }
         case 's'; { ny += 1; }

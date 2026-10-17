@@ -1,6 +1,6 @@
 start() {
     i32 a = 1i32;
-    @[no_fall] @[straight]
+    @[no_fall] @[select(straight)]
     switch a; {
         case 1; {}
         @[fall] case 2; {}

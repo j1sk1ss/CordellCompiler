@@ -118,12 +118,22 @@ static int _generate_table_jump(case_info_t* values, int values_count, hir_subje
     return 1;
 }
 
+static inline int _select_the_best_switch_type(case_info_t* values, int values_count) {
+    int summary_gap = 0;
+    for (int i = 0; i < values_count - 1; i++) {
+        summary_gap += values[i + 1].v - values[i].v;
+    }
+
+    if (values_count < 5)               return SELECT_STRAIGHT;
+    if (summary_gap / values_count < 3) return SELECT_JTABLE;
+    if (values_count < 10)              return SELECT_STRAIGHT;
+    return SELECT_BINARY; 
+}
+
 int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     HIR_SET_CURRENT_POS(ctx, node);
-    int no_fall = 0, straight = 0, jtable = 0;
-    HAS_ANNOTATION(STRAIGHT_ANNOTATION, node, { straight = 1; });
-    HAS_ANNOTATION(NOFALL_ANNOTATION, node,   { no_fall  = 1; });
-    HAS_ANNOTATION(JTABLE_ANNOTATION, node,   { jtable   = 1; });
+    int no_fall = 0;
+    HAS_ANNOTATION(NOFALL_ANNOTATION, node, { no_fall  = 1; });
 
     ast_node_t* cond  = node->c;
     ast_node_t* cases = cond->siblings.n;
@@ -170,15 +180,28 @@ int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt
     }
 
     if (!def) def = end_lb;
-    HIR_BLOCK1(ctx, HIR_JMP, end_lb);
+    HIR_BLOCK1(ctx, HIR_JMP,  end_lb);
     HIR_BLOCK1(ctx, HIR_MKLB, cguards);
     hir_subject_t* condtmp = HIR_generate_elem(cond, ctx, smt);
 
+    int switch_type = SELECT_AUTO;
+    HAS_ANNOTATION(SWITCH_ANNOTATION, node, {
+        annotations_summary_t as;
+        ANNOT_read_annotation(annot, &as);
+        switch_type = as.switch_type;
+    })
+
+    if (switch_type == SELECT_AUTO) {
+        switch_type = _select_the_best_switch_type(cases_info, cases_count);
+    }
+
     sort_qsort(cases_info, cases_count, sizeof(case_info_t), _cmp);
-    if (jtable && cases_count) _generate_table_jump(cases_info, cases_count, condtmp, def, ctx, smt);
-    else if (straight)         _generate_sequent_jump(cases_info, cases_count, condtmp, def, ctx, smt);
-    else                       _generate_case_binary_jump(cases_info, condtmp, 0, cases_count - 1, def, ctx, smt);
-    
+    switch (switch_type) {
+        case SELECT_STRAIGHT: _generate_sequent_jump(cases_info, cases_count, condtmp, def, ctx, smt);            break;
+        case SELECT_JTABLE:   _generate_table_jump(cases_info, cases_count, condtmp, def, ctx, smt);              break;
+        default:
+        case SELECT_BINARY:   _generate_case_binary_jump(cases_info, condtmp, 0, cases_count - 1, def, ctx, smt); break;
+    }
 
     HIR_BLOCK1(ctx, HIR_MKLB, end_lb);
     return 1;

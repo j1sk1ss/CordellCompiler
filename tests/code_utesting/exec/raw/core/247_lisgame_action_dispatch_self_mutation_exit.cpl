@@ -32,7 +32,7 @@ function tiny_game::init(ptr tiny_game self) -> i0 {
 
 function tiny_game::step(ptr tiny_game self, i32 input) -> i0 {
     @[no_fall]
-    @[straight]
+    @[select(straight)]
     switch input; {
         case 'p'; { self.actions[0](self); }
         case 'w'; { self.actions[1](self); }

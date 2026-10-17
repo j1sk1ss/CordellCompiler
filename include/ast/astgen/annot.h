@@ -1,6 +1,7 @@
 #ifndef ANNOT_H_
 #define ANNOT_H_
 
+#include <utils.h>
 #include <std/mm.h>
 #include <std/str.h>
 #include <std/stack.h>
@@ -19,8 +20,6 @@
 #define NOFAL_ANNOTATION_COMMAND "no_fall"
 #define FALLC_ANNOTATION_COMMAND "fall"
 #define NTLAZ_ANNOTATION_COMMAND "not_lazy"
-#define STRGH_ANNOTATION_COMMAND "straight"
-#define JTABL_ANNOTATION_COMMAND "jtable"
 #define COUNT_ANNOTATION_COMMAND "counter"
 #define HOTSC_ANNOTATION_COMMAND "hot"
 #define COLDS_ANNOTATION_COMMAND "cold"
@@ -35,6 +34,18 @@
 #define ABSTR_ANNOTATION_COMMAND "abstract"
 #define OVERD_ANNOTATION_COMMAND "override"
 #define TESTF_ANNOTATION_COMMAND "test"
+
+#define SWTCH_ANNOTATION_COMMAND "select" /* select(auto), select(binary), select(jtable), ... */
+#define SWTCH_STRAIGHT_OPTION    "straight"
+#define SWTCH_BINARY_OPTION      "binary"
+#define SWTCH_JTABLE_OPTION      "jtable"
+#define SWTCH_MODEL_OPTION       "model"
+#define SWTCH_AUTO_OPTION        "auto"
+#define SELECT_STRAIGHT          1
+#define SELECT_BINARY            2
+#define SELECT_JTABLE            3
+#define SELECT_MODEL             4
+#define SELECT_AUTO              5
 
 #define INLNE_ANNOTATION_COMMAND "inline" /* inline / inline(always) / inline(never) */
 #define INLNE_YES_OPTION         "always"
@@ -77,9 +88,10 @@ typedef struct {
 
 typedef struct {
     string_t*               section;
-    int                     salign;    /* Section's align */
+    int                     salign;      /* Section's align */
     string_t*               fname;
-    int                     do_inline; /* 1 - strongly yes, 2 - strongly no, 3 - increase inline chance */
+    int                     do_inline;   /* 1 - strongly yes, 2 - strongly no, 3 - increase inline chance */
+    int                     switch_type; /* 1 - binary, 2 - jtable, 3 - straight, 4 - auto                */
     int                     align;
     annotation_counter_t    counter;
     short                   reg;
@@ -91,8 +103,6 @@ typedef struct {
     char                    is_nofall   : 1;
     char                    is_fall     : 1;
     char                    is_notlazy  : 1;
-    char                    is_straight : 1;
-    char                    is_jtable   : 1;
     char                    is_hot      : 1;
     char                    is_cold     : 1;
     char                    is_argpop   : 1;
@@ -112,36 +122,48 @@ typedef struct {
 
 typedef enum {
     UNKNOWN_ANNOTATION,
+    /* variables, functions, containers */
     ALIGN_ANNOTATION,     /* Set the align of a declaration                 */
+
+    /* variables, functions */
     SECTION_ANNOTATION,   /* Put a declration or function to a section      */
     NOSECTION_ANNOTATION, /* Put a declaration or function out a sec        */
-    NAKED_ANNOTATION,     /* Don't unpack START, FDECL                      */
-    ENTRY_ANNOTATION,     /* Is this an entry function?                     */
-    NOFALL_ANNOTATION,    /* switch with a break as a default command       */
-    FALL_ANNOTATION,      /* case will disable no_fall for itself           */
-    NOTLAZY_ANNOTATION,   /* && and || with full evaluation                 */
-    STRAIGHT_ANNOTATION,  /* switch based on if-elseif-else                 */
-    JTABLE_ANNOTATION,    /* switch based on a jump table                  */
-    COUNTER_ANNOTATION,   /* hidden counter-break instructure               */
-    HOT_ANNOTATION,       /* Will make the linked else branch cold          */
-    COLD_ANNOTATION,      /* Will make the linked then branch hot           */
+    
+    /* containers */
+    LIKEC_ANNOTATION,     /* Will tell container to generate C offsets      */
+    UNION_ANNOTATION,     /* Will tell container to store fields union      */
+    VTABLE_ANNOTATION,    /* Will enable vtable in a container              */
+
+    /* variables */
     REGISTER_ANNOTATION,  /* Will link the selected register to a decl      */
     POPARG_ANNOTATION,    /* Will pop value from the stack to a linked      */
     POPREG_ANNOTATION,    /* Will load value from a specific register       */
+    VOLATILE_ANNOTATION,  /* Will mark variable as a important variable     */
+    NOTNULL_ANNOTATION,   /* Will mark a variable as a not Null variable    */
+
+    /* functions */
+    NAKED_ANNOTATION,     /* Don't unpack START, FDECL                      */
+    ENTRY_ANNOTATION,     /* Is this an entry function?                     */
     INLINE_ANNOTATION,    /* Will change inline decider result              */
     SELF_ANNOTATION,      /* Will tell devirt that a function is static     */
-    LIKEC_ANNOTATION,     /* Will tell container to generate C offsets      */
-    UNION_ANNOTATION,     /* Will tell container to store fields union      */
-    WEAK_ANNOTATION,      /* Will mark a function as weak                   */
     ABI_ANNOTATION,       /* Will mark a function as ABI-compatible         */
+    WEAK_ANNOTATION,      /* Will mark a function as weak                   */
     ONLYBODY_ANNOTATION,  /* Will say that the function is just a container */
     VNAME_ANNOTATION,     /* Will set a vartial name for a function         */
-    NOTNULL_ANNOTATION,   /* Will mark a variable as a not Null variable    */
-    VOLATILE_ANNOTATION,  /* Will mark variable as a important variable     */
-    VTABLE_ANNOTATION,    /* Will enable vtable in a container              */
     ABSTRACT_ANNOTATION,  /* Will mark a method as an abstract method       */
     OVERRIDE_ANNOTAITON,  /* Will mark function as an override for somebody */
     TESTF_ANNOTATION,     /* Will mark function as a test function          */
+
+    /* switch */
+    NOFALL_ANNOTATION,    /* switch with a break as a default command       */
+    FALL_ANNOTATION,      /* case will disable no_fall for itself           */
+    SWITCH_ANNOTATION,    /* Choose which type of logic is used in a switch */
+    
+    /* expressions */
+    NOTLAZY_ANNOTATION,   /* && and || with full evaluation                 */
+    COUNTER_ANNOTATION,   /* hidden counter-break instructure               */
+    HOT_ANNOTATION,       /* Will make the linked else branch cold          */
+    COLD_ANNOTATION,      /* Will make the linked then branch hot           */
 } annotation_type_t;
 
 typedef struct {
@@ -154,11 +176,13 @@ typedef struct {
             int              align;
         } section;                       /* SECTION_ANNOTATION   */
         string_t*            inline_opt; /* INLINE_ANNOTATION    */
+        string_t*            switch_sel; /* SWITCH_ANNOTATION    */
         annotation_counter_t counter;    /* COUNTER_ANNOTATION   */
         short                regval;     /* REGISTER_ANNOTATION  */
     } data;
 } annotation_t;
 
+int           ANNOT_read_annotation(annotation_t* annot, annotations_summary_t* summary);
 int           ANNOT_read_annotations(sstack_t* annots, annotations_summary_t* summary);
 int           ANNOT_destroy_summary(annotations_summary_t* summray);
 annotation_t* ANNOT_create_annotation(annotation_type_t t, annotation_param_t* fp, annotation_param_t* sp);

@@ -27,7 +27,7 @@ function route_name(i8 rewound) -> ptr i8 {
 }
 
 function route_name(i32 scene_id) -> ptr i8 {
-    @[straight]
+    @[select(straight)]
     switch scene_id; {
         case 0; { return ref "Blackwell bathroom"; }
         case 1; { return ref "Parking lot";        }
@@ -73,7 +73,7 @@ function copy_timeline(ptr timeline dst, ptr timeline src) -> i0 {
 }
 
 function current_scene_title(ptr lis_game self) -> ptr i8 {
-    @[straight]
+    @[select(straight)]
     switch self.now.scene; {
         case 0; { return self.scenes[0].title; }
         case 1; { return self.scenes[1].title; }
@@ -84,7 +84,7 @@ function current_scene_title(ptr lis_game self) -> ptr i8 {
 }
 
 function current_scene_clue(ptr lis_game self) -> ptr i8 {
-    @[straight]
+    @[select(straight)]
     switch self.now.scene; {
         case 0; { return self.scenes[0].clue; }
         case 1; { return self.scenes[1].clue; }
@@ -95,7 +95,7 @@ function current_scene_clue(ptr lis_game self) -> ptr i8 {
 }
 
 function current_scene_focus(ptr lis_game self) -> i32 {
-    @[straight]
+    @[select(straight)]
     switch self.now.scene; {
         case 0; { return self.scenes[0].focus; }
         case 1; { return self.scenes[1].focus; }
@@ -106,7 +106,7 @@ function current_scene_focus(ptr lis_game self) -> i32 {
 }
 
 function current_scene_empathy(ptr lis_game self) -> i32 {
-    @[straight]
+    @[select(straight)]
     switch self.now.scene; {
         case 0; { return self.scenes[0].empathy; }
         case 1; { return self.scenes[1].empathy; }
@@ -117,7 +117,7 @@ function current_scene_empathy(ptr lis_game self) -> i32 {
 }
 
 function current_scene_danger(ptr lis_game self) -> i32 {
-    @[straight]
+    @[select(straight)]
     switch self.now.scene; {
         case 0; { return self.scenes[0].danger; }
         case 1; { return self.scenes[1].danger; }
@@ -128,7 +128,7 @@ function current_scene_danger(ptr lis_game self) -> i32 {
 }
 
 function current_scene_solved(ptr lis_game self) -> i8 {
-    @[straight]
+    @[select(straight)]
     switch self.now.scene; {
         case 0; { return self.scene_done[0]; }
         case 1; { return self.scene_done[1]; }
@@ -140,7 +140,7 @@ function current_scene_solved(ptr lis_game self) -> i8 {
 
 function mark_current_scene_solved(ptr lis_game self) -> i0 {
     @[no_fall]
-    @[straight]
+    @[select(straight)]
     switch self.now.scene; {
         case 0; { self.scene_done[0] = 1; }
         case 1; { self.scene_done[1] = 1; }
@@ -281,7 +281,7 @@ function lis_game::step(ptr lis_game self, i32 input) -> i0 {
     }
 
     @[no_fall]
-    @[straight]
+    @[select(straight)]
     switch input; {
         case 'p'; { self.actions[0](self); }
         case 't'; { self.actions[1](self); }

@@ -757,7 +757,7 @@ int ASTWLKR_inefficient_switch(AST_VISITOR_ARGS) {
 
     if (case_count < 10 && !has_annot) {
         SEMANTIC_WARNING(
-            " %s Switch statement here has '%i' cases and uses the binary search. Consider to add @[straight].", 
+            " %s Switch statement here has '%i' cases and uses the binary search. Consider to add @[select(straight)].", 
             _format_location(&nd->t->finfo), case_count
         );
         REBUILD_CODE_1TRG(nd, nd);
@@ -765,7 +765,7 @@ int ASTWLKR_inefficient_switch(AST_VISITOR_ARGS) {
     }
     else if (case_count > 10 && has_annot) {
         SEMANTIC_WARNING(
-            " %s Switch statement here has '%i' cases and uses the straight search. Consider to remove @[straight].", 
+            " %s Switch statement here has '%i' cases and uses the straight search. Consider to remove @[select(straight)].", 
             _format_location(&nd->t->finfo), case_count
         );
         REBUILD_CODE_1TRG(nd, nd);

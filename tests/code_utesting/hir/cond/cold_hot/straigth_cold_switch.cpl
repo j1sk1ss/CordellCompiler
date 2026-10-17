@@ -1,6 +1,6 @@
 start() {
     @[no_fall]
-    @[straight]
+    @[select(straight)]
     switch 1; {
         @[cold] case 1; { exit 1; }
         @[cold] case 2; { exit 2; }

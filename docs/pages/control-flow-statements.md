@@ -98,4 +98,4 @@ switch code; {
 }
 ```
 
-By default, `switch` is generated through a binary-search-style decision tree. Use `@[straight]` to request linear case selection.
+By default, `switch` is generated through a binary-search-style decision tree. Use `@[select(straight)]` to request linear case selection.

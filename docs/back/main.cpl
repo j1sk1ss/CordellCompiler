@@ -28,7 +28,7 @@ function response_write_json_string(ptr http_response res, ptr i8 text) -> i0 {
 
     if text; {
         while dref text; {
-            @[straight] @[no_fall]
+            @[select(straight)] @[no_fall]
             switch dref text; {
                 case '"';  { response_write_str(res, ref "\\\""); }
                 case '\\'; { response_write_str(res, ref "\\\\"); }

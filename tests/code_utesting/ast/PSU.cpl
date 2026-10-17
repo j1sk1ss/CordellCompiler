@@ -9,7 +9,7 @@ function main(i32 argc, ptr ptr i8 argv) -> i8 {
     }
 
     @[no_fall]
-    @[straight]
+    @[select(straight)]
     switch argc; {
         case 1; {
             printf(ref "The first argument is %s\n", argv[0]);

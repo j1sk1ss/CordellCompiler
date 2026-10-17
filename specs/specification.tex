@@ -308,7 +308,7 @@ Annotation & Purpose & Example & Maturity \\
 \texttt{nosection}         & Emit a declaration without an explicit section directive. & \texttt{@[nosection] glob function f()} & stable \\
 \texttt{entry}             & Mark a function as an entry point. & \texttt{@[entry("\_start")]} & stable \\
 \texttt{no\_fall}          & Insert break-like behavior in switch cases. & \texttt{@[no\_fall] switch x;} & stable \\
-\texttt{straight}          & Use linear switch selection. & \texttt{@[straight] switch x;} & stable \\
+\texttt{straight}          & Use linear switch selection. & \texttt{@[select(straight)] switch x;} & stable \\
 \texttt{counter}           & Generate a counted loop. & \texttt{@[counter(100)] loop} & stable \\
 \texttt{hot}/\texttt{cold} & Influence branch layout. & \texttt{@[cold] if cond;} & stable \\
 \texttt{register}          & Bind a primitive variable to a register index. & \texttt{@[register(RAX)] i32 x;} & stable \\

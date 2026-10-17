@@ -1,7 +1,7 @@
 start() {
     i32 tag;
     @[no_fall]
-    @[straight]
+    @[select(straight)]
     switch tag; {
         case 1; { exit 1; }
         default { exit 0; }

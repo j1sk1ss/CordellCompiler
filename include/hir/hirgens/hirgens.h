@@ -26,7 +26,10 @@ hir_subject_t* HIR_gdref_subject(hir_subject_t* src, sym_table_t* smt, hir_ctx_t
    Params:
         - `t` - Target annotation Type.
         - `nd` - Source node.
-        - `act` - Action if the annotation found */
+        - `act` - Action if the annotation found 
+        
+    P.S.: Use 'annot':annotation_t* to have access to
+          the annotation. */
 #define HAS_ANNOTATION(type, nd, act)            \
     foreach (annotation_t* annot, &nd->annots) { \
         if (annot->t == type) { act; break; }    \

@@ -7,7 +7,7 @@ start() {
     ptr i32 a = 0xB8400;
     ptr i32 b = 0xB8400;
     @[no_fall]
-    @[straight]
+    @[select(straight)]
     switch 1; {
         case 1; { 
             a = foo(10);

@@ -3,7 +3,7 @@ function bar();
 function baz();
 start() {
     i32 a = 1;
-    @[no_fall] @[straight]
+    @[no_fall] @[select(straight)]
     switch a; {
         case 1; foo();
         case 2; {

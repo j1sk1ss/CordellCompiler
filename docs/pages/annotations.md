@@ -37,7 +37,7 @@ The parser accepts `@[name]`, `@[name(value / variable)]` and `@[name(value / va
 | `@[like_c]`                                   | container                                                        | use C-like field layout handling instead of the requested CPL alignment value                      |
 | `@[union]`                                    | container                                                        | lay out all fields at offset zero and allocate enough memory for the largest field                 |
 | `@[no_fall]`                                  | `switch`                                                         | make switch cases behave as if they end with `break`                                               |
-| `@[straight]`                                 | `switch`                                                         | force linear switch selection                                                                      |
+| `@[select(straight)]`                                 | `switch`                                                         | force linear switch selection                                                                      |
 | `@[counter(N, STP)]`                          | `loop`                                                           | generate a counted loop where 'STP' is optional                                                    |
 | `@[hot]`                                      | `if`                                                             | make the false branch cold for layout                                                              |
 | `@[cold]`                                     | `if` or switch `case`                                            | make the true branch, or the annotated case, cold for layout                                       |
@@ -157,10 +157,10 @@ switch code; {
 }
 ```
 
-`@[straight]` asks the compiler to use a linear search instead of the default binary-search-style generation:
+`@[select(straight)]` asks the compiler to use a linear search instead of the default binary-search-style generation:
 
 ```cpl
-@[straight] @[no_fall]
+@[select(straight)] @[no_fall]
 switch code; {
     case 1; { putc('1'); }
     default { putc('?'); }

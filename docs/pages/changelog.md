@@ -3,6 +3,21 @@ Logs for the first and second versions are quite short because I do not remember
 
 ----------------------------------------
 
+## New switch annotation
+<div class="change-date">Date: 2026-10-17</div>
+Refactored the switch-related annotations:
+
+```cpl
+@[select(straight)] switch a; {
+    case b; {}
+    case c; {}
+    case d; {}
+    default {}
+}
+```
+
+Also add the `@[select(auto)]`. The compiler will decide which annotation will be used.
+
 ## Successors and Jump tables
 <div class="change-date">Date: 2026-10-15</div>
 The compiler now supports `@[jtable]` annotation for switches. Actually - this is the fastest way to jump to a case. To use it, just add an annotation:
@@ -364,7 +379,7 @@ Switches can now be compact, especially with annotations:
 ```cpl
 function foo(i32 b) -> i0 {
     i32 a;
-    @[no_fall] @[straight]
+    @[no_fall] @[select(straight)]
     switch b; {
         case 1; a = 1;
         case 2; a = 2;
@@ -875,7 +890,7 @@ start(i32 argc, ptr ptr i8 argv) {
     i32 codelength = strlen(argv[1]);
     while pos < codelength; {
         @[no_fall]
-        @[straight]
+        @[select(straight)]
         switch argv[1][pos]; {
             case '['; {
                 stack[stackptr] = pos;
