@@ -21,8 +21,8 @@ typedef struct {
     signed char vargs;    /* sys       */
     signed char generic;  /* sys       */
     signed char self;     /* annot     */
-    signed char naked;    /* 1 / 0   */ /* annot */
-    signed char inln;     /* 1, 2, 3 */ /* annot */
+    signed char naked;    /* 2 / 1 / 0 */ /* annot */ /* 2 - semi-naked, 1 - full-naked, 0 - not-naked */
+    signed char inln;     /* 1, 2, 3 */   /* annot */
     signed char onlybody; /* annot     */
     signed char vname;    /* annot     */
     signed char abstract; /* annot     */

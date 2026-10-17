@@ -1,0 +1,17 @@
+: RUN_ASM :
+function leaf(ptr i32 p) -> i32 {
+    dref p
+}
+
+function local() -> i32 {
+    i32 n = 42;
+    leaf(ref n)
+}
+
+start() {
+    exit (local()) as u8;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

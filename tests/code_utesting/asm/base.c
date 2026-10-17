@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
     LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel); // Transform
 
     register_saver_t reg_save = { .save_registers = x86_64_gnu_nasm_caller_saving };
-    LIR_save_registers(&cfgctx, &callctx, &smt, &reg_save);
+    LIR_save_registers(&cfgctx, &smt, &reg_save);
     LIR_clear_global_variables(&cfgctx, &smt);
 
     asm_gen_t asmgen = { .generator = x86_64_gnu_nasm_generate_asm };

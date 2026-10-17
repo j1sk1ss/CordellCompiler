@@ -438,7 +438,7 @@ static inline int _has_stack_alignment_fix(cfg_block_t* bb, lir_block_t* lh) {
     return _esp_adjustment_value(pre, LIR_iSUB) == 4;
 }
 
-#define IS_REGULAR_FCALL(lh) (lh && (lh->op == LIR_ECLL || lh->op == LIR_FCLL) && lh->farg && lh->farg->t == LIR_FNAME)
+#define IS_REGULAR_FCALL(lh) (lh && (lh->op == LIR_ECLL || lh->op == LIR_FCLL || LIR_is_tailcall(lh)) && lh->farg && lh->farg->t == LIR_FNAME)
 
 static inline int _call_is_abi(lir_block_t* lh, sym_table_t* smt) {
     func_info_t fi;

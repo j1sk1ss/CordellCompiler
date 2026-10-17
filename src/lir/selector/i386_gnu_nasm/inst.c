@@ -177,17 +177,19 @@ static cfg_dfs_action_t _instruction_selection_block(
                 lh->op   = nop;
                 break;
             }
+            case LIR_JMP: if (!LIR_is_tailcall(lh)) break;
+                          __attribute__ ((fallthrough));
             case LIR_EXITOP:
             case LIR_FEND:
             case LIR_FRET: {
-                if (lh->farg && lh->op != LIR_FEND) {
+                if (lh->farg && lh->op != LIR_FEND && !LIR_is_tailcall(lh)) {
                     lir_subject_t* a = i386_gnu_nasm_create_tmp(lh->op == LIR_FRET ? EAX : EBX, lh->farg, smt, -1);
                     _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->farg, NULL), lh);
                     lh->farg = a;
                 }
 
                 if (
-                    (lh->op == LIR_FRET || lh->op == LIR_FEND) &&
+                    (lh->op == LIR_FRET || lh->op == LIR_FEND || LIR_is_tailcall(lh)) &&
                     fi->flags.abi && !fi->flags.entry &&
                     !set_has(&ctx->callee_restored_blocks, bb)
                 ) {

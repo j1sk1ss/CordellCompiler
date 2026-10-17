@@ -87,7 +87,15 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_NEG:        EMIT_COMMAND("not %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                        break;
         case LIR_INC:        EMIT_COMMAND("inc %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                        break;
         case LIR_DEC:        EMIT_COMMAND("dec %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                        break;
-        case LIR_JMP:        EMIT_COMMAND("jmp %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                        break;
+        case LIR_JMP: {
+            if (LIR_is_tailcall(b) && !fi->flags.naked) {
+                EMIT_COMMAND("mov rsp, rbp");
+                EMIT_COMMAND("pop rbp");
+            }
+            
+            EMIT_COMMAND("jmp %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));
+            break;
+        }
         case LIR_JE:         EMIT_COMMAND("je %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                         break;
         case LIR_JLE:        EMIT_COMMAND("jle %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                        break;
         case LIR_JNE:        EMIT_COMMAND("jne %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));                                                                        break;

@@ -1,0 +1,28 @@
+function leaf(i32 a, i32 b) -> i32 {
+    a - b
+}
+
+function tail(i32 a, i32 b) -> i32 {
+    leaf(b, a)
+}
+
+:/ OUTPUT
+BB2:
+fn leaf0(i32 a, i32 b) -> i32
+%0 = ldparam();
+%1 = ldparam();
+%4 = %0 - %1;
+return %4;
+BB3:
+fn tail1(i32 a, i32 b) -> i32
+%2 = ldparam();
+%3 = ldparam();
+use %3;
+use %2;
+stparam(%2);
+stparam(%3);
+jmp leaf0(i32 a, i32 b) -> i32;
+[unused]
+[unused]
+[unused] fend
+/:

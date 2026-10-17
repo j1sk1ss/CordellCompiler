@@ -18,6 +18,7 @@
         "src/hir/func/*.c",
         "src/hir/loop/*.c",
         "src/lir/*.c",
+        "src/lir/func/*.c",
         "src/lir/copyprop/*.c",
         "src/lir/lirgen/*.c",
         "src/lir/lirgen/misc/*.c",

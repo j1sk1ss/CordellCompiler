@@ -190,12 +190,12 @@ Params:
     - `out` - Output function information.
     - `smt` - Symtable.
 
-Returns 1 if a following named call was found and resolved, otherwise 0. */
+Returns 1 for a resolved call, 2 for a tail call, otherwise 0. */
 static int _get_call_info(lir_block_t* arg, cfg_block_t* bb, func_info_t* out, sym_table_t* smt) {
     for (lir_block_t* curr = arg->next; curr; curr = LIR_get_next(curr, bb->lmap.exit, 1)) {
-        if (curr->op != LIR_FCLL && curr->op != LIR_ECLL) continue;
+        if (curr->op != LIR_FCLL && curr->op != LIR_ECLL && !LIR_is_tailcall(curr)) continue;
         if (!curr->farg || curr->farg->t != LIR_FNAME) return 0;
-        return FNTB_get_info_id(curr->farg->storage.str.sid, out, &smt->f);
+        return FNTB_get_info_id(curr->farg->storage.str.sid, out, &smt->f) ? 1 + LIR_is_tailcall(curr) : 0;
     }
 
     return 0;
@@ -280,7 +280,8 @@ static cfg_dfs_action_t _instruction_selection_block(
             }
             case LIR_STFARG: {
                 func_info_t callee;
-                if (!_get_call_info(lh, bb, &callee, smt)) callee = *fi;
+                int call_kind = _get_call_info(lh, bb, &callee, smt);
+                if (!call_kind) callee = *fi;
                 abi_argument_t target;
                 if (!_get_abi_argument(lh->sarg->storage.cnst.value, lh->farg, &target, &callee, smt)) {
                     lh->op = LIR_PUSH;
@@ -288,8 +289,11 @@ static cfg_dfs_action_t _instruction_selection_block(
                 }
                 else {
                     lir_subject_t* nfarg = x86_64_macho_nasm_create_tmp(target.reg, lh->farg, smt, -1);
-                    LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(target.reg, CONF_get_full_bytness()), NULL, NULL), lh);
-                    queue_push(dirty_regs, (void*)((long)target.reg));
+                    if (call_kind != 2) {
+                        LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(target.reg, CONF_get_full_bytness()), NULL, NULL), lh);
+                        queue_push(dirty_regs, (void*)((long)target.reg));
+                    }
+
                     LIR_unload_subject(lh->sarg);
                     lh->op   = LIR_aMOV;
                     lh->sarg = lh->farg;
@@ -363,17 +367,19 @@ static cfg_dfs_action_t _instruction_selection_block(
                 lh->op   = nop;
                 break;
             }
+            case LIR_JMP: if (!LIR_is_tailcall(lh)) break;
+                          __attribute__ ((fallthrough));
             case LIR_EXITOP:
             case LIR_FEND:
             case LIR_FRET: {
-                if (lh->farg && lh->op != LIR_FEND) {
+                if (lh->farg && lh->op != LIR_FEND && !LIR_is_tailcall(lh)) {
                     lir_subject_t* a = x86_64_macho_nasm_create_tmp(lh->op == LIR_FRET ? RAX : RDI, lh->farg, smt, -1);
                     _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->farg, NULL), lh);
                     lh->farg = a;
                 }
 
                 if (
-                    (lh->op == LIR_FRET || lh->op == LIR_FEND) &&
+                    (lh->op == LIR_FRET || lh->op == LIR_FEND || LIR_is_tailcall(lh)) &&
                     fi->flags.abi && !fi->flags.entry &&
                     !set_has(&ctx->callee_restored_blocks, bb)
                 ) {

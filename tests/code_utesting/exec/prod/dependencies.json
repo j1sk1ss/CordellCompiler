@@ -20,6 +20,7 @@
         "src/hir/dag/*.c",
         "src/hir/constfold/*.c",
         "src/lir/*.c",
+        "src/lir/func/*.c",
         "src/lir/dfg/*.c",
         "src/lir/lirgen/*.c",
         "src/lir/lirgen/misc/*.c",

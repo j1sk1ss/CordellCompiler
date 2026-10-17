@@ -42,6 +42,7 @@
 
 /* HLIR generation                               */
 #include <lir/lirgen.h>
+#include <lir/func.h>
 #include <lir/lirgens/lirgens.h>
 #include <lir/dump.h>
 
@@ -84,7 +85,7 @@
 #include <symtab/dump.h>
 
 #include <gem_data.h>
-#define CCPL_VERSION                 "3.8.14:1510.26" // major.minor<.patch> (old version style):ddmm.yy (new version style)
+#define CCPL_VERSION                 "3.8.15:1710.26" // major.minor<.patch> (old version style):ddmm.yy (new version style)
 #define CCPL_SPLASH                  "Interfaces and abstractions!" // NULL / Related to the version splash
 /* Version logic is next: We have the old style and the new style:
     - Old style is a default version semantics - major-minor-patch style, where major is incremented when
@@ -159,6 +160,8 @@ according you system requirements. */
 #define OPTION_QUART_BYTNESS         "--quart-bytness"
 #define OPTION_EIGHT_BYTNESS         "--eight-bytness"
 #define OPTION_SYS_TYPE              "--sys-type"
+#define OPTION_TCO                   "--tco"
+#define OPTION_NO_TCO                "--no-tco"
 #define OPTION_TRE                   "--tre"
 #define OPTION_NO_TRE                "--no-tre"
 #define OPTION_FINLINE               "--finline"
@@ -237,6 +240,7 @@ typedef struct {
         long         quart_bytness;
         long         eight_bytness;
         arch_type_t  sys_type;
+        int          tco                  : 1;
         int          tre                  : 1;
         int          finline              : 1;
         int          z3opt                : 1;
@@ -325,6 +329,8 @@ static inline int _print_help_message() {
         { OPTION_NO_COPYPROP,                                 NULL,           "Disable LIR copy propagation"                                                  },
         { OPTION_PEEPHOLE,                                    NULL,           "Enable peephole optimization"                                                  },
         { OPTION_NO_PEEPHOLE,                                 NULL,           "Disable peephole optimization"                                                 },
+        { OPTION_TCO,                                         NULL,           "Enable tail call optimization"                                                 },
+        { OPTION_NO_TCO,                                      NULL,           "Disable tail call optimization"                                                },
         { OPTION_TRE,                                         NULL,           "Enable TRE"                                                                    },
         { OPTION_NO_TRE,                                      NULL,           "Disable TRE"                                                                   }
     };

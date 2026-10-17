@@ -508,11 +508,11 @@ Params:
     - `op` - LIR operation to inspect.
 
 Returns 1 when all register facts must be dropped */
-static inline int _register_facts_clobbered_by_op(lir_operation_t op) {
-    switch (op) {
-        case LIR_FCLL: case LIR_ECLL: case LIR_SYSC:
+static inline int _register_facts_clobbered_by_op(lir_block_t* ll) {
+    switch (ll->op) {
+        case LIR_FCLL: case LIR_ECLL:   case LIR_SYSC:
         case LIR_RAW:  case LIR_RAWASM: return 1;
-        default:                        return 0;
+        default:                        return LIR_is_tailcall(ll); // special-case
     }
 }
 
@@ -572,7 +572,7 @@ Returns 1 if succeeds */
 static int _transfer_register_instruction(lir_block_t* lh, map_t* state) {
     if (!lh || lh->unused) return 1;
 
-    if (_register_facts_clobbered_by_op(lh->op)) {
+    if (_register_facts_clobbered_by_op(lh)) {
         _map_clear_subjects(state);
         return 1;
     }

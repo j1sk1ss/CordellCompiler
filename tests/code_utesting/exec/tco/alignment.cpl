@@ -1,0 +1,27 @@
+: ASM_ARCH=x86_64_nasm_gnu,x86_64_nasm_macho :
+: RUN_ASM :
+@[abi]
+function leaf() -> i64 {
+    i64 alignment = 0;
+    asm(alignment) {
+        "mov %0, rbp",
+        "and %0, 15"
+    }
+    alignment
+}
+
+function tail() -> i64 {
+    leaf()
+}
+
+function chain() -> i64 {
+    tail()
+}
+
+start() {
+    exit (chain()) as u8;
+}
+
+:/ OUTPUT
+@exit_code=0
+/:
