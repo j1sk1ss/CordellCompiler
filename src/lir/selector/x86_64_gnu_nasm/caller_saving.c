@@ -41,7 +41,7 @@ _unknown_call: {}
     }
 }
 
-static unsigned long long _visit_counter = 0;
+static big_id_t _visit_counter = 0;
 
 static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_t* bbh, lir_block_t* off);
 
@@ -50,7 +50,7 @@ static void _collect_local_out_function_reg_usage(set_t* dirty, set_t* save, cfg
     lir_block_t* lh = off ? off : bbh->lmap.entry;
     while (lh) {
         if (
-            LIR_is_writeop(lh->op) &&
+            LIR_is_writeop(lh->op)      &&
             lh->farg->t == LIR_REGISTER &&
             !LIR_subj_equals(lh->farg, lh->sarg)
         ) set_remove(dirty, (void*)LIR_format_register(lh->farg->storage.reg.reg, CONF_get_full_bytness()));

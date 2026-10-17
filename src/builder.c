@@ -1054,6 +1054,7 @@ int main(int argc, char* argv[]) {
                 close(fd);
                 return 1;
             }
+            
             if (unrolled) {
                 HIR_LTREE_unload_ctx(&lctx);
                 RELOAD_CFG;

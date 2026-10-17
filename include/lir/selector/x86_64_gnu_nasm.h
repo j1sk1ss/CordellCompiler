@@ -2,18 +2,20 @@
 #ifndef INSTSEL_X86_64_GNU_NASM_LINUX_
 #define INSTSEL_X86_64_GNU_NASM_LINUX_
 
+#include <utils.h>
+
 #include <std/map.h>
 #include <std/list.h>
 #include <std/queue.h>
 #include <std/stackmap.h>
 
-#include <lir/lir.h>
-#include <lir/lirgens/lirgens.h>
-
 #include <symtab/symtab.h>
 #include <prep/token_types.h>
 #include <hir/cfg.h>
 #include <hir/func.h>
+
+#include <lir/lir.h>
+#include <lir/lirgens/lirgens.h>
 
 /*
 Create a temporary virtual variable that is linked to a physical register. 
