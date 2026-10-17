@@ -1,0 +1,16 @@
+: RUN_ASM :
+function sub(i32 a, i32 b) -> i32 {
+    a - b
+}
+
+function tail(i32 a, i32 b) -> i32 {
+    sub(b, a)
+}
+
+start() {
+    exit (tail(12, 54)) as u8;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

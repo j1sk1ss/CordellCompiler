@@ -1,0 +1,33 @@
+: RUN_ASM :
+function number() -> i32 { 5 }
+
+function leaf() -> i32 {
+    i32 n = number();
+    i32 a = n + 3;
+    i32 b = n * 7;
+    a + b
+}
+
+function tail() -> i32 {
+    leaf()
+}
+
+function chain() -> i32 {
+    tail()
+}
+
+function caller(i32 n) -> i32 {
+    i32 a = n + 11;
+    i32 b = n + 22;
+    i32 c = n + 33;
+    i32 d = chain();
+    a + b + c + d
+}
+
+start() {
+    exit (caller(5)) as u8;
+}
+
+:/ OUTPUT
+@exit_code=124
+/:

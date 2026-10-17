@@ -522,7 +522,7 @@ static long _post_call_stack_arg_cleanup(lir_block_t* call, long* save_bytes, li
     return arg_bytes;
 }
 
-#define IS_REGULAR_FCALL(lh) (lh && (lh->op == LIR_ECLL || lh->op == LIR_FCLL) && lh->farg && lh->farg->t == LIR_FNAME)
+#define IS_REGULAR_FCALL(lh) (lh && (lh->op == LIR_ECLL || lh->op == LIR_FCLL || LIR_is_tailcall(lh)) && lh->farg && lh->farg->t == LIR_FNAME)
 
 static inline int _call_is_abi(lir_block_t* lh, sym_table_t* smt) {
     func_info_t fi;

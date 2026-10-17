@@ -1,0 +1,17 @@
+function leaf() {}
+
+function tail() {
+    leaf();
+}
+
+:/ OUTPUT
+BB2:
+fn leaf0()
+fend
+BB3:
+fn tail1()
+jmp leaf0();
+[unused]
+[unused]
+[unused] fend
+/:

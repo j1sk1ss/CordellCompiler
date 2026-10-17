@@ -365,6 +365,7 @@ static int _parse_sys_type(const char* s, options_t* out) {
 
 static void _set_optimization_profile(options_t* out, int level) {
     if (!out) return;
+    out->config.tco           = 0;
     out->config.tre           = 0;
     out->config.finline       = 0;
     out->config.licm          = 0;
@@ -383,6 +384,7 @@ static void _set_optimization_profile(options_t* out, int level) {
     if (level >= 3) {
         out->config.z3opt     = 1;
         out->config.copy_prop = 1;
+        out->config.tco       = 1;
         out->config.tre       = 1;
         out->config.finline   = 1;
     }
@@ -720,6 +722,8 @@ static int _parse_input_args(char* argv[], int argc, options_t* out) {
             if (i + 1 >= argc || !_parse_sys_type(argv[i + 1], out)) goto _fail;
             i++;
         }
+        else if (!strcmp(argv[i], OPTION_TCO))                  out->config.tco         = 1;
+        else if (!strcmp(argv[i], OPTION_NO_TCO))               out->config.tco         = 0;
         else if (!strcmp(argv[i], OPTION_TRE))                  out->config.tre         = 1;
         else if (!strcmp(argv[i], OPTION_NO_TRE))               out->config.tre         = 0;
         else if (!strcmp(argv[i], OPTION_FINLINE))              out->config.finline     = 1;
@@ -1160,6 +1164,7 @@ int main(int argc, char* argv[]) {
 
         lir_ctx_t lirctx = { 0 };
         LIR_generate(&cfgctx, &lirctx, &smt);
+        if (options.config.tco) LIR_FUNC_perform_tco(&cfgctx, &smt);
 
         if (options.config.copy_prop) {
             LIR_variable_copy_propagation(&cfgctx, &smt);
@@ -1244,7 +1249,7 @@ int main(int argc, char* argv[]) {
         }
 
         LIR_destroy_ssa(&cfgctx);
-        LIR_save_registers(&cfgctx, &callctx, &smt, &reg_save);
+        LIR_save_registers(&cfgctx, &smt, &reg_save);
 
         if (options.config.peephole) {
             LIR_peephole_optimization(&cfgctx, &pph);

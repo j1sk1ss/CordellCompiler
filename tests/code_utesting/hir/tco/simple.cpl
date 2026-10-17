@@ -1,0 +1,17 @@
+function leaf() -> i32 { 42 }
+
+function tail() -> i32 {
+    leaf()
+}
+
+:/ OUTPUT
+BB2:
+fn leaf0() -> i32
+return $42;
+BB3:
+fn tail1() -> i32
+jmp leaf0() -> i32;
+[unused]
+[unused]
+[unused] fend
+/:

@@ -1,0 +1,25 @@
+function leaf(ptr i32 p) -> i32 {
+    dref p
+}
+
+function local() -> i32 {
+    i32 n = 42;
+    leaf(ref n)
+}
+
+:/ OUTPUT
+BB2:
+fn leaf0(i32* p) -> i32
+%0 = ldparam();
+%2 = *(%0);
+return %2;
+BB3:
+fn local1() -> i32
+%3 = $42 as i32;
+%1 = %3;
+%4 = &(%1);
+use %4;
+stparam(%4);
+call leaf0;
+fend
+/:

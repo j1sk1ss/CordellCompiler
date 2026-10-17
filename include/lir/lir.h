@@ -85,6 +85,15 @@ typedef struct {
     map_t*              vars;
 } lir_ctx_t;
 
+/* A special case where a jump can be not an ordinary jump,
+   but a tail-call jump. Is an important function in several
+   files. DO NOT change it. Please :)
+   
+   I'm just kidding - Do whatever you want.*/
+static inline int LIR_is_tailcall(lir_block_t* b) {
+    return b && b->op == LIR_JMP && b->farg && b->farg->t == LIR_FNAME;
+}
+
 lir_block_t*   LIR_create_block(lir_operation_t op, lir_subject_t* fa, lir_subject_t* sa, lir_subject_t* ta);
 lir_subject_t* LIR_create_subject(lir_subject_type_t t, int reg, int v_id, long offset, string_t* strval, long intval, int size);
 lir_subject_t* LIR_copy_subject(lir_subject_t* s);

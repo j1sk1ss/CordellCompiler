@@ -749,7 +749,7 @@ int ASTWLKR_inefficient_switch(AST_VISITOR_ARGS) {
 
     int has_annot = 0;
     foreach (annotation_t* annot, &nd->annots) {
-        if (annot->t == STRAIGHT_ANNOTATION) {
+        if (annot->t == SWITCH_ANNOTATION) {
             has_annot = 1;
             break;
         }
