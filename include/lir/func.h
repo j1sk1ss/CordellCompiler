@@ -1,6 +1,7 @@
 #ifndef LIR_FUNC_H_
 #define LIR_FUNC_H_
 
+#include <symtab/symtab.h>
 #include <lir/lirgen.h>
 
 /* Replace direct tail calls with function jumps before instruction selection.
