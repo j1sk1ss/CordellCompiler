@@ -12,7 +12,7 @@ static inline lir_block_t* _get_previous_non_system(lir_block_t* lh, cfg_block_t
     return NULL;
 }
 
-int LIR_FUNC_perform_tco(cfg_ctx_t* cctx, sym_table_t* smt) {
+status_code_t LIR_FUNC_perform_tco(cfg_ctx_t* cctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         func_info_t fi;
         if (
@@ -77,5 +77,5 @@ int LIR_FUNC_perform_tco(cfg_ctx_t* cctx, sym_table_t* smt) {
         }
     }
 
-    return 1;
+    return GENERAL_SUCCESS;
 }

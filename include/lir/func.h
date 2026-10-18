@@ -1,6 +1,7 @@
 #ifndef LIR_FUNC_H_
 #define LIR_FUNC_H_
 
+#include <utils.h>
 #include <symtab/symtab.h>
 #include <lir/lirgen.h>
 
@@ -12,6 +13,6 @@
       - `smt` - Symbol table.
       
    Returns 1 if succeeds. */
-int LIR_FUNC_perform_tco(cfg_ctx_t* cctx, sym_table_t* smt);
+status_code_t LIR_FUNC_perform_tco(cfg_ctx_t* cctx, sym_table_t* smt);
 
 #endif

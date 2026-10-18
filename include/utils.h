@@ -26,4 +26,10 @@ typedef unsigned long long big_id_t; // any very big value
         else                       { ul }                  \
     } while (0);
 
+typedef enum {
+    CRITICAL_ERROR  = -1,
+    GENERAL_ERROR   = 0,
+    GENERAL_SUCCESS = 1
+} status_code_t;
+
 #endif

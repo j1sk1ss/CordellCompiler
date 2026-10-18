@@ -1,6 +1,6 @@
 #include <lir/copyprop.h>
 
-static int _mark_used_variable_id(symbol_id_t id, sym_table_t* smt) {
+static void _mark_used_variable_id(symbol_id_t id, sym_table_t* smt) {
     variable_info_t vi;
     while (
         id != NO_SYMBOL_ID &&
@@ -9,12 +9,10 @@ static int _mark_used_variable_id(symbol_id_t id, sym_table_t* smt) {
         VRTB_set_used(vi.v_id, &smt->v);
         id = vi.p_id;
     }
-
-    return 1;
 }
 
-static int _mark_used_variable(lir_subject_t* s, sym_table_t* smt) {
-    if (!s) return 0;
+static status_code_t _mark_used_variable(lir_subject_t* s, sym_table_t* smt) {
+    if (!s) return GENERAL_ERROR;
     switch (s->t) {
         case LIR_VARIABLE:
         case LIR_GLVARIABLE:
@@ -28,21 +26,22 @@ static int _mark_used_variable(lir_subject_t* s, sym_table_t* smt) {
         default: break;
     }
 
-    return 1;
+    return GENERAL_SUCCESS;
 }
 
-int LIR_clear_global_variables(cfg_ctx_t* cctx, sym_table_t* smt) {
+status_code_t LIR_clear_global_variables(cfg_ctx_t* cctx, sym_table_t* smt) {
+    if (!cctx || !smt) return GENERAL_ERROR;
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
         foreach (cfg_block_t* bb, &fb->blocks) {
             iterate_lir_instructions (bb) {
                 if (lh->unused || lh->op == LIR_OEXT) continue;
                 iterate_lir_args (lir_subject_t* s, lh, 0) {
-                    _mark_used_variable(s, smt);
+                    if (!_mark_used_variable(s, smt)) return GENERAL_ERROR;
                 }
             }
         }
     }
 
-    return 1;
+    return GENERAL_SUCCESS;
 }

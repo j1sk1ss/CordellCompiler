@@ -24,7 +24,8 @@ static int _mark_used_var(set_t* use, lir_subject_t* arg) {
     return 1;
 }
 
-int LIR_drop_unused_variables(cfg_ctx_t* cctx) {
+status_code_t LIR_drop_unused_variables(cfg_ctx_t* cctx) {
+    if (!cctx) return GENERAL_ERROR;
     foreach (cfg_func_t* fb, &cctx->funcs) {
         set_t use, def;
         map_t def_trg;
@@ -67,7 +68,7 @@ int LIR_drop_unused_variables(cfg_ctx_t* cctx) {
         set_free(&def);
     }
 
-    return 1;
+    return GENERAL_SUCCESS;
 }
 
 /* Replace readable operands with their propagated copy when a mapping exists.
@@ -732,7 +733,8 @@ static void _release_in_out(set_t* addr_taken, map_t* in_by_block, map_t* out_by
     if (addr_taken) set_free(addr_taken);
 }
 
-int LIR_variable_copy_propagation(cfg_ctx_t* cctx, sym_table_t* smt) {
+status_code_t LIR_variable_copy_propagation(cfg_ctx_t* cctx, sym_table_t* smt) {
+    if (!cctx || !smt) return GENERAL_ERROR;
     foreach (cfg_func_t* fb, &cctx->funcs) {
         set_t addr_taken;
         map_t in_by_block, out_by_block;
@@ -748,10 +750,11 @@ int LIR_variable_copy_propagation(cfg_ctx_t* cctx, sym_table_t* smt) {
         _release_in_out(&addr_taken, &in_by_block, &out_by_block);
     }
     
-    return 1;
+    return GENERAL_SUCCESS;
 }
 
-int LIR_register_copy_propagation(cfg_ctx_t* cctx) {
+status_code_t LIR_register_copy_propagation(cfg_ctx_t* cctx) {
+    if (!cctx) return GENERAL_ERROR;
     foreach (cfg_func_t* fb, &cctx->funcs) {
         map_t in_by_block, out_by_block;
         _prepare_in_out(fb, NULL, NULL, &in_by_block, &out_by_block);
@@ -766,5 +769,5 @@ int LIR_register_copy_propagation(cfg_ctx_t* cctx) {
         _release_in_out(NULL, &in_by_block, &out_by_block);
     }
 
-    return 1;
+    return GENERAL_SUCCESS;
 }

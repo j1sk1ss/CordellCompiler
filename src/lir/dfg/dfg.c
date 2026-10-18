@@ -49,7 +49,7 @@ static int _lir_inst_usedef(lir_block_t* lh, set_t* use, set_t* def) {
     return 1;
 }
 
-int LIR_DFG_compute_usedef(cfg_ctx_t* cctx) {
+status_code_t LIR_DFG_compute_usedef(cfg_ctx_t* cctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* bb, &fb->blocks) {
             set_free(&bb->use);
@@ -81,7 +81,7 @@ int LIR_DFG_compute_usedef(cfg_ctx_t* cctx) {
         }
     }
 
-    return 1;
+    return GENERAL_SUCCESS;
 }
 
 /* Compute the 'OUT' set during the liveness analysis.
@@ -120,8 +120,8 @@ static int _compute_in(cfg_block_t* cfg) {
     return 1;
 }
 
-int LIR_DFG_compute_inout(cfg_ctx_t* cctx) {
-    LIR_DFG_compute_usedef(cctx);
+status_code_t LIR_DFG_compute_inout(cfg_ctx_t* cctx) {
+    if (!cctx || !LIR_DFG_compute_usedef(cctx)) return GENERAL_ERROR;
     foreach (cfg_func_t* fb, &cctx->funcs) {
         while (1) {
             list_iter_t bit;
@@ -155,7 +155,7 @@ int LIR_DFG_compute_inout(cfg_ctx_t* cctx) {
         }
     }
 
-    return 1;
+    return GENERAL_SUCCESS;
 }
 
 typedef struct {
@@ -317,7 +317,7 @@ static int _sort_phi_group(lir_block_t* first, lir_block_t* last, map_t* colors)
     return ok;
 }
 
-int LIR_RA_sort_phi_movs(cfg_ctx_t* cctx, map_t* colors) {
+status_code_t LIR_RA_sort_phi_movs(cfg_ctx_t* cctx, map_t* colors) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* cb, &fb->blocks) {
             lir_block_t* lh = LIR_get_next(cb->lmap.entry, cb->lmap.exit, 0);
@@ -327,16 +327,14 @@ int LIR_RA_sort_phi_movs(cfg_ctx_t* cctx, map_t* colors) {
                     continue;
                 }
 
-                lir_block_t* first = lh;
-                lir_block_t* after = lh;
+                lir_block_t *first = lh, *after = lh;
                 while (
                     after &&
-                    after != cb->lmap.exit &&
-                    after->op == LIR_phiMOV &&
+                    after != cb->lmap.exit && after->op == LIR_phiMOV &&
                     !after->unused
                 ) after = LIR_get_next(after, cb->lmap.exit, 1);
                 if (first != after && !_sort_phi_group(first, after, colors)) {
-                    return 0;
+                    return GENERAL_ERROR;
                 }
 
                 lh = after;
@@ -344,5 +342,5 @@ int LIR_RA_sort_phi_movs(cfg_ctx_t* cctx, map_t* colors) {
         }
     }
 
-    return 1;
+    return GENERAL_SUCCESS;
 }
