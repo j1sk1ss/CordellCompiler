@@ -1,17 +1,24 @@
 ![Cover](docs/media/CPL_cover.png)
 
+*It's like a user when.. when he like... when he like get a error due to bad CPL code... yeah...*
+
 # Cordell Compiler
-Cordell Compiler is a compact hobby compiler for the `Cordell Programming Language` (CPL), inspired by C's low-level explicitness and parts of Rust's syntax. Its primary purpose is to study compilation, code optimization, translation, and low-level code generation. It is also my personal testbed for compiler experiments.
+
+Cordell Compiler is a compact hobby compiler for the `Cordell Programming Language` (CPL), inspired by C's low-level explicitness and parts of Rust's and Go's syntax. Its primary purpose is to study compilation, code optimization, translation, and low-level code generation. It is also my personal testbed for compiler experiments such as compact models, annotation "suprimacy" and symtable compression.
 
 - *This README is still in progress.*
 
 # Main idea of this project
-The main goal of this project is to learn compiler architecture and eventually port the compiler to my other project, `CordellOS`. The personal motivation is simple: I want to write programs for my own OS inside my own OS.
 
-Given my bias toward `assembly` and `C`, CPL is intended to stay as low-level as possible. Some convenience features may still be added later, especially around strings, such as built-in concatenation and comparison.
+The aim of this project is to learn compiler architecture and eventually port the compiler to my other project, `CordellOS`. The personal motivation is simple: I want to write programs for my own OS inside my own OS.
+
+Additional, I want to track my progress via changelogs, documentations and this README to record all essential steps in compiler development.
+
+Given my bias toward `assembly` and `C` languages, `CPL` is intended to stay as low-level as possible. Some convenience features may still be added later, especially around strings, such as built-in concatenation and comparison. I don't want to create another `C++` or `Rust`, `Zig` or any other "modern" system language. I want to show that real system lanugages such as `C` still can be usable even in modern tasks and use cases.
 
 # Summary
-This `README` contains the main information about the compiler and the implementation approaches I learned while building it. In short, it is an attempt to collect the most useful notes for building a similar optimizing compiler, or a better one.
+
+This `README` contains the main information about the compiler and the implementation approaches I've already learned while building it. In short, it is an attempt to collect the most useful notes for building a similar optimizing compiler, or a better one.
 
 This repository also includes a [documentation site](https://j1sk1ss.github.io/CordellCompiler/#/) with related content and interactive sections. The navigation below provides quick links to the main topics in this file.
 
@@ -57,14 +64,16 @@ This repository also includes a [documentation site](https://j1sk1ss.github.io/C
    - [Example of generated code](#example-of-generated-code)
 
 ## Introduction
-This compiler is not primarily about creating a language with complex syntax and high-level abstractions. CPL now has value-layout containers, but it still avoids a large object model and keeps the interesting work in the compiler pipeline. The main goal is to implement modern code optimization techniques, observe how input code can be transformed into a higher-performance version of itself, and test ideas such as neural-network-based heuristics and compressed symbol tables. This `README` describes what has been implemented so far. </br>
 
-In short, CPL has an `EBNF-defined` [[?]](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) syntax, its own [VS Code extension](https://github.com/j1sk1ss/CPL_vscode), and a small [documentation site](https://j1sk1ss.github.io/CordellCompiler/). If you are more interested in the language than in the compiler pipeline, start with the documentation site. </br>
+This project is not primarily about creating a language with complex syntax and high-level abstractions. The main goal is to implement modern/popular code optimization techniques, observe how input code can be transformed into a higher-performance version of itself, and test ideas such as neural-network-based heuristics and compressed symbol tables. This `README` describes what has been implemented so far.
+
+In short, CPL has an `EBNF-defined` [[?]](https://en.wikipedia.org/wiki/Extended_Backus%E2%80%93Naur_form) syntax, its own [VS Code extension](https://github.com/j1sk1ss/CPL_vscode), and a small [documentation site](https://j1sk1ss.github.io/CordellCompiler/). If you are more interested in the language than in the compiler pipeline, I would recommend to start with the documentation site first.
 
 P.S.: *The language itself is not the main subject of this README, but while explaining each compiler layer I will use direct examples written in CPL. Its surface grammar is close enough to C-like languages to make the examples readable.*
 
 ## Sample code snippet
-Let us start with the simple code snippet below. It demonstrates the general shape of CPL, while leaving out some already supported features such as `while` loops, `syscall`, and condition operators, which are described later. </br>
+
+Let us start with a simple code snippet. One you can see right below this paragraph, which demonstrates the general shape of CPL, while leaving out some already supported features such as `while` loops, `syscall`, and condition operators, which are described later.
 
 Every compilation starts from raw source code. The example below is a classic "Hello world" program. Later in this README, this example is compiled for my MacBook Pro 15" 2012 running macOS Catalina.
 
