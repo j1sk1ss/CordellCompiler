@@ -84,7 +84,6 @@
 /* Symtable dump                                */
 #include <symtab/dump.h>
 
-#include <gem_data.h>
 #define CCPL_VERSION                 "3.8.17:2010.26" // major.minor<.patch> (old version style):ddmm.yy (new version style)
 #define CCPL_SPLASH                  "Interfaces and abstractions!" // NULL / Related to the version splash
 /* Version logic is next: We have the old style and the new style:
@@ -191,11 +190,24 @@ according you system requirements. */
 #define OPTION_ASM_OUTPUT            "--asm-output"
 #define OPTION_TEST_COMPILATION      "--test"
 
+#define RELOAD_CFG                         \
+    HIR_CFG_unload(&cfgctx);               \
+    HIR_CFG_build(&hirctx, &cfgctx, &smt); \
+    HIR_CG_unload(&callctx);               \
+    HIR_CG_build(&cfgctx, &callctx, &smt); \
+    HIR_CG_perform_dfe(&callctx, &smt);    \
+    HIR_CG_apply_dfe(&cfgctx, &smt);
+
 typedef struct {
-    const char* option;
-    const char* argument;
-    const char* description;
+    const char*      option;
+    const char*      argument;
+    const char*      description;
 } cli_help_option_t;
+
+typedef struct {
+    char*            name;
+    char*            value;
+} cli_define_t;
 
 typedef enum {
     BUILD_MODE_EXECUTABLE,
@@ -270,124 +282,24 @@ typedef struct {
     } flags;
 } options_t;
 
-static inline void _print_version(FILE* stream) {
-    fprintf(
-        stream, "cplc %s%s%s\n", 
-        CCPL_VERSION, 
-        CCPL_SPLASH ? "\n"        : "", 
-        CCPL_SPLASH ? CCPL_SPLASH : ""
-    );
-}
-
-static inline void _print_help_row(FILE* stream, const cli_help_option_t* row) {
-    char label[64] = { 0 };
-    if (row->argument && row->argument[0]) snprintf(label, sizeof(label), "%s %s", row->option, row->argument);
-    else                                   snprintf(label, sizeof(label), "%s", row->option);
-    fprintf(stream, "  %-28s %s\n", label, row->description);
-}
-
-static inline void _print_help_section(FILE* stream, const char* title, const cli_help_option_t* rows, size_t count) {
-    fprintf(stream, "\n%s:\n", title);
-    for (size_t i = 0; i < count; i++) {
-        _print_help_row(stream, &rows[i]);
-    }
-}
-
-static inline int _print_help_message() {
-    static const cli_help_option_t _general_options[] = {
-        { OPTION_HELP_SHORT ", " OPTION_HELP,                 NULL,           "Show this help message"                                                        },
-        { OPTION_VERSION_SHORT ", " OPTION_VERSION,           NULL,           "Show compiler version"                                                         },
-        { OPTION_SOMETHING_SHORT ", " OPTION_SOMETHING,       NULL,           "Show something"                                                                },
-        { OPTION_PREPROCESS_ONLY,                             NULL,           "Run preprocessor only"                                                         },
-        { OPTION_INLUCDE,                                     "<dir>",        "Add include directory"                                                         },
-        { OPTION_DEFINE,                                      "<name=value>", "Define preprocessor variable"                                                  },
-        { OPTION_PRINT_STDLIB,                                NULL,           "Print the standard library directory"                                          },
-        { OPTION_OUTPUT,                                      "<file>",       "Set output file"                                                               },
-        { OPTION_ENABLE_AST_ANALYSIS,                         NULL,           "Enable AST analysis"                                                           },
-        { OPTION_ENABLE_IR_ANALYSIS,                          NULL,           "Enable IR analysis"                                                            },
-        { OPTION_ANALYSIS_ONLY,                               NULL,           "Run Cordell Static Analyzer only"                                              },
-        { OPTION_DEBUG,                                       NULL,           "Enable debug mode"                                                             },
-        { OPTION_NO_DEBUG,                                    NULL,           "Disable debug mode"                                                            },
-        { OPTION_STRICT,                                      NULL,           "Enable compiler errors, strict typing and static analysis"                     },
-        { OPTION_NON_STRICT,                                  NULL,           "Disables compiler errors, strict typing and static analysis"                   },
-        { OPTION_TEST_COMPILATION,                            NULL,           "Sets compilation to a test mode. Will compile test binary"                     }
-    };
-    static const cli_help_option_t _optimization_options[] = {
-        { OPTION_NO_OPTIMIZATION,                             NULL,           "Disable optimizations"                                                         },
-        { OPTION_ROUGHT_OPTIMIZATION,                         NULL,           "Rough optimization level"                                                      },
-        { OPTION_GOOD_OPTIMIZATION,                           NULL,           "Good optimization level"                                                       },
-        { OPTION_MAX_OPTIMIZATION,                            NULL,           "Maximum optimization level"                                                    },
-        { OPTION_FINLINE,                                     NULL,           "Enable function inlining"                                                      },
-        { OPTION_NO_FINLINE,                                  NULL,           "Disable function inlining"                                                     },
-        { OPTION_LICM,                                        NULL,           "Enable LICM"                                                                   },
-        { OPTION_NO_LICM,                                     NULL,           "Disable LICM"                                                                  },
-        { OPTION_UNROLL,                                      NULL,           "Enable guarded loop unrolling by two"                                          },
-        { OPTION_NO_UNROLL,                                   NULL,           "Disable loop unrolling"                                                        },
-        { OPTION_CONSTANT,                                    NULL,           "Enable constant propagation/folding"                                           },
-        { OPTION_NO_CONSTANT,                                 NULL,           "Disable constant propagation/folding"                                          },
-        { OPTION_COPYPROP,                                    NULL,           "Enable LIR copy propagation"                                                   },
-        { OPTION_NO_COPYPROP,                                 NULL,           "Disable LIR copy propagation"                                                  },
-        { OPTION_PEEPHOLE,                                    NULL,           "Enable peephole optimization"                                                  },
-        { OPTION_NO_PEEPHOLE,                                 NULL,           "Disable peephole optimization"                                                 },
-        { OPTION_TCO,                                         NULL,           "Enable tail call optimization"                                                 },
-        { OPTION_NO_TCO,                                      NULL,           "Disable tail call optimization"                                                },
-        { OPTION_TRE,                                         NULL,           "Enable TRE"                                                                    },
-        { OPTION_NO_TRE,                                      NULL,           "Disable TRE"                                                                   }
-    };
-    static const cli_help_option_t _target_options[] = {
-        { OPTION_ARCH,                                        "<arch>",       "Set target architecture (x86_64, x86, i386)"                                   },
-        { OPTION_FULL_BYTNESS,                                "<size>",       "Set full bytness"                                                              },
-        { OPTION_HALF_BYTNESS,                                "<size>",       "Set half bytness"                                                              },
-        { OPTION_QUART_BYTNESS,                               "<size>",       "Set quart bytness"                                                             },
-        { OPTION_EIGHT_BYTNESS,                               "<size>",       "Set eight bytness"                                                             },
-        { OPTION_SYS_TYPE,                                    "<type>",       "Set system type (macho64, linux64, i386, windows64)"                           }
-    };
-    static const cli_help_option_t _assembler_options[] = {
-        { OPTION_ASM_COMPILER,                                "<compiler>",   "Set assembler compiler (nasm, ...)"                                            },
-        { OPTION_ASM_FORMAT,                                  "<format>",     "Set assembler format (macho64, elf64, elf32, ...)"                             }
-    };
-    static const cli_help_option_t _linker_options[] = {
-        { OPTION_LINKER,                                      "<linker>",     "Set linker (ld, gcc, clang, ...)"                                              },
-        { OPTION_LINKER_MODE,                                 "<mode>",       "Set linker mode (c, driver, raw, ld)"                                          },
-        { "-L<dir>, -l<name>, -Wl,<arg>",                     NULL,           "Pass library search paths, libraries, and driver linker options to the linker" },
-        { OPTION_LINKER_ARG_SHORT ", " OPTION_LINKER_ARG,     "<arg>",        "Pass one raw argument to the linker command"                                   },
-        { OPTION_COMPILE_ONLY_SHORT ", " OPTION_COMPILE_ONLY, NULL,           "Build an object file and skip linking"                                         },
-        { OPTION_NO_OBJECT_SHORT ", " OPTION_NO_OBJECT,       NULL,           "Don't build anything, just compile what you've got"                            },
-        { OPTION_LINKER_NO_PIE,                               NULL,           "Disable PIE"                                                                   },
-        { OPTION_LINKER_PIE,                                  NULL,           "Enable PIE"                                                                    },
-        { OPTION_LINKER_M32,                                  NULL,           "Enable m32 mode"                                                               },
-        { OPTION_LINKER_NO_M32,                               NULL,           "Disable m32 mode"                                                              },
-        { OPTION_ENTRY_NAME,                                 "<name>",        "Set entry symbol name"                                                         }
-    };
-    static const cli_help_option_t _section_options[] = {
-        { OPTION_RO_SECTION,                                 "<name>",        "Set read-only section name"                                                    },
-        { OPTION_GLOB_SECTION,                               "<name>",        "Set global section name"                                                       },
-        { OPTION_CODE_SECTION,                               "<name>",        "Set code section name"                                                         }
-    };
-    static const cli_help_option_t _emit_options[] = {
-        { OPTION_EMIT_AST,                                   NULL,            "Emit AST dump"                                                                 },
-        { OPTION_AST_OUTPUT,                                 "<file>",        "Set AST dump output path"                                                      },
-        { OPTION_EMIT_IR,                                    NULL,            "Emit HIR dump"                                                                 },
-        { OPTION_IR_OUTPUT,                                  "<file>",        "Set HIR dump output path"                                                      },
-        { OPTION_EMIT_HIR_CFG,                               "<name>",        "Emit HIR CFG dump for function"                                                },
-        { OPTION_EMIT_LIR,                                   NULL,            "Emit LIR dump"                                                                 },
-        { OPTION_EMIT_LIR_CFG,                               "<name>",        "Emit LIR CFG dump for function"                                                },
-        { OPTION_LIR_OUTPUT,                                 "<file>",        "Set LIR dump output path"                                                      },
-        { OPTION_EMIT_ASM,                                   NULL,            "Emit produced assembly code"                                                   },
-        { OPTION_ASM_OUTPUT,                                 "<file>",        "Set assembly output path"                                                      },
-        { OPTION_EMIT_SYMTAB,                                "<type>",        "Emit symtable dump (var, fn, sec)"                                             }
-    };
-
-    _print_version(stdout);
-    fprintf(stdout, "Usage: cplc [options] <input files>\n");
-    _print_help_section(stdout, "General options",      _general_options, sizeof(_general_options) / sizeof(_general_options[0]));
-    _print_help_section(stdout, "Optimization options", _optimization_options, sizeof(_optimization_options) / sizeof(_optimization_options[0]));
-    _print_help_section(stdout, "Target options",       _target_options, sizeof(_target_options) / sizeof(_target_options[0]));
-    _print_help_section(stdout, "Assembler options",    _assembler_options, sizeof(_assembler_options) / sizeof(_assembler_options[0]));
-    _print_help_section(stdout, "Linker options",       _linker_options, sizeof(_linker_options) / sizeof(_linker_options[0]));
-    _print_help_section(stdout, "Section options",      _section_options, sizeof(_section_options) / sizeof(_section_options[0]));
-    _print_help_section(stdout, "Emit options",         _emit_options, sizeof(_emit_options) / sizeof(_emit_options[0]));
-    return 0;
-}
+void        BUILD_print_version(FILE* stream);
+int         BUILD_print_help_message();
+char*       BUILD_find_stdlib(const char* argv0, char* out, size_t out_size);
+char*       BUILD_find_runtime_library(const char* argv0, char* out, size_t out_size);
+char*       BUILD_make_temp_path();
+int         BUILD_copy_fd_to_stream(int fd, FILE* stream);
+int         BUILD_move_file_path(const char* src, const char* dst);
+const char* BUILD_output_path_or_default(const char* path, const char* fallback);
+int         BUILD_compile_asm_to_object(const options_t* options, const char* asm_path, const char* obj_path);
+int         BUILD_link_objects(const options_t* options, list_t* objects);
+int         BUILD_emit_ast(ast_ctx_t* ctx, const options_t* options);
+int         BUILD_emit_hir(hir_ctx_t* hctx, cfg_ctx_t* cctx, sym_table_t* smt, const options_t* options);
+int         BUILD_emit_lir(lir_ctx_t* lctx, cfg_ctx_t* cctx, sym_table_t* smt, const options_t* options);
+int         BUILD_emit_requested_symtabs(sym_table_t* smt, list_t* types);
+config_t    BUILD_make_config(const options_t* options);
+void        BUILD_unload_token_lists(list_t* token_lists);
+int         BUILD_parse_input_args(char* argv[], int argc, options_t* out);
+int         BUILD_start(int argc, char* argv[]);
+void        BUILD_unload_options(options_t* options);
 
 #endif
