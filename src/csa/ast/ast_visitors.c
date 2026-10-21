@@ -743,30 +743,66 @@ int ASTWLKR_incorrect_align(AST_VISITOR_ARGS) {
 int ASTWLKR_inefficient_switch(AST_VISITOR_ARGS) {
     AST_VISITOR_ARGS_USE;
     int case_count = 0;
-    for (ast_node_t* ccase = nd->c->siblings.n->c; ccase; ccase = ccase->siblings.n) {
-        case_count++;
-    }
-
-    int has_annot = 0;
+    for (
+        ast_node_t* ccase = nd->c->siblings.n->c; 
+        ccase; 
+        ccase = ccase->siblings.n
+    ) case_count++;
+    
+    int straight = 0, binary = 0, jtable = 0;
     foreach (annotation_t* annot, &nd->annots) {
         if (annot->t == SWITCH_ANNOTATION) {
-            has_annot = 1;
+            annotations_summary_t as;
+            ANNOT_read_annotation(annot, &as);
+            switch (as.switch_type) {
+                case SELECT_JTABLE:   jtable   = 1; break;
+                case SELECT_BINARY:   binary   = 1; break;
+                case SELECT_STRAIGHT: straight = 1; break;
+            }
+
             break;
         }
     }
 
-    if (case_count < 10 && !has_annot) {
+    if (!straight && !binary && !jtable) return 1;
+    else {
         SEMANTIC_WARNING(
-            " %s Switch statement here has '%i' cases and uses the binary search. Consider to add @[select(straight)].", 
+            " %s Switch statement here has a custom annotation. Be aware that it will change code generation and may lower the final performance!", 
+            _format_location(&nd->t->finfo)
+        );
+    }
+
+    if (case_count < 5 && binary) {
+        SEMANTIC_WARNING(
+            " %s Switch statement here has '%i' cases and uses the binary search. Consider to use @[select(straight)].", 
             _format_location(&nd->t->finfo), case_count
         );
         REBUILD_CODE_1TRG(nd, nd);
         return 0;
     }
-    else if (case_count > 10 && has_annot) {
+
+    if (case_count > 10 && straight) {
         SEMANTIC_WARNING(
-            " %s Switch statement here has '%i' cases and uses the straight search. Consider to remove @[select(straight)].", 
+            " %s Switch statement here has '%i' cases and uses the straight search. Consider to use @[select(binary)].", 
             _format_location(&nd->t->finfo), case_count
+        );
+        REBUILD_CODE_1TRG(nd, nd);
+        return 0;
+    }
+
+    return 1;
+}
+
+int ASTWLKR_non_idiomatic_cast(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
+    if (
+        TKN_is_builtin_type(nd->c->t) &&
+        nd->c->siblings.n->t->t_type == UNKNOWN_NUMERIC_TOKEN
+    ) {
+        SEMANTIC_WARNING(
+            " %s Non-idiomatic cast found for '%s'. Use '%s%s' instead.", 
+            _format_location(&nd->t->finfo),  nd->c->siblings.n->t->body->body,
+            nd->c->siblings.n->t->body->body, nd->c->t->body->body
         );
         REBUILD_CODE_1TRG(nd, nd);
         return 0;

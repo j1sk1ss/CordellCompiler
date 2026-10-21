@@ -73,7 +73,7 @@ P.S.: *The language itself is not the main subject of this README, but while exp
 
 ## Sample code snippet
 
-Let us start with a simple code snippet. One you can see right below this paragraph, which demonstrates the general shape of CPL, while leaving out some already supported features such as `while` loops, `syscall`, and condition operators, which are described later.
+Let us start with a simple code snippet. One you can see right below this paragraph, and this code demonstrates the general shape of CPL, while leaving out some already supported features such as `while` loops, `syscall`, and condition operators, which are described later.
 
 Every compilation starts from raw source code. The example below is a classic "Hello world" program. Later in this README, this example is compiled for my MacBook Pro 15" 2012 running macOS Catalina.
 

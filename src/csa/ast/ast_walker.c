@@ -36,6 +36,7 @@ Params:
 Returns a node type */
 static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
     switch (tkn) {
+        case CONVERT_TOKEN:        return CAST_NODE;
         case REF_TYPE_TOKEN:       return REF_NODE;
         case BREAK_TOKEN:          return BREAK_NODE;
         case DEFAULT_TOKEN:
@@ -52,10 +53,8 @@ static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
         case FUNC_TOKEN:           return FUNCTION_NODE;
         case CONTAINER_TOKEN:      return CONTAINER_NODE;
         case MEMBER_ACCESS_TOKEN:  return MEMBER_NODE;
-        
         case INDEXATION_TOKEN:     return INDEX_NODE;
         case ARR_VARIABLE_TOKEN:   return DEF_ARRAY_NODE;
-
         case CUSTOM_VARIABLE_TOKEN:
         case GENERIC_VARIABLE_TOKEN:
         case CHAR_VALUE_TOKEN:
@@ -71,7 +70,6 @@ static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
         case I64_VARIABLE_TOKEN:
         case U64_VARIABLE_TOKEN:
         case F64_VARIABLE_TOKEN:   return VARIABLE_NODE;
-
         case I0_TYPE_TOKEN:
         case CUSTOM_TYPE_TOKEN:
         case GENERIC_TYPE_TOKEN:
@@ -87,7 +85,6 @@ static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
         case U8_TYPE_TOKEN:
         case SIGNATURE_TOKEN:
         case ARRAY_TYPE_TOKEN:     return DECLARATION_NODE;
-
         case ASSIGN_TOKEN:
         case ADDASSIGN_TOKEN:
         case SUBASSIGN_TOKEN:
@@ -97,7 +94,6 @@ static ast_node_type_t _get_ast_node_type(token_type_t tkn) {
         case MODULOASSIGN_TOKEN:
         case BITANDASSIGN_TOKEN:
         case BITXORASSIGN_TOKEN:   return ASSIGN_NODE;
-
         case OR_TOKEN:
         case AND_TOKEN:
         case PLUS_TOKEN:

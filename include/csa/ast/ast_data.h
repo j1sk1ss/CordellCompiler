@@ -21,7 +21,8 @@ typedef enum {
     REF_NODE         = 1 << 16,
     CONTAINER_NODE   = 1 << 17,
     MEMBER_NODE      = 1 << 18,
-    UNKNOWN_NODE     = 1 << 19,
+    CAST_NODE        = 1 << 19,
+    UNKNOWN_NODE     = 1 << 20,
 } ast_node_type_t;
 
 typedef struct {
