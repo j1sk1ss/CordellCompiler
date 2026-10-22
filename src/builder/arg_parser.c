@@ -1,40 +1,10 @@
 #include <builder.h>
 
-static const char* BUILD_normalize_symtab_type(const char* type) {
-    if (!type) return NULL;
-
-    if (
-        !strcmp(type, "var")      ||
-        !strcmp(type, "vars")     ||
-        !strcmp(type, "v")
-    ) return "var";
-
-    if (
-        !strcmp(type, "fn")       ||
-        !strcmp(type, "func")     ||
-        !strcmp(type, "funcs")    ||
-        !strcmp(type, "fntb")     ||
-        !strcmp(type, "function") ||
-        !strcmp(type, "functions")
-    ) return "fn";
-
-    if (
-        !strcmp(type, "sec")      ||
-        !strcmp(type, "sect")     ||
-        !strcmp(type, "section")  ||
-        !strcmp(type, "sections")
-    ) return "sec";
-
-    return NULL;
+static int _add_symtab_type_arg(options_t* out, const char* type) {
+    return out && type && list_push_back(&out->locations.symtab_types, (void*)type);
 }
 
-static int BUILD_add_symtab_type_arg(options_t* out, const char* type) {
-    if (!out) return 0;
-    const char* normalized = BUILD_normalize_symtab_type(type);
-    return normalized && list_push_back(&out->locations.symtab_types, (void*)normalized);
-}
-
-static inline int BUILD_parse_long_arg(const char* s, long* out) {
+static inline int _parse_long_arg(const char* s, long* out) {
     if (!s || !out) return 0;
     char* end = NULL;
     errno = 0;
@@ -44,7 +14,7 @@ static inline int BUILD_parse_long_arg(const char* s, long* out) {
     return 1;
 }
 
-static int BUILD_parse_sys_type(const char* s, options_t* out) {
+static int _parse_sys_type(const char* s, options_t* out) {
     if (!s || !out) return 0;
     if (!strcmp(s, "unknown")) {
         out->config.sys_type = UNKNOWN;
@@ -83,7 +53,7 @@ static int BUILD_parse_sys_type(const char* s, options_t* out) {
     return 0;
 }
 
-static void BUILD_set_optimization_profile(options_t* out, int level) {
+static void _set_optimization_profile(options_t* out, int level) {
     if (!out) return;
     out->config.tco           = 0;
     out->config.tre           = 0;
@@ -110,7 +80,7 @@ static void BUILD_set_optimization_profile(options_t* out, int level) {
     }
 }
 
-static void BUILD_set_arch_profile(options_t* out, const char* arch) {
+static void _set_arch_profile(options_t* out, const char* arch) {
     if (!out || !arch) return;
     if (
         !strcmp(arch, "x86")  || 
@@ -138,14 +108,14 @@ static void BUILD_set_arch_profile(options_t* out, const char* arch) {
     }
 }
 
-static inline int BUILD_set_build_mode(options_t* out, build_mode_t mode) {
+static inline int _set_build_mode(options_t* out, build_mode_t mode) {
     if (!out) return 0;
     if (out->build_mode != BUILD_MODE_EXECUTABLE && out->build_mode != mode) return 0;
     out->build_mode = mode;
     return 1;
 }
 
-static char* BUILD_copy_slice(const char* begin, size_t len) {
+static char* _copy_slice(const char* begin, size_t len) {
     if (!begin) return NULL;
     char* out = (char*)mm_malloc(len + 1);
     if (!out) return NULL;
@@ -154,7 +124,7 @@ static char* BUILD_copy_slice(const char* begin, size_t len) {
     return out;
 }
 
-static int BUILD_valid_define_name(const char* name, size_t name_len) {
+static int _valid_define_name(const char* name, size_t name_len) {
     if (!name || !name_len) return 0;
     for (size_t i = 0; i < name_len; i++) {
         char c = name[i];
@@ -169,7 +139,7 @@ static int BUILD_valid_define_name(const char* name, size_t name_len) {
     return 1;
 }
 
-static int BUILD_unload_cli_define(cli_define_t* define) {
+static int _unload_cli_define(cli_define_t* define) {
     if (!define) return 0;
     mm_free(define->name);
     mm_free(define->value);
@@ -177,42 +147,42 @@ static int BUILD_unload_cli_define(cli_define_t* define) {
     return 1;
 }
 
-static cli_define_t* BUILD_make_define_arg(const char* arg) {
+static cli_define_t* _make_define_arg(const char* arg) {
     if (!arg || !arg[0]) return NULL;
 
     const char* eq  = strchr(arg, '=');
     size_t name_len = eq ? (size_t)(eq - arg) : strlen(arg);
-    if (!BUILD_valid_define_name(arg, name_len)) return NULL;
+    if (!_valid_define_name(arg, name_len)) return NULL;
 
     const char* value = eq ? eq + 1 : "1";
     cli_define_t* define = (cli_define_t*)mm_malloc(sizeof(cli_define_t));
     if (!define) return NULL;
 
-    define->name  = BUILD_copy_slice(arg, name_len);
-    define->value = BUILD_copy_slice(value, strlen(value));
+    define->name  = _copy_slice(arg, name_len);
+    define->value = _copy_slice(value, strlen(value));
     if (!define->name || !define->value) {
-        BUILD_unload_cli_define(define);
+        _unload_cli_define(define);
         return NULL;
     }
 
     return define;
 }
 
-static int BUILD_add_define_arg(options_t* out, const char* arg) {
+static int _add_define_arg(options_t* out, const char* arg) {
     if (!out) return 0;
-    cli_define_t* define = BUILD_make_define_arg(arg);
+    cli_define_t* define = _make_define_arg(arg);
     if (!define) return 0;
     if (!list_push_back(&out->locations.defines, define)) {
-        BUILD_unload_cli_define(define);
+        _unload_cli_define(define);
         return 0;
     }
 
     return 1;
 }
 
-static int BUILD_add_linker_arg(options_t* out, const char* arg) {
+static int _add_linker_arg(options_t* out, const char* arg) {
     if (!out || !arg || !arg[0]) return 0;
-    char* copy = BUILD_copy_slice(arg, strlen(arg));
+    char* copy = _copy_slice(arg, strlen(arg));
     if (!copy) return 0;
     if (!list_push_back(&out->tools.linker_args, copy)) {
         mm_free(copy);
@@ -222,7 +192,7 @@ static int BUILD_add_linker_arg(options_t* out, const char* arg) {
     return 1;
 }
 
-static void BUILD_set_default_options(options_t* out) {
+static void _set_default_options(options_t* out) {
     memset(out, 0, sizeof(options_t));
     list_init(&out->locations.files);
     list_init(&out->locations.defines);
@@ -257,20 +227,20 @@ static void BUILD_set_default_options(options_t* out) {
     out->config.eight_bytness      = 1;
     out->config.debug              = 0;
     out->config.strict             = 0;
-    BUILD_set_optimization_profile(out, 0);
+    _set_optimization_profile(out, 0);
 }
 
 void BUILD_unload_options(options_t* options) {
     if (!options) return;
     list_free(&options->locations.files);
-    list_free_force_op(&options->locations.defines, (int (*)(void*))BUILD_unload_cli_define);
+    list_free_force_op(&options->locations.defines, (int (*)(void*))_unload_cli_define);
     list_free(&options->locations.symtab_types);
     list_free_force(&options->tools.linker_args);
 }
 
 int BUILD_parse_input_args(char* argv[], int argc, options_t* out) {
     if (!argv || argc <= 0 || !out) return 0;
-    BUILD_set_default_options(out);
+    _set_default_options(out);
 
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], OPTION_HELP_SHORT) || !strcmp(argv[i], OPTION_HELP))                out->flags.show_help           = 1;
@@ -278,7 +248,7 @@ int BUILD_parse_input_args(char* argv[], int argc, options_t* out) {
         else if (!strcmp(argv[i], OPTION_SOMETHING_SHORT) || !strcmp(argv[i], OPTION_SOMETHING)) out->flags.show_something      = 1;
         else if (!strcmp(argv[i], OPTION_PREPROCESS_ONLY))                                       out->flags.preprocess_only     = 1;
         else if (!strcmp(argv[i], OPTION_ANALYSIS_ONLY)) {
-            if (!BUILD_set_build_mode(out, BUILD_MODE_ANALYSIS)) goto _fail;
+            if (!_set_build_mode(out, BUILD_MODE_ANALYSIS)) goto _fail;
             out->flags.ast_analysis = 1;
             out->flags.hir_analysis = 1;
         }
@@ -291,16 +261,16 @@ int BUILD_parse_input_args(char* argv[], int argc, options_t* out) {
             out->locations.include = argv[++i];
         }
         else if (!strcmp(argv[i], OPTION_DEFINE)) {
-            if (i + 1 >= argc || !BUILD_add_define_arg(out, argv[i + 1])) goto _fail;
+            if (i + 1 >= argc || !_add_define_arg(out, argv[i + 1])) goto _fail;
             i++;
         }
         else if (!strncmp(argv[i], OPTION_DEFINE, strlen(OPTION_DEFINE))) {
-            if (!BUILD_add_define_arg(out, argv[i] + strlen(OPTION_DEFINE))) goto _fail;
+            if (!_add_define_arg(out, argv[i] + strlen(OPTION_DEFINE))) goto _fail;
         }
         else if (!strcmp(argv[i], OPTION_PRINT_STDLIB)) out->flags.print_stdlib = 1;
         else if (!strcmp(argv[i], OPTION_ARCH)) {
             if (i + 1 >= argc) goto _fail;
-            BUILD_set_arch_profile(out, argv[++i]);
+            _set_arch_profile(out, argv[++i]);
         }
         else if (!strcmp(argv[i], OPTION_ASM_COMPILER)) {
             if (i + 1 >= argc) goto _fail;
@@ -323,7 +293,7 @@ int BUILD_parse_input_args(char* argv[], int argc, options_t* out) {
         }
         else if (!strcmp(argv[i], OPTION_TEST_COMPILATION))       out->flags.test_compilation    = 1;
         else if (!strcmp(argv[i], OPTION_LINKER_ARG_SHORT) || !strcmp(argv[i], OPTION_LINKER_ARG)) {
-            if (i + 1 >= argc || !BUILD_add_linker_arg(out, argv[i + 1])) goto _fail;
+            if (i + 1 >= argc || !_add_linker_arg(out, argv[i + 1])) goto _fail;
             i++;
         }
         else if (
@@ -331,10 +301,10 @@ int BUILD_parse_input_args(char* argv[], int argc, options_t* out) {
             !strncmp(argv[i], "-L", 2) ||
             !strncmp(argv[i], "-Wl,", 4)
         ) {
-            if (!BUILD_add_linker_arg(out, argv[i])) goto _fail;
+            if (!_add_linker_arg(out, argv[i])) goto _fail;
             if (!strcmp(argv[i], "-l") || !strcmp(argv[i], "-L")) {
                 if (i + 1 >= argc) goto _fail;
-                if (!BUILD_add_linker_arg(out, argv[i + 1])) goto _fail;
+                if (!_add_linker_arg(out, argv[i + 1])) goto _fail;
                 i++;
             }
         }
@@ -342,13 +312,13 @@ int BUILD_parse_input_args(char* argv[], int argc, options_t* out) {
             !strcmp(argv[i], OPTION_COMPILE_ONLY_SHORT) ||
             !strcmp(argv[i], OPTION_COMPILE_ONLY)
         ) {
-            if (!BUILD_set_build_mode(out, BUILD_MODE_OBJECT)) goto _fail;
+            if (!_set_build_mode(out, BUILD_MODE_OBJECT)) goto _fail;
         }
         else if (
             !strcmp(argv[i], OPTION_NO_OBJECT_SHORT) ||
             !strcmp(argv[i], OPTION_NO_OBJECT)
         ) {
-            if (!BUILD_set_build_mode(out, BUILD_MODE_RAW)) goto _fail;
+            if (!_set_build_mode(out, BUILD_MODE_RAW)) goto _fail;
         }
         else if (!strcmp(argv[i], OPTION_LINKER_NO_PIE)) out->tools.linker_no_pie = 1;
         else if (!strcmp(argv[i], OPTION_LINKER_PIE))    out->tools.linker_no_pie = 0;
@@ -371,23 +341,23 @@ int BUILD_parse_input_args(char* argv[], int argc, options_t* out) {
             out->config.code_section = argv[++i];
         }
         else if (!strcmp(argv[i], OPTION_FULL_BYTNESS)) {
-            if (i + 1 >= argc || !BUILD_parse_long_arg(argv[i + 1], &out->config.full_bytness)) goto _fail;
+            if (i + 1 >= argc || !_parse_long_arg(argv[i + 1], &out->config.full_bytness)) goto _fail;
             i++;
         }
         else if (!strcmp(argv[i], OPTION_HALF_BYTNESS)) {
-            if (i + 1 >= argc || !BUILD_parse_long_arg(argv[i + 1], &out->config.half_bytness)) goto _fail;
+            if (i + 1 >= argc || !_parse_long_arg(argv[i + 1], &out->config.half_bytness)) goto _fail;
             i++;
         }
         else if (!strcmp(argv[i], OPTION_QUART_BYTNESS)) {
-            if (i + 1 >= argc || !BUILD_parse_long_arg(argv[i + 1], &out->config.quart_bytness)) goto _fail;
+            if (i + 1 >= argc || !_parse_long_arg(argv[i + 1], &out->config.quart_bytness)) goto _fail;
             i++;
         }
         else if (!strcmp(argv[i], OPTION_EIGHT_BYTNESS)) {
-            if (i + 1 >= argc || !BUILD_parse_long_arg(argv[i + 1], &out->config.eight_bytness)) goto _fail;
+            if (i + 1 >= argc || !_parse_long_arg(argv[i + 1], &out->config.eight_bytness)) goto _fail;
             i++;
         }
         else if (!strcmp(argv[i], OPTION_SYS_TYPE)) {
-            if (i + 1 >= argc || !BUILD_parse_sys_type(argv[i + 1], out)) goto _fail;
+            if (i + 1 >= argc || !_parse_sys_type(argv[i + 1], out)) goto _fail;
             i++;
         }
         else if (!strcmp(argv[i], OPTION_TCO))                  out->config.tco         = 1;
@@ -445,16 +415,16 @@ int BUILD_parse_input_args(char* argv[], int argc, options_t* out) {
             out->config.emit_asm = 1;
         }
         else if (!strcmp(argv[i], OPTION_EMIT_SYMTAB)) {
-            if (i + 1 >= argc || !BUILD_add_symtab_type_arg(out, argv[i + 1])) goto _fail;
+            if (i + 1 >= argc || !_add_symtab_type_arg(out, argv[i + 1])) goto _fail;
             i++;
         }
         else if (!strcmp(argv[i], OPTION_DEBUG))                out->config.debug       = 1;
         else if (!strcmp(argv[i], OPTION_NO_DEBUG))             out->config.debug       = 0;
         else if (!strcmp(argv[i], OPTION_NON_STRICT))           out->config.strict      = 0;
-        else if (!strcmp(argv[i], OPTION_NO_OPTIMIZATION))      BUILD_set_optimization_profile(out, 0);
-        else if (!strcmp(argv[i], OPTION_ROUGHT_OPTIMIZATION))  BUILD_set_optimization_profile(out, 1);
-        else if (!strcmp(argv[i], OPTION_GOOD_OPTIMIZATION))    BUILD_set_optimization_profile(out, 2);
-        else if (!strcmp(argv[i], OPTION_MAX_OPTIMIZATION))     BUILD_set_optimization_profile(out, 3);
+        else if (!strcmp(argv[i], OPTION_NO_OPTIMIZATION))      _set_optimization_profile(out, 0);
+        else if (!strcmp(argv[i], OPTION_ROUGHT_OPTIMIZATION))  _set_optimization_profile(out, 1);
+        else if (!strcmp(argv[i], OPTION_GOOD_OPTIMIZATION))    _set_optimization_profile(out, 2);
+        else if (!strcmp(argv[i], OPTION_MAX_OPTIMIZATION))     _set_optimization_profile(out, 3);
         else if (!strcmp(argv[i], OPTION_STRICT)) {
             out->flags.ast_analysis = 1;
             out->flags.hir_analysis = 1;

@@ -490,4 +490,3 @@ int BUILD_start(int argc, char* argv[]) {
     BUILD_unload_options(&options);
     return EXIT_SUCCESS;
 }
-

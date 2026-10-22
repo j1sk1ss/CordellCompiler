@@ -26,5 +26,3 @@ config_t BUILD_make_config(const options_t* options) {
 
     return conf;
 }
-
-

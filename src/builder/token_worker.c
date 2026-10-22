@@ -1,6 +1,6 @@
 #include <builder.h>
 
-static int BUILD_unload_token_list(void* data) {
+static int _unload_token_list(void* data) {
     list_t* tokens = (list_t*)data;
     if (!tokens) return 1;
     list_free_force_op(tokens, (int (*)(void *))TKN_unload_token);
@@ -10,7 +10,5 @@ static int BUILD_unload_token_list(void* data) {
 
 void BUILD_unload_token_lists(list_t* token_lists) {
     if (!token_lists) return;
-    list_free_force_op(token_lists, BUILD_unload_token_list);
+    list_free_force_op(token_lists, _unload_token_list);
 }
-
-

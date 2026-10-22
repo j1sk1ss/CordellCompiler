@@ -1,14 +1,14 @@
 #include <builder.h>
 
-static inline int BUILD_readable_directory(const char* path) {
+static inline int _readable_directory(const char* path) {
     return path && path[0] && !access(path, R_OK | X_OK);
 }
 
-static inline int BUILD_readable_file(const char* path) {
+static inline int _readable_file(const char* path) {
     return path && path[0] && !access(path, R_OK);
 }
 
-static int BUILD_path_from_executable(const char* argv0, const char* suffix, char* out, size_t out_size) {
+static int _path_from_executable(const char* argv0, const char* suffix, char* out, size_t out_size) {
     if (!argv0 || !suffix || !out || !out_size) return 0;
     char executable[PATH_MAX] = { 0 };
 #ifdef __linux__
@@ -29,13 +29,13 @@ static int BUILD_path_from_executable(const char* argv0, const char* suffix, cha
     if (written <= 0 || (size_t)written >= sizeof(candidate)) return 0;
 
     char resolved[PATH_MAX] = { 0 };
-    if (!realpath(candidate, resolved) || !BUILD_readable_directory(resolved)) return 0;
+    if (!realpath(candidate, resolved) || !_readable_directory(resolved)) return 0;
     if (strlen(resolved) + 1 > out_size) return 0;
     strcpy(out, resolved);
     return 1;
 }
 
-static int BUILD_file_from_executable(const char* argv0, const char* suffix, char* out, size_t out_size) {
+static int _file_from_executable(const char* argv0, const char* suffix, char* out, size_t out_size) {
     if (!argv0 || !suffix || !out || !out_size) return 0;
     char executable[PATH_MAX] = { 0 };
 #ifdef __linux__
@@ -56,7 +56,7 @@ static int BUILD_file_from_executable(const char* argv0, const char* suffix, cha
     if (written <= 0 || (size_t)written >= sizeof(candidate)) return 0;
 
     char resolved[PATH_MAX] = { 0 };
-    if (!realpath(candidate, resolved) || !BUILD_readable_file(resolved)) return 0;
+    if (!realpath(candidate, resolved) || !_readable_file(resolved)) return 0;
     if (strlen(resolved) + 1 > out_size) return 0;
     strcpy(out, resolved);
     return 1;
@@ -64,20 +64,20 @@ static int BUILD_file_from_executable(const char* argv0, const char* suffix, cha
 
 char* BUILD_find_stdlib(const char* argv0, char* out, size_t out_size) {
     char* env = getenv("CPL_INCLUDE_PATH");
-    if (BUILD_readable_directory(env))                                            return env;
-    if (BUILD_path_from_executable(argv0, "../share/cpl/include", out, out_size)) return out;
-    if (BUILD_path_from_executable(argv0, "../../cpllib", out, out_size))         return out;
-    if (BUILD_readable_directory(CPL_DEFAULT_INCLUDE_DIR))                        return CPL_DEFAULT_INCLUDE_DIR;
-    if (realpath("cpllib", out) && BUILD_readable_directory(out))                 return out;
+    if (_readable_directory(env))                                            return env;
+    if (_path_from_executable(argv0, "../share/cpl/include", out, out_size)) return out;
+    if (_path_from_executable(argv0, "../../cpllib", out, out_size))         return out;
+    if (_readable_directory(CPL_DEFAULT_INCLUDE_DIR))                        return CPL_DEFAULT_INCLUDE_DIR;
+    if (realpath("cpllib", out) && _readable_directory(out))                 return out;
     return NULL;
 }
 
 char* BUILD_find_runtime_library(const char* argv0, char* out, size_t out_size) {
     char* env = getenv("CPL_RUNTIME_LIB");
-    if (BUILD_readable_file(env))                                                return env;
-    if (BUILD_file_from_executable(argv0, "../lib/cpl/libcpl.a", out, out_size)) return out;
-    if (BUILD_file_from_executable(argv0, "cpllib/libcpl.a", out, out_size))     return out;
-    if (BUILD_readable_file(CPL_DEFAULT_RUNTIME_LIB))                            return CPL_DEFAULT_RUNTIME_LIB;
+    if (_readable_file(env))                                                return env;
+    if (_file_from_executable(argv0, "../lib/cpl/libcpl.a", out, out_size)) return out;
+    if (_file_from_executable(argv0, "cpllib/libcpl.a", out, out_size))     return out;
+    if (_readable_file(CPL_DEFAULT_RUNTIME_LIB))                            return CPL_DEFAULT_RUNTIME_LIB;
     return NULL;
 }
 
@@ -100,7 +100,7 @@ int BUILD_copy_fd_to_stream(int fd, FILE* stream) {
     return !nread && !ferror(stream);
 }
 
-static int BUILD_copy_file_path(const char* src, const char* dst) {
+static int _copy_file_path(const char* src, const char* dst) {
     int src_fd = open(src, O_RDONLY);
     if (src_fd < 0) return 0;
 
@@ -138,7 +138,7 @@ int BUILD_move_file_path(const char* src, const char* dst) {
     if (rename(src, dst) == 0) return 1;
     if (
         errno != EXDEV ||
-        !BUILD_copy_file_path(src, dst)
+        !_copy_file_path(src, dst)
     ) return 0;
     return unlink(src) == 0;
 }
@@ -146,5 +146,3 @@ int BUILD_move_file_path(const char* src, const char* dst) {
 const char* BUILD_output_path_or_default(const char* path, const char* fallback) {
     return path ? path : fallback;
 }
-
-

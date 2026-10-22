@@ -9,17 +9,17 @@ void BUILD_print_version(FILE* stream) {
     );
 }
 
-static void BUILD_print_help_row(FILE* stream, const cli_help_option_t* row) {
+static void _print_help_row(FILE* stream, const cli_help_option_t* row) {
     char label[64] = { 0 };
     if (row->argument && row->argument[0]) snprintf(label, sizeof(label), "%s %s", row->option, row->argument);
     else                                   snprintf(label, sizeof(label), "%s", row->option);
     fprintf(stream, "  %-28s %s\n", label, row->description);
 }
 
-static void BUILD_print_help_section(FILE* stream, const char* title, const cli_help_option_t* rows, size_t count) {
+static void _print_help_section(FILE* stream, const char* title, const cli_help_option_t* rows, size_t count) {
     fprintf(stream, "\n%s:\n", title);
     for (size_t i = 0; i < count; i++) {
-        BUILD_print_help_row(stream, &rows[i]);
+        _print_help_row(stream, &rows[i]);
     }
 }
 
@@ -110,14 +110,12 @@ int BUILD_print_help_message() {
 
     BUILD_print_version(stdout);
     fprintf(stdout, "Usage: cplc [options] <input files>\n");
-    BUILD_print_help_section(stdout, "General options",      _general_options, sizeof(_general_options) / sizeof(_general_options[0]));
-    BUILD_print_help_section(stdout, "Optimization options", _optimization_options, sizeof(_optimization_options) / sizeof(_optimization_options[0]));
-    BUILD_print_help_section(stdout, "Target options",       _target_options, sizeof(_target_options) / sizeof(_target_options[0]));
-    BUILD_print_help_section(stdout, "Assembler options",    _assembler_options, sizeof(_assembler_options) / sizeof(_assembler_options[0]));
-    BUILD_print_help_section(stdout, "Linker options",       _linker_options, sizeof(_linker_options) / sizeof(_linker_options[0]));
-    BUILD_print_help_section(stdout, "Section options",      _section_options, sizeof(_section_options) / sizeof(_section_options[0]));
-    BUILD_print_help_section(stdout, "Emit options",         _emit_options, sizeof(_emit_options) / sizeof(_emit_options[0]));
+    _print_help_section(stdout, "General options",      _general_options, sizeof(_general_options) / sizeof(_general_options[0]));
+    _print_help_section(stdout, "Optimization options", _optimization_options, sizeof(_optimization_options) / sizeof(_optimization_options[0]));
+    _print_help_section(stdout, "Target options",       _target_options, sizeof(_target_options) / sizeof(_target_options[0]));
+    _print_help_section(stdout, "Assembler options",    _assembler_options, sizeof(_assembler_options) / sizeof(_assembler_options[0]));
+    _print_help_section(stdout, "Linker options",       _linker_options, sizeof(_linker_options) / sizeof(_linker_options[0]));
+    _print_help_section(stdout, "Section options",      _section_options, sizeof(_section_options) / sizeof(_section_options[0]));
+    _print_help_section(stdout, "Emit options",         _emit_options, sizeof(_emit_options) / sizeof(_emit_options[0]));
     return 0;
 }
-
-

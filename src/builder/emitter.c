@@ -77,15 +77,15 @@ int BUILD_emit_lir(lir_ctx_t* lctx, cfg_ctx_t* cctx, sym_table_t* smt, const opt
     return 1;
 }
 
-static const char* BUILD_symtab_output_path(const char* type) {
+static const char* _symtab_output_path(const char* type) {
     if (!strcmp(type, "var")) return "output.var.symtab";
     if (!strcmp(type, "fn"))  return "output.fn.symtab";
     if (!strcmp(type, "sec")) return "output.sec.symtab";
     return NULL;
 }
 
-static int BUILD_emit_symtab(sym_table_t* smt, const char* type) {
-    const char* output_path = BUILD_symtab_output_path(type);
+static int _emit_symtab(sym_table_t* smt, const char* type) {
+    const char* output_path = _symtab_output_path(type);
     if (!output_path) return 0;
 
     FILE* output = fopen(output_path, "w");
@@ -105,10 +105,8 @@ static int BUILD_emit_symtab(sym_table_t* smt, const char* type) {
 
 int BUILD_emit_requested_symtabs(sym_table_t* smt, list_t* types) {
     foreach (char* type, types) {
-        if (!BUILD_emit_symtab(smt, type)) return 0;
+        if (!_emit_symtab(smt, type)) return 0;
     }
 
     return 1;
 }
-
-
