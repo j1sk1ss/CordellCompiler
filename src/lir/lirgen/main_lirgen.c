@@ -214,7 +214,7 @@ static int _iterate_block(sstack_t* params, cfg_block_t* bb, lir_ctx_t* ctx, sym
     return 1;
 }
 
-int LIR_destroy_ssa(cfg_ctx_t* cctx) {
+status_code_t LIR_destroy_ssa(cfg_ctx_t* cctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* bb, &fb->blocks) {
             lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
@@ -225,10 +225,10 @@ int LIR_destroy_ssa(cfg_ctx_t* cctx) {
         }
     }
 
-    return 1;
+    return GENERAL_SUCCESS;
 }
 
-int LIR_generate_block(cfg_ctx_t* cctx, lir_ctx_t* ctx, sym_table_t* smt) {
+status_code_t LIR_generate_block(cfg_ctx_t* cctx, lir_ctx_t* ctx, sym_table_t* smt) {
     sstack_t params;
     stack_init(&params);
 
@@ -255,5 +255,5 @@ int LIR_generate_block(cfg_ctx_t* cctx, lir_ctx_t* ctx, sym_table_t* smt) {
     }
 
     stack_free(&params);
-    return 1;
+    return GENERAL_SUCCESS;
 }

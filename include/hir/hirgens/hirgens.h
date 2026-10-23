@@ -66,495 +66,411 @@ Params:
 int HIR_generate_position(file_position_t* pos, hir_ctx_t* ctx);
 #define HIR_SET_CURRENT_POS(ctx, nd) HIR_generate_position(nd->t ? &nd->t->finfo : NULL, ctx);
 
-/*
-Generate HIR loads for function arguments and declare them in the current scope.
-Params:
-    - `args` - Function argument list AST node.
-    - `ctx` - HIR ctx.
-    - `fi` - Function metadata.
-
-Returns the first AST node after the argument list, usually the function body.
-*/
+/* Generate HIR loads for function arguments and declare them in the current scope.
+   Params:
+       - `args` - Function argument list AST node.
+       - `ctx` - HIR ctx.
+       - `fi` - Function metadata.
+   
+   Returns the first AST node after the argument list, usually the function body. */
 ast_node_t* HIR_generate_argument_load(ast_node_t* args, hir_ctx_t* ctx, func_info_t* fi);
 
-/*
-Generate implict convertion from the one type to another. 
-Note: If the types are similar, it doesn't perform the convertation proccess.
-Params:
-    - `ctx` - HIR ctx.
-    - `ptr` - Target reference level.
-    - `t` - Target type.
-    - `src` - Source HIR subject.
-    - `smt` - Symtable.
-
-Return converted HIR subject.
-*/
+/* Generate implict convertion from the one type to another. 
+   Note: If the types are similar, it doesn't perform the convertation proccess.
+   Params:
+       - `ctx` - HIR ctx.
+       - `ptr` - Target reference level.
+       - `t` - Target type.
+       - `src` - Source HIR subject.
+       - `smt` - Symtable.
+   
+   Return converted HIR subject. */
 hir_subject_t* HIR_generate_implconv(hir_ctx_t* ctx, char ptr, hir_subject_type_t t, hir_subject_t* src, sym_table_t* smt);
 
-/*
-Generate explict convertion from the one type to another. 
-Note: If the types are similar, it doesn't perform the convertation proccess.
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-
-Return converted HIR subject.
-*/
+/* Generate explict convertion from the one type to another. 
+   Note: If the types are similar, it doesn't perform the convertation proccess.
+   Params:
+       - `node` - AST node.
+       - `ctx` - HIR ctx.
+       - `smt` - Symtable.
+   
+   Return converted HIR subject. */
 hir_subject_t* HIR_generate_explconv(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Convert AST node into HIR element.
-Note: In comparision the the HIR_generate_block, this function
-      doesn't care about the entier scope and the further code.
-      It will convert only the provided node and their children.
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-
-Return parsed from AST HIR subject.
-*/
+/* Convert AST node into HIR element.
+   Note: In comparision the the HIR_generate_block, this function
+         doesn't care about the entier scope and the further code.
+         It will convert only the provided node and their children.
+   Params:
+       - `node` - AST node.
+       - `ctx` - HIR ctx.
+       - `smt` - Symtable.
+   
+   Return parsed from AST HIR subject. */
 hir_subject_t* HIR_generate_elem(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Convert funccall AST node into HIR element. 
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-    - `ret` - Will return or not?
-
-Return parsed from AST HIR subject.
-*/
+/* Convert funccall AST node into HIR element. 
+   Params:
+       - `node` - AST node.
+       - `ctx` - HIR ctx.
+       - `smt` - Symtable.
+       - `ret` - Will return or not?
+   
+   Return parsed from AST HIR subject. */
 hir_subject_t* HIR_generate_funccall(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret);
 
-/*
-Convert load AST node (arr[i]) into HIR element. 
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-
-Return parsed from AST HIR subject.
-*/
+/* Convert load AST node (arr[i]) into HIR element. 
+   Params:
+       - `node` - AST node.
+       - `ctx` - HIR ctx.
+       - `smt` - Symtable.
+   
+   Return parsed from AST HIR subject. */
 hir_subject_t* HIR_generate_load(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Convert oprand AST node (x + x) into HIR element. 
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-
-Return parsed from AST HIR subject.
-*/
+/* Convert oprand AST node (x + x) into HIR element. 
+   Params:
+       - `node` - AST node.
+       - `ctx` - HIR ctx.
+       - `smt` - Symtable.
+   
+   Return parsed from AST HIR subject. */
 hir_subject_t* HIR_generate_operand(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Convert AST node into HIR element. 
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-    - `ret` - Will return or not?
-
-Return parsed from AST HIR subject.
-*/
+/* Convert AST node into HIR element. 
+   Params:
+       - `node` - AST node.
+       - `ctx` - HIR ctx.
+       - `smt` - Symtable.
+       - `ret` - Will return or not?
+   
+   Return parsed from AST HIR subject. */
 hir_subject_t* HIR_generate_syscall(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret);
 
-/*
-Convert a breakpoint AST node into a HIR element. 
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-
-Returns 1 on success, otherwise 0.
-*/
+/* Convert a breakpoint AST node into a HIR element. 
+   Params:
+       - `node` - AST node.
+       - `ctx` - HIR ctx.
+   
+   Returns 1 on success, otherwise 0. */
 int HIR_generate_breakpoint_block(ast_node_t* node, hir_ctx_t* ctx);
 
-/*
-Convert a break AST node into a HIR element. 
-Note: ctx->carry must be a non-NULL value!
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-
-Returns 1 on success, otherwise 0.
-*/
+/* Convert a break AST node into a HIR element. 
+   Note: ctx->carry must be a non-NULL value!
+   Params:
+       - `node` - AST node.
+       - `ctx` - HIR ctx.
+   
+   Returns 1 on success, otherwise 0. */
 int HIR_generate_break_block(ast_node_t* node, hir_ctx_t* ctx);
 
-/*
-Convert extern AST node into HIR element. 
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-
-Returns 1 on success, otherwise 0.
-*/
+/* Convert extern AST node into HIR element. 
+   Params:
+       - `node` - AST node.
+       - `ctx` - HIR ctx.
+   
+   Returns 1 on success, otherwise 0. */
 int HIR_generate_extern_block(ast_node_t* node, hir_ctx_t* ctx);
 
-/*
-Convert operation (+=, -=, *=, /=) AST node into HIR element. 
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-    - `ret` - If this is a block, must be '0'.
-
-Returns the 'NULL' value or an update operator.
-*/
+/* Convert operation (+=, -=, *=, /=) AST node into HIR element. 
+   Params:
+       - `node` - AST node.
+       - `ctx` - HIR ctx.
+       - `smt` - Symtable.
+       - `ret` - If this is a block, must be '0'.
+   
+   Returns the 'NULL' value or an update operator. */
 hir_subject_t* HIR_generate_update_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret);
 
-/*
-Convert load AST node (arr[i] = 0) node into HIR element. 
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-
-Returns 1 on success, otherwise 0.
-*/
+/* Convert load AST node (arr[i] = 0) node into HIR element. 
+   Params:
+       - `node` - AST node.
+       - `ctx` - HIR ctx.
+       - `smt` - Symtable.
+   
+   Returns 1 on success, otherwise 0. */
 int HIR_generate_store_block(ast_node_t* node, hir_subject_t* src, hir_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Convert asmblock AST node into HIR element. 
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-
-Returns 1 on success, otherwise 0.
-*/
+/* Convert asmblock AST node into HIR element. 
+   Params:
+       - `node` - AST node.
+       - `ctx` - HIR ctx.
+       - `smt` - Symtable.
+   
+   Returns 1 on success, otherwise 0. */
 int HIR_generate_asmblock(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Convert assignment AST node into HIR element. 
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-
-Returns 1 on success, otherwise 0.
-*/
+/* Convert assignment AST node into HIR element. 
+   Params:
+       - `node` - AST node.
+       - `ctx` - HIR ctx.
+       - `smt` - Symtable.
+   
+   Returns 1 on success, otherwise 0. */
 int HIR_generate_assignment_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Convert block AST (from SCOPE to SCOPE) node into HIR element. 
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
+/* Convert block AST (from SCOPE to SCOPE) node into HIR element. 
+   Params:
+       - `node` - AST node.
+       - `ctx` - HIR ctx.
+       - `smt` - Symtable.
+   
+   Returns 1 on success, otherwise 0. */
+status_code_t HIR_generate_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
-Returns 1 on success, otherwise 0.
-*/
-int HIR_generate_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
-
-/*
-Convert if AST node into HIR element. 
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-
-Returns 1 on success, otherwise 0.
-*/
+/* Convert if AST node into HIR element. 
+   Params:
+       - `node` - AST node.
+       - `ctx` - HIR ctx.
+       - `smt` - Symtable.
+   
+   Returns 1 on success, otherwise 0. */
 int HIR_generate_if_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Convert while AST node into HIR element. 
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-
-Returns 1 on success, otherwise 0.
-*/
+/* Convert while AST node into HIR element. 
+   Params:
+       - `node` - AST node.
+       - `ctx` - HIR ctx.
+       - `smt` - Symtable.
+   
+   Returns 1 on success, otherwise 0. */
 int HIR_generate_while_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Convert loop AST node into HIR element. 
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-
-Returns 1 on success, otherwise 0.
-*/
+/* Convert loop AST node into HIR element. 
+   Params:
+       - `node` - AST node.
+       - `ctx` - HIR ctx.
+       - `smt` - Symtable.
+   
+   Returns 1 on success, otherwise 0. */
 int HIR_generate_loop_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Convert switch AST node into HIR element. 
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-
-Returns 1 on success, otherwise 0.
-*/
+/* Convert switch AST node into HIR element. 
+   Params:
+       - `node` - AST node.
+       - `ctx` - HIR ctx.
+       - `smt` - Symtable.
+   
+   Returns 1 on success, otherwise 0. */
 int HIR_generate_switch_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Convert declaration AST node into HIR element. 
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-
-Returns 1 on success, otherwise 0.
-*/
+/* Convert declaration AST node into HIR element. 
+   Params:
+       - `node` - AST node.
+       - `ctx` - HIR ctx.
+       - `smt` - Symtable.
+   
+   Returns 1 on success, otherwise 0. */
 int HIR_generate_declaration_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Convert return AST node into HIR element. 
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-
-Returns 1 on success, otherwise 0.
-*/
+/* Convert return AST node into HIR element. 
+   Params:
+       - `node` - AST node.
+       - `ctx` - HIR ctx.
+       - `smt` - Symtable.
+   
+   Returns 1 on success, otherwise 0. */
 int HIR_generate_return_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Convert function AST node into HIR element. 
-Params:
-    - `node` - AST node.
-    - `f_id` - Provide ID if you want to overwrite the node's ID.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-
-Returns 1 on success, otherwise 0.
-*/
+/* Convert function AST node into HIR element. 
+   Params:
+       - `node` - AST node.
+       - `f_id` - Provide ID if you want to overwrite the node's ID.
+       - `ctx` - HIR ctx.
+       - `smt` - Symtable.
+   
+   Returns 1 on success, otherwise 0. */
 int HIR_generate_function_block(ast_node_t* node, symbol_id_t f_id, hir_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Convert start AST node into HIR element. 
-Params:
-    - `node - AST node.
-    - `ctx - HIR ctx.
-    - `smt - Symtable.
-
-Returns 1 on success, otherwise 0.
-*/
+/* Convert start AST node into HIR element. 
+   Params:
+       - `node - AST node.
+       - `ctx - HIR ctx.
+       - `smt - Symtable.
+   
+   Returns 1 on success, otherwise 0. */
 int HIR_generate_start_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Convert exit AST node into HIR element. 
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-
-Returns 1 on success, otherwise 0.
-*/
+/* Convert exit AST node into HIR element. 
+   Params:
+       - `node` - AST node.
+       - `ctx` - HIR ctx.
+       - `smt` - Symtable.
+   
+   Returns 1 on success, otherwise 0. */
 int HIR_generate_exit_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Convert unary AST node into a HIR operation.
-Params:
-    - `node` - Unary AST node.
-    - `ctx` - HIR ctx.
-    - `op` - HIR unary operation to emit.
-    - `smt` - Symtable.
-
-Return generated HIR subject.
-*/
+/* Convert unary AST node into a HIR operation.
+   Params:
+       - `node` - Unary AST node.
+       - `ctx` - HIR ctx.
+       - `op` - HIR unary operation to emit.
+       - `smt` - Symtable.
+   
+   Return generated HIR subject. */
 hir_subject_t* HIR_generate_unary(ast_node_t* node, hir_ctx_t* ctx, hir_operation_t op, sym_table_t* smt);
 
-/*
-Create referenced subject from the source. 
-Params:
-    - `src` - Source HIR subject.
-    - `smt` - Symtable.
-    - `inc` - Increment reference counter.
-              Note: By default set to 1. If set to 0 - 
-                    won't increment the `ptr` field.
-
-Return referenced subject.
-*/
+/* Create referenced subject from the source. 
+   Params:
+       - `src` - Source HIR subject.
+       - `smt` - Symtable.
+       - `inc` - Increment reference counter.
+                 Note: By default set to 1. If set to 0 - 
+                       won't increment the `ptr` field.
+   
+   Return referenced subject. */
 hir_subject_t* HIR_reference_subject(hir_subject_t* src, sym_table_t* smt, int inc);
 
-/*
-Convert ref AST node into HIR element. 
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-
-Return parsed from AST HIR subject.
-*/
+/* Convert ref AST node into HIR element. 
+   Params:
+       - `node` - AST node.
+       - `ctx` - HIR ctx.
+       - `smt` - Symtable.
+   
+   Return parsed from AST HIR subject. */
 hir_subject_t* HIR_generate_ref(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Convert dref AST node into HIR element. 
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-    - `data` - By default is NULL.
-
-Return parsed from AST HIR subject.
-*/
+/* Convert dref AST node into HIR element. 
+   Params:
+       - `node` - AST node.
+       - `ctx` - HIR ctx.
+       - `smt` - Symtable.
+       - `data` - By default is NULL.
+   
+   Return parsed from AST HIR subject. */
 hir_subject_t* HIR_generate_dref(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, hir_subject_t* data);
 
-/*
-Convert indexation AST node into HIR element. 
-Snippet:
-```cpl
-something = array[index]
-```
-
-Params:
-    - `node` - Indexation node.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-
-Return parsed from AST HIR subject.
-*/
+/* Convert indexation AST node into HIR element. 
+   Snippet:
+   ```cpl
+   something = array[index]
+   ```
+   
+   Params:
+       - `node` - Indexation node.
+       - `ctx` - HIR ctx.
+       - `smt` - Symtable.
+   
+   Return parsed from AST HIR subject. */
 hir_subject_t* HIR_generate_load_indexation(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Convert `ref smth[X]` node with respect of the array's type.
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR context.
-    - `smt` - Symbol table.
-
-Returns a subject with a stored data of a referenced element.
-*/
+/* Convert `ref smth[X]` node with respect of the array's type.
+   Params:
+       - `node` - AST node.
+       - `ctx` - HIR context.
+       - `smt` - Symbol table.
+   
+   Returns a subject with a stored data of a referenced element. */
 hir_subject_t* HIR_generate_ref_indexation(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Convert indexation AST node into HIR element. 
-Snippet:
-```cpl
-array[index] = something
-```
-
-Params:
-    - `node` - Indexation node.
-    - `data` - Information to store.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-
-Returns 1 on success, otherwise 0.
-*/
+/* Convert indexation AST node into HIR element. 
+   Snippet:
+   ```cpl
+   array[index] = something
+   ```
+   
+   Params:
+       - `node` - Indexation node.
+       - `data` - Information to store.
+       - `ctx` - HIR ctx.
+       - `smt` - Symtable.
+   
+   Returns 1 on success, otherwise 0. */
 int HIR_generate_store_indexation(ast_node_t* node, hir_subject_t* data, hir_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Will generate a CONST subject that represents the size of the input subject.
-Params:
-    - `s` - The target subject.
-    - `smt` - Symtable.
-
-Returns a Constant subject, which represents the size of the subject.
-*/
+/* Will generate a CONST subject that represents the size of the input subject.
+   Params:
+       - `s` - The target subject.
+       - `smt` - Symtable.
+   
+   Returns a Constant subject, which represents the size of the subject. */
 hir_subject_t* HIR_generate_sizeof(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Convert lambda AST node to a HIR element. 
-Params:
-    - `node` - AST node.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-    - `ret` - If this is a block, must be '0'.
-
-Returns the 'NULL' value or an update operator.
-*/
+/* Convert lambda AST node to a HIR element. 
+   Params:
+       - `node` - AST node.
+       - `ctx` - HIR ctx.
+       - `smt` - Symtable.
+       - `ret` - If this is a block, must be '0'.
+   
+   Returns the 'NULL' value or an update operator. */
 hir_subject_t* HIR_generate_lambda(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt, int ret);
 
-/*
-Convert member access AST node into a HIR load.
-Params:
-    - `node` - Member access AST node.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-
-Return loaded member value.
-*/
+/* Convert member access AST node into a HIR load.
+   Params:
+       - `node` - Member access AST node.
+       - `ctx` - HIR ctx.
+       - `smt` - Symtable.
+   
+   Return loaded member value. */
 hir_subject_t* HIR_generate_load_member_access(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Find variable metadata for a concrete container field type.
-Uses the field owner and field name when the type belongs to a container,
-falling back to a type-only lookup for non-field types.
-*/
+/* Find variable metadata for a concrete container field type.
+   Uses the field owner and field name when the type belongs to a container,
+   falling back to a type-only lookup for non-field types. */
 int HIR_find_member_variable(type_info_t* field_info, symbol_id_t owner_id, string_t* name, variable_info_t* var_info, sym_table_t* smt);
 
-/*
-Syntheticly move a head towards the field (by sub-type Id).
-Params:
-    - `root` - Container field access node.
-    - `ctx` - HIR ctx.
-    - `field_info` - Ouput field info. Will fill the structure
-                     if it will find the field.
-    - `smt` - Symtable.
-
-Returns a pointer to the field. 
-*/
+/* Syntheticly move a head towards the field (by sub-type Id).
+   Params:
+       - `root` - Container field access node.
+       - `ctx` - HIR ctx.
+       - `field_info` - Ouput field info. Will fill the structure
+                        if it will find the field.
+       - `smt` - Symtable.
+   
+   Returns a pointer to the field.  */
 hir_subject_t* HIR_point_to_field(ast_node_t* root, hir_ctx_t* ctx, type_info_t* field_info, sym_table_t* smt);
 
-/* 
-Load the pointer stored in an array field header.
-Array fields keep the element buffer head separately from the container field.
-Params:
-    - `head` - Address of the array field header.
-    - `ai` - Array metadata.
-    - `ctx` - HIR context.
-    - `smt` - Symtable.
-
-Returns a temporary subject that points to the first array element. 
-*/
+/* Load the pointer stored in an array field header.
+   Array fields keep the element buffer head separately from the container field.
+   Params:
+       - `head` - Address of the array field header.
+       - `ai` - Array metadata.
+       - `ctx` - HIR context.
+       - `smt` - Symtable.
+   
+   Returns a temporary subject that points to the first array element.  */
 hir_subject_t* HIR_load_array_field_head(hir_subject_t* head, array_info_t* ai, hir_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Store data to a filed of a container.
-Params:
-    - `node` - Store operation node.
-    - `data` - The data which is stored in the field.
-    - `ctx` - HIR ctx.
-    - `smt` - Symtable.
-
-Returns 1 if there is no errors.
-*/
+/* Store data to a filed of a container.
+   Params:
+       - `node` - Store operation node.
+       - `data` - The data which is stored in the field.
+       - `ctx` - HIR ctx.
+       - `smt` - Symtable.
+   
+   Returns 1 if there is no errors. */
 int HIR_generate_store_member_access(ast_node_t* node, hir_subject_t* data, hir_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Take a virtual table from a type information and a variable information. Then,
-return a subject which points to the head of a virtual table.
-Params:
-    - `ti` - Type information.
-    - `ctx` - HIR context.
-    - `vi` - Variable information.
-    - `smt` - Symbol table.
-
-Returns a subject with a virtual table.
-*/
+/* Take a virtual table from a type information and a variable information. Then,
+   return a subject which points to the head of a virtual table.
+   Params:
+       - `ti` - Type information.
+       - `ctx` - HIR context.
+       - `vi` - Variable information.
+       - `smt` - Symbol table.
+   
+   Returns a subject with a virtual table. */
 hir_subject_t* HIR_load_vtable(type_info_t* ti, hir_ctx_t* ctx, variable_info_t* vi, sym_table_t* smt);
 
-/*
-Generate special `place` command, where it will take a subject with a virtuals table,
-allocate it in a provided memory region, and set its virtual table.
-Params:
-    - `node` - Place node.
-    - `ctx` - HIR context.
-    - `smt` - Symbol table.
-
-Returns a subject of a container with an allocated virtual table.
-*/
+/* Generate special `place` command, where it will take a subject with a virtuals table,
+   allocate it in a provided memory region, and set its virtual table.
+   Params:
+       - `node` - Place node.
+       - `ctx` - HIR context.
+       - `smt` - Symbol table.
+   
+   Returns a subject of a container with an allocated virtual table. */
 hir_subject_t* HIR_generate_place(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Register defer block via entry and exit defer blocks.
-Actually, this is a default ELEM generator, but with guards.
-Params:
-    - `node` - Defer node.
-    - `ctx` - HIR context.
-    - `smt` - Symbol table.
-
-Returns 1 if succeeds.
-*/
+/* Register defer block via entry and exit defer blocks.
+   Actually, this is a default ELEM generator, but with guards.
+   Params:
+       - `node` - Defer node.
+       - `ctx` - HIR context.
+       - `smt` - Symbol table.
+   
+   Returns 1 if succeeds. */
 int HIR_generate_defer_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt);
 
 #endif

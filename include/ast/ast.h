@@ -2,18 +2,20 @@
 #define AST_H_
 
 #include <utils.h>
+
 #include <std/mm.h>
 #include <std/list.h>
 #include <std/stack.h>
 #include <symtab/symtab_id.h>
+
 #include <prep/token.h>
 #include <prep/token_types.h>
 #include <ast/astgen/annot.h>
 
 typedef struct {
-    symbol_id_t s_id; /* Scope ID  */
-    symbol_id_t v_id; /* Object ID */
-    symbol_id_t t_id; /* Type ID   */
+    symbol_id_t          s_id; /* Scope ID  */
+    symbol_id_t          v_id; /* Object ID */
+    symbol_id_t          t_id; /* Type ID   */
 } syntax_info_t;
 
 typedef struct ast_node {
@@ -34,116 +36,98 @@ typedef struct ast_node {
 } ast_node_t;
 
 typedef struct {
-    ast_node_t*     r;      /* AST root.                                */
+    ast_node_t*          r;      /* AST root.                                  */
     struct {
-        sstack_t    stack;  /* Scope id stack.                          */
+        sstack_t         stack;  /* Scope id stack.                            */
     } scopes;
-    sstack_t        types;  /* Types id stack.                          */
-    sstack_t        annots; /* Annotations                              */
-    int             an_off; /* Annotations reserved offset              */
+    sstack_t             types;  /* Types id stack.                            */
+    sstack_t             annots; /* Annotations                                */
+    int                  an_off; /* Annotations reserved offset                */
     struct {
-        symbol_id_t pfunc;  /* Parent function pointer                  */
+        symbol_id_t      pfunc;  /* Parent function pointer                    */
     } carry;
 } ast_ctx_t;
 
-/*
-Create new tree node with a token.
-Note: Avoid token free before tree free.
-Params:
-    - `token` - Pointer to token.
-                Note: Can be NULL.
-
-Return a pointer to the node.
-*/
+/* Create new tree node with a token.
+   Note: Avoid token free before tree free.
+   Params:
+       - `token` - Pointer to token.
+                   Note: Can be NULL.
+   
+   Return a pointer to the node. */
 ast_node_t* AST_create_node(token_t* token);
 
-/*
-Create new tree node with a token.
-Note: Avoid token free before tree free.
-Note 2: In comparison with the 'AST_create_node' function,
-        this function preserves the 'tkn' in the 'bt' field.
-Params:
-    - `token` - Pointer to token.
-                Note: Can be NULL.
-
-Returns a pointer to the node.
-*/
+/* Create new tree node with a token.
+   Note: Avoid token free before tree free.
+   Note 2: In comparison with the 'AST_create_node' function,
+           this function preserves the 'tkn' in the 'bt' field.
+   Params:
+       - `token` - Pointer to token.
+                   Note: Can be NULL.
+   
+   Returns a pointer to the node. */
 ast_node_t* AST_create_node_bt(token_t* tkn);
 
-/*
-Cope ast noe.
-Params:
-    - `n` - Source target node
-    - `sp` - Save parent link
-    - `sib` - Copy siblings
-    - `chld` - Copied children.
-    - `stp` - -1 or a type where we should stop.
-
-Return pointer to new deep copied node.
-*/
+/* Copy a node.
+   Params:
+       - `n` - Source target node
+       - `sp` - Save parent link
+       - `sib` - Copy siblings
+       - `chld` - Copied children.
+       - `stp` - -1 or a type where we should stop.
+   
+   Return pointer to new deep copied node. */
 ast_node_t* AST_copy_node(ast_node_t* n, int sp, int sib, int chld, ast_node_t* stp);
 
-/*
-Add clild tree node to parent.
-Params:
-    - `parent` - Parent tree node.
-    - `child` - Tree node that will be added as child to parent node.
-
-Returns 1 if the child was added.
-Return -1 if something goes wrong.
-*/
+/* Add clild tree node to parent.
+   Params:
+       - `parent` - Parent tree node.
+       - `child` - Tree node that will be added as child to parent node.
+   
+   Returns 1 if the child was added.
+   Return -1 if something goes wrong. */
 int AST_add_node(ast_node_t* parent, ast_node_t* child);
 
-/*
-Insert child tree node at the beginning of the parent's child list.
-Params:
-    - `parent` - Parent tree node.
-    - `child` - Tree node that will become the first child.
-
-Returns 1 if the child was inserted.
-Returns 0 if something goes wrong.
-*/
+/* Insert child tree node at the beginning of the parent's child list.
+   Params:
+       - `parent` - Parent tree node.
+       - `child` - Tree node that will become the first child.
+   
+   Returns 1 if the child was inserted.
+   Returns 0 if something goes wrong. */
 int AST_insert_node(ast_node_t* parent, ast_node_t* child);
 
-/*
-Remove clild tree node to parent.
-Params:
-    - `parent` - Parent tree node.
-    - `child` - Tree node that will be removed from children in parent node.
-
-Returns 1 if the child was removed.
-Return -1 if something goes wrong.
-*/
+/* Remove clild tree node to parent.
+   Params:
+       - `parent` - Parent tree node.
+       - `child` - Tree node that will be removed from children in parent node.
+   
+   Returns 1 if the child was removed.
+   Return -1 if something goes wrong. */
 int AST_remove_node(ast_node_t* parent, ast_node_t* child);
 
-/*
-Unload syntax tree with all children and siblings.
-Params:
-    - `node` - Tree head.
-
-Returns 1 if freeing succeeds.
-Return -1 if something goes wrong.
-*/
+/* Unload syntax tree with all children and siblings.
+   Params:
+       - `node` - Tree head.
+   
+   Returns 1 if freeing succeeds.
+   Return -1 if something goes wrong. */
 int AST_unload(ast_node_t* node);
 
-/*
-Hash an ast-node with the crc64 hash function.
-Params:
-    - `node` - AST-node.
-
-Return hash sum of the AST-node.
-*/
+/* Hash an ast-node with the crc64 hash function.
+   Params:
+       - `node` - AST-node.
+   
+   Return hash sum of the AST-node. */
 hash_t AST_hash_node(ast_node_t* node);
 
-/*
-Hash an ast-node with the crc64 hash function.
-Params:
-    - `node` - AST-node.
-    - `no_name` - Ignore token's name. 
-    - `stp` - Stop token type.
-
-Return hash sum of the AST-node.
-*/
+/* Hash an ast-node with the crc64 hash function.
+   Params:
+       - `node` - AST-node.
+       - `no_name` - Ignore token's name. 
+       - `stp` - Stop token type.
+   
+   Return hash sum of the AST-node. */
 hash_t AST_hash_node_stop(ast_node_t* node, int no_name, token_type_t stp);
 
 #endif

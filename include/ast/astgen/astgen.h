@@ -135,12 +135,10 @@ int annotation_unreserve(ast_ctx_t* ctx, int off);
         __VA_ARGS__                                                                                  \
     }
 
-/*
-Save the target pointer and update it with a new one.
-Params:
-    - `l` - Action that will be invoked with a new pointer.
-    - `n` - A new function parent.
-*/
+/* Save the target pointer and update it with a new one.
+   Params:
+       - `l` - Action that will be invoked with a new pointer.
+       - `n` - A new function parent. */
 #define PRESERVE_AST_CARRY_ARG(l, n)                                                                 \
     long __dumped = ctx->carry.pfunc;                                                                \
     ctx->carry.pfunc = n;                                                                            \

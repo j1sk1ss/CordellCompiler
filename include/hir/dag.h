@@ -10,6 +10,7 @@
 #include <std/list.h>
 #include <std/qsort.h>
 #include <symtab/symtab.h>
+
 #include <hir/hir.h>
 #include <hir/hir_types.h>
 #include <hir/cfg.h>
@@ -33,64 +34,56 @@ typedef struct dag_node {
 } dag_node_t;
 
 typedef struct {
-    long  curr_id;
-    long  memory_version;
-    map_t dag; /* subj.hash <-> node */
-    map_t groups;
-    set_t sources; /* subjects */
+    long            curr_id;
+    long            memory_version;
+    map_t           dag; /* subj.hash <-> node */
+    map_t           groups;
+    set_t           sources; /* subjects */
 } dag_ctx_t;
 
-/*
-Generate DAG's node hash.
-Note: This function wall take care about DAG's node arguments.
-Params
-    - `nd` - DAG node.
-
-Returns hash of the node.
-*/
+/* Generate DAG's node hash.
+   Note: This function wall take care about DAG's node arguments.
+   Params
+       - `nd` - DAG node.
+   
+   Returns hash of the node. */
 hash_t HIR_DAG_compute_hash(dag_node_t* nd);
 
-/*
-Get DAG node from the context or create a new one.
-Params:
-    - `ctx` - DAG context.
-    - `src` - HIR subject.
-    - `create` - Create a new one DAG node.
-                 Note: If it is a 1 - Will create a new node when 
-                       it doesn't find anything in the DAG context.
-
-Return a DAG node from the context or a new DAG node.
-*/
+/* Get DAG node from the context or create a new one.
+   Params:
+       - `ctx` - DAG context.
+       - `src` - HIR subject.
+       - `create` - Create a new one DAG node.
+                    Note: If it is a 1 - Will create a new node when 
+                          it doesn't find anything in the DAG context.
+   
+   Return a DAG node from the context or a new DAG node. */
 dag_node_t* HIR_DAG_get_node(dag_ctx_t* ctx, hir_subject_t* src, int create);
 
-/*
-Unload the DAG node.
-Params:
-    - `nd` - DAG node.
-
-Returns 1 if the DAG node was freed.
-*/
+/* Unload the DAG node.
+   Params:
+       - `nd` - DAG node.
+   
+   Returns 1 if the DAG node was freed. */
 int HIR_DAG_unload_node(dag_node_t* nd);
 
-/*
-Unload the DAG context.
-Params:
-    - `ctx` - DAG context.
-
-Returns 1 if the DAG context was freed.
-*/
+/* Unload the DAG context.
+   Params:
+       - `ctx` - DAG context.
+   
+   Returns 1 if the DAG context was freed. */
 int HIR_DAG_unload(dag_ctx_t* ctx);
 
 /* Get a node (or create a new one) from the context.
-Params:
-    - `ctx` - DAG context (dag_ctx_t).
-    - `u` - Considering subject (hir_subject_t). */
+   Params:
+       - `ctx` - DAG context (dag_ctx_t).
+       - `u` - Considering subject (hir_subject_t). */
 #define DAG_GET_NODE(ctx, u) HIR_DAG_get_node(ctx, u, 1)
 
 /* Get a node from the context.
-Params:
-    - `ctx` - DAG context (dag_ctx_t).
-    - `u` - Considering subject (hir_subject_t). */
+   Params:
+       - `ctx` - DAG context (dag_ctx_t).
+       - `u` - Considering subject (hir_subject_t). */
 #define DAG_ACQUIRE_NODE(ctx, u) HIR_DAG_get_node(ctx, u, 0)
 
 int HIR_DAG_init(dag_ctx_t* dctx);

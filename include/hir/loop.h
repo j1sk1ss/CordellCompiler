@@ -20,97 +20,83 @@ typedef struct loop_node {
 } loop_node_t;
 
 typedef struct {
-    map_t lmap; /* f.id <-> list_t of loops */
+    map_t             lmap; /* f.id <-> list_t of loops */
 } ltree_ctx_t;
 
-/*
-[Analyzation] Basic search function for cycles in the provided CFG.
-Note: Will change the cfg_block_t's type to CFG_LOOP_HEADER or CFG_LOOP_LATCH.
-Note 2: This function will produce a loop tree.
-Params:
-    - `cctx` - CFG context.
-    - `lctx` - Loops context.
-
-Returns 1 on success, otherwise 0.
-*/
+/* [Analyzation] Basic search function for cycles in the provided CFG.
+   Note: Will change the cfg_block_t's type to CFG_LOOP_HEADER or CFG_LOOP_LATCH.
+   Note 2: This function will produce a loop tree.
+   Params:
+       - `cctx` - CFG context.
+       - `lctx` - Loops context.
+   
+   Returns 1 on success, otherwise 0. */
 int HIR_LOOP_mark_loops(cfg_ctx_t* cctx, ltree_ctx_t* lctx);
 
-/*
-[Transformation] This function will search for loops, then trasform them to canonical form.
-Note: Canonical form implies pre-header existance. See REAME for additional info.
-Params:
-    - `cctx` - CFG context.
-    - `lctx` - Loops context.
-
-Returns 1 on success, otherwise 0.
-*/
+/* [Transformation] This function will search for loops, then trasform them to canonical form.
+   Note: Canonical form implies pre-header existance. See REAME for additional info.
+   Params:
+       - `cctx` - CFG context.
+       - `lctx` - Loops context.
+   
+   Returns 1 on success, otherwise 0. */
 int HIR_LTREE_canonicalization(cfg_ctx_t* cctx, ltree_ctx_t* lctx);
 
-/*
-Partially unroll eligible non-nested loops by a factor of two before SSA.
-Both copies retain their conditions and updates. Mutates only the HIR sequence.
-The caller must rebuild CFG, dominance and loop tree before further analysis.
-Returns the number of transformed loops, 0 if none qualify, or -1 on failure.
-*/
+/* Partially unroll eligible non-nested loops by a factor of two before SSA.
+   Both copies retain their conditions and updates. Mutates only the HIR sequence.
+   The caller must rebuild CFG, dominance and loop tree before further analysis.
+   Returns the number of transformed loops, 0 if none qualify, or -1 on failure. */
 int HIR_LTREE_unroll(ltree_ctx_t* lctx, sym_table_t* smt);
 
-/*
-[Transformation] Perform LICM optimization on the canonicolized loops.
-The idea is simple:
-    - We have commands that aren't use any loop-depend info
-    - These commands are pretty annoying
-    - Why we wouldn't move them from a loop?
-This function marks all invariant commands (mentioned not 'loop-dependend' command).
-We move these command to a new created 'preheader' block.
-Params:
-    - `cctx` - CFG context.
-    - `lctx` - Loops context.
-    - `smt` - Symtable.
-
-Returns 1 if succeeds.
-*/
+/* [Transformation] Perform LICM optimization on the canonicolized loops.
+   The idea is simple:
+       - We have commands that aren't use any loop-depend info
+       - These commands are pretty annoying
+       - Why we wouldn't move them from a loop?
+   This function marks all invariant commands (mentioned not 'loop-dependend' command).
+   We move these command to a new created 'preheader' block.
+   Params:
+       - `cctx` - CFG context.
+       - `lctx` - Loops context.
+       - `smt` - Symtable.
+   
+   Returns 1 if succeeds. */
 int HIR_LTREE_licm(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt);
 
-/*
-[Analyzation] Get the size of the nested loop. It means, it will
-return the count of all 'parent' loops of the provided loop.
-For instance:
-```cpl
-loop { : Return 0 :
-    loop { : Return 1 :
-
-    }
-}
-```
-
-Params:
-    - `node` - The considered loop.
-
-Returns the size of nested structure.
-*/
+/* [Analyzation] Get the size of the nested loop. It means, it will
+   return the count of all 'parent' loops of the provided loop.
+   For instance:
+   ```cpl
+   loop { : Return 0 :
+       loop { : Return 1 :
+   
+       }
+   }
+   ```
+   
+   Params:
+       - `node` - The considered loop.
+   
+   Returns the size of nested structure. */
 int HIR_LTREE_nested_count(loop_node_t* node);
 
-/*
-Delete all empty loops such as:
-```cpl
-loop {
-}
-```
-, and etc.
-Params:
-    - `lctx` - Loop tree context.
-
-Returns 1 if succeeds.
-*/
+/* Delete all empty loops such as:
+   ```cpl
+   loop {
+   }
+   ```
+   , and etc.
+   Params:
+       - `lctx` - Loop tree context.
+   
+   Returns 1 if succeeds. */
 int HIR_LOOP_perform_dle(ltree_ctx_t* lctx);
 
-/*
-Unload the loop context.
-Params:
-    - `ctx` - Loop context.
-
-Returns 1 if succeeds.
-*/
+/* Unload the loop context.
+   Params:
+       - `ctx` - Loop context.
+   
+   Returns 1 if succeeds. */
 int HIR_LTREE_unload_ctx(ltree_ctx_t* ctx);
 
 #endif

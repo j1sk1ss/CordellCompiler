@@ -1,21 +1,20 @@
 #ifndef ASTGEN_H_
 #define ASTGEN_H_
 
+#include <std/list.h>
 #include <symtab/symtab.h>
+
 #include <prep/token_types.h>
 #include <ast/ast.h>
 #include <ast/astgen/astgen.h>
 #include <ast/devirt.h>
-#include <std/list.h>
 
-/*
-Move the iterator with N-steps.
+/* Move the iterator with N-steps.
 Params:
     - `it` - Current iterator.
     - `steps` - Steps count.
 
-Return 0 if we reach the end, 1 if still in the list.
-*/
+Return 0 if we reach the end, 1 if still in the list. */
 static inline int forward_token(list_iter_t* it, int steps) {
     while (steps-- > 0) {
         if (list_iter_next_top(it)) list_iter_next(it, NULL);
@@ -25,71 +24,59 @@ static inline int forward_token(list_iter_t* it, int steps) {
     return 1;
 }
 
-/*
-Peek the next token in the querry.
+/* Peek the next token in the querry.
 Params:
     - `it` - Current iterator.
 
-Returns NULL or a token.
-*/
+Returns NULL or a token. */
 static inline token_t* look_next_token(list_iter_t* it) {
     if (!list_iter_next_top(it)) return NULL;
     return (token_t*)list_iter_next_top(it);
 }
 
-/*
-Check if the next token is consumed.
+/* Check if the next token is consumed.
 Note: Before the check will move a token iterator first.
 Params:
     - `it` - Iterator.
     - `t` - Target token's type.
 
-Returns 1 if a token is consumed, otherwise 0.
-*/
+Returns 1 if a token is consumed, otherwise 0. */
 static inline int consume_token(list_iter_t* it, token_type_t t) {
     if (!forward_token(it, 1)) return 0;
     return ((token_t*)list_iter_current(it))->t_type == t;
 }
 
-/*
-Init an AST context.
+/* Init an AST context.
 Params:
     - `ctx` - AST context.
     - `fentry` - Default entry name for the architecture.
                  Note: By default can be NULL.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds. */
 int AST_init_ctx(ast_ctx_t* ctx);
 
-/*
-Generate an AST tree from a list of tokens.
+/* Generate an AST tree from a list of tokens.
 Params:
     - `tkn` - List of tokens.
     - `ctx` - AST ctx.
     - `smt` - Symtable.
 
-Returns 1 on success, otherwise 0.
-*/
+Returns 1 on success, otherwise 0. */
 int AST_parse_tokens(list_t* tkn, ast_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Resolve AST-level generated implementations after all input files are parsed.
+/* Resolve AST-level generated implementations after all input files are parsed.
 Params:
     - `ctx` - AST ctx.
     - `smt` - Symtable.
 
-Returns 1 on success, otherwise 0.
-*/
+Returns 1 on success, otherwise 0. */
 int AST_finalize_parse(ast_ctx_t* ctx, sym_table_t* smt);
 
-/*
-Unload an AST context.
+/* Unload an AST context.
 Params:
     - `ctx` - AST context.
 
-Returns 1 if succeeds.
-*/
+Returns 1 if succeeds. */
 int AST_unload_ctx(ast_ctx_t* ctx);
 
 #endif

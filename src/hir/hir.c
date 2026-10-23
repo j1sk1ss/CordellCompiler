@@ -13,10 +13,10 @@ int HIR_unload_extended_ctx(hir_ctx_t* ctx) {
 }
 
 /* Mix64 hash function.
-Params:
-    - `x` - Input value.
-
-Returns hashed value */
+   Params:
+       - `x` - Input value.
+   
+   Returns hashed value */
 static inline hash_t _mix64(unsigned long x) {
     x ^= x >> 30;
     x *= 0xbf58476d1ce4e5b9;
@@ -276,13 +276,13 @@ hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject
 }
 
 /* Safe copy with optional label preservation.
-Label copy means a entirely new link, that's why in some cases we need to save the
-original label.
-Params:
-    - `s` - Subject to copy.
-    - `copy_label` - If this is 1 - it will copy label subject.
-
-Returns a copy of the subject */
+   Label copy means a entirely new link, that's why in some cases we need to save the
+   original label.
+   Params:
+       - `s` - Subject to copy.
+       - `copy_label` - If this is 1 - it will copy label subject.
+   
+   Returns a copy of the subject */
 static inline hir_subject_t* _safe_copy(hir_subject_t* s, int copy_label) {
     if (!s || (!copy_label && s->t == HIR_LABEL)) return s;
     return HIR_copy_subject(s);

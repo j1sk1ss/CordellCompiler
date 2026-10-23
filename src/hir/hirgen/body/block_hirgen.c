@@ -122,7 +122,7 @@ static inline void _insert_scope(ast_node_t* t, hir_ctx_t* ctx, hir_operation_t 
     if (t->t && t->t->t_type == SCOPE_TOKEN) HIR_BLOCK0(ctx, op);
 }
 
-int HIR_generate_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+status_code_t HIR_generate_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node) return 0;
     HIR_SET_CURRENT_POS(ctx, node);
     for (ast_node_t* t = node; t; t = t->siblings.n) {

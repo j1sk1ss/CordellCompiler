@@ -21,9 +21,9 @@
 #include <hir/inline_model.h>
 
 typedef struct {
-    char  flag;
-    long  f_id;
-    set_t edges;
+    char   flag;
+    long   f_id;
+    set_t  edges;
 } call_graph_node_t;
 
 typedef struct {
@@ -35,93 +35,93 @@ typedef struct {
 cfg_func_t* HIR_func_create_funcblock(hir_block_t* entry);
 
 /* [Transformation] Apply call graph information to CFG.
-Note: Will mark functions as unused if they aren't connected to each other
-in call graph.
-Params:
-    - `cctx` - CFG context.
-    - `smt` - Symbol table.
-
-Returns 1 on success, otherwise 0. */
+   Note: Will mark functions as unused if they aren't connected to each other
+   in call graph.
+   Params:
+       - `cctx` - CFG context.
+       - `smt` - Symbol table.
+   
+   Returns 1 on success, otherwise 0. */
 int HIR_CG_apply_dfe(cfg_ctx_t* cctx, sym_table_t* smt);
 
 /* [Analysis] Perform basic call graph generation.
-Note: Will connect call graph's functions with each other.
-Note 2: Will mark functions as an unused function!
-        Must be called after all possible HIR optimizations!
-Params:
-    - `ctx` - Call graph itself.
-    - `smt` - Symtable.
-
-Returns 1 on success, otherwise 0. */
+   Note: Will connect call graph's functions with each other.
+   Note 2: Will mark functions as an unused function!
+           Must be called after all possible HIR optimizations!
+   Params:
+       - `ctx` - Call graph itself.
+       - `smt` - Symtable.
+   
+   Returns 1 on success, otherwise 0. */
 int HIR_CG_perform_dfe(call_graph_t* ctx, sym_table_t* smt);
 
 /* Build basic call graph based on the provided CFG.
-Params:
-    - `cctx` - CFG context.
-    - `ctx` - Call graph context.
-    - `smt` - Symtable.
-
-Returns 1 on success, otherwise 0. */
+   Params:
+       - `cctx` - CFG context.
+       - `ctx` - Call graph context.
+       - `smt` - Symtable.
+   
+   Returns 1 on success, otherwise 0. */
 int HIR_CG_build(cfg_ctx_t* cctx, call_graph_t* ctx, sym_table_t* smt);
 
 /* Unload call graph.
-Params:
-    - `ctx` - Call graph.
-
-Returns 1 on success, otherwise 0. */
+   Params:
+       - `ctx` - Call graph.
+   
+   Returns 1 on success, otherwise 0. */
 int HIR_CG_unload(call_graph_t* ctx);
 
 /* Perform tail-recursion elimination. Will remove all tail recursions with cycle.
-Params:
-    - `cctx` - CFG.
-    - `smt` - Symtable.
-
-Returns 1 on success, otherwise 0. */
+   Params:
+       - `cctx` - CFG.
+       - `smt` - Symtable.
+   
+   Returns 1 on success, otherwise 0. */
 int HIR_FUNC_perform_tre(cfg_ctx_t* cctx, sym_table_t* smt);
 
 /* Perform inlining optimization. Inlines functions that get 3 heuristic score points.
-Params:
-    - `cctx` - CFG.
-    - `lctx` - Loops context.
-    - `smt` - Symtable.
-
-Returns 1 on success, otherwise 0. */
+   Params:
+       - `cctx` - CFG.
+       - `lctx` - Loops context.
+       - `smt` - Symtable.
+   
+   Returns 1 on success, otherwise 0. */
 int HIR_FUNC_perform_inline(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt);
 
 /* Iterate function and find last block. If this is exit and the last block, find HIR_VRUSE, which
-signals that there is a return value. Simple example:
-```cpl
-function foo() {
-    i32 a = 1;
-    i32 tmp;
-    : tmp = : a + 10;
-    : use(tmp); :
-    return tmp;
-}
-```
-Note: This function will ignore if function doesn't return anything.
-Params:
-    - `cctx` - CFG context.
-
-Returns 1 if succeeds. */
+   signals that there is a return value. Simple example:
+   ```cpl
+   function foo() {
+       i32 a = 1;
+       i32 tmp;
+       : tmp = : a + 10;
+       : use(tmp); :
+       return tmp;
+   }
+   ```
+   Note: This function will ignore if function doesn't return anything.
+   Params:
+       - `cctx` - CFG context.
+   
+   Returns 1 if succeeds. */
 int HIR_FUNC_set_last_return(cfg_ctx_t* cctx);
 
 /* Delete duplicated functions from the CFG.
-P.S.: This function won't delete function, it will just mark them as an
-      'unused' function.
-Params:
-    - `ctx` - CFG context.
-
-Returns 1 on success, otherwise 0. */
+   P.S.: This function won't delete function, it will just mark them as an
+         'unused' function.
+   Params:
+       - `ctx` - CFG context.
+   
+   Returns 1 on success, otherwise 0. */
 int HIR_FUNC_set_unused_duplicated_functions(cfg_ctx_t* ctx);
 
 /* Iterate recursuvelly the input CFG, register defer calls,
-and put them at exit commands.
-!! Will work after setret pass !!
-Params: 
-    - `cctx` - CFG context.
-
-Returns 1 on success. */
+   and put them at exit commands.
+   !! Will work after setret pass !!
+   Params: 
+       - `cctx` - CFG context.
+   
+   Returns 1 on success. */
 status_code_t HIR_FUNC_set_defer_calls(cfg_ctx_t* cctx);
 
 // TODO: docs

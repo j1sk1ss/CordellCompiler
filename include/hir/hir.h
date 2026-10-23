@@ -20,27 +20,27 @@
 #include <hir/hir_types.h>
 
 typedef struct {
-    symbol_id_t s_id; /* String ID from strings symtab */
+    symbol_id_t         s_id; /* String ID from strings symtab */
 } hir_string_t;
 
 typedef struct {
-    long value;
+    long                value;
 } hir_constant_t;
 
 typedef struct {
-    string_t* value;
+    string_t*           value;
 } hir_number_t;
 
 typedef struct {
-    symbol_id_t v_id; /* Variable ID from variables symtab */
+    symbol_id_t         v_id; /* Variable ID from variables symtab */
 } hir_variable_t;
 
 typedef struct {
-    set_t h;
+    set_t               h;
 } hir_set_t;
 
 typedef struct {
-    list_t h;
+    list_t              h;
 } hir_list_t;
 
 typedef struct {
