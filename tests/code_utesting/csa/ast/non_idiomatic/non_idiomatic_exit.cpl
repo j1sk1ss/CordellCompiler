@@ -1,0 +1,9 @@
+start() {
+    exit 0;
+}
+
+:/ OUTPUT
+[WARNING] [2:10] Non-idiomatic exit operation found. You can use 'exit' without any exit code.
+2 | exit 0;
+  |      ^
+/:

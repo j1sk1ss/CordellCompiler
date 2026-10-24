@@ -4,10 +4,12 @@
 #include <limits.h>
 #include <std/str.h>
 #include <prep/token_types.h>
+
 #include <csa/ast/ast_data.h>
 #include <csa/misc/warns.h>
 #include <csa/misc/restore.h>
 #include <csa/misc/trace.h>
+
 #include <ast/ast.h>
 #include <ast/astgen.h>
 
@@ -262,5 +264,16 @@ int ASTWLKR_inefficient_switch(AST_VISITOR_ARGS);
 
     Returns 1 if the node is correct, otherwise 0. */
 int ASTWLKR_non_idiomatic_cast(AST_VISITOR_ARGS);
+
+/* Check whether in the considered code the non-idiomatic exit exists.
+   Non-idiomatic exit is an `exit 0;`.
+
+   The compiler can work with empty exists: it will
+   create a dummy zero exit code. 
+   Params:
+    - AST_VISITOR_ARGS - Default AST visitor args.
+
+   Returns 1 if the node is correct, otherwise 0. */
+int ASTWLKR_non_idiomatic_exit(AST_VISITOR_ARGS);
 
 #endif

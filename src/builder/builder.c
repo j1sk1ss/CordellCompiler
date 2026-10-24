@@ -168,7 +168,7 @@ int BUILD_start(int argc, char* argv[]) {
         if (!BUILD_emit_ast(&sctx, &options)) return 1;
 
         if (options.flags.ast_analysis) {
-            if (STRICT_ACTION(SEM_perform_ast_check(&sctx, &smt) <= 0)) {
+            if (STRICT_ACTION(SEM_perform_ast_check(&sctx, &smt, DEF_CONF) <= 0)) {
                 fprintf(stderr, "AST semantic analysis failed\n");
                 return 1;
             }
@@ -296,7 +296,7 @@ int BUILD_start(int argc, char* argv[]) {
         HIR_CFG_squeeze_blocks(&cfgctx);
 
         if (needs_hir_analysis) {
-            if (STRICT_ACTION(SEM_perform_hir_check(&cfgctx, &dagctx, &hirctx, &smt) <= 0)) {
+            if (STRICT_ACTION(SEM_perform_hir_check(&cfgctx, &dagctx, &smt, DEF_CONF) <= 0)) {
                 fprintf(stderr, "HIR semantic analysis failed\n");
                 return 1;
             }

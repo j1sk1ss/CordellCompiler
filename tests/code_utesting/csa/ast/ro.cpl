@@ -5,7 +5,10 @@ start() {
 }
 
 :/ OUTPUT
-[ERROR]   [{X}3:7] Read-only variable 'a' is used to store a value!
+[WARNING] [4:10] Non-idiomatic exit operation found. You can use 'exit' without any exit code.
+4 | exit 0;
+  |      ^
+[ERROR]   [3:7] Read-only variable 'a' is used to store a value!
 3 | a = 1;
   | ^   ^
 /:

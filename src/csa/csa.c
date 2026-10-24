@@ -1,8 +1,12 @@
-#include <csa/semantic.h>
+#include <csa/csa.h>
 
-int SEM_perform_ast_check(ast_ctx_t* actx, sym_table_t* smt) {
+int SEM_perform_ast_check(ast_ctx_t* actx, sym_table_t* smt, csa_conf_t conf) {
     ast_walker_t walker;
     ASTWLK_init_ctx(&walker, smt);
+
+    walker.flags.l_conf.show_files = conf.l_conf.provide_files;
+    walker.flags.l_conf.show_lines = conf.l_conf.provide_lines;
+    walker.flags.l_conf.show_rows  = conf.l_conf.provide_rows;
 
     switch (CONF_get_attention_level()) {
         case 0:
@@ -14,6 +18,7 @@ int SEM_perform_ast_check(ast_ctx_t* actx, sym_table_t* smt) {
             ASTWLK_register_visitor(DECLARATION_NODE,                                 ASTWLKR_incorrect_align,           &walker, ATTENTION_LOW_LEVEL);
             ASTWLK_register_visitor(SWITCH_NODE,                                      ASTWLKR_inefficient_switch,        &walker, ATTENTION_LOW_LEVEL);
             ASTWLK_register_visitor(CAST_NODE,                                        ASTWLKR_non_idiomatic_cast,        &walker, ATTENTION_LOW_LEVEL);
+            ASTWLK_register_visitor(TERM_NODE,                                        ASTWLKR_non_idiomatic_exit,        &walker, ATTENTION_LOW_LEVEL);
             __attribute__((fallthrough));
         case 1:
             ASTWLK_register_visitor(FUNCTION_NODE,                                    ASTWLKR_wrong_rtype,               &walker, ATTENTION_MEDIUM_LEVEL);
@@ -35,9 +40,9 @@ int SEM_perform_ast_check(ast_ctx_t* actx, sym_table_t* smt) {
     return res;
 }
 
-int SEM_perform_hir_check(cfg_ctx_t* ctx, dag_ctx_t* dctx, hir_ctx_t* hctx, sym_table_t* smt) {
+int SEM_perform_hir_check(cfg_ctx_t* ctx, dag_ctx_t* dctx, sym_table_t* smt, csa_conf_t conf) {
     hir_walker_t walker;
-    HIRWLK_init_ctx(&walker, dctx, hctx, smt);
+    HIRWLK_init_ctx(&walker, dctx, smt);
 
     switch (CONF_get_attention_level()) {
         case 0:

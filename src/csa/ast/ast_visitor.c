@@ -7,6 +7,7 @@ ast_visitor_t* ASTVIS_create_visitor(unsigned int trg, int (*perform)(AST_VISITO
     v->perform = perform;
     return v;
 }
+
 // TODO: Check if in a code = in if is present:
 /*
 ```cpl

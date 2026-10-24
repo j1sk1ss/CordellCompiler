@@ -26,15 +26,20 @@ typedef enum {
 } ast_node_type_t;
 
 typedef struct {
-    int in_switch; /* Walker in a switch block    */
-    int in_case;   /* Walker in a case block      */
-    int in_while;  /* Walker in a while block     */
-    int in_loop;   /* Walker in a loop block      */
-    int in_if;     /* Walker in an if block       */
-    int in_func;   /* Walker in a function        */
-    int in_start;  /* Walker in a start function  */
-    int in_fargs;  /* Walker in a function params */
-    int in_stargs; /* Walker in a start params    */
+    int      in_switch; /* Walker in a switch block    */
+    int      in_case;   /* Walker in a case block      */
+    int      in_while;  /* Walker in a while block     */
+    int      in_loop;   /* Walker in a loop block      */
+    int      in_if;     /* Walker in an if block       */
+    int      in_func;   /* Walker in a function        */
+    int      in_start;  /* Walker in a start function  */
+    int      in_fargs;  /* Walker in a function params */
+    int      in_stargs; /* Walker in a start params    */
+    struct {
+        char show_files : 1;
+        char show_lines : 1;
+        char show_rows  : 1;
+    } l_conf;
 } walker_flags_t;
 
 #define AST_VISITOR_ARGS     ast_node_t* nd, walker_flags_t* flags, sym_table_t* smt

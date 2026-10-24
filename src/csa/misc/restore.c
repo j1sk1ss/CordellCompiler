@@ -41,26 +41,24 @@ const char* RST_restore_type(token_t* t) {
     }
 }
 
-/*
-Give a number's character count.
-Params:
-    - `v` - Number.
-
-Returns a number of characters that are used for
-a printing of the provided number.
-*/
+/* Give a number's character count.
+   Params:
+       - `v` - Number.
+   
+   Returns a number of characters that are used for
+   a printing of the provided number. */
 static inline int _rst_digits(int v) {
     int d = 1;
     while (v >= 10) { v /= 10; ++d; }
     return d;
 }
 
-/*  Get the largest .line value from the node and its children.
-Params:
-    - `nd` - AST node.
-    - `mx` - Current largest line.
-
-Returns 1 if succeeds */
+/* Get the largest .line value from the node and its children.
+   Params:
+       - `nd` - AST node.
+       - `mx` - Current largest line.
+   
+   Returns 1 if succeeds */
 static int _rst_max_line(ast_node_t* nd, int* mx) {
     for (ast_node_t* p = nd; p; p = p->siblings.n) {
         if (p->t) {
@@ -151,24 +149,20 @@ static void _rst_print_markers_for_line(rst_ln_ctx_t* x) {
     x->sp_n = 0;
 }
 
-/*
-Get the node line.
-Params
-    - `nd` - AST node.
-
-Returns the node's line number.
-*/
+/* Get the node line.
+   Params
+       - `nd` - AST node.
+   
+   Returns the node's line number. */
 static inline int _rst_line(ast_node_t* nd) {
     if (!nd || !nd->t) return 0;
     return nd->t->finfo.line;
 }
 
-/*
-Print the line's prefix with a number of a line.
-Params:
-    - `x` - Line writer context.
-    - `line` - Line number.
-*/
+/* Print the line's prefix with a number of a line.
+   Params:
+       - `x` - Line writer context.
+       - `line` - Line number. */
 static inline void _rst_ln_prefix(rst_ln_ctx_t* x, int line) {
     if (x->ul_active) fputs(UL_OFF, x->fd);
 
@@ -274,9 +268,6 @@ static int _restore_annotation(rst_ln_ctx_t* x, int line, annotation_t* annot) {
     if (!annot) return 0;
 
     switch (annot->t) {
-        case ALIGN_ANNOTATION:    _rst_ln_printf(x, line, "%s(%i)", ALIGN_ANNOTATION_COMMAND, annot->data.align);                  break;
-        case COUNTER_ANNOTATION:  _rst_ln_printf(x, line, "%s(%ld)", COUNT_ANNOTATION_COMMAND, annot->data.counter);               break;
-        case REGISTER_ANNOTATION: _rst_ln_printf(x, line, "%s(%i)", REGST_ANNOTATION_COMMAND, (int)annot->data.regval);            break;
         case ENTRY_ANNOTATION: {
             _rst_ln_puts(x, line, ENTRY_ANNOTATION_COMMAND);
             if (annot->data.fname) _rst_ln_printf(x, line, "(\"%s\")", annot->data.fname->body);
@@ -304,20 +295,29 @@ static int _restore_annotation(rst_ln_ctx_t* x, int line, annotation_t* annot) {
             if (annot->data.inline_opt) _rst_ln_printf(x, line, "(%s)", annot->data.inline_opt->body);
             break;
         }
-        case NOSECTION_ANNOTATION: _rst_ln_puts(x, line, NOSEC_ANNOTATION_COMMAND); break;
-        case NAKED_ANNOTATION:     _rst_ln_puts(x, line, NAKED_ANNOTATION_COMMAND); break;
-        case NOFALL_ANNOTATION:    _rst_ln_puts(x, line, NOFAL_ANNOTATION_COMMAND); break;
-        case NOTLAZY_ANNOTATION:   _rst_ln_puts(x, line, NTLAZ_ANNOTATION_COMMAND); break;
-        case HOT_ANNOTATION:       _rst_ln_puts(x, line, HOTSC_ANNOTATION_COMMAND); break;
-        case COLD_ANNOTATION:      _rst_ln_puts(x, line, COLDS_ANNOTATION_COMMAND); break;
-        case POPARG_ANNOTATION:    _rst_ln_puts(x, line, POPRG_ANNOTATION_COMMAND); break;
-        case SELF_ANNOTATION:      _rst_ln_puts(x, line, SSELF_ANNOTATION_COMMAND); break;
-        case LIKEC_ANNOTATION:     _rst_ln_puts(x, line, LIKEC_ANNOTATION_COMMAND); break;
-        case UNION_ANNOTATION:     _rst_ln_puts(x, line, UNION_ANNOTATION_COMMAND); break;
-        case WEAK_ANNOTATION:      _rst_ln_puts(x, line, WEAKS_ANNOTATION_COMMAND); break;
-        case ABI_ANNOTATION:       _rst_ln_puts(x, line, ABICC_ANNOTATION_COMMAND); break;
-        case ONLYBODY_ANNOTATION:  _rst_ln_puts(x, line, BODYO_ANNOTATION_COMMAND); break;
-        default:                   _rst_ln_puts(x, line, "unknown");                break;
+        case ALIGN_ANNOTATION:    _rst_ln_printf(x, line, "%s(%i)", ALIGN_ANNOTATION_COMMAND, annot->data.align);            break;
+        case COUNTER_ANNOTATION:  _rst_ln_printf(x, line, "%s(%ld)", COUNT_ANNOTATION_COMMAND, annot->data.counter);         break;
+        case REGISTER_ANNOTATION: _rst_ln_printf(x, line, "%s(%i)", REGST_ANNOTATION_COMMAND, (int)annot->data.regval);      break;
+        case SWITCH_ANNOTATION:   _rst_ln_printf(x, line, "%s(%s)", SWTCH_ANNOTATION_COMMAND, annot->data.switch_sel->body); break;
+#define SIMPLE_ANNOT(t, name) case t: _rst_ln_puts(x, line, name); break;
+        SIMPLE_ANNOT(NOSECTION_ANNOTATION, NOSEC_ANNOTATION_COMMAND);
+        SIMPLE_ANNOT(NAKED_ANNOTATION,     NAKED_ANNOTATION_COMMAND);
+        SIMPLE_ANNOT(NOFALL_ANNOTATION,    NOFAL_ANNOTATION_COMMAND);
+        SIMPLE_ANNOT(NOTLAZY_ANNOTATION,   NTLAZ_ANNOTATION_COMMAND);
+        SIMPLE_ANNOT(HOT_ANNOTATION,       HOTSC_ANNOTATION_COMMAND);
+        SIMPLE_ANNOT(COLD_ANNOTATION,      COLDS_ANNOTATION_COMMAND);
+        SIMPLE_ANNOT(POPARG_ANNOTATION,    POPRG_ANNOTATION_COMMAND);
+        SIMPLE_ANNOT(POPREG_ANNOTATION,    PPREG_ANNOTATION_COOMAND);
+        SIMPLE_ANNOT(SELF_ANNOTATION,      SSELF_ANNOTATION_COMMAND);
+        SIMPLE_ANNOT(LIKEC_ANNOTATION,     LIKEC_ANNOTATION_COMMAND);
+        SIMPLE_ANNOT(UNION_ANNOTATION,     UNION_ANNOTATION_COMMAND);
+        SIMPLE_ANNOT(WEAK_ANNOTATION,      WEAKS_ANNOTATION_COMMAND);
+        SIMPLE_ANNOT(ABI_ANNOTATION,       ABICC_ANNOTATION_COMMAND);
+        SIMPLE_ANNOT(ONLYBODY_ANNOTATION,  BODYO_ANNOTATION_COMMAND);
+        SIMPLE_ANNOT(OVERRIDE_ANNOTAITON,  OVERD_ANNOTATION_COMMAND);
+        SIMPLE_ANNOT(VTABLE_ANNOTATION,    VTABL_ANNOTATION_COMMAND);
+#undef SIMPLE_ANNOT
+        default: _rst_ln_puts(x, line, "unknown"); break;
     }
 
     return 1;
@@ -383,7 +383,7 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
     int complex = -1;
     if (
         TKN_is_builtin_type(nd->t) ||
-        nd->t->t_type == CUSTOM_TYPE_TOKEN ||
+        nd->t->t_type == CUSTOM_TYPE_TOKEN  ||
         nd->t->t_type == GENERIC_TYPE_TOKEN ||
         nd->t->t_type == VAR_ARGUMENTS_TOKEN
     ) {
@@ -433,10 +433,10 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
         TKN_is_numeric(nd->t)  ||
         nd->t->t_type == UNKNOWN_STRING_TOKEN ||
         TKN_is_variable(nd->t) ||
-        nd->t->t_type == CUSTOM_VARIABLE_TOKEN ||
+        nd->t->t_type == CUSTOM_VARIABLE_TOKEN  ||
         nd->t->t_type == GENERIC_VARIABLE_TOKEN ||
-        nd->t->t_type == ADDR_CALL_TOKEN ||
-        nd->t->t_type == CALL_ADDR_TOKEN ||
+        nd->t->t_type == ADDR_CALL_TOKEN        ||
+        nd->t->t_type == CALL_ADDR_TOKEN        ||
         nd->t->t_type == FUNC_NAME_TOKEN
     ) _rst_ln_puts(x, line, nd->t->body->body);
     else if (
@@ -471,10 +471,10 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
 
             int simple_callee = (
                 TKN_is_variable(nd->c->t) ||
-                nd->c->t->t_type == CUSTOM_VARIABLE_TOKEN ||
+                nd->c->t->t_type == CUSTOM_VARIABLE_TOKEN  ||
                 nd->c->t->t_type == GENERIC_VARIABLE_TOKEN ||
-                nd->c->t->t_type == ADDR_CALL_TOKEN ||
-                nd->c->t->t_type == FUNC_NAME_TOKEN ||
+                nd->c->t->t_type == ADDR_CALL_TOKEN        ||
+                nd->c->t->t_type == FUNC_NAME_TOKEN        ||
                 nd->c->t->t_type == CALL_ADDR_TOKEN
             );
             if (!simple_callee) _rst_ln_puts(x, line, "(");
@@ -522,9 +522,7 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
             ast_node_t* name = nd->c;
             ast_node_t* body = name ? name->siblings.n : NULL;
             _rst_ln_printf(x, line, "%s %s\n", CONTAINER_COMMAND, name && name->t ? name->t->body->body : "");
-
             _restore_body_lines(x, body, u, indent);
-
             complex = 1;
             break;
         }
@@ -544,7 +542,6 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
             }
 
             _rst_ln_puts(x, line, ")\n");
-
             _restore_body_lines(x, p, u, indent);
 
             complex = 1;
@@ -610,6 +607,7 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
                 _restore_code_lines(x, stmt, u, indent + 1);
                 _rst_ln_puts(x, stmt_line, stmt->siblings.n ? ",\n" : "\n");
             }
+            
             _rst_ln_indent(x, body_line, indent);
             _rst_ln_puts(x, body_line, "}\n");
             complex = 1;

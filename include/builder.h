@@ -19,7 +19,7 @@
 #include <prep/markup.h>
 
 /* Semantic (Static analyzer) setup              */
-#include <csa/semantic.h>
+#include <csa/csa.h>
 
 /* AST generation part and AST optimization part */
 #include <ast/ast.h>
