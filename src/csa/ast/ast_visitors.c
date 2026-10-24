@@ -844,4 +844,37 @@ int ASTWLKR_non_idiomatic_exit(AST_VISITOR_ARGS) {
 
     return 1;
 }
+
+static int _is_self_init(ast_node_t* root, symbol_id_t self, ast_node_t** self_node) {
+    if (!root || *self_node) return 0;
+    if (
+        _is_self_init(root->siblings.n, self, self_node)||
+        _is_self_init(root->c, self, self_node)
+    ) return 1;
+
+    if (
+        TKN_is_variable(root->t) &&
+        root->sinfo.v_id == self
+    ) {
+        *self_node = root;
+        return 1;
+    }
+
+    return 0;
+}
+
+int ASTWLKR_self_init(AST_VISITOR_ARGS) {
+    AST_VISITOR_ARGS_USE;
+    ast_node_t *self = nd->c, *self_node = NULL;
+    if (_is_self_init(self->siblings.n, self->sinfo.v_id, &self_node) || self_node) {
+        SEMANTIC_WARNING(
+            " %s Found self initialization! The variable '%s' has been initialized with a "
+            "value from itself. It will lead to UB! Consider to delete the variable.",
+            FMT_LOC(&nd->t->finfo), self->t->body->body
+        );
+        REBUILD_CODE_1TRG(nd, self_node);
+    }
+
+    return 1;
+}
 #undef FMT_LOC

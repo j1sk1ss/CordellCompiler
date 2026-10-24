@@ -24,6 +24,7 @@ int SEM_perform_ast_check(ast_ctx_t* actx, sym_table_t* smt, csa_conf_t conf) {
             ASTWLK_register_visitor(FUNCTION_NODE,                                    ASTWLKR_wrong_rtype,               &walker, ATTENTION_MEDIUM_LEVEL);
             ASTWLK_register_visitor(TERM_NODE,                                        ASTWLKR_deadcode,                  &walker, ATTENTION_MEDIUM_LEVEL);
             ASTWLK_register_visitor(BREAK_NODE,                                       ASTWLKR_break_without_statement,   &walker, ATTENTION_MEDIUM_LEVEL);
+            ASTWLK_register_visitor(DECLARATION_NODE,                                 ASTWLKR_self_init,                 &walker, ATTENTION_MEDIUM_LEVEL);
             __attribute__((fallthrough));
         case 2:
             ASTWLK_register_visitor(CALL_NODE,                                        ASTWLKR_wrong_arg_type,            &walker, ATTENTION_HIGH_LEVEL);
@@ -40,7 +41,7 @@ int SEM_perform_ast_check(ast_ctx_t* actx, sym_table_t* smt, csa_conf_t conf) {
     return res;
 }
 
-int SEM_perform_hir_check(cfg_ctx_t* ctx, dag_ctx_t* dctx, sym_table_t* smt, csa_conf_t conf) {
+int SEM_perform_hir_check(cfg_ctx_t* ctx, dag_ctx_t* dctx, sym_table_t* smt, __attribute__((unused)) csa_conf_t conf) {
     hir_walker_t walker;
     HIRWLK_init_ctx(&walker, dctx, smt);
 

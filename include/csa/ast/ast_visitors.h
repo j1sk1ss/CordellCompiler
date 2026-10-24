@@ -13,26 +13,29 @@
 #include <ast/ast.h>
 #include <ast/astgen.h>
 
-#define REBUILD_CODE_0TRG(nd)                  \
+#define REBUILD_CODE_0TRG(nd) do {             \
         set_t __s;                             \
         set_init(&__s, SET_NO_CMP);            \
         RST_restore_code(stdout, nd, &__s, 0); \
         set_free(&__s);                        \
+} while (0)
 
-#define REBUILD_CODE_1TRG(nd, trg)             \
+#define REBUILD_CODE_1TRG(nd, trg) do {        \
         set_t __s;                             \
         set_init(&__s, SET_NO_CMP);            \
         set_add(&__s, trg);                    \
         RST_restore_code(stdout, nd, &__s, 0); \
         set_free(&__s);                        \
+} while (0)
 
-#define REBUILD_CODE_2TRG(nd, ftrg, strg)      \
+#define REBUILD_CODE_2TRG(nd, ftrg, strg) do { \
         set_t __s;                             \
         set_init(&__s, SET_NO_CMP);            \
         set_add(&__s, ftrg);                   \
         set_add(&__s, strg);                   \
         RST_restore_code(stdout, nd, &__s, 0); \
         set_free(&__s);                        \
+} while (0)
 
 /* ASTWLKR_ro_assign checks illegal read-only assign.
    Example:
@@ -275,5 +278,22 @@ int ASTWLKR_non_idiomatic_cast(AST_VISITOR_ARGS);
 
    Returns 1 if the node is correct, otherwise 0. */
 int ASTWLKR_non_idiomatic_exit(AST_VISITOR_ARGS);
+
+/* Check whether there is a 'self' initialization. Self
+   initialization happens when we create a variable and
+   use the variable in its own initialization:
+
+   ```cpl
+   i32 a = a;
+   ```
+
+   This code will work (given the CPL's parser), but it
+   will lead to UB in future.
+
+   Params:
+    - AST_VISITOR_ARGS - Default AST visitor args.
+
+   Returns 1 if the node is correct, otherwise 0. */
+int ASTWLKR_self_init(AST_VISITOR_ARGS);
 
 #endif
