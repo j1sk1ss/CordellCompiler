@@ -1,5 +1,5 @@
 #include <csa/misc/trace.h>
-
+// TODO: complete proper trace generation with respect of the logging flags
 int TRACE_init_trace(trace_t* trace) {
     trace->next_id = 1;
     list_init(&trace->records);

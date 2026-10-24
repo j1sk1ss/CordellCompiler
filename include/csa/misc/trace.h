@@ -33,15 +33,20 @@ typedef struct {
 typedef struct {
     trace_id_t next_id;
     list_t     records;
+    struct {
+        char   show_files : 1;
+        char   show_lines : 1;
+        char   show_rows  : 1;
+    } l_conf;
 } trace_t;
 
 #define TRACE_NO_ID ((trace_id_t)-1)
 
-int TRACE_init_trace(trace_t* trace);
+int        TRACE_init_trace(trace_t* trace);
 trace_id_t TRACE_create_root(trace_t* trace, trace_severity_t severity, file_position_t* loc, const char* fmt, ...);
-int TRACE_add_note(trace_t* trace, trace_id_t id, file_position_t* loc, const char* fmt, ...);
-int TRACE_is_empty(trace_t* trace);
-int TRACE_print_and_free_trace(trace_t* t);
-int TRACE_unload_trace(trace_t* trace);
+int        TRACE_add_note(trace_t* trace, trace_id_t id, file_position_t* loc, const char* fmt, ...);
+int        TRACE_is_empty(trace_t* trace);
+int        TRACE_print_and_free_trace(trace_t* t);
+int        TRACE_unload_trace(trace_t* trace);
 
 #endif

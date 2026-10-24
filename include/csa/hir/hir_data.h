@@ -31,6 +31,11 @@ typedef struct {
     map_t           definitions; /* map of id:list, possible definitions of a variable */
     dag_ctx_t*      dctx;
     z3_analyzer_t*  z3;
+    struct {
+        char show_files : 1;
+        char show_lines : 1;
+        char show_rows  : 1;
+    } l_conf;
 } hir_visitors_ctx_t;
 
 #define HIR_VISITOR_ARGS     hir_block_t* b, cfg_block_t* bb, sym_table_t* smt, hir_visitors_ctx_t* ctx

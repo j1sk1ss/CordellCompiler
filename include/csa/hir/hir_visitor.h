@@ -14,6 +14,6 @@ typedef struct {
 } hir_visitor_t;
 
 hir_visitor_t* HIRVIS_create_visitor(unsigned long trg, int (*perform)(HIR_VISITOR_ARGS));
-int HIRVIS_unload_visitor(hir_visitor_t* v);
+int            HIRVIS_unload_visitor(hir_visitor_t* v);
 
 #endif

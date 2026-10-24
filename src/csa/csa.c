@@ -45,6 +45,10 @@ int SEM_perform_hir_check(cfg_ctx_t* ctx, dag_ctx_t* dctx, sym_table_t* smt, __a
     hir_walker_t walker;
     HIRWLK_init_ctx(&walker, dctx, smt);
 
+    walker.vctx.l_conf.show_files = conf.l_conf.provide_files;
+    walker.vctx.l_conf.show_lines = conf.l_conf.provide_lines;
+    walker.vctx.l_conf.show_rows  = conf.l_conf.provide_rows;
+
     switch (CONF_get_attention_level()) {
         case 0:
             HIRWLK_register_visitor(SETPOS_INST,                                      HIRWLKR_visit_setpos_instruction,  &walker, ATTENTION_LOW_LEVEL);
