@@ -17,11 +17,11 @@ static int _resolve_named_variable_info(symbol_id_t id, sym_table_t* smt, variab
 }
 
 /* Resolve the original variable name by walking through parent variable ids.
-Params:
-    - `id` - Variable symbol id.
-    - `smt` - Symtable.
-
-Returns variable name if it was found. Otherwise returns "no-name" */
+   Params:
+       - `id` - Variable symbol id.
+       - `smt` - Symtable.
+   
+   Returns variable name if it was found. Otherwise returns "no-name" */
 static const char* _resolve_variable_name(symbol_id_t id, sym_table_t* smt) {
     variable_info_t vi;
     if (_resolve_named_variable_info(id, smt, &vi)) return vi.name->body;
@@ -54,8 +54,8 @@ typedef struct {
 } defined_variable_t;
 
 /* 1 - defined raw number or a constant
-2 - defined variable
-3 - overdefined variable (need to be resolved) */
+   2 - defined variable
+   3 - overdefined variable (need to be resolved) */
 static int _resolve_subject_value(hir_subject_t* s, sym_table_t* smt, defined_variable_t* out) {
     if (HIR_is_vartype(s->t)) {
         variable_info_t vi;
@@ -84,13 +84,13 @@ static int _subject_is_statically_known_not_value(hir_subject_t* s, sym_table_t*
 }
 
 /* Find a source location where the variable was defined by scanning backwards
-from the provided HIR block.
-Params:
-    - `b` - HIR block to start scanning from.
-    - `v_id` - Variable symbol id.
-    - `loc` - Output source location.
-
-Returns 1 if variable definition was found, otherwise 0 */
+   from the provided HIR block.
+   Params:
+       - `b` - HIR block to start scanning from.
+       - `v_id` - Variable symbol id.
+       - `loc` - Output source location.
+   
+   Returns 1 if variable definition was found, otherwise 0 */
 static int _sparce_find_variable_define_location(hir_block_t* b, symbol_id_t v_id, file_position_t* loc) {
     int found = 0;
     while (b) {
@@ -130,11 +130,11 @@ static const char* _value_name_or_numeric(long long value, const char* value_nam
 }
 
 /* Get parent variable symbol id.
-Params:
-    - `v_id` - Variable symbol id.
-    - `smt` - Symtable.
-
-Returns parent variable symbol id if it was found. Otherwise returns NO_SYMBOL_ID. */
+   Params:
+       - `v_id` - Variable symbol id.
+       - `smt` - Symtable.
+   
+   Returns parent variable symbol id if it was found. Otherwise returns NO_SYMBOL_ID. */
 static inline symbol_id_t _get_parent_id(symbol_id_t v_id, sym_table_t* smt) {
     variable_info_t vi;
     if (VRTB_get_info_id(v_id, &vi, &smt->v)) return vi.p_id;
@@ -364,7 +364,7 @@ int HIR_SEM_check_subject_value_and_provide_trace_ex(
     queue_init(&work_vars);
 
     trace_t trace;
-    TRACE_init_trace(&trace);
+    TRACE_init_trace(&trace, TO_TRACE_CONF(ctx->config));
 
     defined_variable_t di;
     if (_resolve_subject_value(s, smt, &di)) {
@@ -550,7 +550,7 @@ int HIRWLKR_visit_ifop2_instruction(HIR_VISITOR_ARGS) {
     }
 
     trace_t trace;
-    TRACE_init_trace(&trace);
+    TRACE_init_trace(&trace, TO_TRACE_CONF(ctx->config));
     int then_reachable = bb->l
         ? Z3_is_edge_feasible(ctx->z3, bb->pfunc, bb, bb->l)
         : Z3_is_label_reachable(ctx->z3, bb->pfunc, b->sarg->id);
@@ -607,13 +607,13 @@ int HIRWLKR_visit_ifop2_instruction(HIR_VISITOR_ARGS) {
 }
 
 /* Create a readable type name for a HIR subject type.
-Params:
-    - `t` - HIR subject type.
-    - `ptr` - Pointer indirection level.
-    - `buffer` - Output buffer.
-    - `buffer_size` - Output buffer size.
-
-Returns 1 on success, otherwise 0 */
+   Params:
+       - `t` - HIR subject type.
+       - `ptr` - Pointer indirection level.
+       - `buffer` - Output buffer.
+       - `buffer_size` - Output buffer size.
+   
+   Returns 1 on success, otherwise 0 */
 static int _create_type_name(hir_subject_type_t t, int ptr, char* buffer, int buffer_size) {
     for (int i = 0; i < ptr; i++) {
         buffer += snprintf(buffer, buffer_size, "ptr ");
@@ -723,7 +723,7 @@ int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS) {
     }
 
     trace_t trace;
-    TRACE_init_trace(&trace);
+    TRACE_init_trace(&trace, TO_TRACE_CONF(ctx->config));
 
     int arg_index = 0;
     hir_subject_t** hir_args = (hir_subject_t**)list_flatten(&b->targ->storage.list.h);
@@ -801,7 +801,7 @@ int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS) {
     }
 
     trace_t trace;
-    TRACE_init_trace(&trace);
+    TRACE_init_trace(&trace, TO_TRACE_CONF(ctx->config));
 
     int table_size = -1;
     syscall_t* table = NULL;
@@ -902,7 +902,7 @@ int HIRWLKR_unused_rtype(HIR_VISITOR_ARGS) {
 
     if (fi.rtype && fi.rtype->t->t_type != I0_TYPE_TOKEN) {
         trace_t trace;
-        TRACE_init_trace(&trace);
+        TRACE_init_trace(&trace, TO_TRACE_CONF(ctx->config));
 
         char rtype[64];
         _create_type_name(HIR_get_tmptype_tkn(fi.rtype->t, 0), fi.rtype->t->flags.ptr, rtype, sizeof(rtype));
@@ -934,7 +934,7 @@ int HIRWLKR_noret_assign(HIR_VISITOR_ARGS) {
         (fi.rtype->t->t_type == I0_TYPE_TOKEN && !fi.rtype->t->flags.ptr)
     ) {
         trace_t trace;
-        TRACE_init_trace(&trace);
+        TRACE_init_trace(&trace, TO_TRACE_CONF(ctx->config));
         TRACE_create_root(
             &trace, TRACE_SEVERITY_WARNING, &ctx->curr_location,
             "Function '%s' doesn't return any value, but it used as a value. Consider to change the return type.",
@@ -952,7 +952,7 @@ int HIRWLKR_ref_to_expression(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
 
     trace_t trace;
-    TRACE_init_trace(&trace);
+    TRACE_init_trace(&trace, TO_TRACE_CONF(ctx->config));
 
     if (HIR_is_tmptype(b->sarg->t)) {
         TRACE_create_root(
@@ -987,7 +987,7 @@ int HIRWLKR_division_by_zero(HIR_VISITOR_ARGS) {
         Z3_check_subject_eq_llong_at_block(ctx->z3, bb->pfunc, bb, b->targ, 0) == Z3A_MAYBE
     ) {
         trace_t trace;
-        TRACE_init_trace(&trace);
+        TRACE_init_trace(&trace, TO_TRACE_CONF(ctx->config));
         TRACE_create_root(
             &trace, TRACE_SEVERITY_WARNING, &ctx->curr_location, "Possible %s by zero here! %s can be zero!",
             b->op == HIR_iDIV ? "division" : "modulo",
@@ -1069,7 +1069,7 @@ int HIRWLKR_bad_buffer_move(HIR_VISITOR_ARGS) {
         const char* move_repr = _format_subject_name(b->targ, smt, ctx->dctx, _, sizeof(_));
 
         trace_t trace;
-        TRACE_init_trace(&trace);
+        TRACE_init_trace(&trace, TO_TRACE_CONF(ctx->config));
 
         trace_id_t base = TRACE_create_root(
             &trace, TRACE_SEVERITY_ERROR, &ctx->curr_location, 
@@ -1117,7 +1117,7 @@ int HIRWLKR_illegal_store(HIR_VISITOR_ARGS) {
     
     if (dst_size < src_size) {
         trace_t trace;
-        TRACE_init_trace(&trace);
+        TRACE_init_trace(&trace, TO_TRACE_CONF(ctx->config));
 
         char source_buffer[64] = { 0 }, destination_buffer[64] = { 0 };
         const char
@@ -1142,7 +1142,7 @@ int HIRWLKR_illegal_store(HIR_VISITOR_ARGS) {
         (is_null == Z3A_YES || is_null == Z3A_MAYBE)
     ) {
         trace_t trace;
-        TRACE_init_trace(&trace);
+        TRACE_init_trace(&trace, TO_TRACE_CONF(ctx->config));
 
         char source_buffer[64] = { 0 };
         const char* source = _format_subject_name(b->farg, smt, ctx->dctx, source_buffer, sizeof(source_buffer));

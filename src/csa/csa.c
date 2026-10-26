@@ -4,9 +4,7 @@ int SEM_perform_ast_check(ast_ctx_t* actx, sym_table_t* smt, csa_conf_t conf) {
     ast_walker_t walker;
     ASTWLK_init_ctx(&walker, smt);
 
-    walker.flags.l_conf.show_files = conf.l_conf.provide_files;
-    walker.flags.l_conf.show_lines = conf.l_conf.provide_lines;
-    walker.flags.l_conf.show_rows  = conf.l_conf.provide_rows;
+    walker.flags.config = conf;
 
     switch (CONF_get_attention_level()) {
         case 0:
@@ -45,9 +43,7 @@ int SEM_perform_hir_check(cfg_ctx_t* ctx, dag_ctx_t* dctx, sym_table_t* smt, __a
     hir_walker_t walker;
     HIRWLK_init_ctx(&walker, dctx, smt);
 
-    walker.vctx.l_conf.show_files = conf.l_conf.provide_files;
-    walker.vctx.l_conf.show_lines = conf.l_conf.provide_lines;
-    walker.vctx.l_conf.show_rows  = conf.l_conf.provide_rows;
+    walker.vctx.config = conf;
 
     switch (CONF_get_attention_level()) {
         case 0:

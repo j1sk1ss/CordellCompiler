@@ -1,7 +1,8 @@
 #include <csa/misc/trace.h>
-// TODO: complete proper trace generation with respect of the logging flags
-int TRACE_init_trace(trace_t* trace) {
+
+int TRACE_init_trace(trace_t* trace, trace_conf_t conf) {
     trace->next_id = 1;
+    trace->config  = conf;
     list_init(&trace->records);
     return 1;
 }
@@ -109,10 +110,27 @@ static inline const char* _severity_name(trace_severity_t severity) {
     }
 }
 
-static inline char* _format_location(file_position_t* loc) {
+static inline char* _format_location(file_position_t* loc, trace_conf_t conf) {
     static char buff[256] = { 0 };
-    if (loc->file) snprintf(buff, sizeof(buff), "%s:%li:%li", loc->file->body, loc->line, loc->column);
-    else snprintf(buff, sizeof(buff), "%li:%li", loc->line, loc->column);
+    char* curr_buff = buff;
+
+    int need_colon = 0;
+    if (loc->file && conf.provide_files) {
+        curr_buff += sprintf(curr_buff, "%s", loc->file->body);
+        need_colon = 1;
+    }
+
+    if (conf.provide_lines) {
+        if (need_colon) curr_buff += sprintf(curr_buff, ":");
+        curr_buff += sprintf(curr_buff, "%li", loc->line);
+        need_colon = 1;
+    }
+
+    if (conf.provide_rows) {
+        if (need_colon) curr_buff += sprintf(curr_buff, ":");
+        curr_buff += sprintf(curr_buff, "%li", loc->column);
+    }
+    
     return buff;
 }
 
@@ -153,10 +171,10 @@ static void _print_wrapped(const char* first_prefix, const char* next_prefix, co
 }
 
 static void _print_trace_message(
-    const char* prefix, const char* next_prefix, const char* at_prefix, trace_message_t* message
+    const char* prefix, const char* next_prefix, const char* at_prefix, trace_message_t* message, trace_conf_t conf
 ) {
     _print_wrapped(prefix, next_prefix, message->message->body);
-    fprintf(stdout, "%sat: %s\n", at_prefix, _format_location(&message->location));
+    fprintf(stdout, "%sat: %s\n", at_prefix, _format_location(&message->location, conf));
 }
 
 static void _make_padding(char* buffer, int buffer_size, int width) {
@@ -166,23 +184,23 @@ static void _make_padding(char* buffer, int buffer_size, int width) {
     buffer[width] = '\0';
 }
 
-static void _print_root(trace_record_t* record) {
+static void _print_root(trace_record_t* record, trace_conf_t conf) {
     char prefix[64] = { 0 };
     char next_prefix[64] = { 0 };
     snprintf(prefix, sizeof(prefix), "[%s] ", _severity_name(record->severity));
     _make_padding(next_prefix, sizeof(next_prefix), _visible_len(prefix));
-    _print_trace_message(prefix, next_prefix, "    ", record->root);
+    _print_trace_message(prefix, next_prefix, "    ", record->root, conf);
 }
 
-static void _print_note(trace_message_t* note) {
-    _print_trace_message("    trace: ", "           ", "      ", note);
+static void _print_note(trace_message_t* note, trace_conf_t conf) {
+    _print_trace_message("    trace: ", "           ", "      ", note, conf);
 }
 
 int TRACE_print_and_free_trace(trace_t* t) {
     foreach (trace_record_t* record, &t->records) {
-        _print_root(record);
+        _print_root(record, t->config);
         foreach (trace_message_t* note, &record->notes) {
-            _print_note(note);
+            _print_note(note, t->config);
         }
     }
 

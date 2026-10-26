@@ -1,7 +1,9 @@
 #ifndef AST_VISITORS_H_
 #define AST_VISITORS_H_
 
+#include <stdio.h>
 #include <limits.h>
+
 #include <std/str.h>
 #include <prep/token_types.h>
 
@@ -12,6 +14,10 @@
 
 #include <ast/ast.h>
 #include <ast/astgen.h>
+
+#define SEMANTIC_ERROR(message, ...)   fprintf(stdout, "[ERROR]  " message "\n", ##__VA_ARGS__)
+#define SEMANTIC_WARNING(message, ...) fprintf(stdout, "[WARNING]" message "\n", ##__VA_ARGS__)
+#define SEMANTIC_INFO(message, ...)    fprintf(stdout, "[INFO]   " message "\n", ##__VA_ARGS__)
 
 #define REBUILD_CODE_0TRG(nd) do {             \
         set_t __s;                             \

@@ -14,16 +14,10 @@
 #include <hir/hir.h>
 #include <hir/hirgen.h>
 #include <hir/cfg.h>
+
+#include <csa/misc/config.h>
 #include <csa/hir/hir_walker.h>
 #include <csa/hir/hir_visitors.h>
-
-typedef struct {
-    struct {
-        char provide_lines : 1;
-        char provide_rows  : 1;
-        char provide_files : 1;
-    } l_conf;
-} csa_conf_t;
 
 #define DEF_CONF (csa_conf_t) { .l_conf = { .provide_files = 1, .provide_lines = 1, .provide_rows = 1 } }
 

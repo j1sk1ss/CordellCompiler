@@ -4,12 +4,15 @@
 #include <std/mem.h>
 #include <std/queue.h>
 #include <std/tuple.h>
+
 #include <csa/misc/trace.h>
 #include <csa/misc/warns.h>
 #include <csa/hir/hir_data.h>
 #include <csa/hir/syscall.h>
+
 #include <prep/token_types.h>
 #include <ast/ast.h>
+
 #include <hir/z3_wrapper.h>
 #include <hir/hir.h>
 #include <hir/hirgen.h>
@@ -23,17 +26,17 @@ typedef enum {
 } hir_value_trace_mode_t;
 
 /* Check whether a subject can be equal to a value and report an error trace
-when it can.
-Params:
-    - `hb` - HIR block where the checked operation is performed.
-    - `s` - Checked subject.
-    - `smt` - Symtable.
-    - `ctx` - HIR visitors context.
-    - `value` - Value to compare with.
-    - `value_name` - User-facing value name. Pass NULL to use `value`.
-    - `mode` - Whether possible equality is enough, or exact equality is required.
-
-Returns 1 if the check succeeds, otherwise 0 */
+   when it can.
+   Params:
+       - `hb` - HIR block where the checked operation is performed.
+       - `s` - Checked subject.
+       - `smt` - Symtable.
+       - `ctx` - HIR visitors context.
+       - `value` - Value to compare with.
+       - `value_name` - User-facing value name. Pass NULL to use `value`.
+       - `mode` - Whether possible equality is enough, or exact equality is required.
+   
+   Returns 1 if the check succeeds, otherwise 0 */
 int HIR_SEM_check_subject_value_and_provide_trace_ex(
     hir_block_t* hb, cfg_block_t* bb, hir_subject_t* s, sym_table_t* smt, hir_visitors_ctx_t* ctx,
     long long value, const char* value_name, hir_value_trace_mode_t mode, const char* error
@@ -44,22 +47,27 @@ int HIR_SEM_check_subject_value_and_provide_trace(
     long long value, const char* error
 );
 
-/* general */
+
+/* support visitors: Not actuall warnings */
 int HIRWLKR_visit_setpos_instruction(HIR_VISITOR_ARGS); // TODO: rename these functions (This is a detector, not a visitor...)
 int HIRWLKR_visit_phi_instruction(HIR_VISITOR_ARGS);
-int HIRWLKR_null_notnull(HIR_VISITOR_ARGS);
+
+/* warning visitors: Actuall warnings */
 int HIRWLKR_visit_gdref_instruction(HIR_VISITOR_ARGS);
 int HIRWLKR_visit_ldref_instruction(HIR_VISITOR_ARGS);
 int HIRWLKR_visit_ifop2_instruction(HIR_VISITOR_ARGS);
-int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS);
 int HIRWLKR_visit_syscall_instruction(HIR_VISITOR_ARGS);
-int HIRWLKR_unused_rtype(HIR_VISITOR_ARGS);
-int HIRWLKR_noret_assign(HIR_VISITOR_ARGS);
-int HIRWLKR_ref_to_expression(HIR_VISITOR_ARGS);
-int HIRWLKR_division_by_zero(HIR_VISITOR_ARGS);
-int HIRWLKR_division_by_one(HIR_VISITOR_ARGS);
-int HIRWLKR_bad_buffer_move(HIR_VISITOR_ARGS);
-int HIRWLKR_illegal_store(HIR_VISITOR_ARGS);
+
+/* general visitors for several instructions */
+int HIRWLKR_null_notnull(HIR_VISITOR_ARGS);         // Provide a null value to a non-null variable
+int HIRWLKR_wrong_arg_type(HIR_VISITOR_ARGS);       // Provide a data which is not suitable for a type
+int HIRWLKR_unused_rtype(HIR_VISITOR_ARGS);         // Don't use a return data from a function which returns one
+int HIRWLKR_noret_assign(HIR_VISITOR_ARGS);         // Use a return data from a function which doesn't return
+int HIRWLKR_ref_to_expression(HIR_VISITOR_ARGS);    // Get a pointer to a temporal variable
+int HIRWLKR_division_by_zero(HIR_VISITOR_ARGS);     // Divide something with zero
+int HIRWLKR_division_by_one(HIR_VISITOR_ARGS);      // Divide something with one
+int HIRWLKR_bad_buffer_move(HIR_VISITOR_ARGS);      // Move a buffer pointer too far
+int HIRWLKR_illegal_store(HIR_VISITOR_ARGS);        // Store something too big to a variable
 
 /* glibc */
 int HIRWLKR_glibc_arg_checkers(HIR_VISITOR_ARGS);

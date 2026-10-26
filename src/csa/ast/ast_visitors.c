@@ -6,18 +6,18 @@ static inline const char* _format_location(file_position_t* p, walker_flags_t* f
     curr_buffer += sprintf(curr_buffer, "[");
     
     int need_comma = 0;
-    if (p->file && f->l_conf.show_files) {
+    if (p->file && f->config.l_conf.provide_files) {
         curr_buffer += sprintf(curr_buffer, "%s", p->file->body);
         need_comma  = 1;
     }
 
-    if (f->l_conf.show_lines) {
+    if (f->config.l_conf.provide_lines) {
         if (need_comma) curr_buffer += sprintf(curr_buffer, ":");
         curr_buffer += sprintf(curr_buffer, "%ld", p->line);
         need_comma  = 1;
     }
 
-    if (f->l_conf.show_rows) {
+    if (f->config.l_conf.provide_rows) {
         if (need_comma) curr_buffer += sprintf(curr_buffer, ":");
         curr_buffer += sprintf(curr_buffer, "%ld", p->column);
     }
