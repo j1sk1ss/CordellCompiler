@@ -23,22 +23,14 @@ start() {
 }
 
 :/ OUTPUT
-[WARNING] Condition with a constant value (variable 'tmp' is equals 'true' (1))!
-    at: {X}.cpl:10:15
-    trace: Variable 'tmp' declared as a constant here!
-      at: {X}.cpl:10:15
+[WARNING] Can't reach the 'else' branch! Consider to refactor the code.
+    at: 10:15
 [WARNING] Function 'foo' has some arguments, which have a wrong type! Consider to use the 'as' operator!
-    at: {X}.cpl:12:15
+    at: 12:15
     trace: Value '10' has the 'i8' type! Consider the 'as i32' command!
-      at: {X}.cpl:12:15
+      at: 12:15
+[WARNING] Can't reach the 'else' branch! Consider to refactor the code.
+    at: 13:16
 [WARNING] 'If' with a constant value 'true'!
-    at: {X}.cpl:13:16
-[WARNING] Possible NULL-dereference error (variable 'b' is NULL)!
-    at: {X}.cpl:21:10
-    trace: Variable 'b' becomes NULL
-      at: {X}.cpl:14:22
-[WARNING] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
-    at: {X}.cpl:21:10
-    trace: Variable 'tmp' declared as a constant here!
-      at: {X}.cpl:10:15
+    at: 13:16
 /:

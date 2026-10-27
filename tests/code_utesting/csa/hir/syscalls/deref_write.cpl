@@ -4,6 +4,6 @@ start() {
 }
 
 :/ OUTPUT
-[WARNING] Syscall will dereference the 2 argument, but the tmp is NULL!
-    at: {X}.cpl:2:13
+[ERROR] Syscall will dereference the 2 argument, but the tmp is NULL!
+    at: 2:13
 /:

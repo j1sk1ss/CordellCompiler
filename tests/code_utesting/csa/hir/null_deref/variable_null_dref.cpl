@@ -5,7 +5,5 @@ function foo() {
 
 :/ OUTPUT
 [WARNING] NULL-dereference error (variable 'a' is NULL)!
-    at: {X}.cpl:3:9
-    trace: Variable 'a' is assigned with NULL here
-      at: {X}.cpl:2:14
+    at: 3:9
 /:

@@ -99,7 +99,7 @@ int main(int argc, char* argv[]) {
     HIR_DAG_init(&dagctx);                    // Analyzation
     HIR_DAG_generate(&cfgctx, &dagctx, &smt); // Analyzation
 
-    SEM_perform_hir_check(&cfgctx, &dagctx, &smt);
+    SEM_perform_hir_check(&cfgctx, &dagctx, &smt, (csa_conf_t) { .l_conf = { .provide_lines = 1, .provide_rows = 1 } });
 
     HIR_DAG_unload(&dagctx);
     HIR_CG_unload(&callctx);

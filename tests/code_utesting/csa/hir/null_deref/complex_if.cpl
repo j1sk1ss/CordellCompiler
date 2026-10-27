@@ -9,12 +9,8 @@ function foo() {
 }
 
 :/ OUTPUT
+[WARNING] Can't reach the 'else' branch! Consider to refactor the code.
+    at: 4:8
 [WARNING] 'If' with a constant value 'true'!
-    at: {X}.cpl:4:8
-[WARNING] Possible NULL-dereference error (variable 'b' is NULL)!
-    at: {X}.cpl:8:10
-    trace: Variable 'b' is assigned with 'a' here
-      at: {X}.cpl:7:14
-    trace: Variable 'a' becomes NULL
-      at: {X}.cpl:5:14
+    at: 4:8
 /:

@@ -7,16 +7,18 @@ start() {
 }
 
 :/ OUTPUT
-[ERROR] Possible buffer overflow! Current buffer 'something' is moved by '11' which is not in [0, 10)
-    at: {X}.cpl:3:8
-    trace: Variable 'tmp' declared here!
-      at: {X}.cpl:3:8
-[ERROR] Possible buffer overflow! Current buffer 'something' is moved by '11' which is not in [0, 10)
-    at: {X}.cpl:4:8
-    trace: Variable 'tmp' declared here!
-      at: {X}.cpl:4:8
-[ERROR] Possible buffer overflow! Current buffer 'something' is moved by '12' which is not in [0, 10)
-    at: {X}.cpl:5:13
-    trace: Variable 'tmp' declared here!
-      at: {X}.cpl:5:13
+[ERROR] Possible buffer overflow! Current buffer 'something' is moved by Value that can be not in [0, 10)
+    at: 3:8
+    trace: Variable 'no-name' declared here!
+      at: 3:8
+[WARNING] Possible NULL-dereference error (variable 'Value' is NULL)!
+    at: 3:8
+[ERROR] Possible buffer overflow! Current buffer 'something' is moved by Value that can be not in [0, 10)
+    at: 4:8
+    trace: Variable 'no-name' declared here!
+      at: 4:8
+[ERROR] Possible buffer overflow! Current buffer 'something' is moved by Value that can be not in [0, 10)
+    at: 5:13
+    trace: Variable 'no-name' declared here!
+      at: 5:13
 /:

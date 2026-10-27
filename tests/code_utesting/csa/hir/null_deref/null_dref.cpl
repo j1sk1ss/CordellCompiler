@@ -4,5 +4,5 @@ function foo() {
 
 :/ OUTPUT
 [WARNING] NULL-dereference error
-    at: {X}.cpl:2:9
+    at: 2:9
 /:

@@ -16,7 +16,7 @@
         "src/ast/astgen/*.c", 
         "src/ast/astgen/*/*.c",
         "src/ast/devirt/*.c",
-        "src/ast/dump/*c",
+        "src/ast/dump/*.c",
         "src/csa/*.c",
         "src/csa/ast/*.c",
         "src/csa/hir/*.c",
@@ -28,10 +28,10 @@
         "src/hir/hirgen/*/*.c",
         "src/hir/ssa/*.c",
         "src/hir/cfg/*.c",
-        "src/hir/loop/*.c",
-        "src/hir/func/*.c",
         "src/hir/dag/*.c",
-        "src/hir/constfold/*.c",
+        "src/hir/func/*.c",
+        "src/hir/loop/*.c",
+        "src/hir/z3/*.c",
         "std/*.c"
     ]
 }
