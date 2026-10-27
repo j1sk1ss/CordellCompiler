@@ -63,89 +63,75 @@ typedef struct {
 int PP_init_pp_ctx(pp_ctx_t* ctx);
 int PP_unload_pp_ctx(pp_ctx_t* ctx);
 
-/*
-Create and open temp file near to the source fd file.
-Returns FD of a tmp file or -1.
-*/
+/* Create and open temp file near to the source fd file.
+   Returns FD of a tmp file or -1. */
 int PP_create_tmp_file();
 
-/*
-Grub a path from the fp.
-Params:
-    - `fp` - File pointer.
-    - `out` - Output file path.
-    - `out_sz` - Max output file path size.
-
-Returns 1 on success, otherwise 0.
-*/
+/* Grub a path from the fp.
+   Params:
+       - `fp` - File pointer.
+       - `out` - Output file path.
+       - `out_sz` - Max output file path size.
+   
+   Returns 1 on success, otherwise 0. */
 int PP_file_path_from_fp(FILE* fp, char* out, size_t out_sz);
 
-/*
-Get a derictive from the line.
-Params:
-    - `line` - Line to consider.
-
-Returns a directive start symbol.
-*/
+/* Get a derictive from the line.
+   Params:
+       - `line` - Line to consider.
+   
+   Returns a directive start symbol. */
 char* PP_get_directive_from_line(char* line);
 
-/*
-Parse the include directive.
-Include can be:
-    - #include "file.cpl"
-    - #include <file.cpl> [WIP]
-
-Params:
-    - `p` - Directive line.
-    - `out` - Include path output.
-    - `out_sz` - Include path max size.
-    - `is_system` - Is this is a system lib? <>
-
-Returns 1 on success, otherwise 0.
-*/
+/* Parse the include directive.
+   Include can be:
+       - #include "file.cpl"
+       - #include <file.cpl> [WIP]
+   
+   Params:
+       - `p` - Directive line.
+       - `out` - Include path output.
+       - `out_sz` - Include path max size.
+       - `is_system` - Is this is a system lib? <>
+   
+   Returns 1 on success, otherwise 0. */
 int PP_parse_include_arg(const char* p, char* out, size_t out_sz, int* is_system);
 
-/*
-Clean the input buffer from a comment section.
-Note: Will allocate buffer for the output.
-Params:
-    - `in` - Input buffer.
-    - `st` - Comment state.
-    - `out` - Output clean line.
-    - `out_cap` - Output line max size.
-
-Returns 0 on failure, otherwise 1.
-*/
+/* Clean the input buffer from a comment section.
+   Note: Will allocate buffer for the output.
+   Params:
+       - `in` - Input buffer.
+       - `st` - Comment state.
+       - `out` - Output clean line.
+       - `out_cap` - Output line max size.
+   
+   Returns 0 on failure, otherwise 1. */
 int PP_strip_colon_comments(const char* in, pp_cmt_state_t* st, char** out, size_t* out_cap);
 
-/*
-Parse the 'define'-like directive.
-Params:
-    - `p` - Input line.
-    - `name_out` - Variable/Macro name.
-    - `name_sz` - Max variable name size.
-    - `value_out` - Value body.
-    - `value_sz` - Max value body size.
-
-Returns 1 on success, otherwise 0.
-*/
+/* Parse the 'define'-like directive.
+   Params:
+       - `p` - Input line.
+       - `name_out` - Variable/Macro name.
+       - `name_sz` - Max variable name size.
+       - `value_out` - Value body.
+       - `value_sz` - Max value body size.
+   
+   Returns 1 on success, otherwise 0. */
 int PP_parse_define_arg(
     const char* p,
     char* name_out,  size_t name_sz,
     char* value_out, size_t value_sz
 );
 
-/* 
-Replace all existing defines from the line with their values.
-Params:
-    - `in` - Input line.
-    - `in_cap` - Input line size.
-    - `out` - Output finished line.
-    - `out_cap` - Output size.
-    - `dtcx` - Define table context.
-
-Returns 0 on failure or if nothing changed, otherwise 1.
-*/
+/* Replace all existing defines from the line with their values.
+   Params:
+       - `in` - Input line.
+       - `in_cap` - Input line size.
+       - `out` - Output finished line.
+       - `out_cap` - Output size.
+       - `dtcx` - Define table context.
+   
+   Returns 0 on failure or if nothing changed, otherwise 1. */
 int PP_resolve_defines(char** in, size_t* in_cap, char** out, size_t* out_cap, deftb_t* dctx);
 
 typedef struct {

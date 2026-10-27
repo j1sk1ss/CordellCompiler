@@ -93,10 +93,10 @@ int HIR_init_extended_ctx(hir_ctx_t* ctx);
 int HIR_unload_extended_ctx(hir_ctx_t* ctx);
 
 /* Get hash (i64) from the provided subject.
-Params:
-    - `s` - Target hir subject.
-
-Return `i64`:hash. */
+   Params:
+       - `s` - Target hir subject.
+   
+   Return `i64`:hash. */
 hash_t HIR_hash_subject(hir_subject_t* s);
 
 hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strval, unsigned long intval);

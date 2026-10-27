@@ -17,54 +17,44 @@
 
 #define BUFFER_SIZE 8192
 
-/*
-Allocate and create toke + copy data from src token.
-Params:
-    - `src` - Source token data.
-
-Return the 'NULL' value or a copied token.
-*/
+/* Allocate and create toke + copy data from src token.
+   Params:
+       - `src` - Source token data.
+   
+   Return the 'NULL' value or a copied token. */
 token_t* TKN_copy_token(token_t* src);
 
-/*
-Allocate and create token.
-Params:
-    - `type` - Token type.
-    - `value` - Token content.
-    - `len` - Value variable size.
-
-Return pointer to a token, or the 'NULL' value if the malloc returns an error.
-*/
+/* Allocate and create token.
+   Params:
+       - `type` - Token type.
+       - `value` - Token content.
+       - `len` - Value variable size.
+   
+   Return pointer to a token, or the 'NULL' value if the malloc returns an error. */
 token_t* TKN_create_token(token_type_t type, const char* value, file_position_t* finfo);
 
-/*
-Tokenize input file by provided FD.
-Params:
-    - `fd` - File descriptor of target file.
-    - `tkn` - Location of tokens list.
-
-Return NULL or pointer to linked list of tokens.
-Note: Function don't close file.
-*/
+/* Tokenize input file by provided FD.
+   Params:
+       - `fd` - File descriptor of target file.
+       - `tkn` - Location of tokens list.
+   
+   Return NULL or pointer to linked list of tokens.
+   Note: Function don't close file. */
 int TKN_tokenize(int fd, list_t* tkn);
 
-/*
-Hash a token with the crc64 hash function.
-Params:
-    - `t` - Token.
-    - `no_body` - Ignore the body.
-
-Return hash sum.
-*/
+/* Hash a token with the crc64 hash function.
+   Params:
+       - `t` - Token.
+       - `no_body` - Ignore the body.
+   
+   Return hash sum. */
 hash_t TKN_hash_token(token_t* t, int no_body);
 
-/*
-Deallocated space that was claimed by the token.
-Params:
-    - `t` - Token.
-
-Returns 1 if allocation succeeded, otherwise 0.
-*/
+/* Deallocated space that was claimed by the token.
+   Params:
+       - `t` - Token.
+   
+   Returns 1 if allocation succeeded, otherwise 0. */
 int TKN_unload_token(token_t* t);
 
 #endif
