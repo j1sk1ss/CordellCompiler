@@ -99,4 +99,16 @@ int HIR_LOOP_perform_dle(ltree_ctx_t* lctx);
    Returns 1 if succeeds. */
 int HIR_LTREE_unload_ctx(ltree_ctx_t* ctx);
 
+/* Get logic conditions for the provided loop.
+   If you will provide it with a code:
+
+   ```cpl
+   while 1; {
+   }
+   ```
+
+   It will return you { if 1 else A, then B } set.
+   Return 1 if succeeds. */
+int HIR_LOOP_get_conds(loop_node_t* loop, set_t* conds);
+
 #endif

@@ -356,6 +356,16 @@ int DUMP_format_hirctx(hir_ctx_t* ctx, sym_table_t* smt, int pos, int unused, FI
     return 1;
 }
 
+static const char* _get_cfg_block_style(cfg_block_type_t type) {
+    switch (type) {
+        case CFG_LOOP_PREHEADER: return "shape=hexagon, style=filled, fillcolor=\"#D6EAF8\"";
+        case CFG_LOOP_HEADER:    return "shape=diamond, style=filled, fillcolor=\"#FCF3CF\", penwidth=2";
+        case CFG_LOOP_BLOCK:     return "shape=box, style=\"rounded,filled\", fillcolor=\"#D5F5E3\"";
+        case CFG_LOOP_LATCH:     return "shape=octagon, style=filled, fillcolor=\"#FADBD8\"";
+        default:                 return "shape=box, style=filled, fillcolor=\"#FFFFFF\"";
+    }
+}
+
 static int _print_hir_cfg_function(cfg_func_t* fb, func_info_t* fi, sym_table_t* smt, FILE* output) {
     fprintf(output, "digraph %s {\n", fi->virt->body);
     fprintf(output, "  rankdir=TB;\n");
@@ -369,15 +379,15 @@ static int _print_hir_cfg_function(cfg_func_t* fb, func_info_t* fi, sym_table_t*
             "];\n");
 
     foreach (cfg_block_t* cb, &fb->blocks) {
-        fprintf(output, "  B%ld [ label=\"", cb->id);
+        fprintf(output, "  B%ld [%s, label=\"", cb->id, _get_cfg_block_style(cb->type));
         iterate_hir_instructions (cb) {
             if (
-                hh->op == HIR_FDCL         || 
-                hh->op == HIR_FEND         || 
-                hh->op == HIR_PHI_PREAMBLE || 
+                hh->op == HIR_FDCL         ||
+                hh->op == HIR_FEND         ||
+                hh->op == HIR_PHI_PREAMBLE ||
                 hh->op == HIR_MKSCOPE      ||
                 hh->op == HIR_ENDSCOPE
-            ) continue; 
+            ) continue;
             char line[HIR_DUMP_LINE_BUFFER] = { 0 };
             _get_formatted_block(line, sizeof(line), hh, smt, 0, 0, 0);
             fprintf(output, "%s\\l", line);
@@ -390,7 +400,7 @@ static int _print_hir_cfg_function(cfg_func_t* fb, func_info_t* fi, sym_table_t*
             if (succ != cb->l && succ != cb->jmp) fprintf(output, "  B%ld -> B%ld [label=\"table\"];\n", cb->id, succ->id);
         }
     }
-    
+
     fprintf(output, "}\n");
     return 1;
 }

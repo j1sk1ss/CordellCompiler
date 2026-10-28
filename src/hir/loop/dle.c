@@ -13,10 +13,10 @@ static int _is_op_interesting(hir_operation_t op) {
 /* Count actual work in a CFG block, ignoring structural commands.
    Before SSA/liveness, an arithmetic operation or store cannot be assumed dead:
    it may update the condition, a live-out variable, or memory.
-Params:
-    - `bb` - CFG block to inspect.
-
-Returns the number of live commands. */
+   Params:
+       - `bb` - CFG block to inspect.
+   
+   Returns the number of live commands. */
 static inline int _count_commands(cfg_block_t* bb) {
     int res = 0;
     iterate_hir_instructions (bb) {
@@ -27,10 +27,10 @@ static inline int _count_commands(cfg_block_t* bb) {
 }
 
 /* Mark loop instructions as dead when the loop has no live content.
-Params:
-    - `root` - Loop tree node to process.
-
-Returns 1 if succeeds. */
+   Params:
+       - `root` - Loop tree node to process.
+   
+   Returns 1 if succeeds. */
 static int _mark_loop_dead(loop_node_t* root) {
     foreach (loop_node_t* ch, &root->children) {
         _mark_loop_dead(ch);
