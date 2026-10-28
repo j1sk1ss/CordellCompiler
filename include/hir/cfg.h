@@ -70,8 +70,8 @@ typedef struct cfg_block {
     lir_map_t          lmap;     /* Mapping to existed LIR ctx */
 
     /* Block navigation */
-    struct cfg_block*  l;
-    struct cfg_block*  jmp;
+    struct cfg_block*  l;        // !! deprecated !!
+    struct cfg_block*  jmp;      // !! deprecated !!
     set_t              succ;     /* cfg_block_t* set            */
     set_t              pred;     /* cfg_block_t* set            */
     set_t              visitors; /* long id set                 */

@@ -87,4 +87,14 @@ int set_free_force(set_t* s);
         for (v = CONCAT(__val_, __LINE__); CONCAT(__ok_, __LINE__);                      \
              CONCAT(__ok_, __LINE__) = 0)
 
+#define RESET_SET(set) do {     \
+    set_free(set);              \
+    set_init(set, SET_NO_CMP);  \
+} while (0);
+
+#define RESET_SET_CMP(set) do { \
+    set_free(set);              \
+    set_init(set, SET_CMP);     \
+} while (0);
+
 #endif

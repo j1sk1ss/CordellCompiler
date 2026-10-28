@@ -492,8 +492,7 @@ static int _licm_process(cfg_ctx_t* cctx, loop_node_t* loop, sym_table_t* smt, i
 
     _get_loop_hir_blocks(&loop->blocks, &loop_hir);
 
-    set_free(&loop->ind);
-    set_init(&loop->ind, SET_NO_CMP);
+    RESET_SET(&loop->ind);
 
     _get_inductive_variables(&loop_hir, &loop->ind, smt);
     _get_invariant_defs(&loop_hir, &invariant_defs, &loop->ind, smt);

@@ -377,10 +377,8 @@ static int _transfer_block(cfg_block_t* bb, map_t* in, map_t* out, sym_table_t* 
    
    Returns 1 if succeeds */
 static int _compute_block_copy_sets(cfg_block_t* bb, sym_table_t* smt, set_t* addr_taken) {
-    set_free(&bb->copy_gen);
-    set_init(&bb->copy_gen, SET_NO_CMP);
-    set_free(&bb->copy_kill);
-    set_init(&bb->copy_kill, SET_NO_CMP);
+    RESET_SET(&bb->copy_gen);
+    RESET_SET(&bb->copy_kill);
 
     iterate_lir_instructions (bb) {
         if (lh->unused) continue;

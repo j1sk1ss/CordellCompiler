@@ -203,7 +203,6 @@ int BUILD_start(int argc, char* argv[]) {
 
         RELOAD_CFG;
         
-        // HIR_CFG_finalize_before_dom(&cfgctx);
         HIR_CFG_create_domdata(&cfgctx);
         HIR_FUNC_set_defer_calls(&cfgctx);
         
@@ -215,7 +214,6 @@ int BUILD_start(int argc, char* argv[]) {
             HIR_FUNC_perform_inline(&cfgctx, &lctx, &smt);
             HIR_LTREE_unload_ctx(&lctx);
             RELOAD_CFG;
-            // HIR_CFG_finalize_before_dom(&cfgctx);
             HIR_CFG_create_domdata(&cfgctx);
             map_init(&lctx.lmap, MAP_NO_CMP);
             HIR_LOOP_mark_loops(&cfgctx, &lctx);
@@ -246,7 +244,6 @@ int BUILD_start(int argc, char* argv[]) {
         }
 
         HIR_LTREE_canonicalization(&cfgctx, &lctx);
-        HIR_LOOP_perform_dle(&lctx);
 
         HIR_CFG_unload_domdata(&cfgctx);
         HIR_CFG_finalize_before_dom(&cfgctx);
@@ -261,6 +258,7 @@ int BUILD_start(int argc, char* argv[]) {
         HIR_compute_homes(&hirctx);
         if (options.config.licm) {
             HIR_LTREE_licm(&cfgctx, &lctx, &smt);
+            HIR_LOOP_perform_dle(&lctx);
         }
 
         if (options.config.z3opt) {

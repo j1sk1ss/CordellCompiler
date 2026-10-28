@@ -173,8 +173,8 @@ int HIR_CFG_finalize_before_dom(cfg_ctx_t* ctx) {
                     set_remove(&succ->pred, cb);
                 }
 
-                set_free(&cb->succ);
-                set_init(&cb->succ, SET_NO_CMP);
+                RESET_SET(&cb->succ);
+
                 cb->l = cb->jmp = NULL;
                 hir_block_t* hh = HIR_get_next(cb->hmap.entry, cb->hmap.exit, 0);
                 while (hh) {
@@ -264,8 +264,7 @@ int HIR_CFG_count_blocks_in_bb(cfg_block_t* bb, int debug) {
 int HIR_CFG_cleanup_navigation(cfg_ctx_t* cctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* cb, &fb->blocks) {
-            set_free(&cb->visitors);
-            set_init(&cb->visitors, SET_NO_CMP);
+            RESET_SET(&cb->visitors);
             cb->visited = 0;
         }
     }

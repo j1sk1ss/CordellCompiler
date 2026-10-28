@@ -13,6 +13,7 @@ typedef struct loop_node {
     cfg_block_t*      header;   /* Loop header                */
     cfg_block_t*      latch;    /* Loop latch                 */
     set_t             blocks;   /* cfg_block_t* blocks        */
+    set_t             exits;
     list_t            blocks_sorted;
     list_t            children; /* loop_node_t* nested        */
     set_t             ind;      /* Inductive variables (v_id) */
@@ -80,12 +81,25 @@ int HIR_LTREE_licm(cfg_ctx_t* cctx, ltree_ctx_t* lctx, sym_table_t* smt);
    Returns the size of nested structure. */
 int HIR_LTREE_nested_count(loop_node_t* node);
 
-/* Delete all empty loops such as:
-   ```cpl
-   loop {
-   }
-   ```
-   , and etc.
+/* Mark loop instructions as dead when the loop has no live content.
+   We will delete loops which don't have any interaction with outer data,
+   and they aren't endless.
+
+    ```cpl
+    i32 a = 0i32;
+    while a < 10; { :/ We will remove this loop /:
+        a += 1;
+    }
+    ```
+
+    But:
+
+    ```cpl
+    while a < 10; { :/ foo preserves the loop from elimination /:
+        foo();
+    }
+    ```
+
    Params:
        - `lctx` - Loop tree context.
    

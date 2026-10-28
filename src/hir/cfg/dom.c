@@ -39,8 +39,7 @@ int HIR_CFG_compute_dom(cfg_func_t* fb) {
             }
 
             if (first) {
-                set_free(&nd);
-                set_init(&nd, SET_CMP);
+                RESET_SET_CMP(&nd);
             }
 
             set_add(&nd, cb);
@@ -149,12 +148,8 @@ int HIR_CFG_unload_domdata(cfg_ctx_t* cctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
         foreach (cfg_block_t* cb, &fb->blocks) {
-            set_free(&cb->dom);
-            set_init(&cb->dom, SET_CMP);
-
-            set_free(&cb->domf);
-            set_init(&cb->domf, SET_NO_CMP);
-            
+            RESET_SET_CMP(&cb->dom);
+            RESET_SET(&cb->domf);
             cb->sdom = cb->dom_c = cb->dom_s = NULL;
         }
     }

@@ -1,9 +1,13 @@
 start() {
     i32 a;
-    loop {
-        a = 10 + 10;
+    while a < 1i32; {  :/ Delete /:
+        a += 1i32;
+    }
+
+    while a < 2i32; { :/ Stay /:
     }
 }
+
 
 :/ OUTPUT
 {
@@ -11,21 +15,42 @@ start() {
     {
         {
             i32s %0 = alloc;
+            lb37:
             i8t %1 = i8n 10 + i8n 10;
             i32t %2 = i8t %1 as i32;
-            i32s %3 = i32t %2;
-            [unused] lb9:
-            [unused] [base: i32s %0] i32s %4 = phi(set [%3, bb3]);
-            [unused] goto lb10;
-            [unused] lb10:
-            [unused] {
-                [unused]
-            [unused] }
-            [unused] [SSA] future: i32s %4 <<== previous: i32s %3;
-            [unused] goto lb9;
-            lb11:
-        [unused] }
-    [unused] }
-    [unused]
+            i32s %9 = i32t %2;
+            lb6:
+            [base: i32s %0] i32s %10 = phi(set [%9, bb3]);
+            goto lb7;
+            lb7:
+            {
+            }
+            [SSA] future: i32s %10 <<== previous: i32s %9;
+            goto lb6;
+            lb8:
+            lb16:
+            i32t %4 = i8n 10 as i32;
+            i32t %3 = i32s %0 < i32t %4;
+            if i32t %3, goto lb17, else goto lb18;
+            lb17:
+            {
+                i32t %6 = i8n 1 as i32;
+                i32t %5 = i32s %0 + i32t %6;
+                i32s %0 = i32t %5;
+            }
+            goto lb16;
+            lb18:
+            lb38:
+            i32t %8 = i8n 10 as i32;
+            i32t %7 = i32s %0 < i32t %8;
+            lb30:
+            if i32t %7, goto lb31, else goto lb32;
+            lb31:
+            {
+            }
+            goto lb30;
+            lb32:
+        }
+    }
 }
 /:
