@@ -29,7 +29,7 @@ int BUILD_print_help_message() {
         { OPTION_VERSION_SHORT ", " OPTION_VERSION,           NULL,           "Show compiler version"                                                         },
         { OPTION_SOMETHING_SHORT ", " OPTION_SOMETHING,       NULL,           "Show something"                                                                },
         { OPTION_PREPROCESS_ONLY,                             NULL,           "Run preprocessor only"                                                         },
-        { OPTION_INLUCDE,                                     "<dir>",        "Add include directory"                                                         },
+        { OPTION_INСLUDE,                                     "<dir>",        "Add include directory"                                                         },
         { OPTION_DEFINE,                                      "<name=value>", "Define preprocessor variable"                                                  },
         { OPTION_PRINT_STDLIB,                                NULL,           "Print the standard library directory"                                          },
         { OPTION_OUTPUT,                                      "<file>",       "Set output file"                                                               },

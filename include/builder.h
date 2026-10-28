@@ -120,7 +120,7 @@ according you system requirements. */
 #define OPTION_SOMETHING             "--smth"
 #define OPTION_SOMETHING_SHORT       "-s"
 #define OPTION_PREPROCESS_ONLY       "-E"
-#define OPTION_INLUCDE               "-I"
+#define OPTION_INСLUDE               "-I"
 #define OPTION_DEFINE                "-D"
 #define OPTION_PRINT_STDLIB          "--print-stdlib-path"
 #define OPTION_OUTPUT                "--output"

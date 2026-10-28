@@ -3,7 +3,7 @@
 #define UNROLL_MAX_BLOCKS       8
 #define UNROLL_MAX_INSTRUCTIONS 64
 #define IS_UNSUPPORTED(op) \
-    (op == HIR_VARDECL || op == HIR_VARDECL || op == HIR_STRDECL || op == HIR_REF || op == HIR_STASM || op == HIR_DEFER_START)
+    (op == HIR_VARDECL || op == HIR_STRDECL || op == HIR_REF || op == HIR_STASM || op == HIR_DEFER_START)
 
 typedef struct {
     loop_node_t* loop;

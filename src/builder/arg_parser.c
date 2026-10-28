@@ -256,7 +256,7 @@ int BUILD_parse_input_args(char* argv[], int argc, options_t* out) {
             if (i + 1 >= argc) goto _fail;
             out->locations.output = argv[++i];
         }
-        else if (!strcmp(argv[i], OPTION_INLUCDE)) {
+        else if (!strcmp(argv[i], OPTION_INСLUDE)) {
             if (i + 1 >= argc) goto _fail;
             out->locations.include = argv[++i];
         }
