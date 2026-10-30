@@ -4,6 +4,8 @@
 typedef unsigned long      hash_t;   // hash values
 typedef unsigned long long big_id_t; // any very big value
 
+typedef __int128 big_int_t __attribute__((aligned(8)));
+
 /* If you have a case option which is used only under a
    condition, this macro will simplify it */
 #define CONDITIONAL_CASE(option, condition, ...)           \
