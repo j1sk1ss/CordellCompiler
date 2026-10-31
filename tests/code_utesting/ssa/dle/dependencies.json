@@ -16,8 +16,11 @@
         "src/hir/hirgen/*.c",
         "src/hir/hirgen/*/*.c",
         "src/hir/ssa/*.c",
+        "src/hir/dag/*.c",
+        "src/hir/constfold/*.c",
         "src/hir/cfg/*.c",
         "src/hir/loop/*.c",
+        "src/hir/tools/*.c",
         "src/hir/func/*.c",
         "std/*.c"
     ]

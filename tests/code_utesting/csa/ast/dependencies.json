@@ -23,6 +23,7 @@
         "src/hir/dag/*.c",
         "src/hir/func/*.c",
         "src/hir/loop/*.c",
+        "src/hir/tools/*.c",
         "src/hir/z3/*.c",
         "std/*.c"
     ]
