@@ -1,28 +1,78 @@
 #ifndef LOOP_H_
 #define LOOP_H_
 
+#include <errno.h>
+#include <stdlib.h>
+
 #include <std/mm.h>
 #include <std/set.h>
 #include <std/map.h>
 #include <std/logg.h>
 #include <std/list.h>
+#include <hir/interval.h>
 #include <hir/hir.h>
 #include <hir/cfg.h>
 
 typedef struct loop_node {
-    cfg_block_t*      header;   /* Loop header                */
-    cfg_block_t*      latch;    /* Loop latch                 */
-    set_t             blocks;   /* cfg_block_t* blocks        */
+    cfg_block_t*      header;    /* Loop header                */
+    cfg_block_t*      preheader; /* Preheader (Optional)       */
+    cfg_block_t*      latch;     /* Loop latch                 */
+    set_t             blocks;    /* cfg_block_t* blocks        */
     set_t             exits;
     list_t            blocks_sorted;
-    list_t            children; /* loop_node_t* nested        */
-    set_t             ind;      /* Inductive variables (v_id) */
+    list_t            children;  /* loop_node_t* nested        */
+    set_t             ind;       /* Inductive variables (v_id) */
     struct loop_node* p;
 } loop_node_t;
 
 typedef struct {
     map_t             lmap; /* f.id <-> list_t of loops */
 } ltree_ctx_t;
+
+typedef enum {
+    LOOP_ITERATION_UNKNOWN,
+    LOOP_ITERATION_FINITE,
+    LOOP_ITERATION_INFINITE,
+} loop_iteration_status_t;
+
+#define LOOP_ITERATION_COUNT_UNKNOWN  (-2)
+#define LOOP_ITERATION_COUNT_INFINITE (-1)
+
+typedef struct {
+    hir_subject_t*         iterator;                  /* Current SSA value (PHI result).                 */
+    hir_subject_t*         initial;                   /* Initial SSA value, if defined.                  */
+    hir_subject_t*         next;                      /* Value on the backedge.                          */
+    symbol_id_t            initial_id;
+    symbol_id_t            next_id;
+    hir_block_t*           phi;
+    hir_block_t*           update;                    /* ADD/SUB defining the next value.                */
+    cfg_block_t*           update_block;
+    hir_subject_t*         step;                      /* Original step operand.                          */
+    big_int_t              initial_value;
+    big_int_t              step_value;                /* Normalized: iterator += step.                   */
+    int                    initial_known;
+    int                    step_known;
+} loop_iterator_info_t;
+
+typedef struct {
+    cfg_block_t*           block;                     /* CFG block containing the test.                  */
+    hir_block_t*           branch;                    /* Original exit IF instruction.                   */
+    hir_block_t*           comparison;                /* NULL for a bare integer test.                   */
+    loop_iterator_info_t*  iterator;                  /* NULL if not recognized.                         */
+    hir_subject_t*         bound;                     /* NULL for an implicit zero.                      */
+    hir_operation_t        op;                        /* Normalized continuation test.                   */
+    big_int_t              bound_value;
+    int                    bound_known;
+    int                    posttested;
+} loop_iteration_condition_t;
+
+typedef struct {
+    loop_iteration_status_t status;
+    big_int_t               count;                    /* Body executions: >= 0, -1 infinite, -2 unknown. */
+    list_t                  iterators;                /* Owned loop_iterator_info_t* records.            */
+    list_t                  conditions;               /* Owned loop_iteration_condition_t* records.      */
+    set_t                   iteration_dependency_ids; /* Variable IDs needed to derive the count.        */
+} loop_iteration_info_t;
 
 /* [Analyzation] Basic search function for cycles in the provided CFG.
    Note: Will change the cfg_block_t's type to CFG_LOOP_HEADER or CFG_LOOP_LATCH.
@@ -102,9 +152,14 @@ int HIR_LTREE_nested_count(loop_node_t* node);
 
    Params:
        - `lctx` - Loop tree context.
+       - `smt` - Symtable populated by constant propagation.
    
    Returns 1 if succeeds. */
-int HIR_LOOP_perform_dle(ltree_ctx_t* lctx);
+int HIR_LOOP_perform_dle(ltree_ctx_t* lctx, sym_table_t* smt);
+
+// TODO: docs
+int HIR_LOOP_analyze_iterations(loop_node_t* loop, loop_iteration_info_t* out, sym_table_t* smt);
+void HIR_LOOP_free_iteration_info(loop_iteration_info_t* info);
 
 /* Unload the loop context.
    Params:
@@ -113,7 +168,7 @@ int HIR_LOOP_perform_dle(ltree_ctx_t* lctx);
    Returns 1 if succeeds. */
 int HIR_LTREE_unload_ctx(ltree_ctx_t* ctx);
 
-/* Get logic conditions for the provided loop.
+/* Get CFG blocks with conditional exits from the provided loop.
    If you will provide it with a code:
 
    ```cpl
@@ -121,8 +176,9 @@ int HIR_LTREE_unload_ctx(ltree_ctx_t* ctx);
    }
    ```
 
-   It will return you { if 1 else A, then B } set.
+   Includes tests in the header, latch and other loop blocks.
+   The caller initializes and frees the output set.
    Return 1 if succeeds. */
-int HIR_LOOP_get_conds(loop_node_t* loop, set_t* conds);
+int HIR_LOOP_get_cond_blocks(loop_node_t* loop, set_t* conds);
 
 #endif

@@ -3,6 +3,25 @@ Logs for the first and second versions are quite short because I do not remember
 
 ----------------------------------------
 
+## LOOP iterations!
+<div class="change-date">Date: 2026-11-01</div>
+I've done this! Now the compiler can extract (not everytime, and not in every case) terations count, step size and an initial value. For instance, let's consider the next code:
+
+```cpl
+i32 a = 10i32;
+while a; {
+    a -= 1;
+}
+```
+
+Here the compiler will find the `phi`-function at the condition (for the `a` variable), and will mark the variable as a 'condition' variable. Than it will find the condition itself - `a` == `a != 0`. 
+
+Now, when we have the variable and the condition, we need to find a step value and an initial value. The initial value - is the first input value to the `phi`-function, which means, it's `10i32`. The step value - is the second input value to the `phi`-function, which means, it's `a_1` == `a_0 - 1` == `-1`.
+
+Now, we can say, that the loop has `-1` as the step and `10i32` as the initial value. Therefore, there is 10 iterations!
+
+This update won't add anything to the language or to the optimizations list. This is a pure architecture update.
+
 ## New switch annotation
 <div class="change-date">Date: 2026-10-17</div>
 Refactored the switch-related annotations:

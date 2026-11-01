@@ -1,26 +1,21 @@
 #include <hir/loop.h>
 
-static inline int _has_exit(cfg_block_t* bb) {
+static inline int _has_exit(loop_node_t* loop, cfg_block_t* bb) {
     set_foreach (cfg_block_t* succ, &bb->succ) {
-        if (succ->type != CFG_LOOP_BLOCK) return 1;
+        if (!set_has(&loop->blocks, succ)) return 1;
     }
 
     return 0;
 }
 
-int HIR_LOOP_get_conds(loop_node_t* loop, set_t* conds) {
-    cfg_block_t* entry = NULL;
-    foreach (entry, &loop->blocks_sorted) { // find entry cond
-        if (entry->type == CFG_LOOP_HEADER) {
-            set_add(conds, entry->hmap.exit);
-            if (_has_exit(entry)) return 1;
-        }
-    }
+int HIR_LOOP_get_cond_blocks(loop_node_t* loop, set_t* conds) {
+    set_foreach (cfg_block_t* bb, &loop->blocks) {
+        if (
+            !bb->hmap.exit || bb->hmap.exit->op != HIR_IFOP2 ||
+            !_has_exit(loop, bb)
+        ) continue;
 
-    cfg_block_t* next_entry = entry->jmp->jmp; // find sub-cond (if this is a lazy logic operation)
-    while (!_has_exit(next_entry)) {
-        set_add(conds, next_entry);
-        next_entry = next_entry->jmp->jmp;
+        if (!set_has(conds, bb) && !set_add(conds, bb)) return 0;
     }
 
     return 1;
