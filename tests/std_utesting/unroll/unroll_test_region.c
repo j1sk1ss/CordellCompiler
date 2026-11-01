@@ -142,7 +142,7 @@ static int _test_region(int kind) {
     fixture_t f = {0};
     _build_loop(&f, kind);
     if (kind == NO_CALL_LOOP) {
-        assert(HIR_LOOP_perform_dle(&f.loops), "DLE failed!");
+        assert(HIR_LOOP_perform_dle(&f.loops, f.smt), "DLE failed!");
         for (hir_block_t* hh = f.hir.hot.h; hh; hh = hh->next) {
             if (hh->op == HIR_iLWR || hh->op == HIR_iADD || hh->op == HIR_STORE) {
                 assert(!hh->unused, "DLE removed live computations from a loop without calls!");

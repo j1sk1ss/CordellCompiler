@@ -256,9 +256,8 @@ int BUILD_start(int argc, char* argv[]) {
         map_free_force(&ssactx.vers);
 
         HIR_compute_homes(&hirctx);
-        if (options.config.licm) {
+        if (options.config.licm && options.config.constant) {
             HIR_LTREE_licm(&cfgctx, &lctx, &smt);
-            HIR_LOOP_perform_dle(&lctx);
         }
 
         if (options.config.z3opt) {
@@ -286,8 +285,10 @@ int BUILD_start(int argc, char* argv[]) {
                 folded = HIR_sparse_const_funcall_propagation(&cfgctx, &smt) || folded;
                 folded = HIR_sparce_const_fret_propagation(&cfgctx, &smt)    || folded;
             } while (folded);
+            if (options.config.licm) HIR_LOOP_perform_dle(&lctx, &smt);
         }
-        else if (options.config.z3opt) {
+        
+        if (options.config.z3opt) {
             HIR_DAG_mark_unused_entries(&cfgctx, &dagctx);
         }
 

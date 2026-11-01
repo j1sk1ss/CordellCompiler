@@ -3,6 +3,10 @@ Logs for the first and second versions are quite short because I do not remember
 
 ----------------------------------------
 
+## DLE update
+<div class="change-date">Date: 2026-11-01</div>
+Loop iterations allow us to update several optimizations. For now, DLE optimizations now works. To do the optimiation, DLE finds loops which are finite, don't have useful commands (with side effects) and its inductive variables don't used elsewhere below.
+
 ## LOOP iterations!
 <div class="change-date">Date: 2026-11-01</div>
 I've done this! Now the compiler can extract (not everytime, and not in every case) terations count, step size and an initial value. For instance, let's consider the next code:
