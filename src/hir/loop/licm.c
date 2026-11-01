@@ -91,8 +91,10 @@ static cfg_block_t* _insert_preheader(cfg_ctx_t* cctx, cfg_block_t* header, set_
 
     preheader->id    = cctx->cid++;
     preheader->type  = CFG_LOOP_PREHEADER;
-    preheader->l     = header;
+    preheader->jmp   = header;
     preheader->pfunc = header->pfunc;
+    preheader->hmap.exit = HIR_create_block(HIR_JMP, HIR_copy_subject_and_label(header->hmap.entry->farg), NULL, NULL);
+    HIR_insert_block_after(preheader->hmap.exit, anchor);
     set_add(&preheader->succ, header);
 
     /* Redirect all external predecessors from header to preheader. */
@@ -462,8 +464,7 @@ static inline int _move_to_preheader(cfg_block_t* preheader, cfg_block_t* src_cf
     if (!preheader || !src_cfg || !inv) return 0;
     HIR_CFG_remove_hir_block(src_cfg, inv);
     HIR_unlink_block(inv);
-    HIR_insert_block_after(inv, preheader->hmap.exit);
-    preheader->hmap.exit = inv;
+    HIR_insert_block_before(inv, preheader->hmap.exit);
     return 1;
 }
 
@@ -478,6 +479,7 @@ static inline int _move_to_preheader(cfg_block_t* preheader, cfg_block_t* src_cf
 static int _licm_process(cfg_ctx_t* cctx, loop_node_t* loop, sym_table_t* smt, int licm) {
     cfg_block_t* preheader = _insert_preheader(cctx, loop->header, &loop->blocks, smt);
     if (!preheader) return 0;
+    loop->preheader = preheader;
     if (!licm) return 1;
 
     set_t loop_hir, invariant_defs;
