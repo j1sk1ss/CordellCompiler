@@ -282,6 +282,7 @@ typedef struct {
     } flags;
 } options_t;
 
+int         BUILD_run_cli_tool(const char* tool, list_t* args);
 void        BUILD_print_version(FILE* stream);
 int         BUILD_print_help_message();
 char*       BUILD_find_stdlib(const char* argv0, char* out, size_t out_size);

@@ -5,17 +5,16 @@ static inline int _push_cmd_arg(list_t* cmd, const char* arg) {
 }
 
 static inline char** _make_argv(list_t* args) {
-    if (!args) return NULL;
-    if (!list_push_back(args, NULL)) return NULL;
+    if (!args || !list_push_back(args, NULL)) return NULL;
     char** argv = (char**)list_flatten(args);
     list_remove(args, NULL);
     return argv;
 }
 
-static int _run_tool(const char* tool, list_t* args) {
+int BUILD_run_cli_tool(const char* tool, list_t* args) {
     char** argv = _make_argv(args);
     if (!argv) return 0;
-
+    
     pid_t pid = fork();
     if (pid < 0) {
         perror("fork");
@@ -57,7 +56,7 @@ int BUILD_compile_asm_to_object(const options_t* options, const char* asm_path, 
         _push_cmd_arg(&cmd, "-o")                        &&
         _push_cmd_arg(&cmd, obj_path);
 
-    if (ok) ok = _run_tool(options->tools.asm_compiler, &cmd);
+    if (ok) ok = BUILD_run_cli_tool(options->tools.asm_compiler, &cmd);
     list_free(&cmd);
     return ok;
 }
@@ -90,7 +89,7 @@ int BUILD_link_objects(const options_t* options, list_t* objects) {
         if (!_push_cmd_arg(&cmd, linker_arg)) goto _fail;
     }
 
-    int ok = _run_tool(options->tools.linker, &cmd);
+    int ok = BUILD_run_cli_tool(options->tools.linker, &cmd);
     list_free(&cmd);
     return ok;
 

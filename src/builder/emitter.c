@@ -17,6 +17,34 @@ int BUILD_emit_ast(ast_ctx_t* ctx, const options_t* options) {
     return 1;
 }
 
+/* t == 1 -> LIR
+   t == 0 -> HIR */
+static status_code_t _emit_cfg_and_create_dot(cfg_ctx_t *cctx, int t, sym_table_t* smt, const char* name) {
+    char *output_path_raw= "output.dot", *output_path = "output.png";
+    FILE* output = fopen(output_path_raw, "w");
+    if (!output) {
+        fprintf(stderr, "Can't open LIR CFG output file %s: %s\n", output_path, strerror(errno));
+        return 0;
+    }
+
+    if (t) DUMP_format_lir_cfg(cctx, smt, name, output);
+    else   DUMP_format_hir_cfg(cctx, smt, name, output);
+    fclose(output);
+
+    list_t dot_args;
+    list_init(&dot_args);
+
+    list_push_back(&dot_args, "dot");
+    list_push_back(&dot_args, "-Tpng");
+    list_push_back(&dot_args, (void*)output_path_raw);
+    list_push_back(&dot_args, "-o");
+    list_push_back(&dot_args, (void*)output_path);
+
+    BUILD_run_cli_tool("dot", &dot_args);
+    list_free(&dot_args);
+    return GENERAL_SUCCESS;
+}
+
 int BUILD_emit_hir(hir_ctx_t* hctx, cfg_ctx_t* cctx, sym_table_t* smt, const options_t* options) {
     if (!hctx || !cctx || !smt || !options) return 0;
 
@@ -33,15 +61,7 @@ int BUILD_emit_hir(hir_ctx_t* hctx, cfg_ctx_t* cctx, sym_table_t* smt, const opt
     }
 
     if (options->config.emit_hir_cfg) {
-        const char* output_path = "output.dot";
-        FILE* output = fopen(output_path, "w");
-        if (!output) {
-            fprintf(stderr, "Can't open HIR CFG output file %s: %s\n", output_path, strerror(errno));
-            return 0;
-        }
-
-        DUMP_format_hir_cfg(cctx, smt, options->locations.hir_cfg_name, output);
-        fclose(output);
+        _emit_cfg_and_create_dot(cctx, 0, smt, options->locations.hir_cfg_name);
     }
 
     return 1;
@@ -63,15 +83,7 @@ int BUILD_emit_lir(lir_ctx_t* lctx, cfg_ctx_t* cctx, sym_table_t* smt, const opt
     }
 
     if (options->config.emit_lir_cfg) {
-        const char* output_path = "output.dot";
-        FILE* output = fopen(output_path, "w");
-        if (!output) {
-            fprintf(stderr, "Can't open LIR CFG output file %s: %s\n", output_path, strerror(errno));
-            return 0;
-        }
-
-        DUMP_format_lir_cfg(cctx, smt, options->locations.lir_cfg_name, output);
-        fclose(output);
+        _emit_cfg_and_create_dot(cctx, 1, smt, options->locations.lir_cfg_name);
     }
 
     return 1;
