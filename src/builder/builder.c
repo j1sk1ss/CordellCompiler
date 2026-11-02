@@ -275,7 +275,7 @@ int BUILD_start(int argc, char* argv[]) {
             HIR_DAG_generate(&cfgctx, &dagctx, &smt);
         }
 
-        if (options.config.constant) {
+        if (options.config.constant || needs_hir_analysis) {
             HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);
             HIR_DAG_mark_unused_entries(&cfgctx, &dagctx);
             int folded = 0;
