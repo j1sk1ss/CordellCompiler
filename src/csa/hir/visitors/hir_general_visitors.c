@@ -319,12 +319,11 @@ static int _add_interprocedural_value_notes_rec(
                 if (actual_answer == Z3A_YES && _raw_streq(actual_name, "Value")) actual_name = value_repr;
                 file_position_t call_loc = _find_instruction_location_or_current(hh, &ctx->curr_location);
                 TRACE_add_note(
-                    trace,
-                    trace_id,
-                    &call_loc,
+                    trace, trace_id, &call_loc,
                     "Call to '%s' passes argument #%li as %s, which %s %s here",
                     function_name, arg_index + 1, actual_name, _z3_answer_phrase(actual_answer), value_repr
                 );
+
                 found = 1;
                 if (caller != bb->pfunc) {
                     _add_interprocedural_value_notes_rec(
@@ -1095,11 +1094,17 @@ int HIRWLKR_bad_buffer_move(HIR_VISITOR_ARGS) {
 
 int HIRWLKR_illegal_store(HIR_VISITOR_ARGS) {
     HIR_VISITOR_ARGS_USE;
-    if (b->op != HIR_STORE) return 1;
+    if (
+        b->op != HIR_STORE &&
+        b->op != HIR_LDREF &&
+        b->op != HIR_GDREF
+    ) return 1;
 
+    int dst_ptr = b->op == HIR_LDREF ? b->farg->ptr - 1 : b->farg->ptr;
+    int src_ptr = b->op == HIR_GDREF ? b->sarg->ptr - 1 : b->sarg->ptr;
     int 
-        dst_size = b->farg->ptr ? CONF_get_full_bytness() : HIR_get_type_size(HIR_get_tmp_type(b->farg->t)),
-        src_size = b->sarg->ptr ? CONF_get_full_bytness() : HIR_get_type_size(HIR_get_tmp_type(b->sarg->t));
+        dst_size = dst_ptr ? CONF_get_full_bytness() : HIR_get_type_size(HIR_get_tmp_type(b->farg->t)),
+        src_size = src_ptr ? CONF_get_full_bytness() : HIR_get_type_size(HIR_get_tmp_type(b->sarg->t));
     
     unsigned long long limits[] = { CHAR_MAX, UCHAR_MAX, SHRT_MAX, USHRT_MAX, INT_MAX, UINT_MAX, LONG_MAX, ULONG_MAX };
     int sizes[]                 = { 
