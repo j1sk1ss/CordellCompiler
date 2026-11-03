@@ -62,7 +62,7 @@ static int _temporary_use_is_local(hir_subject_t* s, unroll_plan_t* plan, cfg_bl
 }
 
 /* Check whether this is a loop that we CAN optimize.
-Will return 1 if we can, and 0 if not.
+   Will return 1 if we can, and 0 if not.
 */
 static int _is_valid_loop(unroll_plan_t* plan) {
     loop_node_t* loop = plan->loop;
@@ -98,15 +98,20 @@ static int _is_valid_loop(unroll_plan_t* plan) {
         }
 
         iterate_hir_instructions (bb) {
-            if (++instructions > UNROLL_MAX_INSTRUCTIONS || IS_UNSUPPORTED(hh->op)) return 0;
-            if (hh->op == HIR_JMP && hh->farg->t != HIR_LABEL) return 0; /* Table labels need a separate copy. */
+            if (
+                ++instructions > UNROLL_MAX_INSTRUCTIONS || IS_UNSUPPORTED(hh->op) ||
+                (hh->op == HIR_JMP && hh->farg->t != HIR_LABEL)
+            ) return 0; /* Table labels need a separate copy. */
             if (!HIR_is_writeop(hh->op) || !hh->farg || !HIR_is_tmptype(hh->farg->t)) continue;
             symbol_id_t id = hh->farg->storage.var.v_id;
-            if (HIR_is_arrtype(hh->farg->t) || map_get(&plan->definitions, id, NULL)) return 0;
-            if (!map_put(&plan->definitions, id, hh)) return -1;
+            if (
+                HIR_is_arrtype(hh->farg->t)           || 
+                map_get(&plan->definitions, id, NULL) ||
+                !map_put(&plan->definitions, id, hh)
+            ) return 0;
         }
 
-        if (!list_push_back(&plan->blocks, bb)) return -1;
+        if (!list_push_back(&plan->blocks, bb)) return 0;
     }
 
     if (
@@ -128,7 +133,7 @@ static int _is_valid_loop(unroll_plan_t* plan) {
         }
 
         set_t available;
-        if (!set_init(&available, SET_NO_CMP)) return -1;
+        if (!set_init(&available, SET_NO_CMP)) return 0;
 
         int valid = 1;
         iterate_hir_instructions (bb) {
@@ -139,7 +144,7 @@ static int _is_valid_loop(unroll_plan_t* plan) {
             if (HIR_is_writeop(hh->op) && hh->farg && HIR_is_tmptype(hh->farg->t)) {
                 if (!set_add(&available, (void*)hh->farg->storage.var.v_id)) {
                     set_free(&available);
-                    return -1;
+                    return 0;
                 }
             }
         }
@@ -207,15 +212,15 @@ _failure: {}
     return NULL;
 }
 
-static int _clone_loop_region(unroll_plan_t* plan, hir_ctx_t* fragment) {
+static int _clone_loop_region(unroll_plan_t* plan, list_t* instructions) {
     foreach (cfg_block_t* bb, &plan->blocks) {
         hir_subject_t* label = NULL;
         map_get(&plan->block_labels, (long)bb, (void**)&label);
 
-        HIR_BLOCK1(fragment, HIR_MKLB, HIR_copy_subject_and_label(label));
+        list_add(instructions, HIR_create_block(HIR_MKLB, HIR_copy_subject_and_label(label), NULL, NULL));
         iterate_hir_instructions (bb) {
             if (hh == bb->hmap.entry && hh->op == HIR_MKLB) continue;
-            if (!HIR_append_block(_copy_instruction(hh, plan), fragment)) return 0;
+            list_add(instructions, _copy_instruction(hh, plan));
         }
 
         if (!_is_flow_break(bb->hmap.exit->op)) {
@@ -224,7 +229,7 @@ static int _clone_loop_region(unroll_plan_t* plan, hir_ctx_t* fragment) {
                 target = bb->l->hmap.entry->farg;
             }
 
-            HIR_BLOCK1(fragment, HIR_JMP, HIR_copy_subject_and_label(target));
+            list_add(instructions, HIR_create_block(HIR_JMP, HIR_copy_subject_and_label(target), NULL, NULL));
         }
     }
     return 1;
@@ -250,28 +255,29 @@ static int _label_is_shared(loop_node_t* loop, hir_subject_t** operand) {
 
 static int _unroll_loop(loop_node_t* loop, sym_table_t* smt) {
     unroll_plan_t plan = { .loop = loop };
-    hir_ctx_t fragment = { 0 };
-    hir_subject_t* back_target = NULL;
     list_init(&plan.blocks);
-    int result = -1;
-
+    
     if (
         !map_init(&plan.definitions, MAP_NO_CMP)  || 
         !map_init(&plan.block_labels, MAP_NO_CMP) ||
         !map_init(&plan.labels, MAP_NO_CMP)       || 
         !map_init(&plan.temporaries, MAP_NO_CMP)
     ) goto _cleanup;
-
-    result = _is_valid_loop(&plan);
-    if (result != 1) goto _cleanup;
-
-    result = -1;
+    
+    loop_iteration_info_t loop_iters;
+    HIR_LOOP_analyze_iterations(loop, &loop_iters, smt);
+    
+    list_t instructions;
+    list_init(&instructions);
     if (
-        !_allocate_names(&plan, smt) || 
-        !_clone_loop_region(&plan, &fragment)
+        !_is_valid_loop(&plan)                            ||
+        loop_iters.count == LOOP_ITERATION_COUNT_UNKNOWN  ||
+        loop_iters.count == LOOP_ITERATION_COUNT_INFINITE || // we skip infinit or unknown loops
+        !_allocate_names(&plan, smt)                      || 
+        !_clone_loop_region(&plan, &instructions)
     ) goto _cleanup;
-
-    hir_subject_t* copy_header = NULL;
+    
+    hir_subject_t *copy_header = NULL, *back_target = NULL;
     map_get(&plan.block_labels, (long)loop->header, (void**)&copy_header);
     back_target = HIR_copy_subject_and_label(copy_header);
     if (!back_target) goto _cleanup;
@@ -279,21 +285,18 @@ static int _unroll_loop(loop_node_t* loop, sym_table_t* smt) {
     hir_subject_t** operand = _backedge_operand(loop);
     if (!_label_is_shared(loop, operand)) HIR_unload_subject(*operand);
 
-    *operand             = back_target;
-    back_target->home    = loop->latch->hmap.exit;
-    back_target          = NULL;
+    *operand          = back_target;
+    back_target->home = loop->latch->hmap.exit;
+    back_target       = NULL;
+    
     hir_block_t* anchor  = loop->latch->hmap.exit->next;
-    hir_block_t* prev    = anchor->prev;
-    prev->next           = fragment.hot.h;
-    fragment.hot.h->prev = prev;
-    fragment.hot.t->next = anchor;
-    anchor->prev         = fragment.hot.t;
-    fragment.hot.h       = fragment.hot.t = NULL;
-    result = 1;
+    foreach (hir_block_t* inst, &instructions) {
+        HIR_insert_block_before(inst, anchor);
+    }
 
 _cleanup: {}
     HIR_unload_subject(back_target);
-    HIR_unload_blocks(fragment.hot.h);
+    list_free(&instructions);
     list_free(&plan.blocks);
     map_free(&plan.definitions);
     map_free(&plan.labels);
@@ -303,7 +306,7 @@ _cleanup: {}
         map_free_force_op(&plan.block_labels, (int (*)(void*))HIR_unload_subject);
     }
 
-    return result;
+    return 1;
 }
 
 int HIR_LTREE_unroll(ltree_ctx_t* lctx, sym_table_t* smt) {
