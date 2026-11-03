@@ -39,31 +39,31 @@ typedef enum {
 #define LOOP_ITERATION_COUNT_INFINITE (-1)
 
 typedef struct {
-    hir_subject_t*         iterator;                  /* Current SSA value (PHI result).                 */
-    hir_subject_t*         initial;                   /* Initial SSA value, if defined.                  */
-    hir_subject_t*         next;                      /* Value on the backedge.                          */
-    symbol_id_t            initial_id;
-    symbol_id_t            next_id;
-    hir_block_t*           phi;
-    hir_block_t*           update;                    /* ADD/SUB defining the next value.                */
-    cfg_block_t*           update_block;
-    hir_subject_t*         step;                      /* Original step operand.                          */
-    big_int_t              initial_value;
-    big_int_t              step_value;                /* Normalized: iterator += step.                   */
-    int                    initial_known;
-    int                    step_known;
+    hir_subject_t*          iterator;                  /* Current SSA value (PHI result).                 */
+    hir_subject_t*          initial;                   /* Initial SSA value, if defined.                  */
+    hir_subject_t*          next;                      /* Value on the backedge.                          */
+    symbol_id_t             initial_id;
+    symbol_id_t             next_id;
+    hir_block_t*            phi;
+    hir_block_t*            update;                    /* ADD/SUB defining the next value.                */
+    cfg_block_t*            update_block;
+    hir_subject_t*          step;                      /* Original step operand.                          */
+    big_int_t               initial_value;
+    big_int_t               step_value;                /* Normalized: iterator += step.                   */
+    int                     initial_known;
+    int                     step_known;
 } loop_iterator_info_t;
 
 typedef struct {
-    cfg_block_t*           block;                     /* CFG block containing the test.                  */
-    hir_block_t*           branch;                    /* Original exit IF instruction.                   */
-    hir_block_t*           comparison;                /* NULL for a bare integer test.                   */
-    loop_iterator_info_t*  iterator;                  /* NULL if not recognized.                         */
-    hir_subject_t*         bound;                     /* NULL for an implicit zero.                      */
-    hir_operation_t        op;                        /* Normalized continuation test.                   */
-    big_int_t              bound_value;
-    int                    bound_known;
-    int                    posttested;
+    cfg_block_t*            block;                     /* CFG block containing the test.                  */
+    hir_block_t*            branch;                    /* Original exit IF instruction.                   */
+    hir_block_t*            comparison;                /* NULL for a bare integer test.                   */
+    loop_iterator_info_t*   iterator;                  /* NULL if not recognized.                         */
+    hir_subject_t*          bound;                     /* NULL for an implicit zero.                      */
+    hir_operation_t         op;                        /* Normalized continuation test.                   */
+    big_int_t               bound_value;
+    int                     bound_known;
+    int                     posttested;
 } loop_iteration_condition_t;
 
 typedef struct {

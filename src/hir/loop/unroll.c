@@ -14,14 +14,16 @@ typedef struct {
     map_t        temporaries;  /* Original temporary ID -> fresh variable ID.        */
 } unroll_plan_t;
 
-static int _is_flow_break(hir_operation_t op) {
+static inline int _is_flow_break(hir_operation_t op) {
     return HIR_is_jmp(op) || HIR_is_term(op);
 }
 
-static int _can_copy_fallthrough(loop_node_t* loop, cfg_block_t* bb) {
+static inline int _can_copy_fallthrough(loop_node_t* loop, cfg_block_t* bb) {
     if (_is_flow_break(bb->hmap.exit->op)) return 1;
-    if (!bb->l) return 0;
-    return set_has(&loop->blocks, bb->l) || (bb->l->hmap.entry && bb->l->hmap.entry->op == HIR_MKLB);
+    return (
+        bb->l && 
+        (set_has(&loop->blocks, bb->l) || (bb->l->hmap.entry && bb->l->hmap.entry->op == HIR_MKLB))
+    );
 }
 
 static int _uses_local_temporary(hir_subject_t* s, map_t* definitions) {
@@ -253,6 +255,20 @@ static int _label_is_shared(loop_node_t* loop, hir_subject_t** operand) {
     return 0;
 }
 
+static inline hir_subject_t* _create_stepped_variable(
+    hir_operation_t op, hir_subject_t* src, hir_block_t* pos, big_int_t val, sym_table_t* smt
+) {
+    hir_subject_t* dst = VRTB_ADD_TMP_NF(src->t, smt);
+    HIR_insert_block_before(HIR_create_block(op, dst, src, HIR_SUBJ_CONST(val)), pos);
+    return dst;
+}
+
+static inline void _emmit_loop_copy(
+    list_t* instrs, hir_operation_t* step_op, big_int_t shift, list_t* iterators, hir_block_t* pos, sym_table_t* smt
+) {
+
+}
+
 static int _unroll_loop(loop_node_t* loop, sym_table_t* smt) {
     unroll_plan_t plan = { .loop = loop };
     list_init(&plan.blocks);
@@ -274,7 +290,7 @@ static int _unroll_loop(loop_node_t* loop, sym_table_t* smt) {
         loop_iters.count == LOOP_ITERATION_COUNT_UNKNOWN  ||
         loop_iters.count == LOOP_ITERATION_COUNT_INFINITE || // we skip infinit or unknown loops
         !_allocate_names(&plan, smt)                      || 
-        !_clone_loop_region(&plan, &instructions)
+        !_clone_loop_region(&plan, &instructions)            // just copy the loop's body
     ) goto _cleanup;
     
     hir_subject_t *copy_header = NULL, *back_target = NULL;
@@ -289,7 +305,7 @@ static int _unroll_loop(loop_node_t* loop, sym_table_t* smt) {
     back_target->home = loop->latch->hmap.exit;
     back_target       = NULL;
     
-    hir_block_t* anchor  = loop->latch->hmap.exit->next;
+    hir_block_t* anchor = loop->latch->hmap.exit->next;
     foreach (hir_block_t* inst, &instructions) {
         HIR_insert_block_before(inst, anchor);
     }
