@@ -739,6 +739,101 @@ class BuilderCLITests(unittest.TestCase):
         self.assertTrue(default_exists)
         self.assert_no_stderr(default_result)
 
+    def test_later_input_failure_does_not_produce_partial_object(self) -> None:
+        cases = [
+            ("missing", None, "isn't found!"),
+            ("include", '#include "missing.cpl"\n', "Failed to preprocess"),
+        ]
+        for name, contents, message in cases:
+            with self.subTest(name=name), _tmpdir() as tmp:
+                root = Path(tmp)
+                first = root / "main.cpl"
+                second = root / "second.cpl"
+                output = root / "partial.o"
+                _minimal_source(first)
+                if contents is not None:
+                    second.write_text(contents, encoding="utf-8")
+
+                result = self.run_cplc("-c", "--output", output, first, second, cwd=root)
+
+                self.assert_failed_with(result, message)
+                self.assertFalse(output.exists())
+
+    def test_test_entry_generation_failure_stops_compilation(self) -> None:
+        with _tmpdir() as tmp:
+            root = Path(tmp)
+            source = root / "test.cpl"
+            output = root / "test.o"
+            source.write_text(
+                "@[test]\n"
+                "function with_arg(i32 x) -> i0 {\n}\n"
+                "start() {\n    exit 0 as u8;\n}\n",
+                encoding="utf-8",
+            )
+
+            result = self.run_cplc("--test", "-c", "--output", output, source, cwd=root)
+
+            self.assert_failed_with(result, "Test entry generation failed")
+            self.assertFalse(output.exists())
+
+    def test_test_entry_calls_annotated_function(self) -> None:
+        with _tmpdir() as tmp:
+            root = Path(tmp)
+            source = root / "test.cpl"
+            output = root / "test.o"
+            ir = root / "test.ir"
+            source.write_text(
+                "@[test]\nfunction check_value() -> i0 {\n}\n"
+                "start() {\n    exit 7 as u8;\n}\n",
+                encoding="utf-8",
+            )
+
+            result = self.run_cplc(
+                "--test", "-c", "--output", output,
+                "--ir-output", ir, source, cwd=root,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue(output.exists())
+            entry = ir.read_text(encoding="utf-8").split("fn _main()", 1)[1]
+            self.assertIn("check_value0();", entry)
+
+    def test_symtab_dump_includes_generated_generic_implementation(self) -> None:
+        with _tmpdir() as tmp:
+            root = Path(tmp)
+            source = root / "generic.cpl"
+            source.write_text(
+                "function identity<T>(T a) -> T {\n    return a;\n}\n"
+                "start() {\n    identity<u32>(10);\n}\n",
+                encoding="utf-8",
+            )
+
+            result = self.run_cplc(
+                "-c", "--output", root / "generic.o",
+                "--emit-symtab", "fn", source, cwd=root,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            symtab = (root / "output.fn.symtab").read_text(encoding="utf-8")
+            self.assertRegex(symtab, r"virt=identity\d+__u32\b")
+
+    def test_ir_output_failure_stops_before_object_generation(self) -> None:
+        for kind, message in [("ir", "HIR"), ("lir", "LIR")]:
+            with self.subTest(kind=kind), _tmpdir() as tmp:
+                root = Path(tmp)
+                source = root / "main.cpl"
+                output = root / "main.o"
+                _minimal_source(source)
+
+                result = self.run_cplc(
+                    "-c", "--output", output,
+                    f"--{kind}-output", root / "missing" / "dump",
+                    source, cwd=root,
+                )
+
+                self.assert_failed_with(result, f"Can't open {message} output file")
+                self.assertFalse(output.exists())
+
     def test_compile_only_uses_copy_when_rename_crosses_filesystems(self) -> None:
         with _tmpdir() as tmp:
             source = Path(tmp) / "main.cpl"

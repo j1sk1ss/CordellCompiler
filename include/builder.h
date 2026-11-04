@@ -273,12 +273,12 @@ typedef struct {
     struct {
         int          ast_analysis         : 1;
         int          hir_analysis         : 1;
-        int          show_help            : 1;
-        int          show_version         : 1;
-        int          print_stdlib         : 1;
-        int          show_something       : 1;
-        int          preprocess_only      : 1;
-        int          test_compilation     : 1;
+        int          show_help            : 1; // -h
+        int          show_version         : 1; // cplc -v ==> version X.X.X:X.X.X
+        int          print_stdlib         : 1; // show current stdlib path
+        int          show_something       : 1; // idk
+        int          preprocess_only      : 1; // invoke preprocessor only and terminate the compiler
+        int          test_compilation     : 1; // compile file with test functions @[test]
     } flags;
 } options_t;
 
