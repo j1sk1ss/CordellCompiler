@@ -1,251 +1,175 @@
 #include <hir/loop.h>
 #include "../../misc/testing.h"
 
-typedef enum { 
-    WHILE_LOOP, COUNTED_LOOP, SELF_LOOP, 
-    LIVE_OUT, DECLARATION, LOOP_CARRIED,
-    MULTIPLE_BACKEDGES, MULTIPLE_EXITS, NESTED, 
-    TOO_MANY_BLOCKS, TOO_MANY_INSTRUCTIONS, NO_CALL_LOOP 
-} error_codes_t;
-
-static int _posttested(int kind) {
-    return kind == COUNTED_LOOP || kind == SELF_LOOP;
+static hir_subject_t* _var(long id) {
+    return HIR_SUBJ_STKVAR(id, HIR_STKVARI64, 0);
 }
 
-typedef struct {
-    hir_ctx_t     hir;
-    cfg_ctx_t     cfg;
-    ltree_ctx_t   loops;
-    sym_table_t*  smt;
-    symbol_id_t   variable, bound, condition, update;
-    unsigned long header_id, exit_id;
-    hir_block_t*  header;
-    hir_block_t*  latch;
-} fixture_t;
-
-static hir_subject_t* _label(unsigned long id) {
-    hir_subject_t* s = HIR_SUBJ_LABEL();
-    s->id = id;
-    return s;
+static hir_subject_t* _label(long id) {
+    hir_subject_t* label = HIR_SUBJ_LABEL();
+    label->id = id;
+    return label;
 }
 
-static hir_subject_t* _var(symbol_id_t id, int temporary) {
-    return HIR_SUBJ_STKVAR(id, temporary ? HIR_TMPVARI64 : HIR_STKVARI64, 0);
+static hir_block_t* _append(hir_ctx_t* hir, cfg_block_t* bb, hir_operation_t op, hir_subject_t* a, hir_subject_t* b, hir_subject_t* c) {
+    hir_block_t* hh = HIR_create_block(op, a, b, c);
+    HIR_append_block(hh, hir);
+    if (!bb->hmap.entry) bb->hmap.entry = hh;
+    bb->hmap.exit = hh;
+    return hh;
 }
 
-static void _build_loop(fixture_t* f, int kind) {
-    f->smt = mm_malloc(sizeof(sym_table_t));
-    SMT_init(f->smt);
-    string_t* name = create_string("_main");
-    symbol_id_t fid = FNTB_add_info(name, NULL, (func_info_flags_t){ .entry = 1, .used = 1 }, 0, NULL, NULL, NULL, &f->smt->f);
-    destroy_string(name);
-    f->variable = VRTB_add_info(NULL, I64_TYPE_TOKEN, 0, EMPTY_BASIC_FLAGS, &f->smt->v);
-    f->bound = VRTB_add_info(NULL, I64_TYPE_TOKEN, 0, EMPTY_BASIC_FLAGS, &f->smt->v);
-    f->condition = VRTB_add_info(NULL, I64_TYPE_TOKEN, 0, EMPTY_BASIC_FLAGS, &f->smt->v);
-    f->update = VRTB_add_info(NULL, I64_TYPE_TOKEN, 0, EMPTY_BASIC_FLAGS, &f->smt->v);
-    hir_subject_t* header_label = HIR_SUBJ_LABEL();
-    f->header_id = header_label->id;
-    hir_subject_t* body_label = kind == SELF_LOOP ? NULL : HIR_SUBJ_LABEL();
-    unsigned long body_id = body_label ? body_label->id : 0;
-    hir_subject_t* latch_label = kind == SELF_LOOP ? NULL : HIR_SUBJ_LABEL();
-    unsigned long latch_id = latch_label ? latch_label->id : 0;
-    hir_subject_t* exit_label = HIR_SUBJ_LABEL();
-    f->exit_id = exit_label->id;
-    HIR_BLOCK1(&f->hir, HIR_STRT, HIR_SUBJ_FNAMETB(fid));
-    HIR_BLOCK1(&f->hir, HIR_VARDECL, _var(f->variable, 0));
-    HIR_BLOCK2(&f->hir, HIR_STORE, _var(f->variable, 0), HIR_SUBJ_CONST(_posttested(kind) ? 7 : 0));
-    HIR_BLOCK2(&f->hir, HIR_STORE, _var(f->bound, 1), HIR_SUBJ_CONST(7));
-    HIR_BLOCK1(&f->hir, HIR_MKLB, header_label);
-    f->header = f->hir.hot.t;
-    
-    if (kind == COUNTED_LOOP) HIR_BLOCK1(&f->hir, HIR_JMP, _label(body_id));
-    else if (kind != SELF_LOOP) {
-        HIR_BLOCK3(&f->hir, HIR_iLWR, _var(f->condition, 1), _var(f->variable, 0), _var(f->bound, 1));
-        HIR_BLOCK3(&f->hir, HIR_IFOP2, _var(f->condition, 1), _label(body_id), _label(f->exit_id));
-    }
-    
-    if (body_label) HIR_BLOCK1(&f->hir, HIR_MKLB, body_label);
-    if (kind == NESTED) {
-        hir_subject_t* inner = HIR_SUBJ_LABEL();
-        hir_subject_t* inner_body = HIR_SUBJ_LABEL();
-        hir_subject_t* after_inner = HIR_SUBJ_LABEL();
-        HIR_BLOCK1(&f->hir, HIR_MKLB, inner);
-        HIR_BLOCK3(&f->hir, HIR_IFOP2, HIR_SUBJ_CONST(0), _label(inner_body->id), _label(after_inner->id));
-        HIR_BLOCK1(&f->hir, HIR_MKLB, inner_body);
-        HIR_BLOCK1(&f->hir, HIR_JMP, _label(inner->id));
-        HIR_BLOCK1(&f->hir, HIR_MKLB, after_inner);
-    }
-    
-    if (kind == TOO_MANY_BLOCKS) {
-        for (int i = 0; i < 9; i++) {
-            HIR_BLOCK1(&f->hir, HIR_MKLB, HIR_SUBJ_LABEL());
-            HIR_BLOCK0(&f->hir, HIR_NOP);
-        }
-    }
-    
-    if (kind == TOO_MANY_INSTRUCTIONS) {
-        for (int i = 0; i < 65; i++) HIR_BLOCK0(&f->hir, HIR_NOP);
-    }
-    
-    if (kind == DECLARATION) HIR_BLOCK1(&f->hir, HIR_VARDECL, _var(f->variable, 0));
-    HIR_BLOCK3(&f->hir, _posttested(kind) ? HIR_iSUB : HIR_iADD, _var(f->update, 1), _var(kind == LOOP_CARRIED ? f->update : f->variable, kind == LOOP_CARRIED), HIR_SUBJ_CONST(1));
-    HIR_BLOCK2(&f->hir, HIR_STORE, _var(f->variable, 0), _var(f->update, 1));
-    
-    if (kind != NO_CALL_LOOP) {
-        hir_subject_t* args = HIR_SUBJ_LIST();
-        list_push_back(&args->storage.list.h, _var(f->update, 1));
-        list_push_back(&args->storage.list.h, _var(f->bound, 1));
-        HIR_BLOCK3(&f->hir, HIR_FCLL, NULL, HIR_SUBJ_FNAMETB(fid), args);
-    }
-    
-    hir_subject_t* extra_exit = NULL;
-    if (kind == MULTIPLE_BACKEDGES) {
-        HIR_BLOCK3(&f->hir, HIR_IFOP2, _var(f->condition, 1), _label(f->header_id), _label(latch_id));
-    }
-    
-    if (kind == MULTIPLE_EXITS) {
-        extra_exit = HIR_SUBJ_LABEL();
-        HIR_BLOCK3(&f->hir, HIR_IFOP2, _var(f->condition, 1), _label(latch_id), _label(extra_exit->id));
-    }
-
-    if (latch_label) HIR_BLOCK1(&f->hir, HIR_MKLB, latch_label);
-    if (_posttested(kind)) {
-        HIR_BLOCK3(&f->hir, HIR_IFOP2, _var(f->variable, 0), _label(f->header_id), _label(f->exit_id));
-    }
-    else {
-        HIR_BLOCK1(&f->hir, HIR_JMP, header_label);
-    }
-
-    f->latch = f->hir.hot.t;
-    HIR_BLOCK1(&f->hir, HIR_MKLB, exit_label);
-    HIR_BLOCK1(&f->hir, HIR_EXITOP, _var(kind == LIVE_OUT ? f->update : f->variable, kind == LIVE_OUT));
-    if (extra_exit) {
-        HIR_BLOCK1(&f->hir, HIR_MKLB, extra_exit);
-        HIR_BLOCK1(&f->hir, HIR_EXITOP, _var(f->variable, 0));
-    }
-    HIR_BLOCK0(&f->hir, HIR_STEND);
-    HIR_CFG_build(&f->hir, &f->cfg, f->smt);
-    foreach (cfg_func_t* func, &f->cfg.funcs) func->used = 1;
-    HIR_CFG_create_domdata(&f->cfg);
-    map_init(&f->loops.lmap, MAP_NO_CMP);
-    HIR_LOOP_mark_loops(&f->cfg, &f->loops);
+static void _edge(cfg_block_t* from, cfg_block_t* to, int jump) {
+    if (jump) from->jmp = to;
+    else      from->l   = to;
+    set_add(&from->succ, to);
+    set_add(&to->pred, from);
 }
 
-static void _free_fixture(fixture_t* f) {
-    HIR_LTREE_unload_ctx(&f->loops);
-    HIR_CFG_unload(&f->cfg);
-    HIR_unload_blocks(f->hir.hot.h);
-    SMT_unload(f->smt);
-}
-
-static int _test_region(int kind) {
-    fixture_t f = {0};
-    _build_loop(&f, kind);
-    if (kind == NO_CALL_LOOP) {
-        assert(HIR_LOOP_perform_dle(&f.loops, f.smt), "DLE failed!");
-        for (hir_block_t* hh = f.hir.hot.h; hh; hh = hh->next) {
-            if (hh->op == HIR_iLWR || hh->op == HIR_iADD || hh->op == HIR_STORE) {
-                assert(!hh->unused, "DLE removed live computations from a loop without calls!");
+/* Execute the emitted straight-line HIR, including the existing SSA edge copies. */
+static long _execute(hir_ctx_t* hir) {
+    long values[1024] = { 0 };
+    for (hir_block_t* hh = hir->hot.h; hh; hh = hh->next) {
+        if (hh->unused) continue;
+        long a = hh->sarg && HIR_is_vartype(hh->sarg->t) ? values[hh->sarg->storage.var.v_id] : 0;
+        switch (hh->op) {
+            case HIR_STORE: values[hh->farg->storage.var.v_id] = hh->sarg->storage.cnst.value; break;
+            case HIR_PHI_PREAMBLE: values[hh->farg->storage.var.v_id] = a; break;
+            case HIR_iADD: values[hh->farg->storage.var.v_id] = a + hh->targ->storage.cnst.value; break;
+            case HIR_iLWR: values[hh->farg->storage.var.v_id] = a < hh->targ->storage.cnst.value; break;
+            case HIR_iLGE: values[hh->farg->storage.var.v_id] = a >= hh->targ->storage.cnst.value; break;
+            case HIR_JMP: {
+                long target = hh->farg->id;
+                for (hh = hir->hot.h; hh && !(hh->op == HIR_MKLB && hh->farg->id == target); hh = hh->next) {}
+                if (!hh) return -1;
+                break;
             }
+            case HIR_EXITOP: return values[hh->farg->storage.var.v_id];
+            default: break;
         }
     }
-
-    assert(HIR_LTREE_unroll(&f.loops, f.smt) == 1, "Eligible loop was not unrolled!");
-    assert(f.header->farg->id == f.header_id, "Shared original header label was changed!");
-    unsigned long copy_header = _posttested(kind) ? f.latch->sarg->id : f.latch->farg->id;
-    assert(copy_header != f.header_id, "Original latch still targets original header!");
-    int calls = 0, updates = 0, conditions = 0, copy_backedge = 0;
-    set_t labels, definitions;
-    set_init(&labels, SET_NO_CMP);
-    set_init(&definitions, SET_NO_CMP);
-
-    for (hir_block_t* hh = f.hir.hot.h; hh; hh = hh->next) {
-        if (hh->op == HIR_MKLB) {
-            assert(set_add(&labels, (void*)hh->farg->id), "Duplicate emitted label ID!");
-        }
-    
-        if (HIR_is_writeop(hh->op) && hh->farg && HIR_is_tmptype(hh->farg->t)) {
-            assert(set_add(&definitions, (void*)hh->farg->storage.var.v_id), "Temporary has multiple definitions after unroll!");
-        }
-    
-        if (hh->op == HIR_iADD || hh->op == HIR_iSUB) updates++;
-        if (hh->op == HIR_iLWR) {
-            conditions++;
-            assert(hh->targ->storage.var.v_id == f.bound, "External temporary was renamed!");
-        }
-    
-        if (hh->op == HIR_STORE && hh->farg->t == HIR_STKVARI64) {
-            assert(hh->farg->storage.var.v_id == f.variable, "Loop state variable was renamed!");
-        }
-    
-        if (hh->op == HIR_FCLL) {
-            calls++;
-            hir_subject_t* update = list_get_head(&hh->targ->storage.list.h);
-            hir_subject_t* bound = list_get_tail(&hh->targ->storage.list.h);
-            assert(bound->storage.var.v_id == f.bound, "External call argument was renamed!");
-            assert(set_has(&definitions, (void*)update->storage.var.v_id), "Call argument did not use its copy's definition!");
-        }
-    
-        if (
-            hh != f.latch && ((hh->op == HIR_JMP && hh->farg->id == f.header_id) ||
-            (_posttested(kind) && hh->op == HIR_IFOP2 && hh->sarg->id == f.header_id))
-        ) copy_backedge++;
-    }
-
-    assert(calls == (kind == NO_CALL_LOOP ? 0 : 2) && updates == 2, "Body was not copied exactly once!");
-    assert(conditions == (_posttested(kind) ? 0 : 2), "Condition was not preserved in both copies!");
-    assert(copy_backedge == 1, "Copied backedge is missing!");
-    set_free(&labels);
-    set_free(&definitions);
-
-    HIR_LTREE_unload_ctx(&f.loops);
-    HIR_CFG_unload(&f.cfg);
-    assert(HIR_CFG_build(&f.hir, &f.cfg, f.smt), "CFG rebuild failed!");
-    foreach (cfg_func_t* func, &f.cfg.funcs) {
-        func->used = 1;
-        assert(HIR_CFG_function_findlb(func, copy_header), "Copied header missing after rebuild!");
-        foreach (cfg_block_t* bb, &func->blocks) {
-            if (bb->hmap.exit->op == HIR_JMP) assert(bb->jmp, "Unresolved jump after rebuild!");
-            if (bb->hmap.exit->op == HIR_IFOP2) assert(bb->l && bb->jmp, "Unresolved conditional jump after rebuild!");
-        }
-    }
-    
-    HIR_CFG_create_domdata(&f.cfg);
-    map_init(&f.loops.lmap, MAP_NO_CMP);
-    assert(HIR_LOOP_mark_loops(&f.cfg, &f.loops), "Loop tree rebuild failed!");
-    list_t* roots = NULL;
-    assert(map_get(&f.loops.lmap, 0, (void**)&roots) && list_size(roots) == 1, "Unroll did not leave one enlarged loop!");
-    _free_fixture(&f);
-    return 0;
+    return -1;
 }
 
-static int _test_skip(int kind) {
-    fixture_t f = {0};
-    _build_loop(&f, kind);
+static int _test_loop(long count, int posttested, int skip, int inverted, int live) {
+    sym_table_t* smt = mm_malloc(sizeof(sym_table_t));
+    SMT_init(smt);
+    for (int i = 0; i < 16; i++) VRTB_add_info(NULL, I64_TYPE_TOKEN, 0, EMPTY_BASIC_FLAGS, &smt->v);
+    variable_info_t* initial = NULL;
+    map_get(&smt->v.vartb, 0, (void**)&initial);
+    initial->vdi.defined = skip == 1 ? UNDEFINED_VARIABLE : DEFINED_VARIABLE;
+    initial->vdi.definition = 0;
+
+    cfg_func_t func = { 0 };
+    list_init(&func.blocks);
+    cfg_block_t* b[4];
+    for (int i = 0; i < 4; i++) {
+        b[i] = HIR_CFG_create_cfg_block(NULL);
+        b[i]->id = i;
+        b[i]->pfunc = &func;
+        list_push_back(&func.blocks, b[i]);
+    }
+    _edge(b[0], b[1], 0);
+    _edge(b[1], b[2], posttested ? 0 : inverted);
+    _edge(b[2], b[1], posttested ? inverted : 1);
+    _edge(b[posttested ? 2 : 1], b[3], !inverted);
+    hir_ctx_t hir = { 0 };
+    _append(&hir, b[0], HIR_STORE, _var(0), HIR_SUBJ_CONST(0), NULL);
+    _append(&hir, b[0], HIR_PHI_PREAMBLE, _var(1), _var(0), NULL);
+    _append(&hir, b[1], HIR_MKLB, _label(1), NULL, NULL);
+    hir_subject_t* incoming = HIR_SUBJ_SET();
+    set_add(&incoming->storage.set.h, inttuple_create(0, 0));
+    set_add(&incoming->storage.set.h, inttuple_create(2, 2));
+    _append(&hir, b[1], HIR_PHI, _var(7), _var(1), incoming);
+    if (!posttested) {
+        _append(&hir, b[1], inverted ? HIR_iLGE : HIR_iLWR, _var(3), _var(1), HIR_SUBJ_CONST(count));
+        _append(&hir, b[1], HIR_IFOP2, _var(3), _label(inverted ? 3 : 2), _label(inverted ? 2 : 3));
+    }
+    else _append(&hir, b[1], HIR_JMP, _label(2), NULL, NULL);
+    _append(&hir, b[2], HIR_MKLB, _label(2), NULL, NULL);
+    _append(&hir, b[2], HIR_iADD, _var(2), _var(1), HIR_SUBJ_CONST(skip == 3 ? 0 : 1));
+    _append(&hir, b[2], HIR_PHI_PREAMBLE, _var(1), _var(2), NULL);
+    if (posttested) {
+        _append(&hir, b[2], inverted ? HIR_iLGE : HIR_iLWR, _var(3), _var(2), HIR_SUBJ_CONST(count));
+        _append(&hir, b[2], HIR_IFOP2, _var(3), _label(inverted ? 3 : 1), _label(inverted ? 1 : 3));
+    }
+    else _append(&hir, b[2], HIR_JMP, _label(1), NULL, NULL);
+    _append(&hir, b[3], HIR_MKLB, _label(3), NULL, NULL);
+    _append(&hir, b[3], HIR_EXITOP, _var(live ? 3 : 1), NULL, NULL);
+
+    loop_node_t loop = { .header = b[1], .latch = b[2], .preheader = b[0] };
+    set_init(&loop.blocks, SET_NO_CMP);
+    set_init(&loop.exits, SET_NO_CMP);
+    list_init(&loop.blocks_sorted);
+    list_init(&loop.children);
+    for (int i = 1; i <= 2; i++) {
+        set_add(&loop.blocks, b[i]);
+        list_push_back(&loop.blocks_sorted, b[i]);
+    }
+    set_add(&loop.exits, b[3]);
+    ltree_ctx_t loops;
+    map_init(&loops.lmap, MAP_NO_CMP);
+    list_t roots;
+    list_init(&roots);
+    list_push_back(&roots, &loop);
+    map_put(&loops.lmap, 0, &roots);
+    /* A previous pass can bypass this loop by updating CFG alone. */
+    cfg_block_t* bypass = HIR_CFG_create_cfg_block(NULL);
+    bypass->pfunc = &func;
+    list_push_back(&func.blocks, bypass);
+    _edge(bypass, b[3], 1);
     int allocated = mm_get_allocated();
-    int variables = f.smt->v.curr_id;
-    hir_block_t* previous = f.header->prev;
-    assert(HIR_LTREE_unroll(&f.loops, f.smt) == 0, "Unsupported loop was unrolled!");
-    assert(f.header->prev == previous && f.latch->farg->id == f.header_id, "Skipped loop was modified!");
-    assert(f.smt->v.curr_id == variables && mm_get_allocated() == allocated, "Skipped loop allocated variables or leaked memory!");
-    _free_fixture(&f);
+    int result = HIR_LTREE_unroll(&loops, smt);
+    assert(result == !skip, "Unexpected unroll result!");
+    if (!skip) {
+        assert(_execute(&hir) == (live ? inverted : posttested && !count ? 1 : count), "Unroll changed the result!");
+        assert(b[0]->l == b[1] && b[1]->jmp == b[3], "CFG does not follow the unrolled body!");
+        assert(set_has(&b[1]->succ, b[3]) && set_has(&b[3]->pred, b[1]), "CFG edges are inconsistent!");
+        assert(set_size(&b[1]->pred) == 1 && set_size(&b[3]->pred) == 2, "Old loop edges survived!");
+        assert(list_size(&func.blocks) == 4, "Old loop blocks survived!");
+        set_t definitions;
+        set_init(&definitions, SET_NO_CMP);
+        for (hir_block_t* hh = hir.hot.h; hh; hh = hh->next) {
+            assert(hh->unused || hh->op != HIR_IFOP2, "Unrolled loop retained a conditional branch!");
+            if (!hh->unused && HIR_is_writeop(hh->op) && hh->farg && HIR_is_vartype(hh->farg->t)) {
+                assert(!set_has(&definitions, (void*)hh->farg->storage.var.v_id), "Copied variable has multiple definitions!");
+                set_add(&definitions, (void*)hh->farg->storage.var.v_id);
+            }
+            if (!live) assert(hh->unused || (hh->op != HIR_iLWR && hh->op != HIR_iLGE), "Unused comparison survived!");
+        }
+        set_free(&definitions);
+    }
+    else assert(mm_get_allocated() == allocated, "Skipped loop leaked memory!");
+    assert(bypass->jmp == b[3] && set_has(&bypass->succ, b[3]) && set_has(&b[3]->pred, bypass),
+           "Unroll changed an unrelated CFG edge!");
+
+    map_free(&loops.lmap);
+    list_free(&roots);
+    set_free(&loop.blocks);
+    set_free(&loop.exits);
+    list_free(&loop.blocks_sorted);
+    list_free(&loop.children);
+    foreach (cfg_block_t* bb, &func.blocks) HIR_CFG_unload_block(bb);
+    list_free(&func.blocks);
+    HIR_unload_blocks(hir.hot.h);
+    SMT_unload(smt);
     return 0;
 }
 
-int main() {
+int main(void) {
     mm_init();
-    assert(!_test_region(WHILE_LOOP), "While unroll test failed!");
-    assert(mm_get_allocated() == 0, "While test leaked memory!");
-    assert(!_test_region(COUNTED_LOOP), "Counted loop unroll test failed!");
-    assert(mm_get_allocated() == 0, "Counted loop test leaked memory!");
-    assert(!_test_region(SELF_LOOP), "Single-block loop unroll test failed!");
-    assert(mm_get_allocated() == 0, "Single-block loop test leaked memory!");
-    assert(!_test_region(NO_CALL_LOOP), "Loop without calls test failed!");
-    assert(mm_get_allocated() == 0, "Loop without calls test leaked memory!");
-    for (int kind = LIVE_OUT; kind <= TOO_MANY_INSTRUCTIONS; kind++) {
-        assert(!_test_skip(kind), "Unsupported loop test failed!");
-        assert(mm_get_allocated() == 0, "Skipped loop test leaked memory!");
+    for (int inverted = 0; inverted <= 1; inverted++) {
+        for (int post = 0; post <= 1; post++) {
+            for (long count = 0; count <= 7; count++) {
+                assert(!_test_loop(count, post, 0, inverted, 0), "Finite loop test failed!");
+                assert(!_test_loop(count, post, 0, inverted, 1), "Live comparison test failed!");
+                assert(mm_get_allocated() == 0, "Finite loop leaked memory!");
+            }
+            assert(!_test_loop(7, post, 1, inverted, 0), "Unknown loop test failed!");
+            assert(!_test_loop(1000, post, 2, inverted, 0), "Large loop test failed!");
+            assert(!_test_loop(7, post, 3, inverted, 0), "Infinite loop test failed!");
+            assert(mm_get_allocated() == 0, "Skipped loop leaked memory!");
+        }
     }
-    
     return 0;
 }

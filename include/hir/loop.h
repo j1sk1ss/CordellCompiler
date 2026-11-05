@@ -93,10 +93,7 @@ int HIR_LOOP_mark_loops(cfg_ctx_t* cctx, ltree_ctx_t* lctx);
    Returns 1 on success, otherwise 0. */
 int HIR_LTREE_canonicalization(cfg_ctx_t* cctx, ltree_ctx_t* lctx);
 
-/* Partially unroll eligible non-nested loops by a factor of two before SSA.
-   Both copies retain their conditions and updates. Mutates only the HIR sequence.
-   The caller must rebuild CFG, dominance and loop tree before further analysis.
-   Returns the number of transformed loops, 0 if none qualify, or -1 on failure. */
+// TODO: docs
 int HIR_LTREE_unroll(ltree_ctx_t* lctx, sym_table_t* smt);
 
 /* [Transformation] Perform LICM optimization on the canonicolized loops.

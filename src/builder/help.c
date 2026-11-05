@@ -51,7 +51,7 @@ int BUILD_print_help_message() {
         { OPTION_NO_FINLINE,                                  NULL,           "Disable function inlining"                                                     },
         { OPTION_LICM,                                        NULL,           "Enable LICM"                                                                   },
         { OPTION_NO_LICM,                                     NULL,           "Disable LICM"                                                                  },
-        { OPTION_UNROLL,                                      NULL,           "Enable guarded loop unrolling by two"                                          },
+        { OPTION_UNROLL,                                      NULL,           "Fully unroll small loops with a known iteration count"                          },
         { OPTION_NO_UNROLL,                                   NULL,           "Disable loop unrolling"                                                        },
         { OPTION_CONSTANT,                                    NULL,           "Enable constant propagation/folding"                                           },
         { OPTION_NO_CONSTANT,                                 NULL,           "Disable constant propagation/folding"                                          },

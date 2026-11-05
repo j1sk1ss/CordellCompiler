@@ -243,29 +243,6 @@ int BUILD_start(int argc, char* argv[]) {
         HIR_LOOP_mark_loops(&cfgctx, &lctx);
     }
 
-    // OPT: Loop unroll optimization
-    if (options.config.unroll) {
-        int unrolled = HIR_LTREE_unroll(&lctx, &smt);
-        if (unrolled < 0) {
-            fprintf(stderr, "Loop unrolling failed\n");
-            HIR_LTREE_unload_ctx(&lctx);
-            HIR_CG_unload(&callctx);
-            HIR_CFG_unload(&cfgctx);
-            HIR_unload_blocks(hirctx.hot.h);
-            BUILD_unload_token_lists(&token_lists);
-            AST_unload_ctx(&sctx);
-            SMT_unload(&smt);
-            return 1;
-        }
-        else if (unrolled > 0) {
-            HIR_LTREE_unload_ctx(&lctx);
-            RELOAD_CFG;
-            HIR_CFG_create_domdata(&cfgctx);
-            map_init(&lctx.lmap, MAP_NO_CMP);
-            HIR_LOOP_mark_loops(&cfgctx, &lctx);
-        }
-    }
-
     HIR_LTREE_canonicalization(&cfgctx, &lctx);
 
     HIR_CFG_unload_domdata(&cfgctx);
@@ -325,12 +302,37 @@ int BUILD_start(int argc, char* argv[]) {
         HIR_DAG_mark_unused_entries(&cfgctx, &dagctx);
     }
 
-    HIR_CFG_squeeze_blocks(&cfgctx);
-
     if (needs_hir_analysis && (STRICT_ACTION(SEM_perform_hir_check(&cfgctx, &dagctx, &smt, DEF_CONF) <= 0))) {
         fprintf(stderr, "CSA: HIR analysis failed\n");
         return 1;
     }
+
+    // OPT: Loop unroll
+    if (options.config.unroll) {
+        int unrolled = HIR_LTREE_unroll(&lctx, &smt);
+        if (unrolled < 0) {
+            fprintf(stderr, "Loop unrolling failed\n");
+            HIR_DAG_unload(&dagctx);
+            HIR_LTREE_unload_ctx(&lctx);
+            HIR_CG_unload(&callctx);
+            HIR_CFG_unload(&cfgctx);
+            HIR_unload_blocks(hirctx.hot.h);
+            BUILD_unload_token_lists(&token_lists);
+            AST_unload_ctx(&sctx);
+            SMT_unload(&smt);
+            return 1;
+        }
+        else if (unrolled > 0) {
+            HIR_compute_homes(&hirctx);
+            HIR_LTREE_unload_ctx(&lctx);
+            HIR_CFG_unload_domdata(&cfgctx);
+            HIR_CFG_create_domdata(&cfgctx);
+            map_init(&lctx.lmap, MAP_NO_CMP);
+            HIR_LOOP_mark_loops(&cfgctx, &lctx);
+        }
+    }
+
+    HIR_CFG_squeeze_blocks(&cfgctx);
 
     if (!BUILD_emit_hir(&hirctx, &cfgctx, &smt, &options)) return 1;
 
