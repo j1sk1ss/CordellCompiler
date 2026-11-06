@@ -62,6 +62,7 @@ static int _loop_node_free(loop_node_t* n) {
     list_free(&n->blocks_sorted);
     set_free(&n->blocks);
     set_free(&n->ind);
+    set_free(&n->exits);
     mm_free(n);
     return 1;
 }
@@ -94,6 +95,7 @@ static int _collect_loops_for_func(cfg_func_t* fb, list_t* l) {
                     list_free_force_op(l, (int (*)(void*))_loop_node_free);
                     list_free(&loop_blocks_sorted);
                     set_free(&loop_blocks);
+                    set_free(&loop_exits);
                     return 0;
                 }
 
@@ -112,12 +114,14 @@ static int _collect_loops_for_func(cfg_func_t* fb, list_t* l) {
                     list_free_force_op(l, (int (*)(void*))_loop_node_free);
                     list_free(&loop_blocks_sorted);
                     set_free(&loop_blocks);
+                    set_free(&loop_exits);
                     return 0;
                 }
 
                 list_push_back(l, (void*)node);
                 list_free(&loop_blocks_sorted);
                 set_free(&loop_blocks);
+                set_free(&loop_exits);
             }
         }
     }

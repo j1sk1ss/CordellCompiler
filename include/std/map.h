@@ -15,14 +15,14 @@ typedef struct {
 } map_entry_t;
 
 typedef struct {
-    long         capacity;
-    long         index;
-    map_entry_t* entries;
+    long          capacity;
+    long          index;
+    map_entry_t*  entries;
 } map_iter_t;
 
 typedef struct {
     /* information flags */
-    char          cmp;      /* cmp ability           */
+    int           cmp : 1;  /* cmp ability           */
     unsigned long hash;     /* map hash for cmp      */
     char          compr;    /* map compressed state  */
 

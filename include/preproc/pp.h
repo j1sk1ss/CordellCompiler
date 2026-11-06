@@ -39,25 +39,25 @@ typedef struct {
 } pp_cmt_state_t;
 
 typedef struct {
-    FILE*          f;   /* descriptor              */
-    int            l;   /* line                    */
-    char*          n;   /* file name               */
-    pp_cmt_state_t cst; /* Context for comment rm  */
+    FILE*          f;                  /* descriptor                */
+    int            l;                  /* line                      */
+    char*          n;                  /* file name                 */
+    pp_cmt_state_t cst;                /* Context for comment rm    */
 } source_pos_info_t;
 
 typedef struct {
     /* Lines information */
-    char*          line;         /* Current line            */
-    size_t         size;         /* Current line size       */
-    char*          clean;        /* Cleaned from cmt line   */
-    size_t         clean_size;   /* Cleaned line size       */
-    char*          defined;      /* Line with defined data  */
-    size_t         defined_size; /* Defined line size       */
+    char*          line;               /* Current line              */
+    size_t         size;               /* Current line size         */
+    char*          clean;              /* Cleaned from cmt line     */
+    size_t         clean_size;         /* Cleaned line size         */
+    char*          defined;            /* Line with defined data    */
+    size_t         defined_size;       /* Defined line size         */
 
     /* File information */
-    int            fd;           /* Input file descriptor   */
-    sstack_t       sources;      /* Sources stack           */
-    FILE*          out;          /* Target file pointer     */
+    int            fd;                 /* Input file descriptor     */
+    sstack_t       sources;            /* Sources stack             */
+    FILE*          out;                /* Target file pointer       */
 } pp_ctx_t;
 
 int PP_init_pp_ctx(pp_ctx_t* ctx);
