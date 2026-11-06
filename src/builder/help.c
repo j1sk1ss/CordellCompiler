@@ -26,11 +26,11 @@ static void _print_help_section(FILE* stream, const char* title, const cli_help_
 int BUILD_print_help_message() {
     static const cli_help_option_t _general_options[] = {
         { OPTION_HELP_SHORT ", " OPTION_HELP,                 NULL,           "Show this help message"                                                        },
-        { OPTION_VERSION_SHORT ", " OPTION_VERSION,           NULL,           "Show compiler version"                                                         },
-        { OPTION_SOMETHING_SHORT ", " OPTION_SOMETHING,       NULL,           "Show something"                                                                },
-        { OPTION_PREPROCESS_ONLY,                             NULL,           "Run preprocessor only"                                                         },
-        { OPTION_INСLUDE,                                     "<dir>",        "Add include directory"                                                         },
-        { OPTION_DEFINE,                                      "<name=value>", "Define preprocessor variable"                                                  },
+        { OPTION_VERSION_SHORT ", " OPTION_VERSION,           NULL,           "Show the compiler version"                                                     },
+        { OPTION_SOMETHING_SHORT ", " OPTION_SOMETHING,       NULL,           "???"                                                                           },
+        { OPTION_PREPROCESS_ONLY,                             NULL,           "Run preprocessor only (remove comments and put headers' bodies)"               },
+        { OPTION_INCLUDE,                                     "<dir>",        "Add include directory where compiler will search for headers (-Tinclude)"      },
+        { OPTION_DEFINE,                                      "<name=value>", "Define a preprocessor variable"                                                },
         { OPTION_PRINT_STDLIB,                                NULL,           "Print the standard library directory"                                          },
         { OPTION_OUTPUT,                                      "<file>",       "Set output file"                                                               },
         { OPTION_ENABLE_AST_ANALYSIS,                         NULL,           "Enable AST analysis"                                                           },

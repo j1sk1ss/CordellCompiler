@@ -84,8 +84,8 @@
 /* Symtable dump                                */
 #include <symtab/dump.h>
 
-#define CCPL_VERSION                 "3.9.2:0211.26" // major.minor<.patch> (old version style):ddmm.yy (new version style)
-#define CCPL_SPLASH                  "Loop I-TE-RA-TI-ON!" // NULL / Related to the version splash
+#define CCPL_VERSION                 "3.9.3:0711.26" // major.minor<.patch> (old version style):ddmm.yy (new version style)
+#define CCPL_SPLASH                  "                __,__\n       .--.  .-\"     \"-.  .--.\n      / .. \\/  .-. .-.  \\/ .. \\\n     | |  '|  /   Y   \\  |'  | |\n     | \\   \\  \\ 0 | 0 /  /   / |\n      \\ '- ,\\.-\"`` ``\"-./, -' /\n       `'-' /_   ^ ^   _\\ '-'\n           |  \\._   _./  |\n           \\   \\ `~` /   /\n            '._ '-=-' _.'\n               '~---~'\n             author: jgs\n" // NULL / Related to the version splash
 /* Version logic is next: We have the old style and the new style:
     - Old style is a default version semantics - major-minor-patch style, where major is incremented when
       I've added a lot of new features and they work properly. Also there should be some big shifts in
@@ -120,7 +120,7 @@ according you system requirements. */
 #define OPTION_SOMETHING             "--smth"
 #define OPTION_SOMETHING_SHORT       "-s"
 #define OPTION_PREPROCESS_ONLY       "-E"
-#define OPTION_INСLUDE               "-I"
+#define OPTION_INCLUDE               "-I"
 #define OPTION_DEFINE                "-D"
 #define OPTION_PRINT_STDLIB          "--print-stdlib-path"
 #define OPTION_OUTPUT                "--output"
