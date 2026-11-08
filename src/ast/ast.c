@@ -142,7 +142,7 @@ static hash_t _hash_ast_node(ast_node_t* n, int s, int no_name, token_type_t stp
     }
 
     if (n->t) hash ^= TKN_hash_token(n->t, no_name);
-    hash += crc64(&hash, sizeof(hash_t), 0xDEAD);
+    hash += crc64((const unsigned char*)&hash, sizeof(hash_t), 0xDEAD);
     hash *= 0x123321;
     if (s) hash ^= _hash_ast_node(n->siblings.n, 1, no_name, stp) + 0xDEAD;
     hash ^= _hash_ast_node(n->c, 1, no_name, stp) + 0xDEAD;
