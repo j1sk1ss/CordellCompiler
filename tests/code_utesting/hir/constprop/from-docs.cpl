@@ -1,0 +1,20 @@
+start() {
+    i32 first = 7;
+    i32 second = 5;
+    i32 total = first + second;
+    exit total as u8;
+}
+
+
+:/ OUTPUT
+id: 2, total, i32, s_id: 2
+id: 9, total, i32, s_id: 2, value=12
+id: 1, second, i32, s_id: 2
+id: 4, tmp, , s_id: -1, value=5
+id: 3, tmp, , s_id: -1, value=7
+id: 7, first, i32, s_id: 2, value=7
+id: 0, first, i32, s_id: 2
+id: 5, tmp, , s_id: -1, value=12
+id: 6, tmp, u8, s_id: -1, value=12
+id: 8, second, i32, s_id: 2, value=5
+/:

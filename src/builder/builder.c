@@ -298,9 +298,7 @@ _predefine_64size: {}
         options.config.constant || // constfold uses DAG info
         needs_hir_analysis      || // HIR CSA uses DAG info
         options.config.z3opt       // Z3 removed brunches, now we need to aknowledge it
-    ) {
-        HIR_DAG_generate(&cfgctx, &dagctx, &smt);
-    }
+    ) HIR_DAG_generate(&cfgctx, &dagctx, &smt);
 
     if (options.config.constant || needs_hir_analysis) {
         HIR_DAG_CFG_rebuild(&cfgctx, &dagctx);
@@ -367,6 +365,11 @@ _predefine_64size: {}
 
     lir_ctx_t lirctx = { 0 };
     LIR_generate(&cfgctx, &lirctx, &smt);
+
+    // OPT: Const propagation -- part 2
+    if (options.config.constant) {
+        LIR_apply_sparse_const_propagation(&cfgctx, &smt);
+    }
 
     // OPT: Tail Call Optimization
     if (options.config.tco) {
