@@ -2,10 +2,7 @@
 section .text
 global main
 main:
-    mov     eax, 7
-    add     eax, 5
-    mov     ecx, eax
-    mov     dil, cl
+    mov     dil, 12
     mov     rax, 60
     syscall
 

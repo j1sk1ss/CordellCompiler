@@ -11,7 +11,7 @@ export function initHomeExamples() {
   home.dataset.ready = 'true';
   const tablist = home.querySelector('.example-tabs');
   tablist.innerHTML = Object.entries(homeExamples).map(([key, example], index) =>
-    `<button class="example-tab" id="tab-${key}" role="tab" aria-controls="example-panel" aria-selected="${index === 0}" tabindex="${index === 0 ? 0 : -1}" data-example="${key}" type="button">${String(index + 1).padStart(2, '0')} / ${escapeHtml(example.label)}</button>`
+    `<button class="example-tab" id="tab-${key}" role="tab" aria-controls="example-panel" aria-selected="${index === 0}" tabindex="${index === 0 ? 0 : -1}" data-example="${key}" type="button">${escapeHtml(example.label)}</button>`
   ).join('');
   const tabs = Array.from(tablist.querySelectorAll('[data-example]'));
   const code = home.querySelector('#home-example-code');

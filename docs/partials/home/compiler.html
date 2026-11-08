@@ -3,7 +3,7 @@
     <div class="compiler-intro">
       <div>
         <p class="eyebrow">
-          03 / PULL BACK THE LAYERS
+          PULL BACK THE LAYERS
         </p>
         <h2 id="compiler-title">
           The compiler is<br>the <span class="orange-word">playground.</span>
@@ -19,23 +19,23 @@
     <div class="compiler-inspector">
       <div class="pipeline" role="tablist" aria-label="Compiler output">
         <button type="button" role="tab" id="stage-ast" aria-controls="output-ast" aria-selected="true" tabindex="0" disabled data-compiler-stage="ast">
-          <small>01 / PARSE</small>AST<span aria-hidden="true">↘</span>
+          <small>PARSE</small>AST<span aria-hidden="true">↘</span>
         </button>
         <button type="button" role="tab" id="stage-hir" aria-controls="output-hir" aria-selected="false" tabindex="-1" disabled data-compiler-stage="hir">
-          <small>02 / TRANSFORM</small>HIR<span aria-hidden="true">↘</span>
+          <small>TRANSFORM</small>HIR<span aria-hidden="true">↘</span>
         </button>
         <button type="button" role="tab" id="stage-lir" aria-controls="output-lir" aria-selected="false" tabindex="-1" disabled data-compiler-stage="lir">
-          <small>03 / LOWER</small>LIR<span aria-hidden="true">↘</span>
+          <small>LOWER</small>LIR<span aria-hidden="true">↘</span>
         </button>
         <button type="button" role="tab" id="stage-asm" aria-controls="output-asm" aria-selected="false" tabindex="-1" disabled data-compiler-stage="asm">
-          <small>04 / EMIT</small>Assembly<span aria-hidden="true">↘</span>
+          <small>EMIT</small>Assembly<span aria-hidden="true">↘</span>
         </button>
       </div>
       <div class="optimization-switch" role="group" aria-label="Compiler optimization">
-        <button type="button" data-compiler-mode="none" aria-pressed="true" disabled><span>00 / ORIGINAL</span>Off<code>-O0</code></button>
-        <button type="button" data-compiler-mode="copy" aria-pressed="false" disabled><span>01 / PROPAGATE</span>Copy propagation<code>--copyprop</code></button>
-        <button type="button" data-compiler-mode="peephole" aria-pressed="false" disabled><span>02 / SIMPLIFY</span>Peephole<code>--peephole</code></button>
-        <button type="button" data-compiler-mode="full" aria-pressed="false" disabled><span>03 / COMBINE</span>Full pipeline<code>-O3</code></button>
+        <button type="button" data-compiler-mode="none" aria-pressed="true" disabled><span>ORIGINAL</span>Off<code>-O0</code></button>
+        <button type="button" data-compiler-mode="copy" aria-pressed="false" disabled><span>PROPAGATE</span>Copy propagation<code>--copyprop</code></button>
+        <button type="button" data-compiler-mode="peephole" aria-pressed="false" disabled><span>SIMPLIFY</span>Peephole<code>--peephole</code></button>
+        <button type="button" data-compiler-mode="full" aria-pressed="false" disabled><span>COMBINE</span>Full pipeline<code>-O3</code></button>
       </div>
       <div class="emission-command">
         <span class="command-prompt" aria-hidden="true">$</span><code id="emission-command"></code>

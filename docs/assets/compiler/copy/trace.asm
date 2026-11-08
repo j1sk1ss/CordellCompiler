@@ -5,7 +5,6 @@ main:
     mov     eax, 7
     add     eax, 5
     mov     ecx, eax
-    mov     ecx, ecx
     mov     cl, cl
     mov     dil, cl
     mov     rax, 60

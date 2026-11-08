@@ -20,11 +20,6 @@
   border-left: 1px solid var(--line);
 }
 
-.item-number {
-  font: 400 10px/1.5 var(--mono);
-  color: var(--muted);
-}
-
 .item-symbol {
   display: flex;
   align-items: center;

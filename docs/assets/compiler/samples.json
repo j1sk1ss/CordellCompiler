@@ -441,26 +441,6 @@
       ],
       "lir": [
         {
-          "target": "%3",
-          "value": "$7 as i32",
-          "line": 2
-        },
-        {
-          "target": "%7",
-          "value": "$7",
-          "line": 2
-        },
-        {
-          "target": "%4",
-          "value": "$5 as i32",
-          "line": 3
-        },
-        {
-          "target": "%8",
-          "value": "$5",
-          "line": 3
-        },
-        {
           "target": "%10",
           "value": "$7",
           "line": 4
@@ -476,13 +456,8 @@
           "line": 4
         },
         {
-          "target": "%9",
-          "value": "%5",
-          "line": 4
-        },
-        {
           "target": "%6",
-          "value": "%9",
+          "value": "%5",
           "line": 5
         },
         {
@@ -510,11 +485,6 @@
         {
           "mnemonic": "mov",
           "operands": "ecx, eax",
-          "line": 4
-        },
-        {
-          "mnemonic": "mov",
-          "operands": "ecx, ecx",
           "line": 4
         },
         {
@@ -943,80 +913,20 @@
       ],
       "lir": [
         {
-          "target": "%3",
-          "value": "$7 as i32",
-          "line": 2
-        },
-        {
-          "target": "%7",
-          "value": "$7",
-          "line": 2
-        },
-        {
-          "target": "%4",
-          "value": "$5 as i32",
-          "line": 3
-        },
-        {
-          "target": "%8",
-          "value": "$5",
-          "line": 3
-        },
-        {
           "target": "%10",
-          "value": "$7",
-          "line": 4
-        },
-        {
-          "target": "%11",
-          "value": "%10 + $5",
-          "line": 4
-        },
-        {
-          "target": "%5",
-          "value": "%11",
-          "line": 4
-        },
-        {
-          "target": "%9",
-          "value": "%5",
-          "line": 4
-        },
-        {
-          "target": "%6",
-          "value": "%9",
-          "line": 5
-        },
-        {
-          "target": "%12",
-          "value": "%6",
+          "value": "12",
           "line": 5
         },
         {
           "target": "exit",
-          "value": "%12",
+          "value": "%10",
           "line": 5
         }
       ],
       "asm": [
         {
           "mnemonic": "mov",
-          "operands": "eax, 7",
-          "line": 2
-        },
-        {
-          "mnemonic": "add",
-          "operands": "eax, 5",
-          "line": 4
-        },
-        {
-          "mnemonic": "mov",
-          "operands": "ecx, eax",
-          "line": 4
-        },
-        {
-          "mnemonic": "mov",
-          "operands": "dil, cl",
+          "operands": "dil, 12",
           "line": 5
         },
         {

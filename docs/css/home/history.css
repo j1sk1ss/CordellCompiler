@@ -65,15 +65,12 @@
 
 .era-marker {
   position: absolute;
-  top: 34px;
-  left: -64px;
-  width: 33px;
-  height: 33px;
-  display: grid;
-  place-items: center;
+  top: 42px;
+  left: -53px;
+  width: 11px;
+  height: 11px;
   background: var(--paper);
   border: 1px solid var(--ink);
-  font: 500 10px/1 var(--mono);
   border-radius: 50%;
 }
 
@@ -472,11 +469,8 @@
   }
 
   .era-marker {
-    left: -34px;
-    top: 23px;
-    width: 23px;
-    height: 23px;
-    font-size: 8px;
+    left: -28px;
+    top: 28px;
   }
 
   .milestone-card {

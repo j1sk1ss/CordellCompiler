@@ -40,13 +40,6 @@
   border-bottom: 1px solid var(--line);
 }
 
-.guide-index {
-  align-self: flex-start;
-  margin-top: 4px;
-  font: 400 9px/1.5 var(--mono);
-  color: var(--muted);
-}
-
 .cpl-home .guide-links h3 {
   font-size: 21px;
   font-weight: 600;

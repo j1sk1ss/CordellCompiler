@@ -172,15 +172,10 @@
 
 .register-step {
   display: grid;
-  grid-template-columns: 22px 40px 18px minmax(0, 1fr) 24px;
+  grid-template-columns: 40px 18px minmax(0, 1fr) 24px;
   align-items: center;
   gap: 12px;
   min-height: 44px;
-}
-
-.step-number {
-  color: #839475;
-  font: 400 8px/1.5 var(--mono);
 }
 
 .register-step b {
@@ -211,7 +206,7 @@
 
 .instruction {
   display: grid;
-  grid-template-columns: 24px 60px minmax(0, 1fr) 24px;
+  grid-template-columns: 60px minmax(0, 1fr) 24px;
   gap: 16px;
   align-items: center;
   min-height: 43px;
@@ -255,13 +250,13 @@
   }
 
   .register-step {
-    grid-template-columns: 18px 30px 15px minmax(0, 1fr) 19px;
+    grid-template-columns: 30px 15px minmax(0, 1fr) 19px;
     gap: 7px;
     font-size: 11px;
   }
 
   .instruction {
-    grid-template-columns: 18px 50px minmax(0, 1fr) 19px;
+    grid-template-columns: 50px minmax(0, 1fr) 19px;
     gap: 9px;
     font-size: 11px;
   }
