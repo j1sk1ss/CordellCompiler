@@ -17,7 +17,7 @@ Examples:
 ```cpl
 i8  c      = 'A';
 u8  b      = 0xFF;
-i32 x      = 10 as i32;
+i32 x      = 10i32;
 i64 y      = 123456;
 f64 z      = 0.25;
 usize umax = 0x01132;
@@ -48,6 +48,8 @@ CPL has no dedicated boolean type. Conditions use primitive values:
 
 - `0` is false;
 - any non-zero value is true.
+
+*P.S.: You can use <stdbool_h.cpl> for booleans*
 
 ## Pointers
 

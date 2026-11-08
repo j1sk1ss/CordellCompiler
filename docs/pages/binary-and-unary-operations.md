@@ -9,7 +9,7 @@ CPL supports C-like arithmetic, comparison, logical, bitwise, assignment, and ca
 | `&&`, `\|\|` | logical AND/OR with lazy evaluation by default | `a && b` |
 | `not` | boolean-like negation | `not x` |
 | `neg` | bitwise inversion | `neg mask` |
-| `&`, `\|`, `^`, `<<`, `>>` | bitwise operations | `mask & 0xFF` |
+| `&`, `\|`, `^`, `<<`, `>>`, `\|~` | bitwise operations | `mask & 0xFF` |
 | `=`, `+=`, `-=`, `*=`, `/=`, `%=`, `&=`, `\|=`, `^=` | assignment and update | `x += 1` |
 | `as` | explicit conversion | `('0' + x) as i8` |
 
@@ -53,3 +53,11 @@ For an 8-bit value, `neg 0x10` produces `0xEF`, so the example clears bit `0x10`
 
 Do not confuse CPL `neg` with the x86 `neg` instruction. On x86 targets CPL `neg` is lowered to the machine `not` instruction, because the language operation is bitwise inversion, not arithmetic two's-complement negation.
 
+### |~ operator
+
+A special `|~` operator stands for a syntax sugar under `<<` and `>>` operators. If you need to take several bits from the right part of a number (and save its sing), than you can use this operator.
+
+```cpl
+i32 a = 12345;
+i8  b = a |~ 4; :/ Take 4 bits from the right part of the number /:
+```

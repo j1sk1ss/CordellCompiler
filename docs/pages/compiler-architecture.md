@@ -36,7 +36,7 @@ Diagnostics are split by abstraction level:
 - AST analysis catches source-level mistakes such as wrong argument count, invalid return use, read-only updates, missing exits, and invalid array access.
 - HIR/IR analysis catches lower-level issues such as null dereferences, suspicious constant branches, and target-sensitive syscall misuse.
 
-See [Semantic static checker](#/pages/semantic-static-checker) for examples.
+See [CSA](#/pages/semantic-static-checker) for examples.
 
 ## Optimization areas
 

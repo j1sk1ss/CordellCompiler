@@ -134,15 +134,14 @@ container counter {
 }
 
 start() {
-    counter c;
-    c.value = 10;
-    c.add(7);
+    counter c = { 10i32 };
+    c.add(7i32);
 
     exit c.value as u8;
 }
 ```
 
-The call `c.add(7)` is lowered as a normal function call where `ref c` is passed as the explicit `self` argument.
+The call `c.add(7i32)` is lowered as a normal function call where `ref c` is passed as the explicit `self` argument.
 
 ## Switch annotations
 
@@ -151,9 +150,9 @@ The call `c.add(7)` is lowered as a normal function call where `ref c` is passed
 ```cpl
 @[no_fall]
 switch code; {
-    case 'A'; { putc('A'); }
-    case 'B'; { putc('B'); }
-    default   { putc('?'); }
+    case 'A'; putc('A');
+    case 'B'; putc('B');
+    default   putc('?');
 }
 ```
 
@@ -162,8 +161,8 @@ switch code; {
 ```cpl
 @[select(straight)] @[no_fall]
 switch code; {
-    case 1; { putc('1'); }
-    default { putc('?'); }
+    case 1; putc('1');
+    default putc('?');
 }
 ```
 

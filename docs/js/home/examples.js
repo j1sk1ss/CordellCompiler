@@ -1,3 +1,4 @@
+import { animateChange } from '../core/motion.js';
 import { homeExamples } from './examples-data.js';
 import { highlightCpl } from '../syntax/highlight.js';
 import { escapeHtml } from '../core/html.js';
@@ -20,6 +21,7 @@ export function initHomeExamples() {
   const copy = home.querySelector('.copy-example');
   let activeExample = 'start';
   let copyTimer;
+  let selectedOnce = false;
 
   function selectExample(tab) {
     activeExample = tab.dataset.example;
@@ -29,6 +31,8 @@ export function initHomeExamples() {
     filename.textContent = homeExamples[activeExample].file;
     clearTimeout(copyTimer);
     copy.innerHTML = 'Copy <span aria-hidden="true">⧉</span>';
+    if (selectedOnce) animateChange(code.parentElement);
+    selectedOnce = true;
   }
 
   initTabs(tabs, selectExample);

@@ -1,32 +1,7 @@
-<section class="emission-panel" id="output-hir" role="tabpanel" aria-labelledby="stage-hir" tabindex="0" data-command="cplc trace.cpl -O0 --no-debug -no --emit-ir --ir-output trace.hir" hidden>
+<section class="emission-panel" id="output-hir" role="tabpanel" aria-labelledby="stage-hir" tabindex="0" hidden>
   <header class="emission-heading">
-    <span>trace.hir</span><span>Typed values</span><a href="assets/compiler/trace.hir" download target="_blank" rel="noopener" aria-label="Download trace.hir">↓</a>
+    <span>trace.hir</span><span class="emission-kind">Typed values</span><a class="emission-download" href="assets/compiler/trace.hir" download target="_blank" rel="noopener" aria-label="Download trace.hir">↓</a>
   </header>
-  <div class="emission-drawing emission-hir">
-    <div class="hir-sheet">
-      <div class="block-label">
-        fn main() <span>scope 01</span>
-      </div>
-      <div class="hir-rows">
-        <div class="hir-row">
-          <span class="type-tag">i32s</span><b>%0</b><span class="operation-sign">←</span><span>alloc</span>
-        </div>
-        <div class="hir-row">
-          <span class="type-tag">i8t</span><b>%1</b><span class="operation-sign">←</span><span>i8n 7 + i8n 5</span>
-        </div>
-        <div class="hir-row">
-          <span class="type-tag">i32t</span><b>%2</b><span class="operation-sign">←</span><span>i8t %1 as i32</span>
-        </div>
-        <div class="hir-row">
-          <span class="type-tag">i32s</span><b>%4</b><span class="operation-sign">←</span><span>i32t %2</span>
-        </div>
-        <div class="hir-row">
-          <span class="type-tag">u8t</span><b>%3</b><span class="operation-sign">←</span><span>i32s %4 as u8</span>
-        </div>
-        <div class="hir-return">
-          <span>exit</span><b>u8t %3</b><i aria-hidden="true">↗</i>
-        </div>
-      </div>
-    </div>
-  </div>
+  <div class="emission-summary"><span class="emission-metric" role="status"></span></div>
+  <div class="emission-drawing emission-hir"></div>
 </section>

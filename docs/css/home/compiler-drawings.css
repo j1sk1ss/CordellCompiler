@@ -1,0 +1,317 @@
+.block-label, .syntax-root {
+  display: flex;
+  align-items: baseline;
+  gap: 15px;
+  margin-bottom: 18px;
+  font-weight: 600;
+}
+
+.block-label > span, .syntax-root small {
+  margin-left: auto;
+  color: #66725c;
+  font: 400 9px/1.5 var(--mono);
+}
+
+.syntax-root > span {
+  padding: 8px 20px;
+  border: 1px solid #708267;
+  background: var(--lime);
+  transform: rotate(-2deg);
+  box-shadow: 3px 3px 0 #2c452c15;
+}
+
+.cpl-home .syntax-branches, .cpl-home .register-flow, .cpl-home .assembly-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cpl-home .syntax-branches > li, .cpl-home .register-flow > li, .cpl-home .assembly-flow > li {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cpl-home .syntax-branches {
+  position: relative;
+  padding-left: 18px;
+  border-left: 1px solid #708267;
+  margin-left: 16px;
+}
+
+.syntax-step, .hir-row, .register-step, .instruction {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  padding: 11px 13px;
+  background: #f8f9ee;
+  border: 1px solid #9aa98d;
+  color: #2c452c;
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  box-shadow: 3px 3px 0 #2c452c10;
+  transition: background .2s, border-color .2s, box-shadow .2s;
+}
+
+.syntax-step:hover, .hir-row:hover, .register-step:hover, .instruction:hover {
+  border-color: #526c40;
+  background: #e8efdb;
+  box-shadow: 4px 4px 0 #2c452c18;
+}
+
+.syntax-step:focus-visible, .hir-row:focus-visible, .register-step:focus-visible, .instruction:focus-visible {
+  outline: 2px solid #536d38;
+  outline-offset: 3px;
+}
+
+.syntax-step {
+  display: grid;
+  grid-template-columns: minmax(90px, .85fr) 22px minmax(0, 1.5fr) 24px;
+  gap: 8px;
+  align-items: center;
+  min-height: 70px;
+}
+
+.syntax-step::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 100%;
+  width: 19px;
+  height: 1px;
+  background: #708267;
+}
+
+.syntax-binding {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-weight: 600;
+}
+
+.syntax-binding small {
+  font-size: 9px;
+  font-weight: 400;
+  color: #66725c;
+}
+
+.syntax-expression {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.syntax-token {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 26px;
+  padding: 4px 6px;
+  border: 1px solid #acb69e;
+  background: #f1f3e6;
+}
+
+.syntax-operator, .syntax-connector {
+  color: #a64b28;
+}
+
+.syntax-exit {
+  color: #a64b28;
+}
+
+.source-tag {
+  margin-left: auto;
+  color: #7c896e;
+  font: 400 8px/1.5 var(--mono);
+}
+
+.hir-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-left: 10px;
+  border-left: 2px solid #879777;
+}
+
+.hir-row {
+  display: grid;
+  grid-template-columns: 42px 30px 18px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 11px;
+}
+
+.type-tag {
+  padding: 4px 5px;
+  background: #dbe4d1;
+  font-size: 10px;
+  text-align: center;
+}
+
+.operation-sign {
+  color: #76836a;
+}
+
+.step-value {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.hir-return, .register-exit, .instruction-exit {
+  background: #e1eecc;
+}
+
+.hir-return .type-tag {
+  background: var(--lime);
+}
+
+.register-step {
+  display: grid;
+  grid-template-columns: 22px 40px 18px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+}
+
+.step-number {
+  color: #839475;
+  font: 400 8px/1.5 var(--mono);
+}
+
+.register-step b {
+  font-weight: 600;
+}
+
+.is-changed {
+  background: #eaf4d9;
+  border-left: 3px solid #819d42;
+}
+
+.block-end {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px dashed #899a7d;
+  color: #66725c;
+  font-size: 10px;
+}
+
+.cpl-home .assembly-flow {
+  gap: 0;
+  border: 1px solid #9aa98d;
+  box-shadow: 4px 4px 0 #2c452c12;
+}
+
+.instruction {
+  display: grid;
+  grid-template-columns: 24px 60px minmax(0, 1fr) 24px;
+  gap: 16px;
+  align-items: center;
+  min-height: 43px;
+  border: 0;
+  border-bottom: 1px solid #9aa98d44;
+  box-shadow: none;
+}
+
+.assembly-flow li:last-child .instruction {
+  border-bottom: 0;
+}
+
+.instruction b {
+  color: #a43e1d;
+  font-weight: 500;
+}
+
+.instruction:hover {
+  box-shadow: none;
+}
+
+.instruction.is-changed {
+  box-shadow: inset 3px 0 #819d42;
+}
+
+@media (max-width: 1100px) {
+  .syntax-step {
+    grid-template-columns: minmax(65px, .8fr) 15px minmax(0, 1.2fr) 18px;
+    gap: 6px;
+    font-size: 11px;
+  }
+
+  .syntax-expression {
+    gap: 5px;
+  }
+
+  .hir-row {
+    gap: 5px;
+    grid-template-columns: 37px 26px 14px minmax(0, 1fr) 19px;
+    font-size: 10px;
+  }
+
+  .register-step {
+    grid-template-columns: 18px 30px 15px minmax(0, 1fr) 19px;
+    gap: 7px;
+    font-size: 11px;
+  }
+
+  .instruction {
+    grid-template-columns: 18px 50px minmax(0, 1fr) 19px;
+    gap: 9px;
+    font-size: 11px;
+  }
+
+}
+
+@media (max-width: 760px) {
+  .syntax-root small, .block-label > span {
+    font-size: 8px;
+  }
+
+  .cpl-home .syntax-branches {
+    padding-left: 10px;
+    margin-left: 8px;
+  }
+
+  .syntax-step::before {
+    width: 11px;
+  }
+
+  .syntax-step {
+    padding: 9px 7px;
+  }
+
+  .syntax-token {
+    padding-inline: 4px;
+    font-size: 10px;
+  }
+
+  .hir-rows {
+    padding-left: 7px;
+  }
+
+  .hir-row {
+    padding-inline: 6px;
+    gap: 4px;
+    grid-template-columns: 35px 24px 12px minmax(0, 1fr) 16px;
+  }
+
+  .type-tag {
+    padding-inline: 2px;
+    font-size: 9px;
+  }
+
+  .register-step {
+    padding-inline: 9px;
+  }
+
+  .instruction {
+    padding-inline: 10px;
+  }
+
+}

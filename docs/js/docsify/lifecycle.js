@@ -1,8 +1,13 @@
+import { disposeHomeMotion } from '../home/motion.js';
 import { updateRouteClasses } from '../core/routes.js';
 import { initHome } from '../home/index.js';
 import { scrollHomeAnchor } from '../home/history.js';
 
 export function pageLifecyclePlugin(hook) {
+  hook.beforeEach(content => {
+    disposeHomeMotion();
+    return content;
+  });
   hook.ready(updateRouteClasses);
   hook.doneEach(() => {
     updateRouteClasses();

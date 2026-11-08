@@ -1,0 +1,351 @@
+/* Site references: v2.0 (Docsify), v3.4 (green), v3.6 (ink/orange),
+   v3.8 (Windows desktop). Keep these skins separate from the timeline. */
+.era-docs-bar,
+.era-green-bar,
+.era-window-bar,
+.era-window-menu,
+.era-window-status {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+/* The first documentation site: white pages, green links, a quiet sidebar. */
+.milestone-syntax {
+  --milestone-accent: #247653;
+  color: #34495e;
+  background: #fff;
+  border-color: #e2e6e9;
+  font-family: "Source Sans Pro", "Helvetica Neue", Arial, sans-serif;
+}
+
+.era-docs-bar {
+  gap: 22px;
+  padding: 18px 28px;
+  border-bottom: 1px solid #eee;
+  color: #73808b;
+  font: 400 11px/1.5 "Helvetica Neue", Arial, sans-serif;
+}
+
+.era-docs-brand {
+  margin-right: auto;
+  color: #34495e;
+  font-size: 19px;
+  font-weight: 300;
+}
+
+.milestone-syntax .milestone-copy {
+  border-right: 1px solid #eee;
+}
+
+.cpl-home .milestone-syntax h3 {
+  font: 600 clamp(29px, 3vw, 39px)/1.15 "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: -.6px;
+  text-transform: none;
+}
+
+.milestone-syntax .milestone-tags {
+  gap: 6px 14px;
+  color: #536d61;
+}
+
+.milestone-syntax .milestone-tags > span {
+  border: 0;
+}
+
+.cpl-home .milestone-syntax .milestone-source {
+  color: #247653;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.milestone-syntax .art-syntax {
+  margin-left: 20px;
+  color: #34495e;
+  background: #f7f8f8;
+  border: 0;
+  border-left: 4px solid #42b983;
+  box-shadow: none;
+}
+
+.art-syntax .sketch-accent {
+  stroke: #42b983;
+}
+
+/* The spring 3.x site: Inter, green pills and softly rounded panels. */
+.milestone-optimizer {
+  --milestone-accent: #3e8556;
+  color: #183126;
+  background: #f6fbf7;
+  border-color: #d8e7da;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px #2d5c3a0a;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.era-green-bar {
+  justify-content: space-between;
+  gap: 14px;
+  margin: 0 28px;
+  padding: 18px 0;
+  border-bottom: 1px solid #d8e7da;
+  color: #183126;
+  font: 700 13px/1.5 Inter, system-ui, sans-serif;
+}
+
+.era-green-bar b {
+  font-weight: 400;
+}
+
+.era-green-version {
+  padding: 4px 10px;
+  border-radius: 99px;
+  background: #e6f4e8;
+  color: #3e8556;
+  white-space: nowrap;
+}
+
+.cpl-home .milestone-optimizer .milestone-meta {
+  gap: 6px 12px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  background: #e6f4e8;
+  letter-spacing: 0;
+}
+
+.cpl-home .milestone-optimizer h3 {
+  font: 800 clamp(29px, 3vw, 39px)/1.12 Inter, system-ui, sans-serif;
+  letter-spacing: -1.3px;
+  text-transform: none;
+}
+
+.milestone-optimizer .milestone-description {
+  color: #5c7467;
+}
+
+.milestone-optimizer .milestone-tags > span {
+  padding: 4px 7px;
+  border: 1px solid #d8e7da;
+  border-radius: 5px;
+  background: white;
+  color: #3e8556;
+  letter-spacing: 0;
+}
+
+.cpl-home .milestone-optimizer .milestone-source {
+  margin-top: 26px;
+  padding: 10px 14px;
+  border: 1px solid #d8e7da;
+  border-radius: 10px;
+  background: white;
+  color: #183126;
+}
+
+.milestone-optimizer .milestone-source:hover {
+  background: #e6f4e8;
+}
+
+.art-optimizer {
+  color: #284d36;
+  background: #fff;
+  border-color: #d8e7da;
+  border-radius: 14px;
+  box-shadow: 0 6px 20px #2d5c3a0d;
+}
+
+.art-optimizer .fold-sketch-button {
+  border: 0;
+  border-radius: 10px;
+  background: #4f9d69;
+  color: white;
+  font-family: Inter, system-ui, sans-serif;
+  font-weight: 600;
+}
+
+.art-optimizer .fold-sketch-button:hover,
+.art-optimizer .fold-sketch-button[aria-pressed="true"] {
+  background: #3e8556;
+}
+
+/* Late 3.x: the ink/orange page inside the later Win95 desktop frame. */
+.milestone-containers {
+  --milestone-accent: #f46623;
+  gap: 0;
+  padding: 3px;
+  color: #f9f2ec;
+  border: 2px solid;
+  border-color: #fff #404040 #404040 #fff;
+  background: #008080;
+  box-shadow: 2px 2px 0 #171717;
+  font-family: Inter, system-ui, sans-serif;
+}
+
+.era-window-bar {
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 27px;
+  padding: 3px 4px 3px 7px;
+  background: linear-gradient(90deg, #000080, #1084d0);
+  color: white;
+  font: 700 11px/1.4 Tahoma, Arial, sans-serif;
+}
+
+.era-window-controls {
+  display: flex;
+  flex-shrink: 0;
+  gap: 3px;
+}
+
+.era-window-controls i {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border: 2px solid;
+  border-color: white #404040 #404040 white;
+  background: #c0c0c0;
+  color: black;
+  font: 700 12px/1 Tahoma, sans-serif;
+}
+
+.era-window-menu {
+  gap: 19px;
+  padding: 6px 9px;
+  border-bottom: 1px solid #808080;
+  background: #c0c0c0;
+  color: #171717;
+  font: 400 11px/1.4 Tahoma, Arial, sans-serif;
+}
+
+.milestone-containers .milestone-copy {
+  margin: 15px 0 15px 15px;
+  padding: 27px;
+  border-top: 4px solid #f46623;
+  background: #17110f;
+}
+
+.cpl-home .milestone-containers h3 {
+  font: 800 clamp(30px, 3.3vw, 44px)/1.02 Inter, system-ui, sans-serif;
+  letter-spacing: -1px;
+  text-transform: none;
+}
+
+.milestone-containers h3::after {
+  content: '';
+  display: block;
+  width: 60px;
+  height: 4px;
+  margin-top: 20px;
+  background: #f46623;
+}
+
+.milestone-containers .milestone-description {
+  color: #efe4dc;
+}
+
+.milestone-containers .milestone-tags {
+  color: #f46623;
+}
+
+.cpl-home .milestone-containers .milestone-source {
+  margin-top: 26px;
+  padding: 11px 12px;
+  border: 1px solid #f46623;
+  background: #f46623;
+  box-shadow: 4px 4px 0 #8a2f13;
+  color: #17110f;
+  font-weight: 600;
+}
+
+.milestone-containers .art-containers {
+  margin: 22px 20px;
+  padding-bottom: 0;
+  color: #171717;
+  background: #ffffe1;
+  border: 4px solid;
+  border-color: #fff #404040 #404040 #fff;
+  outline: 1px solid #000;
+  box-shadow: 3px 3px 0 #005454;
+}
+
+.art-containers .sketch-code,
+.art-containers .sketch-label {
+  font-family: "Courier New", Courier, monospace;
+}
+
+.era-window-status {
+  gap: 5px;
+  padding: 4px;
+  background: #c0c0c0;
+  color: #171717;
+  font: 400 10px/1.4 Tahoma, Arial, sans-serif;
+}
+
+.era-window-status span {
+  padding: 3px 6px;
+  border: 1px solid;
+  border-color: #808080 white white #808080;
+}
+
+.era-window-status span:first-child {
+  flex: 1;
+}
+
+@media (max-width: 760px) {
+  .era-docs-bar,
+  .era-green-bar {
+    padding: 15px 18px;
+  }
+
+  .era-docs-bar {
+    gap: 12px;
+    font-size: 9px;
+  }
+
+  .milestone-syntax .milestone-copy {
+    border-right: 0;
+  }
+
+  .era-green-bar {
+    margin: 0;
+    font-size: 11px;
+  }
+
+  .era-green-bar b {
+    display: block;
+  }
+
+  .milestone-containers .milestone-copy {
+    margin: 12px;
+    padding: 20px;
+  }
+
+  .milestone-syntax .art-syntax,
+  .milestone-containers .art-containers {
+    margin: 3px 16px 22px;
+  }
+
+  .era-window-bar {
+    font-size: 9px;
+    gap: 7px;
+  }
+
+  .era-window-controls {
+    gap: 2px;
+  }
+
+  .era-window-controls i {
+    width: 16px;
+    height: 16px;
+  }
+
+  .era-window-status {
+    flex-wrap: wrap;
+    font-size: 9px;
+  }
+
+  .era-window-status span {
+    white-space: nowrap;
+  }
+}

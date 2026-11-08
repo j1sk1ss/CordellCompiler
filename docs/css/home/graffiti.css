@@ -1,0 +1,53 @@
+.wall-graffiti {
+  position: absolute;
+  top: 5px;
+  right: 4.5%;
+  z-index: 0;
+  width: min(47vw, 650px);
+  height: auto;
+  overflow: visible;
+  transform: rotate(-5deg);
+  pointer-events: none;
+  user-select: none;
+  font: 700 43px/1.15 var(--sketch);
+  letter-spacing: .4px;
+}
+
+.graffiti-question {
+  fill: var(--blue);
+  color: var(--blue);
+  opacity: .47;
+}
+
+.graffiti-answer {
+  fill: #a85135;
+  color: #a85135;
+  font-size: 39px;
+  opacity: .51;
+}
+
+.graffiti-question text,
+.graffiti-answer text {
+  stroke: currentColor;
+  stroke-width: .65px;
+  stroke-linejoin: round;
+  paint-order: stroke fill;
+}
+
+.graffiti-line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2px;
+  stroke-linecap: round;
+}
+
+@media (max-width: 760px) {
+  .wall-graffiti {
+    position: relative;
+    top: auto;
+    right: auto;
+    width: 100%;
+    margin: 30px 0 -15px;
+    transform: rotate(-4deg);
+  }
+}

@@ -1,6 +1,6 @@
 .compiler-section {
   position: relative;
-  overflow: hidden;
+  overflow: clip;
   background: var(--ink);
   color: var(--paper);
 }

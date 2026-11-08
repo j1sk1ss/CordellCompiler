@@ -8,7 +8,9 @@ function loadPartial(path) {
     return Promise.reject(new Error(`Invalid home partial: ${path}`));
   }
   if (!partials.has(path)) {
-    const request = fetch(new URL(path, partialRoot)).then(response => {
+    // fetch() does not inherit the document reload's cache policy. Revalidate
+    // partials so a fresh stylesheet never receives an older HTML component.
+    const request = fetch(new URL(path, partialRoot), { cache: 'no-cache' }).then(response => {
       if (!response.ok) throw new Error(`Cannot load ${path}: ${response.status}`);
       return response.text();
     }).catch(error => {
@@ -35,6 +37,7 @@ export async function expandHomeIncludes(content, ancestors = []) {
 export function homeContentPlugin(hook) {
   hook.beforeEach((content, next) => {
     if (!isHomeRoute()) return next(content);
+    partials.clear();
     expandHomeIncludes(content).then(html => {
       // Docsify parses Markdown: blank lines inside an HTML block end that block.
       // Keep partial source readable, then compact only whitespace-only lines.

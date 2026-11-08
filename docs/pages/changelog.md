@@ -3,6 +3,10 @@ Logs for the first and second versions are quite short because I do not remember
 
 ----------------------------------------
 
+## 4.0 preps
+<div class="change-date">Date: 2026-11-08</div>
+I'm cleaning the code, fixing bugs and trying to prepare the compiler for a new release and a new version.
+
 ## PP with args
 <div class="change-date">Date: 2026-11-08</div>
 The pre-processor so far was a simple tool which replaces a string with another string. With the simple update, now the PP can use arguments! How it works?

@@ -17,37 +17,46 @@
       </div>
     </div>
     <div class="compiler-inspector">
-      <div class="trace-source">
-        <a href="assets/compiler/trace.cpl" download target="_blank" rel="noopener">trace.cpl <span aria-hidden="true">↓</span></a>
-        <div class="source-equation">
-          <span>7 <b>+</b> 5</span><i aria-hidden="true">→</i><span><small>i32</small> total</span><i aria-hidden="true">→</i><span><small>exit / u8</small> 12</span>
-        </div>
-        <span class="trace-mode">-O0 / OPTIMIZATIONS OFF</span>
-      </div>
       <div class="pipeline" role="tablist" aria-label="Compiler output">
-        <button type="button" role="tab" id="stage-ast" aria-controls="output-ast" aria-selected="true" tabindex="0" data-compiler-stage="ast">
+        <button type="button" role="tab" id="stage-ast" aria-controls="output-ast" aria-selected="true" tabindex="0" disabled data-compiler-stage="ast">
           <small>01 / PARSE</small>AST<span aria-hidden="true">↘</span>
         </button>
-        <button type="button" role="tab" id="stage-hir" aria-controls="output-hir" aria-selected="false" tabindex="-1" data-compiler-stage="hir">
+        <button type="button" role="tab" id="stage-hir" aria-controls="output-hir" aria-selected="false" tabindex="-1" disabled data-compiler-stage="hir">
           <small>02 / TRANSFORM</small>HIR<span aria-hidden="true">↘</span>
         </button>
-        <button type="button" role="tab" id="stage-lir" aria-controls="output-lir" aria-selected="false" tabindex="-1" data-compiler-stage="lir">
+        <button type="button" role="tab" id="stage-lir" aria-controls="output-lir" aria-selected="false" tabindex="-1" disabled data-compiler-stage="lir">
           <small>03 / LOWER</small>LIR<span aria-hidden="true">↘</span>
         </button>
-        <button type="button" role="tab" id="stage-asm" aria-controls="output-asm" aria-selected="false" tabindex="-1" data-compiler-stage="asm">
+        <button type="button" role="tab" id="stage-asm" aria-controls="output-asm" aria-selected="false" tabindex="-1" disabled data-compiler-stage="asm">
           <small>04 / EMIT</small>Assembly<span aria-hidden="true">↘</span>
         </button>
       </div>
+      <div class="optimization-switch" role="group" aria-label="Compiler optimization">
+        <button type="button" data-compiler-mode="none" aria-pressed="true" disabled><span>00 / ORIGINAL</span>Off<code>-O0</code></button>
+        <button type="button" data-compiler-mode="copy" aria-pressed="false" disabled><span>01 / PROPAGATE</span>Copy propagation<code>--copyprop</code></button>
+        <button type="button" data-compiler-mode="peephole" aria-pressed="false" disabled><span>02 / SIMPLIFY</span>Peephole<code>--peephole</code></button>
+        <button type="button" data-compiler-mode="full" aria-pressed="false" disabled><span>03 / COMBINE</span>Full pipeline<code>-O3</code></button>
+      </div>
       <div class="emission-command">
-        <span class="command-prompt" aria-hidden="true">$</span><code id="emission-command">cplc trace.cpl -O0 --no-debug -no --emit-ast --ast-output trace.ast</code>
-        <button type="button" class="copy-command" aria-label="Copy compiler command">
+        <span class="command-prompt" aria-hidden="true">$</span><code id="emission-command"></code>
+        <button type="button" class="copy-command" disabled aria-label="Copy compiler command">
           Copy ⧉
         </button>
       </div>
-      <!-- include:home/compiler/ast.html -->
-      <!-- include:home/compiler/hir.html -->
-      <!-- include:home/compiler/lir.html -->
-      <!-- include:home/compiler/asm.html -->
+      <div class="compiler-load"><span class="compiler-load-status" role="status">Loading compiler output…</span><button type="button" class="compiler-retry" hidden>Retry ↗</button></div>
+      <div class="compiler-workbench">
+        <aside class="compiler-source" aria-label="Original CPL program">
+          <header class="source-heading"><a href="assets/compiler/trace.cpl" download target="_blank" rel="noopener">trace.cpl ↓</a><button type="button" class="copy-source" disabled>Copy ⧉</button></header>
+          <div class="source-lines" tabindex="0" aria-label="CPL source code"></div>
+          <div class="source-result"><span>EXIT STATUS</span><strong class="source-exit-value">12</strong><span class="trace-mode">-O0</span></div>
+        </aside>
+        <div class="compiler-outputs">
+          <!-- include:home/compiler/ast.html -->
+          <!-- include:home/compiler/hir.html -->
+          <!-- include:home/compiler/lir.html -->
+          <!-- include:home/compiler/asm.html -->
+        </div>
+      </div>
       <details class="compiler-help">
         <summary>
           <span class="help-command">$ cplc -h</span><span>Compiler options <b aria-hidden="true">+</b></span>
@@ -85,6 +94,7 @@
               Assembly → trace.asm
             </dd>
           </div>
+          <div><dt>--copyprop / --peephole</dt><dd>Propagate copies / simplify instructions</dd></div>
           <div>
             <dt>
               -O0 / -O1 / -O2 / -O3

@@ -1,6 +1,6 @@
 # TODO
 
-## V-table in containers + interfaces
+## V-table in containers + interfaces (Completed)
 
 To support some examples from OS-related code, we need to implement virtual table. The idea is to allocate an array of pointers in every instance of a cotainer, if it has linked functions. In a nutshell:
 

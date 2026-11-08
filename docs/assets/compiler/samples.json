@@ -1,0 +1,1035 @@
+{
+  "source": "start() {\n    i32 first = 7;\n    i32 second = 5;\n    i32 total = first + second;\n    exit total as u8;\n}\n",
+  "exit": 12,
+  "modes": [
+    {
+      "id": "none",
+      "label": "Off",
+      "flags": [
+        "-O0"
+      ],
+      "directory": "",
+      "ast": [
+        {
+          "token": "i32",
+          "children": [
+            {
+              "token": "first",
+              "children": []
+            },
+            {
+              "token": "=",
+              "children": [
+                {
+                  "token": "7",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "token": "i32",
+          "children": [
+            {
+              "token": "second",
+              "children": []
+            },
+            {
+              "token": "=",
+              "children": [
+                {
+                  "token": "5",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "token": "i32",
+          "children": [
+            {
+              "token": "total",
+              "children": []
+            },
+            {
+              "token": "=",
+              "children": [
+                {
+                  "token": "+",
+                  "children": [
+                    {
+                      "token": "first",
+                      "children": []
+                    },
+                    {
+                      "token": "second",
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "token": "exit",
+          "children": [
+            {
+              "token": "as",
+              "children": [
+                {
+                  "token": "u8",
+                  "children": []
+                },
+                {
+                  "token": "total",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "hir": [
+        {
+          "type": "i32s",
+          "target": "%0",
+          "value": "alloc",
+          "line": 2
+        },
+        {
+          "type": "i32t",
+          "target": "%3",
+          "value": "i8n 7 as i32",
+          "line": 2
+        },
+        {
+          "type": "i32s",
+          "target": "%7",
+          "value": "i32t %3",
+          "line": 2
+        },
+        {
+          "type": "i32s",
+          "target": "%1",
+          "value": "alloc",
+          "line": 3
+        },
+        {
+          "type": "i32t",
+          "target": "%4",
+          "value": "i8n 5 as i32",
+          "line": 3
+        },
+        {
+          "type": "i32s",
+          "target": "%8",
+          "value": "i32t %4",
+          "line": 3
+        },
+        {
+          "type": "i32s",
+          "target": "%2",
+          "value": "alloc",
+          "line": 4
+        },
+        {
+          "type": "i32t",
+          "target": "%5",
+          "value": "i32s %7 + i32s %8",
+          "line": 4
+        },
+        {
+          "type": "i32s",
+          "target": "%9",
+          "value": "i32t %5",
+          "line": 4
+        },
+        {
+          "type": "u8t",
+          "target": "%6",
+          "value": "i32s %9 as u8",
+          "line": 5
+        },
+        {
+          "type": "exit",
+          "target": "",
+          "value": "u8t %6",
+          "line": 5
+        }
+      ],
+      "lir": [
+        {
+          "target": "%3",
+          "value": "$7",
+          "line": 2
+        },
+        {
+          "target": "%7",
+          "value": "%3",
+          "line": 2
+        },
+        {
+          "target": "%4",
+          "value": "$5",
+          "line": 3
+        },
+        {
+          "target": "%8",
+          "value": "%4",
+          "line": 3
+        },
+        {
+          "target": "%10",
+          "value": "%7",
+          "line": 4
+        },
+        {
+          "target": "%11",
+          "value": "%10 + %8",
+          "line": 4
+        },
+        {
+          "target": "%5",
+          "value": "%11",
+          "line": 4
+        },
+        {
+          "target": "%9",
+          "value": "%5",
+          "line": 4
+        },
+        {
+          "target": "%6",
+          "value": "%9",
+          "line": 5
+        },
+        {
+          "target": "%12",
+          "value": "%6",
+          "line": 5
+        },
+        {
+          "target": "exit",
+          "value": "%12",
+          "line": 5
+        }
+      ],
+      "asm": [
+        {
+          "mnemonic": "mov",
+          "operands": "ecx, 7",
+          "line": 2
+        },
+        {
+          "mnemonic": "mov",
+          "operands": "ecx, ecx",
+          "line": 2
+        },
+        {
+          "mnemonic": "mov",
+          "operands": "edx, 5",
+          "line": 3
+        },
+        {
+          "mnemonic": "mov",
+          "operands": "edx, edx",
+          "line": 3
+        },
+        {
+          "mnemonic": "mov",
+          "operands": "eax, ecx",
+          "line": 4
+        },
+        {
+          "mnemonic": "add",
+          "operands": "eax, edx",
+          "line": 4
+        },
+        {
+          "mnemonic": "mov",
+          "operands": "ecx, eax",
+          "line": 4
+        },
+        {
+          "mnemonic": "mov",
+          "operands": "ecx, ecx",
+          "line": 4
+        },
+        {
+          "mnemonic": "mov",
+          "operands": "cl, cl",
+          "line": 5
+        },
+        {
+          "mnemonic": "mov",
+          "operands": "dil, cl",
+          "line": 5
+        },
+        {
+          "mnemonic": "mov",
+          "operands": "rax, 60",
+          "line": 5
+        },
+        {
+          "mnemonic": "syscall",
+          "operands": "",
+          "line": 5
+        }
+      ]
+    },
+    {
+      "id": "copy",
+      "label": "Copy propagation",
+      "flags": [
+        "-O0",
+        "--copyprop"
+      ],
+      "directory": "copy/",
+      "ast": [
+        {
+          "token": "i32",
+          "children": [
+            {
+              "token": "first",
+              "children": []
+            },
+            {
+              "token": "=",
+              "children": [
+                {
+                  "token": "7",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "token": "i32",
+          "children": [
+            {
+              "token": "second",
+              "children": []
+            },
+            {
+              "token": "=",
+              "children": [
+                {
+                  "token": "5",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "token": "i32",
+          "children": [
+            {
+              "token": "total",
+              "children": []
+            },
+            {
+              "token": "=",
+              "children": [
+                {
+                  "token": "+",
+                  "children": [
+                    {
+                      "token": "first",
+                      "children": []
+                    },
+                    {
+                      "token": "second",
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "token": "exit",
+          "children": [
+            {
+              "token": "as",
+              "children": [
+                {
+                  "token": "u8",
+                  "children": []
+                },
+                {
+                  "token": "total",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "hir": [
+        {
+          "type": "i32s",
+          "target": "%0",
+          "value": "alloc",
+          "line": 2
+        },
+        {
+          "type": "i32t",
+          "target": "%3",
+          "value": "i8n 7 as i32",
+          "line": 2
+        },
+        {
+          "type": "i32s",
+          "target": "%7",
+          "value": "i32t %3",
+          "line": 2
+        },
+        {
+          "type": "i32s",
+          "target": "%1",
+          "value": "alloc",
+          "line": 3
+        },
+        {
+          "type": "i32t",
+          "target": "%4",
+          "value": "i8n 5 as i32",
+          "line": 3
+        },
+        {
+          "type": "i32s",
+          "target": "%8",
+          "value": "i32t %4",
+          "line": 3
+        },
+        {
+          "type": "i32s",
+          "target": "%2",
+          "value": "alloc",
+          "line": 4
+        },
+        {
+          "type": "i32t",
+          "target": "%5",
+          "value": "i32s %7 + i32s %8",
+          "line": 4
+        },
+        {
+          "type": "i32s",
+          "target": "%9",
+          "value": "i32t %5",
+          "line": 4
+        },
+        {
+          "type": "u8t",
+          "target": "%6",
+          "value": "i32s %9 as u8",
+          "line": 5
+        },
+        {
+          "type": "exit",
+          "target": "",
+          "value": "u8t %6",
+          "line": 5
+        }
+      ],
+      "lir": [
+        {
+          "target": "%3",
+          "value": "$7 as i32",
+          "line": 2
+        },
+        {
+          "target": "%7",
+          "value": "$7",
+          "line": 2
+        },
+        {
+          "target": "%4",
+          "value": "$5 as i32",
+          "line": 3
+        },
+        {
+          "target": "%8",
+          "value": "$5",
+          "line": 3
+        },
+        {
+          "target": "%10",
+          "value": "$7",
+          "line": 4
+        },
+        {
+          "target": "%11",
+          "value": "%10 + $5",
+          "line": 4
+        },
+        {
+          "target": "%5",
+          "value": "%11",
+          "line": 4
+        },
+        {
+          "target": "%9",
+          "value": "%5",
+          "line": 4
+        },
+        {
+          "target": "%6",
+          "value": "%9",
+          "line": 5
+        },
+        {
+          "target": "%12",
+          "value": "%6",
+          "line": 5
+        },
+        {
+          "target": "exit",
+          "value": "%12",
+          "line": 5
+        }
+      ],
+      "asm": [
+        {
+          "mnemonic": "mov",
+          "operands": "eax, 7",
+          "line": 2
+        },
+        {
+          "mnemonic": "add",
+          "operands": "eax, 5",
+          "line": 4
+        },
+        {
+          "mnemonic": "mov",
+          "operands": "ecx, eax",
+          "line": 4
+        },
+        {
+          "mnemonic": "mov",
+          "operands": "ecx, ecx",
+          "line": 4
+        },
+        {
+          "mnemonic": "mov",
+          "operands": "cl, cl",
+          "line": 5
+        },
+        {
+          "mnemonic": "mov",
+          "operands": "dil, cl",
+          "line": 5
+        },
+        {
+          "mnemonic": "mov",
+          "operands": "rax, 60",
+          "line": 5
+        },
+        {
+          "mnemonic": "syscall",
+          "operands": "",
+          "line": 5
+        }
+      ]
+    },
+    {
+      "id": "peephole",
+      "label": "Peephole",
+      "flags": [
+        "-O0",
+        "--peephole"
+      ],
+      "directory": "peephole/",
+      "ast": [
+        {
+          "token": "i32",
+          "children": [
+            {
+              "token": "first",
+              "children": []
+            },
+            {
+              "token": "=",
+              "children": [
+                {
+                  "token": "7",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "token": "i32",
+          "children": [
+            {
+              "token": "second",
+              "children": []
+            },
+            {
+              "token": "=",
+              "children": [
+                {
+                  "token": "5",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "token": "i32",
+          "children": [
+            {
+              "token": "total",
+              "children": []
+            },
+            {
+              "token": "=",
+              "children": [
+                {
+                  "token": "+",
+                  "children": [
+                    {
+                      "token": "first",
+                      "children": []
+                    },
+                    {
+                      "token": "second",
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "token": "exit",
+          "children": [
+            {
+              "token": "as",
+              "children": [
+                {
+                  "token": "u8",
+                  "children": []
+                },
+                {
+                  "token": "total",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "hir": [
+        {
+          "type": "i32s",
+          "target": "%0",
+          "value": "alloc",
+          "line": 2
+        },
+        {
+          "type": "i32t",
+          "target": "%3",
+          "value": "i8n 7 as i32",
+          "line": 2
+        },
+        {
+          "type": "i32s",
+          "target": "%7",
+          "value": "i32t %3",
+          "line": 2
+        },
+        {
+          "type": "i32s",
+          "target": "%1",
+          "value": "alloc",
+          "line": 3
+        },
+        {
+          "type": "i32t",
+          "target": "%4",
+          "value": "i8n 5 as i32",
+          "line": 3
+        },
+        {
+          "type": "i32s",
+          "target": "%8",
+          "value": "i32t %4",
+          "line": 3
+        },
+        {
+          "type": "i32s",
+          "target": "%2",
+          "value": "alloc",
+          "line": 4
+        },
+        {
+          "type": "i32t",
+          "target": "%5",
+          "value": "i32s %7 + i32s %8",
+          "line": 4
+        },
+        {
+          "type": "i32s",
+          "target": "%9",
+          "value": "i32t %5",
+          "line": 4
+        },
+        {
+          "type": "u8t",
+          "target": "%6",
+          "value": "i32s %9 as u8",
+          "line": 5
+        },
+        {
+          "type": "exit",
+          "target": "",
+          "value": "u8t %6",
+          "line": 5
+        }
+      ],
+      "lir": [
+        {
+          "target": "%3",
+          "value": "$7",
+          "line": 2
+        },
+        {
+          "target": "%7",
+          "value": "%3",
+          "line": 2
+        },
+        {
+          "target": "%4",
+          "value": "$5",
+          "line": 3
+        },
+        {
+          "target": "%8",
+          "value": "%4",
+          "line": 3
+        },
+        {
+          "target": "%10",
+          "value": "%7",
+          "line": 4
+        },
+        {
+          "target": "%11",
+          "value": "%10 + %8",
+          "line": 4
+        },
+        {
+          "target": "%5",
+          "value": "%11",
+          "line": 4
+        },
+        {
+          "target": "%9",
+          "value": "%5",
+          "line": 4
+        },
+        {
+          "target": "%6",
+          "value": "%9",
+          "line": 5
+        },
+        {
+          "target": "%12",
+          "value": "%6",
+          "line": 5
+        },
+        {
+          "target": "exit",
+          "value": "%12",
+          "line": 5
+        }
+      ],
+      "asm": [
+        {
+          "mnemonic": "mov",
+          "operands": "ecx, 7",
+          "line": 2
+        },
+        {
+          "mnemonic": "add",
+          "operands": "ecx, 5",
+          "line": 4
+        },
+        {
+          "mnemonic": "mov",
+          "operands": "dil, cl",
+          "line": 5
+        },
+        {
+          "mnemonic": "mov",
+          "operands": "rax, 60",
+          "line": 5
+        },
+        {
+          "mnemonic": "syscall",
+          "operands": "",
+          "line": 5
+        }
+      ]
+    },
+    {
+      "id": "full",
+      "label": "Full pipeline",
+      "flags": [
+        "-O3"
+      ],
+      "directory": "full/",
+      "ast": [
+        {
+          "token": "i32",
+          "children": [
+            {
+              "token": "first",
+              "children": []
+            },
+            {
+              "token": "=",
+              "children": [
+                {
+                  "token": "7",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "token": "i32",
+          "children": [
+            {
+              "token": "second",
+              "children": []
+            },
+            {
+              "token": "=",
+              "children": [
+                {
+                  "token": "5",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "token": "i32",
+          "children": [
+            {
+              "token": "total",
+              "children": []
+            },
+            {
+              "token": "=",
+              "children": [
+                {
+                  "token": "+",
+                  "children": [
+                    {
+                      "token": "first",
+                      "children": []
+                    },
+                    {
+                      "token": "second",
+                      "children": []
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "token": "exit",
+          "children": [
+            {
+              "token": "as",
+              "children": [
+                {
+                  "token": "u8",
+                  "children": []
+                },
+                {
+                  "token": "total",
+                  "children": []
+                }
+              ]
+            }
+          ]
+        }
+      ],
+      "hir": [
+        {
+          "type": "i32s",
+          "target": "%0",
+          "value": "alloc",
+          "line": 2
+        },
+        {
+          "type": "i32t",
+          "target": "%3",
+          "value": "i8n 7 as i32",
+          "line": 2
+        },
+        {
+          "type": "i32s",
+          "target": "%7",
+          "value": "i32t %3",
+          "line": 2
+        },
+        {
+          "type": "i32s",
+          "target": "%1",
+          "value": "alloc",
+          "line": 3
+        },
+        {
+          "type": "i32t",
+          "target": "%4",
+          "value": "i8n 5 as i32",
+          "line": 3
+        },
+        {
+          "type": "i32s",
+          "target": "%8",
+          "value": "i32t %4",
+          "line": 3
+        },
+        {
+          "type": "i32s",
+          "target": "%2",
+          "value": "alloc",
+          "line": 4
+        },
+        {
+          "type": "i32t",
+          "target": "%5",
+          "value": "i32s %7 + i32s %8",
+          "line": 4
+        },
+        {
+          "type": "i32s",
+          "target": "%9",
+          "value": "i32t %5",
+          "line": 4
+        },
+        {
+          "type": "u8t",
+          "target": "%6",
+          "value": "i32s %9 as u8",
+          "line": 5
+        },
+        {
+          "type": "exit",
+          "target": "",
+          "value": "u8t %6",
+          "line": 5
+        }
+      ],
+      "lir": [
+        {
+          "target": "%3",
+          "value": "$7 as i32",
+          "line": 2
+        },
+        {
+          "target": "%7",
+          "value": "$7",
+          "line": 2
+        },
+        {
+          "target": "%4",
+          "value": "$5 as i32",
+          "line": 3
+        },
+        {
+          "target": "%8",
+          "value": "$5",
+          "line": 3
+        },
+        {
+          "target": "%10",
+          "value": "$7",
+          "line": 4
+        },
+        {
+          "target": "%11",
+          "value": "%10 + $5",
+          "line": 4
+        },
+        {
+          "target": "%5",
+          "value": "%11",
+          "line": 4
+        },
+        {
+          "target": "%9",
+          "value": "%5",
+          "line": 4
+        },
+        {
+          "target": "%6",
+          "value": "%9",
+          "line": 5
+        },
+        {
+          "target": "%12",
+          "value": "%6",
+          "line": 5
+        },
+        {
+          "target": "exit",
+          "value": "%12",
+          "line": 5
+        }
+      ],
+      "asm": [
+        {
+          "mnemonic": "mov",
+          "operands": "eax, 7",
+          "line": 2
+        },
+        {
+          "mnemonic": "add",
+          "operands": "eax, 5",
+          "line": 4
+        },
+        {
+          "mnemonic": "mov",
+          "operands": "ecx, eax",
+          "line": 4
+        },
+        {
+          "mnemonic": "mov",
+          "operands": "dil, cl",
+          "line": 5
+        },
+        {
+          "mnemonic": "mov",
+          "operands": "rax, 60",
+          "line": 5
+        },
+        {
+          "mnemonic": "syscall",
+          "operands": "",
+          "line": 5
+        }
+      ]
+    }
+  ]
+}

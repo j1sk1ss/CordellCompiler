@@ -1,5 +1,14 @@
 # Compiler usage
 
+```cpl
+#include <stdio_h.cpl>
+
+start() {
+  printf(ref "Hello from CPLC!\n");
+  exit;
+}
+```
+
 ## In a few words
 
 An explicit build command looks like this:
@@ -12,16 +21,19 @@ cplc                 \
   --linker gcc       \
   --linker-no-pie    \
   --output hello     \
-  hello.cpl
+  hello.cpl &&       \
 ./hello
 ```
+
+> Hello from CPLC!
 
 The shortest command is:
 
 ```bash
-cplc hello.cpl
-./a.out
+cplc hello.cpl && ./a.out
 ```
+
+> Hello from CPLC!
 
 ## Include paths
 
@@ -78,7 +90,7 @@ Profiles:
 | Flag | Current behavior |
 |---|---|
 | `-O0` | disables optimization flags |
-| `-O1` | *currently the same as `-O0`* |
+| `-O1` | --- |
 | `-O2` | enables LICM, constant propagation/folding, and peephole optimization |
 | `-O3` | enables `-O2` plus copy propagation, tail recursion elimination, and function inlining |
 
@@ -86,6 +98,7 @@ Individual flags:
 
 ```bash
 --tre      / --no-tre
+--unroll   / --no-unroll
 --finline  / --no-finline
 --licm     / --no-licm
 --constant / --no-constant

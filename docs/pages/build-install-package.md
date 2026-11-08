@@ -1,5 +1,27 @@
 # Build, install, and package
 
+This is the entry. Use the instructions below to clone, prepare, build and install the compiler.
+
+TL;DR:
+
+> ubuntu
+> ```bash
+> sudo apt install gcc nasm && \
+> git clone --recurse-submodules https://github.com/j1sk1ss/CordellCompiler.git && \
+> make submodules && \
+> make install && \
+> cplc -v
+> ```
+
+> fedora
+> ```bash
+> sudo dnf install gcc nasm && \
+> git clone --recurse-submodules https://github.com/j1sk1ss/CordellCompiler.git && \
+> make submodules && \
+> make install && \
+> cplc -v
+> ```
+
 ## Install from source
 
 To install the compiler, clone the repository first:
@@ -28,7 +50,12 @@ For Fedora:
 sudo dnf install gcc nasm
 ```
 
-*P.S.:* You can also install the `z3` package. It improves the static analyzer's overall performance, but it is optional.
+*P.S.:* You can also install the `z3` package. It improves the static analyzer's overall performance, but it is optional:
+
+```bash
+sudo apt install z3
+sudo dnf install z3
+```
 
 ## Build the compiler
 
@@ -58,12 +85,6 @@ This builds the compiler if needed, compiles the implementation files from the s
 
 ```
 builds/<platform>/cpllib/libcpl.a
-```
-
-`CPLLIB_SRC_DIR` defaults to the `cpllib` submodule. Sibling checkouts can still be selected explicitly:
-
-```bash
-make CPLLIB_SRC_DIR=../cpllib cpllib
 ```
 
 ## Install
@@ -103,7 +124,7 @@ cplc --print-stdlib-path
 
 ## Shell completion
 
-`make install` installs TAB completion for bash, zsh, and fish. Open a new shell after installation; most distributions load files from the standard completion directories automatically.
+`make install` installs TAB completion for `bash`, `zsh`, and `fish`. Open a new shell after installation; most distributions load files from the standard completion directories automatically.
 
 For a local checkout without installing, load completion manually:
 

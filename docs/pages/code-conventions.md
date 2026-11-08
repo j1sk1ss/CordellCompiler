@@ -1,6 +1,6 @@
 # Code conventions
 
-The compiler **does not** require a particular style, but the following conventions keep CPL code easy to read.
+The compiler **DOES NOT** require a particular style, but the following conventions keep CPL code easy to read. I **DO NOT** force you to obey the rules, **BUT** strongly encourage you to stick with these rules.
 
 ## Names
 
@@ -33,7 +33,7 @@ function _helper() -> i0 {
 
 ## Layout
 
-Prefer K&R-style braces:
+Prefer `K&R`-style braces:
 
 ```cpl
 function foo() -> i0 {
@@ -46,32 +46,23 @@ function foo() -> i0 {
 }
 ```
 
-Use the required semicolon after conditions:
-
-```cpl
-while i < n; {
-    i += 1;
-}
-```
-
 ## Entry point
 
-Use `start` for small programs:
+Prefere `start` over `@[entry]` functions:
 
 ```cpl
 start() {
     exit 0;
 }
-```
 
-Use `@[entry]` when you need a normal function declaration as the entry point:
-
-```cpl
-@[entry("_main")]
-function main(i64 argc, ptr ptr i8 argv) -> i0 {
-    exit 0;
+:/ Don't use:
+@[entry] function main() -> u8 {
+    exit 0u8;
 }
+/:
 ```
+
+Use `@[entry]` only if you really need this.
 
 ## Headers
 
@@ -90,16 +81,3 @@ Header guard example:
 function print(ptr i8 s) -> i0;
 #endif
 ```
-
-## Comments
-
-CPL comments are colon-based:
-
-```cpl
-: one-line comment :
-
-:/ block comment
-   across several lines /:
-```
-
-Always close comments explicitly.

@@ -10,7 +10,7 @@ container storage {
 }
 
 start() {
-    storage s = { 10, 5, 11 };
+    storage s = { 10i32, 5i8, 11i64 };
     exit (s.count + s.tag + s.total) as u8; :/ 26 /:
 }
 ```
@@ -280,73 +280,6 @@ container report {
 }
 ```
 
-## Virtual Tables, Abstract Methods, and Overrides
-
-Virtual tables are not a property of every CPL container. They are used only for inheritance/interface dispatch. If a container does not inherit or implement anything, its layout and method calls remain the same as before: visible fields are stored directly, and ordinary methods are direct calls with explicit `self` rewriting where needed.
-
-Likewise, not every method of a derived container becomes virtual. The vtable contains the inherited method set: methods declared by a base/interface for inheritance and the corresponding implementations supplied with `@[override]`. Methods that are unrelated to that inherited set remain ordinary direct-call container functions.
-
-A method marked `@[abstract]` in a base container declares such an inherited method slot. A container with an abstract method cannot be instantiated directly.
-
-```cpl
-container base {
-    @[abstract] @[self]
-    function init(ptr base self) -> i0;
-}
-```
-
-A derived container uses `::` and provides a method marked `@[override]` for the inherited virtual-table slot:
-
-```cpl
-container implementation::base {
-    i32 body;
-
-    @[override]
-    function init(ptr implementation self) -> i0;
-}
-
-function implementation::init(ptr implementation self) -> i0 {
-    self.body = 0 as i32;
-}
-```
-
-Virtual-table methods have strict slot indices. The same inherited method therefore occupies the same position for compatible child containers. This lets code accept a pointer to the base container and dispatch to the implementation associated with the actual object:
-
-```cpl
-container base {
-    @[abstract] @[self]
-    function do(ptr base self) -> i0;
-}
-
-container first::base {
-    @[override]
-    function do(ptr first self) -> i0 {
-    }
-}
-
-container second::base {
-    @[override]
-    function do(ptr second self) -> i0 {
-    }
-}
-
-glob first f;
-glob second s;
-
-function easy(ptr base b) -> i0 {
-    b.do();
-}
-
-start() {
-    easy(ref f); :/ first::do /:
-    easy(ref s); :/ second::do /:
-}
-```
-
-The virtual table is compiler-managed, but it exists only for the inherited dispatch surface. Unlike ordinary `@[self]` call rewriting, a call to an inherited virtual method depends on the object's virtual-table linkage and the strict slot assigned to that inherited method. Other methods of the same container can still be ordinary direct calls.
-
-This part of CPL is newer than the basic container model. The changelog still describes inheritance and virtual-table support as work in progress, so code that depends on these features should not assume that every object-model edge case is already stable.
-
 ## Interfaces
 
 `interface` declares a common virtual method contract. Functions declared in an interface are abstract by default, so they do not need an explicit `@[abstract]` annotation.
@@ -357,7 +290,7 @@ interface base {
     function init(ptr base self) -> i0;
 }
 
-container implementation::base {
+container implementation implements base {
     @[override]
     function init(ptr implementation self) -> i0;
 }
@@ -365,8 +298,6 @@ container implementation::base {
 function implementation::init(ptr implementation self) -> i0 {
 }
 ```
-
-The `container implementation::base` syntax associates the container with the inherited base/interface method layout. An overriding method occupies the corresponding virtual-table slot. Methods defined only on `implementation` and not inherited from `base` remain ordinary methods and do not need vtable entries. This provides a narrow common dispatch surface without turning the whole container into a managed class.
 
 ## Placement in Manually Allocated Memory
 
@@ -378,7 +309,7 @@ interface a {
     function foo(ptr a self) -> i0;
 }
 
-container b::a {
+container b implements a {
     @[override]
     function foo(ptr b self) -> i0;
 }
