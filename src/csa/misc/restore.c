@@ -10,7 +10,7 @@ const char* RST_restore_type(token_t* t) {
         case CUSTOM_VARIABLE_TOKEN:
         case GENERIC_TYPE_TOKEN:
         case GENERIC_VARIABLE_TOKEN: {
-            static char buf[256];
+            static char buf[256] = { 0 };
             if (!t->flags.ptr) return t->body ? t->body->body : "";
             snprintf(buf, sizeof(buf), "ptr %s", t->body ? t->body->body : "");
             return buf;
@@ -640,7 +640,7 @@ static int _restore_code_lines(rst_ln_ctx_t* x, ast_node_t* nd, set_t* u, int in
         case BREAKPOINT_TOKEN: _simple_restore_lines(x, nd->c, u, indent, BREAKPOINT_COMMAND " ");  break;
         case CONVERT_TOKEN: {
             if (nd->c && nd->c->siblings.n) _restore_code_lines(x, nd->c->siblings.n, u, indent);
-            _rst_ln_printf(x, line, " %s %s", CONVERT_COMMAND, RST_restore_type(nd->c->t));
+            _rst_ln_printf(x, line, " %s %s", CONVERT_COMMAND, nd->c ? RST_restore_type(nd->c->t) : "");
             break;
         }
         case CASE_TOKEN:

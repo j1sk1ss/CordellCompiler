@@ -122,14 +122,14 @@ int AST_unload(ast_node_t* node) {
 }
 
 /* Recursively hash the input node.
-Params:
-    - `n` - Input node.
-    - `s` - Hash the sibling node?
-            Note: If 1 - This function will use
-                  a hash from the sibling node.
-    - `stp` - Stop token type.
-
-Returns a hash based on the provided node. */
+   Params:
+       - `n` - Input node.
+       - `s` - Hash the sibling node?
+               Note: If 1 - This function will use
+                     a hash from the sibling node.
+       - `stp` - Stop token type.
+   
+   Returns a hash based on the provided node. */
 static hash_t _hash_ast_node(ast_node_t* n, int s, int no_name, token_type_t stp) {
     if (!n || !n->t || n->t->t_type == stp) return 0;
     hash_t hash = 0xF123;
@@ -142,8 +142,8 @@ static hash_t _hash_ast_node(ast_node_t* n, int s, int no_name, token_type_t stp
     }
 
     if (n->t) hash ^= TKN_hash_token(n->t, no_name);
+    hash += crc64(&hash, sizeof(hash_t), 0xDEAD);
     hash *= 0x123321;
-    hash += 99929929;
     if (s) hash ^= _hash_ast_node(n->siblings.n, 1, no_name, stp) + 0xDEAD;
     hash ^= _hash_ast_node(n->c, 1, no_name, stp) + 0xDEAD;
     return hash;

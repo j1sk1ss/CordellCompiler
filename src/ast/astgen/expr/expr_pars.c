@@ -1,40 +1,40 @@
 #include <ast/astgen/astgen.h>
 
 /* Parse left part of a stmt.
-Params:
-    - `it` - Current iterator.
-    - `ctx` - AST context.
-    - `smt` - Symtable.
-    - `na` - No assign.
-             Note: By default (0), this function parses an entire 
-                   expression with a assign symbol. That means, that
-                   expressions such as `a = b`, `a + b = a + b` will
-                   be full parsed.
-                   If you want to parse only the left part (before assign),
-                   set this flag to 1.
-
-Returns an AST node. */
+   Params:
+       - `it` - Current iterator.
+       - `ctx` - AST context.
+       - `smt` - Symtable.
+       - `na` - No assign.
+                Note: By default (0), this function parses an entire 
+                      expression with a assign symbol. That means, that
+                      expressions such as `a = b`, `a + b = a + b` will
+                      be full parsed.
+                      If you want to parse only the left part (before assign),
+                      set this flag to 1.
+   
+   Returns an AST node. */
 static ast_node_t* _parse_primary(list_iter_t*, ast_ctx_t*, sym_table_t*, int);
 
 /* Parse expression that looks like: <stmt> <op> <stmt>. 
-Note: <stmt> here can be either a simple <(a..> or a complex sub-stmt.
-Params:
-    - `it` - Current iterator.
-    - `ctx` - AST context.
-    - `smt` - Symtable.
-    - `mp` - Minimal priority. 
-             Note: Defenition of a minimal priority of a token
-                   that will stop parsing for the current level.
-    - `na` - No assign.
-             Note: By default (0), this function parses an entire 
-                   expression with a assign symbol. That means, that
-                   expressions such as `a = b`, `a + b = a + b` will
-                   be full parsed.
-                   If you want to parse only the left part (before assign),
-                   set this flag to 1.
-                   If you want to parse only the primary - set this flag to 2.
-
-Returns an AST node. */
+   Note: <stmt> here can be either a simple <(a..> or a complex sub-stmt.
+   Params:
+       - `it` - Current iterator.
+       - `ctx` - AST context.
+       - `smt` - Symtable.
+       - `mp` - Minimal priority. 
+                Note: Defenition of a minimal priority of a token
+                      that will stop parsing for the current level.
+       - `na` - No assign.
+                Note: By default (0), this function parses an entire 
+                      expression with a assign symbol. That means, that
+                      expressions such as `a = b`, `a + b = a + b` will
+                      be full parsed.
+                      If you want to parse only the left part (before assign),
+                      set this flag to 1.
+                      If you want to parse only the primary - set this flag to 2.
+   
+   Returns an AST node. */
 static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym_table_t* smt, int mp, int na) {
     SAVE_TOKEN_POINT;
     ast_node_t* left = _parse_primary(it, ctx, smt, na);
@@ -158,6 +158,7 @@ static ast_node_t* _parse_binary_expression(list_iter_t* it, ast_ctx_t* ctx, sym
                                     self_is_field
                                 ) ||
                                 (
+                                    left->self->t                             &&
                                     !left->self->t->flags.ptr                 && /* If self doesn't referenced                       */
                                     left->self->t->t_type != INDEXATION_TOKEN && /* Any indexation operation already have referenced */
                                     !self_is_field                               /* And this isn't a field in a container            */

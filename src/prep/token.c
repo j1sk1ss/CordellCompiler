@@ -230,13 +230,13 @@ static inline int _allowed_character_in_token(char c) {
 static char _token_buf[BUFFER_SIZE] = { 0 };
 
 /* Give the next token from the provided buffer.
-Params:
-    - `buffer` - Source pre-processed buffer of the code.
-    - `bytes_read` - Buffer's size.
-    - `off` - Current offset in the buffer.
-    - `finfo` - Current information about a position in a file.
-
-Returns a new token or the 'NULL' value */
+   Params:
+       - `buffer` - Source pre-processed buffer of the code.
+       - `bytes_read` - Buffer's size.
+       - `off` - Current offset in the buffer.
+       - `finfo` - Current information about a position in a file.
+   
+   Returns a new token or the 'NULL' value */
 static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off, file_position_t* finfo, tkn_ctx_t* ctx) {
     if (!buffer && bytes_read == -1 && !off && !finfo) goto _force_token_creation;
     for (ssize_t i = *off; i < bytes_read; ++i) {

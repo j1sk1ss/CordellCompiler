@@ -116,7 +116,7 @@ static inline char* _format_location(file_position_t* loc, trace_conf_t conf) {
 
     int need_colon = 0;
     if (loc->file && conf.provide_files) {
-        curr_buff += sprintf(curr_buff, "%s", loc->file->body);
+        curr_buff += snprintf(curr_buff, sizeof(buff), "%s", loc->file->body);
         need_colon = 1;
     }
 

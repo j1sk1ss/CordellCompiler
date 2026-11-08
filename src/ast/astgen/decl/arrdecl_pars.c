@@ -1,10 +1,10 @@
 #include <ast/astgen/astgen.h>
 
 /* Parse a type of an array. Handle recursive array types.
-Params:
-    - <Parser args> - Arguments.
-
-Returns an AST node of a type. */
+   Params:
+       - <Parser args> - Arguments.
+   
+   Returns an AST node of a type. */
 static DEFINE_PARSER(_parse_array_type, {
     ast_node_t* type = NULL;
     forward_token(it, 1);
@@ -67,6 +67,8 @@ static symbol_id_t _resolve_array_type(ast_node_t* type, ast_ctx_t* ctx, sym_tab
 
     ast_node_t* length     = type->c;
     ast_node_t* elem_type  = length ? length->siblings.n : NULL;
+    if (!elem_type) return NO_SYMBOL_ID;
+
     long long const_length = SMT_NULL;
     if (
         length && TKN_is_unknown_numeric(length->t->t_type)
@@ -142,7 +144,7 @@ DEFINE_PARSER(cpl_parse_array_declaration, {
         CONF_set_parser_error();
     }
 
-    base->sinfo.t_id = TPTB_add_info_from_token(name->sinfo.s_id, base->t, NO_SYMBOL_ID, &smt->t);               /* register as a type                       */
+    base->sinfo.t_id = TPTB_add_info_from_token(name->sinfo.s_id, base->t, NO_SYMBOL_ID, &smt->t);                /* register as a type                       */
     ARTB_add_info(name->sinfo.v_id, const_length, base->t->flags.vla, type->t->t_type, type->t->flags, &smt->a);  /* register as an array                     */
     TPTB_set_memory_size_id(base->sinfo.t_id, array_size, &smt->t);                                               /* select the type of the array             */
     TPTB_link_child(base->sinfo.t_id, type->sinfo.t_id, &smt->t);                                                 /*                                          */
