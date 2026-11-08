@@ -95,7 +95,10 @@ int main(int argc, char* argv[]) {
         
         deftb_t macros;
         MCTB_init(&macros);
-        PP_predefine(&macros);
+
+        PP_predefine_flag(&macros, "CCPL_GNUI386");
+        PP_predefine_value(&macros, "usize", "u32");
+        PP_predefine_value(&macros, "isize", "i32");
 
         pp_ctx_t ppctx;
         PP_init_pp_ctx(&ppctx);

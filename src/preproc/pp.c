@@ -1,12 +1,12 @@
 #include <preproc/pp.h>
 
 /* Create source position info for a preprocessor source file.
-Params:
-    - `f` - Opened source file.
-    - `name` - Source file path.
-    - `l` - Initial source line number.
-
-Returns created source info or NULL. */
+   Params:
+       - `f` - Opened source file.
+       - `name` - Source file path.
+       - `l` - Initial source line number.
+   
+   Returns created source info or NULL. */
 static inline source_pos_info_t* _create_info(FILE* f, char* name, int l) {
     source_pos_info_t* inf = (source_pos_info_t*)malloc(sizeof(source_pos_info_t));
     if (!inf) return NULL;
@@ -19,10 +19,10 @@ static inline source_pos_info_t* _create_info(FILE* f, char* name, int l) {
 }
 
 /* Destroy source position info.
-Params:
-    - `inf` - Source info to destroy.
-
-Returns 1 if succeeds. */
+   Params:
+       - `inf` - Source info to destroy.
+   
+   Returns 1 if succeeds. */
 static int _destroy_info(source_pos_info_t* inf) {
     if (!inf) return 0;
     if (inf->f) fclose(inf->f);
@@ -33,20 +33,20 @@ static int _destroy_info(source_pos_info_t* inf) {
 }
 
 /* Init a PP context.
-Params:
-    - `ctx` - PP context.
-
-Returns 1 if succeeds. */
+   Params:
+       - `ctx` - PP context.
+   
+   Returns 1 if succeeds. */
 int PP_init_pp_ctx(pp_ctx_t* ctx) {
     memset(ctx, 0, sizeof(pp_ctx_t));
     return stack_init(&ctx->sources);
 }
 
 /* Cleanup all mess that we've produced.
-Params:
-    - `ctx` - PP context.
-
-Returns 1 if succeeds. */
+   Params:
+       - `ctx` - PP context.
+   
+   Returns 1 if succeeds. */
 static int _unload_pp_ctx(pp_ctx_t* ctx) {
     stack_free_force_op(&ctx->sources, (int (*)(void*))_destroy_info);
     if (ctx->line)    free(ctx->line);
@@ -62,11 +62,11 @@ static int _unload_pp_ctx(pp_ctx_t* ctx) {
 }
 
 /* Try to open a file and push it as a new source.
-Params:
-    - `st` - Source stack.
-    - `full_path` - Path to the source file.
-
-Returns 1 if the source was opened and pushed. */
+   Params:
+       - `st` - Source stack.
+       - `full_path` - Path to the source file.
+   
+   Returns 1 if the source was opened and pushed. */
 static int _try_push_path(sstack_t* st, char* full_path) {
     FILE* inc = fopen(full_path, "r");
     if (!inc) return 0;
@@ -81,10 +81,10 @@ static int _try_push_path(sstack_t* st, char* full_path) {
 }
 
 /* Check whether include path is explicitly relative.
-Params:
-    - `inc_name` - Include path.
-
-Returns 1 if include starts with './' or '../'. */
+   Params:
+       - `inc_name` - Include path.
+   
+   Returns 1 if include starts with './' or '../'. */
 static inline int _is_relative_include(const char* inc_name) {
     return inc_name &&
            (
@@ -94,12 +94,12 @@ static inline int _is_relative_include(const char* inc_name) {
 }
 
 /* Try to push an include relative to the current source file.
-Params:
-    - `st` - Source stack.
-    - `curr_name` - Current source file path.
-    - `inc_name` - Include path from directive.
-
-Returns 1 if the relative include was opened and pushed. */
+   Params:
+       - `st` - Source stack.
+       - `curr_name` - Current source file path.
+       - `inc_name` - Include path from directive.
+   
+   Returns 1 if the relative include was opened and pushed. */
 static int _try_push_relative(sstack_t* st, const char* curr_name, char* inc_name) {
     if (!st || !curr_name || !*curr_name || !inc_name || !*inc_name) return 0;
     char full[PP_PATH_MAX]    = { 0 };
@@ -113,14 +113,14 @@ static int _try_push_relative(sstack_t* st, const char* curr_name, char* inc_nam
 }
 
 /* Search and push an include file.
-Params:
-    - `curr_name` - Current source file path.
-    - `st` - Source stack.
-    - `fctx` - Finder context with include search path.
-    - `inc_name` - Include path from directive.
-    - `is_system` - Whether include uses system-style '<...>' form.
-
-Returns 1 if the include file was found and pushed. */
+   Params:
+       - `curr_name` - Current source file path.
+       - `st` - Source stack.
+       - `fctx` - Finder context with include search path.
+       - `inc_name` - Include path from directive.
+       - `is_system` - Whether include uses system-style '<...>' form.
+   
+   Returns 1 if the include file was found and pushed. */
 static int _push_include(const char* curr_name, sstack_t* st, finder_ctx_t* fctx, char* inc_name, int is_system) {
     if (!st || !inc_name || !*inc_name) return 0;
     if (inc_name[0] == '/') {
@@ -151,11 +151,11 @@ static int _push_include(const char* curr_name, sstack_t* st, finder_ctx_t* fctx
 
 static char* _l = NULL;
 /* Delay line output by one call.
-Params:
-    - `l` - Line to print on the next call.
-    - `out` - Output stream.
-
-Returns nothing. */
+   Params:
+       - `l` - Line to print on the next call.
+       - `out` - Output stream.
+   
+   Returns nothing. */
 static void _lazy_fputs(char* l, FILE* out) {
     if (_l) fputs(_l, out);
     if (_l) {
@@ -167,11 +167,11 @@ static void _lazy_fputs(char* l, FILE* out) {
 }
 
 /* Put source location macro into the output stream.
-Params:
-    - `d` - Source info to print.
-    - `o` - Output stream.
-
-Returns nothing. */
+   Params:
+       - `d` - Source info to print.
+       - `o` - Output stream.
+   
+   Returns nothing. */
 static inline void _put_line_macro(source_pos_info_t* d, FILE* o) {
     static char lder[512] = { 0 };
     snprintf(lder, sizeof(lder), "\n#line %i \"%s\"\n", d->l, d->n);
@@ -202,10 +202,10 @@ static int _push_skip(sstack_t* skips, int skip) {
 }
 
 /* Check whether this is a permitted character.
-Params:
-    - `p` - Input character (1 byte or more than 1 byte size).
-
-Returns 1 if this is a permitted character. */
+   Params:
+       - `p` - Input character (1 byte or more than 1 byte size).
+   
+   Returns 1 if this is a permitted character. */
 static inline int _permitted_character(char* p) {
     unsigned char b1 = (unsigned char)p[0];
     unsigned char b2 = (unsigned char)p[1];
@@ -217,29 +217,12 @@ static inline int _permitted_character(char* p) {
     return 0;
 }
 
-int PP_predefine(deftb_t* macros) {
-#define PREDEFINE_FLAG(name)         MCTB_put_define(name, "1", macros);
-#define PREDEFINE_VALUE(name, value) MCTB_put_define(name, value, macros);
-    switch (CONF_get_system_type()) {
-        case LINUX64:   PREDEFINE_FLAG("CCPL_GNU64");     goto _predefine_64size;
-        case WINDOWS64: PREDEFINE_FLAG("CCPL_WINDOWS64"); goto _predefine_64size;
-        case MACHO64: {
-            PREDEFINE_FLAG("CCPL_MACHO64");
-_predefine_64size: {}
-            PREDEFINE_VALUE("usize", "u64");
-            PREDEFINE_VALUE("isize", "i64");
-            break;
-        }
-        case I386: {
-            PREDEFINE_FLAG("CCPL_GNUI386");
-            PREDEFINE_VALUE("usize", "u32");
-            PREDEFINE_VALUE("isize", "i32");
-        }
-        default: break;
-    }
-#undef PREDEFINE_FLAG
-#undef PREDEFINE_VALUE
-    return 1;
+int PP_predefine_value(deftb_t* macros, char* name, char* value) {
+    return MCTB_put_define(name, value, macros);
+}
+
+int PP_predefine_flag(deftb_t* macros, char* name) {
+    return MCTB_put_define(name, "1", macros);
 }
 
 int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx, deftb_t* macros) {

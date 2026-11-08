@@ -146,7 +146,24 @@ int BUILD_start(int argc, char* argv[]) {
 
     deftb_t macros;
     MCTB_init(&macros);
-    PP_predefine(&macros);
+    
+    switch (CONF_get_system_type()) {
+        case LINUX64:   PP_predefine_flag(&macros, "CCPL_GNU64");     goto _predefine_64size;
+        case WINDOWS64: PP_predefine_flag(&macros, "CCPL_WINDOWS64"); goto _predefine_64size;
+        case MACHO64: {
+            PP_predefine_flag(&macros, "CCPL_MACHO64");
+_predefine_64size: {}
+            PP_predefine_value(&macros, "usize", "u64");
+            PP_predefine_value(&macros, "isize", "i64");
+            break;
+        }
+        case I386: {
+            PP_predefine_flag(&macros, "CCPL_GNUI386");
+            PP_predefine_value(&macros, "usize", "u32");
+            PP_predefine_value(&macros, "isize", "i32");
+        }
+        default: break;
+    }
 
     foreach (cli_define_t* define, &options.locations.defines) {
         MCTB_put_define(define->name,  define->value,  &macros);

@@ -117,11 +117,7 @@ int PP_strip_colon_comments(const char* in, pp_cmt_state_t* st, char** out, size
        - `value_sz` - Max value body size.
    
    Returns 1 on success, otherwise 0. */
-int PP_parse_define_arg(
-    const char* p,
-    char* name_out,  size_t name_sz,
-    char* value_out, size_t value_sz
-);
+int PP_parse_define_arg(const char* p, char* name_out,  size_t name_sz, char* value_out, size_t value_sz);
 
 /* Replace all existing defines from the line with their values.
    Params:
@@ -139,7 +135,8 @@ typedef struct {
     const char* spath; /* Compiler-provided standard library directory */
 } finder_ctx_t;
 
-int PP_predefine(deftb_t* macros);
+int PP_predefine_value(deftb_t* macros, char* name, char* value);
+int PP_predefine_flag(deftb_t* macros, char* name);
 int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx, deftb_t* macros);
 
 #endif
