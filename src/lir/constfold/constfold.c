@@ -16,7 +16,7 @@ static int _apply_constfold_on_subject(lir_subject_t* s, sym_table_t* smt) {
     if (!VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) return 0;
     if (vi.vdi.defined == DEFINED_VARIABLE) {
         s->storage.cnst.value = vi.vdi.definition;
-        s->t = LIR_CONSTVAL;
+        s->t                  = LIR_CONSTVAL;
         return 1;
     }
 
@@ -27,7 +27,7 @@ int LIR_apply_sparse_const_propagation(cfg_ctx_t* cctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* bb, &fb->blocks) {
             iterate_lir_instructions (bb) {
-                int need_to_hide = 0 , first_arg = 1;
+                int first_arg = 1;
                 iterate_lir_args (lir_subject_t* arg, lh, 0) {
                     int res = 0;
                     switch (arg->t) {
@@ -41,14 +41,12 @@ int LIR_apply_sparse_const_propagation(cfg_ctx_t* cctx, sym_table_t* smt) {
                         default: res = _apply_constfold_on_subject(arg, smt); break;
                     }
 
+                    res = arg->t == LIR_CONSTVAL || res;
                     if (first_arg && res && LIR_is_writeop(lh->op)) {
-                        need_to_hide = 1;
-                        first_arg    = 0;
+                        lh->unused = 1;
                     }
-                }
 
-                if (need_to_hide) {
-                    lh->unused = 1;
+                    first_arg = 0;
                 }
             }
         }

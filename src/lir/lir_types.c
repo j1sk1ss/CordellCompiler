@@ -68,7 +68,7 @@ int LIR_is_writeop(lir_operation_t op) {
     switch (op) {
         case LIR_TF64: case LIR_TF32:
         case LIR_TI64: case LIR_TI32: case LIR_TI16: case LIR_TI8: 
-        case LIR_TU64: case LIR_TU32: case LIR_TU16:
+        case LIR_TU64: case LIR_TU32: case LIR_TU16: case LIR_TU8:
         case LIR_POP:
         case LIR_bXOR: case LIR_iBRHT: case LIR_iBLFT: case LIR_bSHL: case LIR_bSHR: case LIR_bSAR: case LIR_bAND: case LIR_bOR:
         case LIR_fADD: case LIR_fSUB:  case LIR_fMUL:  case LIR_fDIV: 
