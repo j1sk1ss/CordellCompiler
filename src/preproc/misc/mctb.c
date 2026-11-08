@@ -5,27 +5,61 @@ static define_t* _create_def(char* n, char* def) {
     if (!d) return NULL;
     d->name  = create_string(n);
     d->value = create_string(def);
+    d->args  = NULL;
+    if (!d->name || !d->value) {
+        destroy_string(d->name);
+        destroy_string(d->value);
+        mm_free(d);
+        return NULL;
+    }
+
     return d;
+}
+
+static int _free_positions(list_t* positions) {
+    list_free(positions);
+    mm_free(positions);
+    return 1;
+}
+
+int MCTB_free_macro_args(macro_args_t* args) {
+    if (!args) return 1;
+    list_free_force_op(&args->args, (int (*)(void*))destroy_string);
+    if (args->positions.entries) {
+        map_free_force_op(&args->positions, (int (*)(void*))_free_positions);
+    }
+
+    mm_free(args);
+    return 1;
 }
 
 static int _unload_def(define_t* d) {
     if (!d) return 0;
     destroy_string(d->name);
     destroy_string(d->value);
+    MCTB_free_macro_args(d->args);
     mm_free(d);
     return 1;
 }
 
 int MCTB_put_define(char* name, char* value, deftb_t* ctx) {
-    if (MCTB_get_define(name, NULL, ctx)) return 1;
+    return MCTB_put_macro(name, value, NULL, ctx);
+}
+
+int MCTB_put_macro(char* name, char* value, macro_args_t* args, deftb_t* ctx) {
+    if (MCTB_get_define(name, NULL, ctx)) {
+        MCTB_free_macro_args(args);
+        return 1;
+    }
+
     define_t* d = _create_def(name, value);
     if (!d) return 0;
-
     if (!map_put(&ctx->t, (long)d->name->hash, d)) {
         _unload_def(d);
         return 0;
     }
 
+    d->args = args;
     return 1;
 }
 

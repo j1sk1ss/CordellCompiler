@@ -3,6 +3,24 @@ Logs for the first and second versions are quite short because I do not remember
 
 ----------------------------------------
 
+## PP with args
+<div class="change-date">Date: 2026-11-08</div>
+The pre-processor so far was a simple tool which replaces a string with another string. With the simple update, now the PP can use arguments! How it works?
+
+```cpl
+#define for(init, cond, step) init while cond { step }
+
+for (i32 a = 0i32; a < 10i32; a += 1)
+:/
+i32 a = 0i32;
+while a < 10i32; {
+    a += 1;
+}
+/:
+```
+
+It's a first iteration of this tool, that's why we can't create complex calls with variadic amount of arguments, etc. But now it at least can handle arguments!
+
 ## DLE update
 <div class="change-date">Date: 2026-11-01</div>
 Loop iterations allow us to update several optimizations. For now, DLE optimizations now works. To do the optimiation, DLE finds loops which are finite, don't have useful commands (with side effects) and its inductive variables don't used elsewhere below.

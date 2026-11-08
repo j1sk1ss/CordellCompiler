@@ -107,14 +107,169 @@ static inline int _append_ch(char** out, size_t* cap, size_t* oi, char c) {
     return _append_mem(out, cap, oi, &c, 1);
 }
 
+static size_t _literal_end(const char* p, size_t i) {
+    char quote = p[i++];
+    while (p[i] && p[i] != quote) {
+        if (p[i] == '\\' && p[i + 1]) i++;
+        i++;
+    }
+
+    return p[i] ? i + 1 : i;
+}
+
+static int _parse_macro_call(const char* in, size_t* end, int expected, list_t* args) {
+    size_t start = *end + 1;
+    int depth = 0;
+    for (size_t i = start; in[i] && in[i] != '\n' && in[i] != '\r'; i++) {
+        if (in[i] == '\'' || in[i] == '"') {
+            i = _literal_end(in, i) - 1;
+            continue;
+        }
+
+        if (in[i] == '(') depth++;
+        if (in[i] == ')' && depth) { 
+            depth--; 
+            continue; 
+        }
+
+        if ((in[i] == ',' && !depth) || (in[i] == ')' && !depth)) {
+            size_t a = start, b = i;
+            while (a < b && isspace((unsigned char)in[a])) a++;
+            while (b > a && isspace((unsigned char)in[b - 1])) b--;
+            if (a != b || expected || args->s || in[i] == ',') {
+                string_t* arg = create_string_from_part(in, a, b - a);
+                if (!arg) return 0;
+                if (!list_add(args, arg)) { destroy_string(arg); return 0; }
+            }
+
+            if (in[i] == ')') {
+                *end = i + 1;
+                return args->s == expected;
+            }
+            
+            start = i + 1;
+        }
+    }
+
+    return 0;
+}
+
+static int _expand_macro(define_t* def, list_t* args, char** out, size_t* cap, size_t* oi) {
+    map_t replacements;
+    if (!map_init(&replacements, MAP_NO_CMP)) return 0;
+    list_node_t* actual = args->h;
+    foreach (string_t* name, &def->args->args) {
+        list_t* positions;
+        if (!map_get(&def->args->positions, (long)name->hash, (void**)&positions)) goto _fail;
+        foreach (void* offset, positions) {
+            if (!map_put(&replacements, (long)offset, actual->data)) goto _fail;
+        }
+
+        actual = actual->n;
+    }
+
+    const char* body = def->value->head;
+    for (size_t i = 0; body[i];) {
+        string_t* arg;
+        if (map_get(&replacements, (long)i, (void**)&arg)) {
+            if (!_append_mem(out, cap, oi, arg->head, arg->len(arg))) goto _fail;
+            do { i++; } while (_is_ident_char(body[i]));
+        }
+        else {
+            if (!_append_ch(out, cap, oi, body[i++])) goto _fail;
+        }
+    }
+
+    map_free(&replacements);
+    return 1;
+
+_fail: {}
+    map_free(&replacements);
+    return 0;
+}
+
+int PP_register_define(const char* p, deftb_t* macros) {
+    char name[PP_PATH_MAX] = { 0 }, body[PP_PATH_MAX] = { 0 };
+    if (!PP_parse_define_arg(p, name, sizeof(name), body, sizeof(body))) return 0;
+    while (*p == ' ' || *p == '\t') p++;
+    p += strlen(name);
+    if (*p != '(') return MCTB_put_define(name, body, macros);
+
+    macro_args_t* args = mm_malloc(sizeof(*args));
+    if (!args) return 0;
+    list_init(&args->args);
+    memset(&args->positions, 0, sizeof(args->positions));
+    if (!map_init(&args->positions, MAP_NO_CMP)) goto _fail;
+
+    p++;
+    while (*p == ' ' || *p == '\t') p++;
+    if (*p != ')') {
+        for (;;) {
+            if (!_is_ident_start(*p)) goto _fail;
+            const char* start = p++;
+            while (_is_ident_char(*p)) p++;
+            string_t* param = create_string_from_part(start, 0, p - start);
+            if (!param) goto _fail;
+            list_t* positions;
+            if (map_get(&args->positions, (long)param->hash, (void**)&positions)) {
+                destroy_string(param);
+                goto _fail;
+            }
+            if (!list_add(&args->args, param)) { destroy_string(param); goto _fail; }
+            positions = mm_malloc(sizeof(*positions));
+            if (!positions) goto _fail;
+            list_init(positions);
+            if (!map_put(&args->positions, (long)param->hash, positions)) {
+                mm_free(positions);
+                goto _fail;
+            }
+
+            while (*p == ' ' || *p == '\t') p++;
+            if (*p == ')') break;
+            if (*p++ != ',') goto _fail;
+            while (*p == ' ' || *p == '\t') p++;
+        }
+    }
+
+    for (size_t i = 0; body[i];) {
+        if (body[i] == '\'' || body[i] == '"') { 
+            i = _literal_end(body, i); 
+            continue; 
+        }
+
+        if (!_is_ident_start(body[i])) { 
+            i++; 
+            continue; 
+        }
+
+        size_t start = i++;
+        while (_is_ident_char(body[i])) i++;
+        string_t* token = create_string_from_part(body, start, i - start);
+        if (!token) goto _fail;
+        
+        list_t* positions;
+        int found = map_get(&args->positions, (long)token->hash, (void**)&positions);
+        destroy_string(token);
+        if (found && !list_add(positions, (void*)(long)start)) goto _fail;
+    }
+
+    if (MCTB_put_macro(name, body, args, macros)) {
+        return 1;
+    }
+
+_fail: {}
+    MCTB_free_macro_args(args);
+    return 0;
+}
+
 static int _resolve_defines(const char* in, char** out, size_t* out_cap, deftb_t* dctx) {
-    if (!in || !dctx || !out || !out_cap) return 0;
+    if (!in || !dctx || !out || !out_cap) return -1;
 
     size_t n = strlen(in);
     if (!*out || *out_cap < n + 1) {
         size_t new_cap = n + 1;
         char* nb = (char*)realloc(*out, new_cap);
-        if (!nb) return 0;
+        if (!nb) return -1;
         *out = nb;
         *out_cap = new_cap;
     }
@@ -125,6 +280,12 @@ static int _resolve_defines(const char* in, char** out, size_t* out_cap, deftb_t
     int changed = 0;
     for (size_t i = 0; in[i];) {
         unsigned char c = (unsigned char)in[i];
+        if (c == '\'' || c == '"') {
+            size_t end = _literal_end(in, i);
+            if (!_append_mem(out, out_cap, &oi, in + i, end - i)) return -1;
+            i = end;
+            continue;
+        }
         if (_is_ident_start(c)) {
             size_t start = i++;
             while (in[i] && ((in[i] == '_') || isalnum(in[i]))) i++;
@@ -134,7 +295,7 @@ static int _resolve_defines(const char* in, char** out, size_t* out_cap, deftb_t
             char* tok = stack_tok;
             if (len >= sizeof(stack_tok)) {
                 tok = (char*)malloc(len + 1);
-                if (!tok) return 0;
+                if (!tok) return -1;
             }
 
             memcpy(tok, in + start, len);
@@ -142,6 +303,28 @@ static int _resolve_defines(const char* in, char** out, size_t* out_cap, deftb_t
 
             define_t def;
             if (MCTB_get_define(tok, &def, dctx)) {
+                if (def.args) {
+                    size_t end = i;
+                    while (in[end] == ' ' || in[end] == '\t') end++;
+                    if (in[end] == '(') {
+                        list_t args;
+                        list_init(&args);
+                        int ok = _parse_macro_call(in, &end, def.args->args.s, &args);
+                        if (ok) ok = _expand_macro(&def, &args, out, out_cap, &oi);
+                        list_free_force_op(&args, (int (*)(void*))destroy_string);
+                        if (tok != stack_tok) free(tok);
+                        if (!ok) return -1;
+                        i = end;
+                        changed = 1;
+                        continue;
+                    }
+                    if (!_append_mem(out, out_cap, &oi, tok, len)) {
+                        if (tok != stack_tok) free(tok);
+                        return -1;
+                    }
+                    if (tok != stack_tok) free(tok);
+                    continue;
+                }
                 size_t vlen = def.value->len(def.value);
                 const char* v = def.value->head;
                 if (!(vlen == len && !memcmp(v, tok, len))) {
@@ -150,13 +333,13 @@ static int _resolve_defines(const char* in, char** out, size_t* out_cap, deftb_t
 
                 if (!_append_mem(out, out_cap, &oi, v, vlen)) {
                     if (tok != stack_tok) free(tok);
-                    return 0;
+                    return -1;
                 }
             } 
             else {
                 if (!_append_mem(out, out_cap, &oi, tok, len)) {
                     if (tok != stack_tok) free(tok);
-                    return 0;
+                    return -1;
                 }
             }
 
@@ -164,7 +347,7 @@ static int _resolve_defines(const char* in, char** out, size_t* out_cap, deftb_t
             continue;
         }
 
-        if (!_append_ch(out, out_cap, &oi, (char)c)) return 0;
+        if (!_append_ch(out, out_cap, &oi, (char)c)) return -1;
         i++;
     }
 

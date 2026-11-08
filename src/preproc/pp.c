@@ -347,14 +347,7 @@ int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx, deftb_t* macros) {
                 }
             }
             else if (IS_PP_DERICTIVE(d, PP_DEFINE_DIRECTIVE) && !skip) {
-                char defname[PP_PATH_MAX] = { 0 };
-                char defval[PP_PATH_MAX]  = { 0 };
-                if (!PP_parse_define_arg(PP_MV_LINE_DIR(d, PP_DEFINE_DIRECTIVE), defname, sizeof(defname), defval, sizeof(defval))) {
-                    _unload_pp_ctx(ppctx);
-                    return -1;
-                }
-
-                if (!MCTB_put_define(defname, defval, macros)) {
+                if (!PP_register_define(PP_MV_LINE_DIR(d, PP_DEFINE_DIRECTIVE), macros)) {
                     _unload_pp_ctx(ppctx);
                     return -1;
                 }
