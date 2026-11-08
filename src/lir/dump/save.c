@@ -201,12 +201,14 @@ static char* _fmt_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt, int
 }
 
 static void _print_lir_block(const lir_block_t* block, sym_table_t* smt, int pos, int unused, char* output) {
-    if (!block || (block->op == LIR_SETPOS && !pos)) return;
+    if (!block || (block->op == LIR_SETPOS && !pos) || (block->unused && !unused)) return;
     int style = (block->op == LIR_FCLL || block->op == LIR_ECLL) ? 2 : 1;
+
     char first_argument[256] = { 0 }, second_argument[256] = { 0 }, third_argument[256] = { 0 };
     if (block->farg) _fmt_lir_subject(first_argument, block->farg, smt, style);
     if (block->sarg) _fmt_lir_subject(second_argument, block->sarg, smt, style);
     if (block->targ) _fmt_lir_subject(third_argument, block->targ, smt, style);
+
     if (block->unused && unused) output += sprintf(output, "[unused] ");
     sprintf(output, _op_to_fmtstring(block->op), first_argument, second_argument, third_argument);
 }
