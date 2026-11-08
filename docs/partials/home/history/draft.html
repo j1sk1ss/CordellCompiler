@@ -1,0 +1,80 @@
+<li class="era-entry">
+  <span class="era-marker" aria-hidden="true">00</span>
+  <article class="milestone-card milestone-draft" aria-labelledby="era-title-draft">
+    <div class="milestone-copy">
+      <p class="milestone-meta">
+        DRAFT / BEFORE v1.0<span>12 APR 2025</span>
+      </p>
+      <h3 id="era-title-draft">
+        Draft draft.
+      </h3>
+      <p class="milestone-description">
+        The first building blocks, still on the drawing board. A function begins with fstart and ends with fend. Calls use callfunc; loops have lstart and lend. No parentheses or curly braces yet.
+      </p>
+      <div class="milestone-tags">
+        <span>FSTART / FEND</span><span>CALLFUNC</span><span>LSTART / LEND</span>
+      </div>
+      <a class="milestone-source" href="https://github.com/j1sk1ss/CordellCompiler/blob/045e185a/examples/functions.cpl#L24-L31">Read the original April 2025 experiment <span aria-hidden="true">↗</span></a>
+    </div>
+    <figure class="milestone-art art-draft">
+      <svg class="milestone-svg" viewBox="0 0 600 400" role="img" aria-labelledby="sketch-draft">
+        <title id="sketch-draft">
+          Blueprint of a pre-v1 function: fstart and fend delimit a sum, and callfunc passes g and c to return 36.
+        </title>
+        <defs>
+          <pattern id="grid-draft" width="24" height="24" patternUnits="userSpaceOnUse">
+            <path d="M24 0H0V24" fill="none" stroke="currentColor" stroke-width=".55" opacity=".16"/>
+          </pattern>
+          <marker id="arrow-draft" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="m2 2 8 4-8 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+        <rect width="600" height="400" fill="url(#grid-draft)"/>
+        <text x="28" y="32" class="sketch-label" >
+          CPL / FIELD NOTES / APR 2025
+        </text>
+        <text x="30" y="76" class="sketch-hand sketch-heading" transform="rotate(-3 30 76)">
+          Before the braces.
+        </text>
+        <path d="M167 121 473 119 476 244 164 247Z" class="sketch-line" />
+        <path d="M171 124 477 122 480 247 168 250Z" class="sketch-ghost" />
+        <text x="182" y="151" class="sketch-code" >
+          function sumfunc
+        </text>
+        <text x="182" y="178" class="sketch-code" >
+          int a; int b; fstart
+        </text>
+        <path d="M183 190 452 188" class="sketch-rule" />
+        <text x="182" y="218" class="sketch-code" >
+          fend a + b;
+        </text>
+        <path d="M31 132C25 106 104 104 109 132S36 161 31 132" class="sketch-line" />
+        <text x="45" y="139" class="sketch-hand" >
+          g = 12
+        </text>
+        <path d="M31 221C27 192 106 194 110 220S35 250 31 221" class="sketch-line" />
+        <text x="44" y="228" class="sketch-hand" >
+          c = 24
+        </text>
+        <path d="M112 132Q139 127 158 151" class="sketch-line" marker-end="url(#arrow-draft)" />
+        <path d="M112 221Q140 218 157 197" class="sketch-line" marker-end="url(#arrow-draft)" />
+        <path d="M481 180Q518 169 540 177" class="sketch-line" marker-end="url(#arrow-draft)" />
+        <path d="M546 150Q576 152 578 180T547 210Q520 207 522 181T546 150" class="sketch-line" />
+        <text x="532" y="191" class="sketch-hand sketch-result" >
+          36
+        </text>
+        <text x="160" y="279" class="sketch-hand" transform="rotate(-3 160 279)">
+          fstart / fend
+        </text>
+        <path d="M357 268Q431 271 444 231" class="sketch-line" marker-end="url(#arrow-draft)" />
+        <path d="M89 310 510 308 513 360 86 363Z" class="sketch-line" />
+        <text x="111" y="343" class="sketch-code" >
+          callfunc sumfunc g c;
+        </text>
+        <text x="33" y="390" class="sketch-hand" >
+          no ( ) • no { }
+        </text>
+      </svg>
+    </figure>
+  </article>
+</li>

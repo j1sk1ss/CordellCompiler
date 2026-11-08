@@ -202,7 +202,7 @@ container caster {
 }
 
 start() {
-    exit caster::pick<u8>(42) as u8;
+    exit caster::pick<u8>(17) as u8;
 }
 ```
 

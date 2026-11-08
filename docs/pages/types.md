@@ -161,7 +161,7 @@ glob function exported() -> i0;
 `ro` marks data as read-only:
 
 ```cpl
-ro i32 answer = 42;
+ro i32 limit = 64;
 ```
 
 `extern` declares a symbol provided by another object or library:

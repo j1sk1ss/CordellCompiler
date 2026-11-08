@@ -1,0 +1,99 @@
+.field-guide {
+  display: grid;
+  grid-template-columns: .65fr 1fr;
+  gap: 7vw;
+}
+
+.guide-intro h2 {
+  margin-top: 23px;
+}
+
+.cpl-home .guide-intro > p:not(.eyebrow) {
+  margin-top: 22px;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+.guide-intro .text-link {
+  margin-top: 18px;
+}
+
+.guide-asterisk {
+  display: block;
+  margin-top: 32px;
+  width: fit-content;
+  color: var(--orange);
+  font: 100px/1 Georgia, serif;
+  transform: rotate(10deg);
+}
+
+.guide-links {
+  border-top: 1px solid var(--ink);
+}
+
+.guide-links > a {
+  display: flex;
+  align-items: center;
+  gap: 21px;
+  padding: 25px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.guide-index {
+  align-self: flex-start;
+  margin-top: 4px;
+  font: 400 9px/1.5 var(--mono);
+  color: var(--muted);
+}
+
+.cpl-home .guide-links h3 {
+  font-size: 21px;
+  font-weight: 600;
+  letter-spacing: -.6px;
+}
+
+.cpl-home .guide-links p {
+  margin-top: 7px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+.guide-links > a > span:last-child {
+  margin-left: auto;
+  font-size: 24px;
+}
+
+.guide-links > a:hover h3,
+.guide-links > a:hover > span:last-child {
+  color: var(--blue);
+}
+
+@media (max-width: 760px) {
+  .field-guide {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .guide-intro {
+    position: relative;
+  }
+
+  .guide-asterisk {
+    position: absolute;
+    bottom: 22px;
+    right: 12px;
+    font-size: 85px;
+  }
+
+  .guide-links > a {
+    gap: 15px;
+    padding-block: 22px;
+  }
+
+  .cpl-home .guide-links h3 {
+    font-size: 19px;
+  }
+
+}

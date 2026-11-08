@@ -1,0 +1,35 @@
+.token.comment {
+  color: #9da78e;
+  font-style: italic;
+}
+
+.token.keyword {
+  color: #ff9268;
+}
+
+.token.type {
+  color: #dfff7f;
+}
+
+.token.string,
+.token.char {
+  color: #dfff7f;
+}
+
+.token.function {
+  color: #a4beff;
+}
+
+.token.number {
+  color: #edc18e;
+}
+
+.token.operator,
+.token.punctuation {
+  color: #d0d4c6;
+}
+
+.token.annotation,
+.token.preprocessor {
+  color: #c5b0ff;
+}

@@ -1,0 +1,111 @@
+<section class="compiler-section" aria-labelledby="compiler-title">
+  <div class="compiler-inner">
+    <div class="compiler-intro">
+      <div>
+        <p class="eyebrow">
+          03 / PULL BACK THE LAYERS
+        </p>
+        <h2 id="compiler-title">
+          The compiler is<br>the <span class="orange-word">playground.</span>
+        </h2>
+      </div>
+      <div>
+        <p>
+          Follow your code from its first token to its final instruction. Explore intermediate representations, optimization passes, and register allocation in one inspectable compiler.
+        </p>
+        <a class="button button-light" href="#/pages/compiler-architecture">Go under the hood <span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+    <div class="compiler-inspector">
+      <div class="trace-source">
+        <a href="assets/compiler/trace.cpl" download target="_blank" rel="noopener">trace.cpl <span aria-hidden="true">↓</span></a>
+        <div class="source-equation">
+          <span>7 <b>+</b> 5</span><i aria-hidden="true">→</i><span><small>i32</small> total</span><i aria-hidden="true">→</i><span><small>exit / u8</small> 12</span>
+        </div>
+        <span class="trace-mode">-O0 / OPTIMIZATIONS OFF</span>
+      </div>
+      <div class="pipeline" role="tablist" aria-label="Compiler output">
+        <button type="button" role="tab" id="stage-ast" aria-controls="output-ast" aria-selected="true" tabindex="0" data-compiler-stage="ast">
+          <small>01 / PARSE</small>AST<span aria-hidden="true">↘</span>
+        </button>
+        <button type="button" role="tab" id="stage-hir" aria-controls="output-hir" aria-selected="false" tabindex="-1" data-compiler-stage="hir">
+          <small>02 / TRANSFORM</small>HIR<span aria-hidden="true">↘</span>
+        </button>
+        <button type="button" role="tab" id="stage-lir" aria-controls="output-lir" aria-selected="false" tabindex="-1" data-compiler-stage="lir">
+          <small>03 / LOWER</small>LIR<span aria-hidden="true">↘</span>
+        </button>
+        <button type="button" role="tab" id="stage-asm" aria-controls="output-asm" aria-selected="false" tabindex="-1" data-compiler-stage="asm">
+          <small>04 / EMIT</small>Assembly<span aria-hidden="true">↘</span>
+        </button>
+      </div>
+      <div class="emission-command">
+        <span class="command-prompt" aria-hidden="true">$</span><code id="emission-command">cplc trace.cpl -O0 --no-debug -no --emit-ast --ast-output trace.ast</code>
+        <button type="button" class="copy-command" aria-label="Copy compiler command">
+          Copy ⧉
+        </button>
+      </div>
+      <!-- include:home/compiler/ast.html -->
+      <!-- include:home/compiler/hir.html -->
+      <!-- include:home/compiler/lir.html -->
+      <!-- include:home/compiler/asm.html -->
+      <details class="compiler-help">
+        <summary>
+          <span class="help-command">$ cplc -h</span><span>Compiler options <b aria-hidden="true">+</b></span>
+        </summary>
+        <dl>
+          <div>
+            <dt>
+              --emit-ast / --ast-output &lt;file&gt;
+            </dt>
+            <dd>
+              Syntax tree → trace.ast
+            </dd>
+          </div>
+          <div>
+            <dt>
+              --emit-ir / --ir-output &lt;file&gt;
+            </dt>
+            <dd>
+              High-level IR → trace.hir
+            </dd>
+          </div>
+          <div>
+            <dt>
+              --emit-lir / --lir-output &lt;file&gt;
+            </dt>
+            <dd>
+              Low-level IR → trace.lir
+            </dd>
+          </div>
+          <div>
+            <dt>
+              --emit-asm / --asm-output &lt;file&gt;
+            </dt>
+            <dd>
+              Assembly → trace.asm
+            </dd>
+          </div>
+          <div>
+            <dt>
+              -O0 / -O1 / -O2 / -O3
+            </dt>
+            <dd>
+              Optimization level
+            </dd>
+          </div>
+          <div>
+            <dt>
+              -no / --no-object
+            </dt>
+            <dd>
+              Compile without assembling or linking
+            </dd>
+          </div>
+        </dl>
+      </details>
+    </div>
+    <div class="compiler-bottom">
+      <span>NO BLACK BOX. OPEN THE SOURCE.</span><a href="#/pages/semantic-static-checker">Diagnostics ↗</a><a href="#/pages/benchmarking">Benchmarks &amp; methodology ↗</a>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,18 @@
+
+{
+
+    fn main()
+    {
+
+        {
+            i32s %0 = alloc;
+            i8t %1 = i8n 7 + i8n 5;
+            i32t %2 = i8t %1 as i32;
+            i32s %4 = i32t %2;
+
+            u8t %3 = i32s %4 as u8;
+            exit u8t %3;
+        }
+    }
+
+}

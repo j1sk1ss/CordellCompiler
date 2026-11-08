@@ -1,0 +1,32 @@
+.benchmark-card {
+  padding: 20px;
+  border: 1px solid var(--line);
+  margin: 24px 0;
+  background: #fafbf3;
+}
+
+.benchmark-chart-wrap {
+  position: relative;
+  height: 420px;
+  width: 100%;
+}
+
+.benchmark-chart {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.benchmark-note,
+.section-note {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+@media (max-width: 760px) {
+  .benchmark-chart-wrap {
+    height: 300px;
+  }
+
+}

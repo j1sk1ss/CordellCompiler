@@ -1,0 +1,56 @@
+<section class="emission-panel" id="output-asm" role="tabpanel" aria-labelledby="stage-asm" tabindex="0" data-command="cplc trace.cpl -O0 --no-debug -no --emit-asm --asm-output trace.asm --arch x86_64 --sys-type linux64" hidden>
+  <header class="emission-heading">
+    <span>trace.asm</span><span>Linux x86-64</span><a href="assets/compiler/trace.asm" download target="_blank" rel="noopener" aria-label="Download trace.asm">↓</a>
+  </header>
+  <div class="emission-drawing emission-asm">
+    <div class="assembly-sheet">
+      <div class="block-label">
+        main <span>section .text / global main</span>
+      </div>
+      <div class="assembly-flow">
+        <div class="instruction-group">
+          <span class="instruction-label">01 / ARITHMETIC</span>
+          <div class="instruction">
+            <b>mov</b><span>al, 7</span>
+          </div>
+          <div class="instruction">
+            <b>add</b><span>al, 5</span>
+          </div>
+        </div>
+        <div class="instruction-group">
+          <span class="instruction-label">02 / CONVERSION</span>
+          <div class="instruction">
+            <b>mov</b><span>cl, al</span>
+          </div>
+          <div class="instruction">
+            <b>movsx</b><span>ecx, cl</span>
+          </div>
+          <div class="instruction">
+            <b>mov</b><span>ecx, ecx</span>
+          </div>
+        </div>
+        <div class="instruction-group">
+          <span class="instruction-label">03 / EXIT STATUS</span>
+          <div class="instruction">
+            <b>mov</b><span>cl, cl</span>
+          </div>
+          <div class="instruction">
+            <b>mov</b><span>dil, cl</span>
+          </div>
+        </div>
+        <div class="instruction-group">
+          <span class="instruction-label">04 / LINUX EXIT</span>
+          <div class="instruction">
+            <b>mov</b><span>rax, 60</span>
+          </div>
+          <div class="instruction">
+            <b>syscall</b><span></span>
+          </div>
+        </div>
+        <div class="assembly-result">
+          <span>EXIT STATUS</span><strong>12</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

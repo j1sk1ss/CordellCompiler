@@ -1,0 +1,108 @@
+.compiler-section {
+  position: relative;
+  overflow: hidden;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.compiler-section::after {
+  content: '+';
+  position: absolute;
+  top: -100px;
+  right: 8%;
+  font: 900 400px/1 var(--display);
+  color: #ffffff04;
+  pointer-events: none;
+}
+
+.compiler-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 1440px;
+  padding: 85px 4.5vw 32px;
+  margin: auto;
+}
+
+.compiler-intro {
+  display: grid;
+  grid-template-columns: 1fr .75fr;
+  gap: 9vw;
+}
+
+.compiler-intro h2 {
+  margin-top: 22px;
+}
+
+.compiler-intro .eyebrow {
+  color: #c1c3b5;
+}
+
+.orange-word {
+  color: var(--orange);
+}
+
+.cpl-home .compiler-intro > div > p:not(.eyebrow) {
+  margin: 35px 0 23px;
+  max-width: 375px;
+  font-size: 14px;
+  line-height: 1.8;
+  color: #bfc3b6;
+}
+
+.compiler-bottom {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-top: 24px;
+  font: 400 9px/1.5 var(--mono);
+}
+
+.compiler-bottom > span {
+  margin-right: auto;
+  color: #a9ad9c;
+}
+
+.compiler-bottom a:hover {
+  color: var(--lime);
+}
+
+@media (min-width: 1550px) {
+  .compiler-inner {
+    padding-inline: 65px;
+  }
+
+}
+
+@media (max-width: 1100px) {
+  .compiler-intro {
+    gap: 5vw;
+  }
+
+}
+
+@media (max-width: 760px) {
+  .compiler-inner {
+    padding: 60px 23px 25px;
+  }
+
+  .compiler-intro {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .cpl-home .compiler-intro > div > p:not(.eyebrow) {
+    margin-top: 26px;
+    max-width: 440px;
+  }
+
+  .compiler-bottom {
+    flex-wrap: wrap;
+    gap: 14px;
+    font-size: 8px;
+  }
+
+  .compiler-bottom > span {
+    flex-basis: 100%;
+  }
+
+}

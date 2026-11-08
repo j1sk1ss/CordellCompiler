@@ -33,5 +33,6 @@
   - [Debugging](pages/debugging.md)
 
 - **Project record**
+  - <a href="#/?id=language-history">Language history</a>
   - [Changelog](pages/changelog.md)
   - [TODO](pages/TODO.md)

@@ -1,0 +1,26 @@
+<section class="emission-panel" id="output-ast" role="tabpanel" aria-labelledby="stage-ast" tabindex="0" data-command="cplc trace.cpl -O0 --no-debug -no --emit-ast --ast-output trace.ast">
+  <header class="emission-heading">
+    <span>trace.ast</span><span>Syntax tree</span><a href="assets/compiler/trace.ast" download target="_blank" rel="noopener" aria-label="Download trace.ast">↓</a>
+  </header>
+  <div class="emission-drawing emission-ast">
+    <div class="ast-tree">
+      <div class="tree-root">
+        <span class="tree-node tree-accent">start</span>
+      </div>
+      <div class="tree-branches">
+        <div class="tree-branch">
+          <span class="tree-node ">i32 <b>total</b></span><span class="tree-stem" aria-hidden="true"></span><span class="tree-node ">=</span><span class="tree-stem" aria-hidden="true"></span><span class="tree-node tree-accent">+</span>
+          <div class="tree-leaves">
+            <span class="tree-node ">7</span><span class="tree-node ">5</span>
+          </div>
+        </div>
+        <div class="tree-branch">
+          <span class="tree-node ">exit</span><span class="tree-stem" aria-hidden="true"></span><span class="tree-node ">as</span>
+          <div class="tree-leaves">
+            <span class="tree-node ">u8</span><span class="tree-node ">total</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,407 @@
+.home-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 0;
+  max-width: 1440px;
+  margin: auto;
+  padding: 66px 4.5vw 54px;
+  overflow: hidden;
+}
+
+.hero-copy {
+  position: relative;
+  z-index: 2;
+}
+
+.cpl-home .home-hero h1 {
+  position: relative;
+  font: 800 clamp(76px, 8vw, 115px)/.88 var(--display);
+  text-transform: uppercase;
+  letter-spacing: -2.5px;
+  margin-top: 32px;
+}
+
+.hero-first-line {
+  font-size: .8em;
+  white-space: nowrap;
+}
+
+.painted-word {
+  display: inline-block;
+  position: relative;
+  color: var(--paper);
+  padding: 4px 24px 10px 5px;
+  isolation: isolate;
+  margin: 2px 0 0 -5px;
+}
+
+.painted-word::before {
+  content: '';
+  position: absolute;
+  inset: -5px -14px -7px -18px;
+  z-index: -1;
+  background: url('../../assets/brush-blue.svg') center / 100% 100% no-repeat;
+  transform: rotate(-3deg);
+}
+
+.orange-period {
+  color: var(--orange);
+}
+
+.cpl-home .hero-description {
+  max-width: 420px;
+  margin-top: 28px;
+  font-size: 15px;
+  line-height: 1.75;
+  color: #53564f;
+}
+
+.home-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-top: 27px;
+}
+
+.cpl-home .hero-footnote {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 11px;
+  margin-top: 34px;
+  color: var(--muted);
+  font: 400 8px/1.8 var(--mono);
+  letter-spacing: .7px;
+}
+
+.hero-footnote span {
+  color: var(--orange);
+}
+
+.hero-art {
+  position: relative;
+  min-height: 535px;
+  margin-left: -22px;
+  align-self: center;
+}
+
+.hero-paint {
+  position: absolute;
+  width: 130%;
+  max-width: none !important;
+  height: 125%;
+  object-fit: contain;
+  left: -12%;
+  top: -12%;
+}
+
+.art-cpl {
+  position: absolute;
+  top: 30%;
+  left: 18%;
+  transform: rotate(-9deg);
+  font: 900 clamp(150px, 17vw, 250px)/1 var(--display);
+  letter-spacing: -5px;
+  color: var(--paper);
+  text-shadow: 5px 6px 0 var(--ink);
+}
+
+.art-label {
+  position: absolute;
+  top: 12%;
+  left: 12%;
+  transform: rotate(-9deg);
+  font: 600 10px/1.5 var(--mono);
+  letter-spacing: 1.5px;
+}
+
+.art-subtitle {
+  position: absolute;
+  top: 67%;
+  left: 9%;
+  width: 83%;
+  transform: rotate(-9deg);
+  font: 600 7px/1.5 var(--mono);
+  letter-spacing: 1.8px;
+}
+
+.art-cross {
+  position: absolute;
+  font: 400 32px/1 var(--mono);
+}
+
+.cross-one {
+  top: 2%;
+  left: 13%;
+}
+
+.cross-two {
+  bottom: 10%;
+  right: 0;
+  color: var(--blue);
+}
+
+.version-sticker {
+  position: absolute;
+  top: 61%;
+  right: -2%;
+  display: flex;
+  flex-direction: column;
+  width: 145px;
+  padding: 11px 13px;
+  background: var(--lime);
+  border: 1px solid var(--ink);
+  transform: rotate(9deg);
+  box-shadow: 4px 4px 0 var(--ink);
+  font: 500 8px/1.5 var(--mono);
+}
+
+.version-sticker > span {
+  font: 800 76px/.95 var(--display);
+  letter-spacing: -2px;
+}
+
+.version-sticker small {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--ink);
+  font-size: 6px;
+}
+
+.art-arrow {
+  position: absolute;
+  bottom: 2%;
+  left: 24%;
+  width: 105px;
+  height: 80px;
+  fill: none;
+  stroke: var(--blue);
+  stroke-width: 3;
+  stroke-linecap: round;
+  transform: rotate(12deg);
+}
+
+.art-handwritten {
+  position: absolute;
+  bottom: -1%;
+  left: 48%;
+  transform: rotate(-6deg);
+  font: italic 19px/1.1 Georgia, serif;
+  color: var(--blue);
+}
+
+.manifesto-strip {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: center;
+  gap: 24px;
+  padding: 19px 4.5vw;
+  background: var(--lime);
+  border-block: 1px solid var(--ink);
+}
+
+.manifesto-strip span {
+  font: 500 10px/1.2 var(--mono);
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.manifesto-strip i {
+  font-size: 24px;
+  line-height: 1;
+  font-style: normal;
+}
+
+@media (min-width: 1550px) {
+  .home-hero {
+    padding-inline: 65px;
+  }
+
+}
+
+@media (max-width: 1100px) {
+  .home-hero {
+    padding-top: 50px;
+  }
+
+  .cpl-home .home-hero h1 {
+    font-size: 9vw;
+  }
+
+  .hero-art {
+    min-height: 470px;
+  }
+
+  .hero-copy .eyebrow {
+    font-size: 8px;
+  }
+
+  .version-sticker {
+    width: 115px;
+    right: 0;
+  }
+
+  .version-sticker > span {
+    font-size: 60px;
+  }
+
+  .version-sticker small {
+    font-size: 5px;
+  }
+
+  .art-subtitle {
+    font-size: 6px;
+    letter-spacing: 1px;
+  }
+
+  .home-actions {
+    gap: 17px;
+  }
+
+  .cpl-home .hero-description {
+    font-size: 14px;
+  }
+
+  .manifesto-strip {
+    gap: 15px;
+  }
+
+  .manifesto-strip span {
+    font-size: 8px;
+  }
+
+}
+
+@media (max-width: 760px) {
+  .home-hero {
+    grid-template-columns: 1fr;
+    padding: 40px 23px 20px;
+  }
+
+  .cpl-home .home-hero h1 {
+    font-size: clamp(64px, 14vw, 80px);
+    letter-spacing: -1.5px;
+    margin-top: 25px;
+  }
+
+  .hero-copy .eyebrow {
+    font-size: 8px;
+    letter-spacing: .5px;
+  }
+
+  .hero-first-line {
+    font-size: .75em;
+  }
+
+  .cpl-home .hero-description {
+    max-width: 400px;
+    margin-top: 23px;
+  }
+
+  .hero-art {
+    min-height: 420px;
+    width: min(100%, 480px);
+    margin: 14px auto 20px;
+  }
+
+  .hero-paint {
+    left: -9%;
+    width: 120%;
+    height: 125%;
+    top: -8%;
+  }
+
+  .art-cpl {
+    font-size: clamp(160px, 38vw, 220px);
+    top: 29%;
+    left: 14%;
+  }
+
+  .art-label {
+    top: 15%;
+    left: 15%;
+  }
+
+  .art-subtitle {
+    left: 16%;
+    top: 70%;
+    font-size: 6px;
+  }
+
+  .version-sticker {
+    right: 5%;
+    top: 68%;
+  }
+
+  .art-arrow {
+    bottom: -4%;
+    left: 19%;
+    width: 80px;
+  }
+
+  .art-handwritten {
+    bottom: -4%;
+    left: 42%;
+    font-size: 17px;
+  }
+
+  .cross-one {
+    top: 6%;
+    left: 15%;
+  }
+
+  .cross-two {
+    right: 0;
+    bottom: 16%;
+  }
+
+  .manifesto-strip {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto;
+    gap: 14px 12px;
+    padding: 17px 23px;
+  }
+
+  .manifesto-strip span {
+    font-size: 7px;
+    letter-spacing: .5px;
+  }
+
+  .manifesto-strip i {
+    font-size: 18px;
+  }
+
+}
+
+@media (max-width: 380px) {
+  .hero-copy .eyebrow {
+    font-size: 7px;
+  }
+
+  .cpl-home .home-hero h1 {
+    font-size: clamp(52px, 16vw, 60px);
+  }
+
+  .home-actions {
+    gap: 15px;
+  }
+
+  .hero-art {
+    min-height: 350px;
+  }
+
+  .version-sticker {
+    right: 0;
+    width: 102px;
+  }
+
+  .art-cpl {
+    left: 9%;
+  }
+
+  .art-subtitle {
+    font-size: 5px;
+  }
+
+}

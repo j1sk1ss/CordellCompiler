@@ -1,0 +1,119 @@
+.get-started-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 30px;
+  padding: 58px max(4.5vw, calc((100vw - 1310px) / 2));
+  border-block: 1px solid var(--ink);
+  background: var(--lime);
+}
+
+.get-started-section h2 {
+  margin-top: 17px;
+  font-size: clamp(55px, 6.6vw, 95px);
+}
+
+.cpl-home .get-started-section p:not(.eyebrow) {
+  margin-top: 18px;
+  font-size: 13px;
+}
+
+.get-started-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 18px;
+}
+
+.get-started-actions .button:hover {
+  box-shadow: 4px 4px 0 var(--blue);
+}
+
+.site-footer {
+  max-width: 1440px;
+  margin: auto;
+  padding: 35px 4.5vw 25px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 22px;
+}
+
+.footer-brand {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font: 900 40px/1 var(--display);
+  letter-spacing: -1px;
+}
+
+.footer-brand span {
+  padding: 3px 5px;
+  border: 1px solid var(--ink);
+  font: 500 9px/1 var(--mono);
+  transform: rotate(-7deg);
+}
+
+.cpl-home .site-footer p {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.site-footer > div {
+  margin-left: auto;
+  display: flex;
+  gap: 22px;
+  font-size: 10px;
+}
+
+.site-footer > div a:hover {
+  color: var(--blue);
+}
+
+.footer-note {
+  flex-basis: 100%;
+  padding-top: 18px;
+  margin-top: 4px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font: 400 8px/1.5 var(--mono);
+  letter-spacing: 1px;
+}
+
+@media (min-width: 1550px) {
+  .site-footer {
+    padding-inline: 65px;
+  }
+
+}
+
+@media (max-width: 760px) {
+  .get-started-section {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 44px 23px;
+    gap: 25px;
+  }
+
+  .get-started-section h2 {
+    font-size: clamp(50px, 10vw, 70px);
+  }
+
+  .get-started-actions {
+    flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+
+  .site-footer {
+    padding: 28px 23px;
+    gap: 17px;
+  }
+
+  .site-footer > div {
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+
+}

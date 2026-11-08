@@ -1,0 +1,81 @@
+.cpl-runner {
+  margin: 24px 0;
+  padding: 18px;
+  border: 1px solid var(--line);
+  background: #eeeee5;
+}
+
+.cpl-runner-toolbar,
+.cpl-runner-toolbar-left,
+.cpl-runner-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.cpl-runner-toolbar {
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.cpl-runner-title {
+  font: 600 12px var(--mono);
+}
+
+.cpl-runner-badge {
+  padding: 5px 7px;
+  background: var(--lime);
+  font-size: 9px;
+}
+
+.cpl-runner-button {
+  padding: 10px 16px;
+  border: 1px solid var(--ink);
+  background: var(--blue);
+  color: white;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.cpl-runner-button:hover {
+  background: var(--ink);
+}
+
+.cpl-runner-button.secondary {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.cpl-runner-button:disabled {
+  opacity: .6;
+  cursor: wait;
+}
+
+.cpl-runner-editor-shell {
+  border: 1px solid var(--ink);
+  overflow: hidden;
+}
+
+.cpl-runner-tabs {
+  padding: 10px 13px;
+  background: var(--ink);
+  color: var(--paper);
+  font: 11px var(--mono);
+}
+
+.cpl-runner-editor {
+  width: 100%;
+  height: 320px;
+}
+
+.cpl-runner-output {
+  min-height: 72px;
+  white-space: pre-wrap;
+  font: 12px/1.8 var(--mono);
+}
+
+.cpl-runner-output.is-error {
+  border-color: var(--orange);
+}

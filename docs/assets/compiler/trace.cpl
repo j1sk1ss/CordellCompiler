@@ -1,0 +1,4 @@
+start() {
+    i32 total = 7 + 5;
+    exit total as u8;
+}
