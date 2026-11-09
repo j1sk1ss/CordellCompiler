@@ -12,9 +12,9 @@ static inline source_pos_info_t* _create_info(FILE* f, char* name, int l) {
     if (!inf) return NULL;
     memset(&inf->cst, 0, sizeof(pp_cmt_state_t));
     stack_init(&inf->cst.skips);
-    inf->f  = f;
-    inf->l  = l;
-    inf->n  = strdup(name);
+    inf->f = f;
+    inf->l = l;
+    inf->n = strdup(name);
     return inf;
 }
 
@@ -86,11 +86,7 @@ static int _try_push_path(sstack_t* st, char* full_path) {
    
    Returns 1 if include starts with './' or '../'. */
 static inline int _is_relative_include(const char* inc_name) {
-    return inc_name &&
-           (
-               !strncmp(inc_name, "./",  2) ||
-               !strncmp(inc_name, "../", 3)
-           );
+    return inc_name && (!strncmp(inc_name, "./",  2) || !strncmp(inc_name, "../", 3));
 }
 
 /* Try to push an include relative to the current source file.
@@ -293,34 +289,31 @@ int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx, deftb_t* macros) {
            Also remember the open comment statement if it exists
            in the line.
            This info will be saved in the cst structure. */
+        int comment_removed_newline = _count_newlines(ppctx->line) > _count_newlines(ppctx->clean);
         if (!PP_strip_colon_comments(ppctx->line, &inf->cst, &ppctx->clean, &ppctx->clean_size)) {
             _unload_pp_ctx(ppctx);
             return -1;
         }
-        int comment_removed_newline = _count_newlines(ppctx->line) > _count_newlines(ppctx->clean);
 
         /* Figure out which directive is presented in the line.
            If there is no directive, just copy the line into the output. */
-        char* d = PP_get_directive_from_line(ppctx->clean);
-        int skip = _is_skipping(&inf->cst.skips);
+        char* d                      = PP_get_directive_from_line(ppctx->clean);
+        int skip                     = _is_skipping(&inf->cst.skips);
         int needs_comment_line_macro = 0;
         if (!d) {
             if (!skip) {
-                /* __FILE__ */
-                char line_file[PP_PATH_MAX] = { 0 };
-                snprintf(line_file, sizeof(line_file), "\"%s\"", inf->n);
-                MCTB_put_define("__FILE__", line_file, macros);
+#define SIMPLE_DEFINED_VARIABLE(var, fmt, ...)    \
+    do {                                          \
+        char _[256] = { 0 };                      \
+        snprintf(_, sizeof(_), fmt, __VA_ARGS__); \
+        MCTB_put_define(var, _, macros);          \
+    } while (0);
+                SIMPLE_DEFINED_VARIABLE("__FILE__", "\"%s\"", inf->n);
+                SIMPLE_DEFINED_VARIABLE("__LINE__", "%i", inf->l);
 
-                /* __LINE__ */
-                char line_num[32] = { 0 };
-                snprintf(line_num, sizeof(line_num), "%i", inf->l);
-                MCTB_put_define("__LINE__", line_num, macros);
-
-                /* __BODY__ */
                 int resolved;
                 while ((resolved = PP_resolve_defines(
-                    &ppctx->clean, &ppctx->clean_size,
-                    &ppctx->defined, &ppctx->defined_size, macros
+                    &ppctx->clean, &ppctx->clean_size, &ppctx->defined, &ppctx->defined_size, macros
                 )) == 2) {
                     nread = getline(&ppctx->line, &ppctx->size, inf->f);
                     if (nread < 0) {
@@ -343,14 +336,14 @@ int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx, deftb_t* macros) {
                     }
 
                     comment_removed_newline |= _count_newlines(ppctx->line) > _count_newlines(ppctx->defined);
-                    size_t len = strlen(ppctx->clean), extra = strlen(ppctx->defined);
+                    size_t len   = strlen(ppctx->clean), extra = strlen(ppctx->defined);
                     char* joined = realloc(ppctx->clean, len + extra + 1);
                     if (!joined) {
                         _unload_pp_ctx(ppctx);
                         return -1;
                     }
 
-                    ppctx->clean = joined;
+                    ppctx->clean      = joined;
                     ppctx->clean_size = len + extra + 1;
                     memcpy(joined + len, ppctx->defined, extra + 1);
                 }
@@ -364,6 +357,7 @@ int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx, deftb_t* macros) {
                 MCTB_remove_define("__LINE__", macros);
                 _lazy_fputs(ppctx->defined, ppctx->out);
                 needs_comment_line_macro = comment_removed_newline;
+#undef SIMPLE_DEFINED_VARIABLE
             }
         }
         else {
