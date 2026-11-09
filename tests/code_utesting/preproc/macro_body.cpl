@@ -1,0 +1,42 @@
+#define for(init, cond, step) { init; while cond; { __BODY__; step; } }
+#define BLOCK __BODY__
+#define TWICE() __BODY__ __BODY__
+#define LITERAL() "__BODY__" + x__BODY__ + __BODY__x + '__BODY__'
+#define VALUE 9
+for (i32 a = 0, a < 10, a += 1) {
+    i32 b = VALUE;
+    if (b) { "}"; '{'; "escaped \" }"; }
+    : } ignored { :
+}
+i32 line = __LINE__;
+BLOCK { i32 c = VALUE; } tail;
+TWICE() { VALUE; }
+LITERAL();
+BLOCK
+
+{
+    BLOCK { VALUE; }
+} tail;
+for (; , 1, ;) {}
+
+:/ OUTPUT
+#line 0 "{X}.cpl"
+#line 1 "{X}.cpl"
+#line 2 "{X}.cpl"
+#line 3 "{X}.cpl"
+#line 4 "{X}.cpl"
+#line 5 "{X}.cpl"
+{ i32 a = 0; while a < 10; { {
+    i32 b = 9;
+    if (b) { "}"; '{'; "escaped \" }"; }
+
+}; a += 1; } }
+i32 line = 11;
+{ i32 c = 9; } tail;
+{ 9; } { 9; }
+"__BODY__" + x__BODY__ + __BODY__x + '__BODY__';
+{
+    { 9; }
+} tail;
+{ ;; while 1; { {}; ;; } }
+/:

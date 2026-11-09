@@ -128,7 +128,8 @@ int PP_register_define(const char* p, deftb_t* macros);
        - `out_cap` - Output size.
        - `dtcx` - Define table context.
    
-   Returns 0 on failure or if nothing changed, otherwise 1. */
+   Returns 0 on failure, 1 on success, or 2 when a macro body needs
+   more source lines appended to `in`. */
 int PP_resolve_defines(char** in, size_t* in_cap, char** out, size_t* out_cap, deftb_t* dctx);
 
 typedef struct {

@@ -306,15 +306,56 @@ int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx, deftb_t* macros) {
         int needs_comment_line_macro = 0;
         if (!d) {
             if (!skip) {
+                /* __FILE__ */
                 char line_file[PP_PATH_MAX] = { 0 };
                 snprintf(line_file, sizeof(line_file), "\"%s\"", inf->n);
                 MCTB_put_define("__FILE__", line_file, macros);
 
+                /* __LINE__ */
                 char line_num[32] = { 0 };
                 snprintf(line_num, sizeof(line_num), "%i", inf->l);
                 MCTB_put_define("__LINE__", line_num, macros);
 
-                if (!PP_resolve_defines(&ppctx->clean, &ppctx->clean_size, &ppctx->defined, &ppctx->defined_size, macros)) {
+                /* __BODY__ */
+                int resolved;
+                while ((resolved = PP_resolve_defines(
+                    &ppctx->clean, &ppctx->clean_size,
+                    &ppctx->defined, &ppctx->defined_size, macros
+                )) == 2) {
+                    nread = getline(&ppctx->line, &ppctx->size, inf->f);
+                    if (nread < 0) {
+                        fprintf(stderr, "%s:%i: expected a complete block for __BODY__\n", inf->n, inf->l);
+                        _unload_pp_ctx(ppctx);
+                        return -1;
+                    }
+
+                    inf->l++;
+                    for (int i = 0; i < nread - 1; i++) {
+                        if (_permitted_character(ppctx->line + i)) {
+                            _unload_pp_ctx(ppctx);
+                            return -1;
+                        }
+                    }
+
+                    if (!PP_strip_colon_comments(ppctx->line, &inf->cst, &ppctx->defined, &ppctx->defined_size)) {
+                        _unload_pp_ctx(ppctx);
+                        return -1;
+                    }
+
+                    comment_removed_newline |= _count_newlines(ppctx->line) > _count_newlines(ppctx->defined);
+                    size_t len = strlen(ppctx->clean), extra = strlen(ppctx->defined);
+                    char* joined = realloc(ppctx->clean, len + extra + 1);
+                    if (!joined) {
+                        _unload_pp_ctx(ppctx);
+                        return -1;
+                    }
+
+                    ppctx->clean = joined;
+                    ppctx->clean_size = len + extra + 1;
+                    memcpy(joined + len, ppctx->defined, extra + 1);
+                }
+
+                if (!resolved) {
                     _unload_pp_ctx(ppctx);
                     return -1;
                 }

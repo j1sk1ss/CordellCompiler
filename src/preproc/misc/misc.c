@@ -154,24 +154,73 @@ static int _parse_macro_call(const char* in, size_t* end, int expected, list_t* 
     return 0;
 }
 
-static int _expand_macro(define_t* def, list_t* args, char** out, size_t* cap, size_t* oi) {
+static const char* _body_marker(const char* p) {
+    while (*p) {
+        if (*p == '\'' || *p == '"') {
+            p += _literal_end(p, 0);
+            continue;
+        }
+
+        if (!_is_ident_start(*p)) p++;
+        else {
+            const char* start = p++;
+            while (_is_ident_char(*p)) p++;
+            if (p - start == 8 && !memcmp(start, "__BODY__", 8)) return start;
+        }
+    }
+
+    return NULL;
+}
+
+static int _parse_macro_body(const char* in, size_t* start, size_t* end) {
+    size_t i = *end;
+    while (isspace((unsigned char)in[i])) i++;
+    if (!in[i]) return 2;
+    if (in[i] != '{') return 0;
+    *start = i;
+    int depth = 0;
+    for (; in[i]; i++) {
+        if (in[i] == '\'' || in[i] == '"') {
+            i = _literal_end(in, i) - 1;
+            continue;
+        }
+        if (in[i] == '{') depth++;
+        if (in[i] == '}' && --depth == 0) {
+            *end = i + 1;
+            return 1;
+        }
+    }
+    return 2;
+}
+
+static int _expand_macro(
+    define_t* def, list_t* args, const char* block, size_t block_len, char** out, size_t* cap, size_t* oi
+) {
     map_t replacements;
     if (!map_init(&replacements, MAP_NO_CMP)) return 0;
     list_node_t* actual = args->h;
-    foreach (string_t* name, &def->args->args) {
-        list_t* positions;
-        if (!map_get(&def->args->positions, (long)name->hash, (void**)&positions)) goto _fail;
-        foreach (void* offset, positions) {
-            if (!map_put(&replacements, (long)offset, actual->data)) goto _fail;
-        }
+    if (def->args) {
+        foreach (string_t* name, &def->args->args) {
+            list_t* positions;
+            if (!map_get(&def->args->positions, (long)name->hash, (void**)&positions)) goto _fail;
+            foreach (void* offset, positions) {
+                if (!map_put(&replacements, (long)offset, actual->data)) goto _fail;
+            }
 
-        actual = actual->n;
+            actual = actual->n;
+        }
     }
 
     const char* body = def->value->head;
+    const char* marker = block ? _body_marker(body) : NULL;
     for (size_t i = 0; body[i];) {
         string_t* arg;
-        if (map_get(&replacements, (long)i, (void**)&arg)) {
+        if (body + i == marker) {
+            if (!_append_mem(out, cap, oi, block, block_len)) goto _fail;
+            i += 8;
+            marker = _body_marker(body + i);
+        }
+        else if (map_get(&replacements, (long)i, (void**)&arg)) {
             if (!_append_mem(out, cap, oi, arg->head, arg->len(arg))) goto _fail;
             do { i++; } while (_is_ident_char(body[i]));
         }
@@ -303,28 +352,47 @@ static int _resolve_defines(const char* in, char** out, size_t* out_cap, deftb_t
 
             define_t def;
             if (MCTB_get_define(tok, &def, dctx)) {
+                size_t end = i;
+                list_t args;
+                list_init(&args);
                 if (def.args) {
-                    size_t end = i;
                     while (in[end] == ' ' || in[end] == '\t') end++;
                     if (in[end] == '(') {
-                        list_t args;
-                        list_init(&args);
                         int ok = _parse_macro_call(in, &end, def.args->args.s, &args);
-                        if (ok) ok = _expand_macro(&def, &args, out, out_cap, &oi);
-                        list_free_force_op(&args, (int (*)(void*))destroy_string);
+                        if (!ok) {
+                            list_free_force_op(&args, (int (*)(void*))destroy_string);
+                            if (tok != stack_tok) free(tok);
+                            return -1;
+                        }
+                    }
+                    else {
+                        int ok = _append_mem(out, out_cap, &oi, tok, len);
                         if (tok != stack_tok) free(tok);
                         if (!ok) return -1;
-                        i = end;
-                        changed = 1;
                         continue;
                     }
-                    if (!_append_mem(out, out_cap, &oi, tok, len)) {
-                        if (tok != stack_tok) free(tok);
-                        return -1;
-                    }
+                }
+
+                int has_body = _body_marker(def.value->head) != NULL;
+                size_t block_start = end;
+                int ok = has_body ? _parse_macro_body(in, &block_start, &end) : 1;
+                if (ok != 1) {
+                    list_free_force_op(&args, (int (*)(void*))destroy_string);
                     if (tok != stack_tok) free(tok);
+                    return ok == 2 ? -2 : -1;
+                }
+
+                if (def.args || has_body) {
+                    ok = _expand_macro(&def, &args, has_body ? in + block_start : NULL,
+                                       end - block_start, out, out_cap, &oi);
+                    list_free_force_op(&args, (int (*)(void*))destroy_string);
+                    if (tok != stack_tok) free(tok);
+                    if (!ok) return -1;
+                    i = end;
+                    changed = 1;
                     continue;
                 }
+
                 size_t vlen = def.value->len(def.value);
                 const char* v = def.value->head;
                 if (!(vlen == len && !memcmp(v, tok, len))) {
@@ -359,8 +427,10 @@ static int _resolve_defines(const char* in, char** out, size_t* out_cap, deftb_t
 int PP_resolve_defines(char** in, size_t* in_cap, char** out, size_t* out_cap, deftb_t* dctx) {
     for (int pass = 0; pass < PP_MAX_PASSES; pass++) {
         int changed = _resolve_defines(*in, out, out_cap, dctx);
-        if (changed < 0) return 0;
-        if (!changed) return 1;
+        if (changed == -2) return 2;
+        if (changed < 0)   return 0;
+        if (!changed)      return 1;
+        
         char *ts    = *in; 
         *in         = *out; 
         *out        = ts;
