@@ -77,6 +77,7 @@ static void _set_optimization_profile(options_t* out, int level) {
         out->config.tco       = 1;
         out->config.tre       = 1;
         out->config.finline   = 1;
+        out->config.unroll    = 1; // FIXME: For some reason it doesn't work. Check 09_fibonacci.cpl
     }
 }
 

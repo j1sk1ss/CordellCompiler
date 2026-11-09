@@ -4,22 +4,25 @@
 
 typedef struct {
     loop_node_t* loop;
-    cfg_block_t* exit;
-    hir_block_t* comparison;
+    hir_block_t* condition;
     big_int_t    count;
-    int          posttested;
+    int          posttested : 1;
 } unroll_info_t;
 
 static void _rename_subject(hir_subject_t* s, map_t* versions) {
     if (!s) return;
-    void* id = NULL;
-    if (HIR_is_vartype(s->t) && map_get(versions, s->storage.var.v_id, &id)) s->storage.var.v_id = (symbol_id_t)id;
+    symbol_id_t id = NO_SYMBOL_ID;
+
+    if (
+        HIR_is_vartype(s->t) && 
+        map_get(versions, s->storage.var.v_id, (void**)&id)
+    ) s->storage.var.v_id = id;
     else if (s->t == HIR_ARGLIST) {
         foreach (hir_subject_t* arg, &s->storage.list.h) _rename_subject(arg, versions);
     }
     else if (s->t == HIR_PHISET) {
         set_foreach (int_tuple_t* incoming, &s->storage.set.h) {
-            if (map_get(versions, incoming->y, &id)) incoming->y = (symbol_id_t)id;
+            if (map_get(versions, incoming->y, (void**)&id)) incoming->y = id;
         }
     }
     
@@ -43,20 +46,22 @@ static int _uses_variable(hir_subject_t* s, symbol_id_t id) {
     return 0;
 }
 
-static hir_block_t* _get_dead_comparison(loop_node_t* loop, loop_iteration_condition_t* condition) {
-    hir_block_t* comparison = condition->comparison;
-    if (!comparison || !comparison->farg || !HIR_is_vartype(comparison->farg->t)) return NULL;
-    if (comparison->farg->ptr || HIR_is_global(comparison->farg->t)) return NULL;
+static hir_block_t* _get_dead_condition(loop_node_t* loop, loop_iteration_condition_t* condition) {
+    hir_block_t* cond = condition->comparison;
+    if (
+        !cond || !cond->farg || !HIR_is_vartype(cond->farg->t) ||
+        cond->farg->ptr || HIR_is_global(cond->farg->t)
+    ) return NULL;
     foreach (cfg_block_t* bb, &loop->header->pfunc->blocks) {
         iterate_hir_instructions (bb) {
-            if (hh->unused || hh == comparison || hh == condition->branch) continue;
+            if (hh->unused || hh == cond || hh == condition->branch) continue;
             iterate_hir_args (hir_subject_t* arg, hh, 0) {
-                if (_uses_variable(arg, comparison->farg->storage.var.v_id)) return NULL;
+                if (_uses_variable(arg, cond->farg->storage.var.v_id)) return NULL;
             }
         }
     }
 
-    return comparison;
+    return cond;
 }
 
 static int _is_valid_loop(loop_node_t* loop, loop_iteration_info_t* iterations) {
@@ -122,14 +127,14 @@ static int _copy_iteration(unroll_info_t* info, int header_only, hir_block_t* an
         int count = 0;
         iterate_hir_instructions (bb) {
             if (
-                hh->unused || hh == info->comparison || hh->op == HIR_MKLB ||
+                hh->unused || hh == info->condition || hh->op == HIR_MKLB ||
                 hh->op == HIR_PHI || HIR_is_jmp(hh->op)
             ) continue;
             
             if (hh->op == HIR_PHI_PREAMBLE && map_get(versions, hh->farg->storage.var.v_id, NULL)) {
-                void* id = (void*)hh->sarg->storage.var.v_id;
-                map_get(versions, hh->sarg->storage.var.v_id, &id);
-                incoming[count++] = (int_tuple_t){ .x = hh->farg->storage.var.v_id, .y = (symbol_id_t)id };
+                symbol_id_t id = hh->sarg->storage.var.v_id;
+                map_get(versions, hh->sarg->storage.var.v_id, (void**)&id);
+                incoming[count++] = (int_tuple_t){ .x = hh->farg->storage.var.v_id, .y = id };
                 continue;
             }
             
@@ -182,8 +187,7 @@ static int _collect_loops(loop_node_t* loop, list_t* out, sym_table_t* smt) {
         }
         else {
             info->loop       = loop;
-            info->exit       = set_has(&loop->blocks, condition->block->l) ? condition->block->jmp : condition->block->l;
-            info->comparison = _get_dead_comparison(loop, condition);
+            info->condition  = _get_dead_condition(loop, condition);
             info->count      = iterations.count;
             info->posttested = condition->posttested;
         }
@@ -204,7 +208,10 @@ static int _unroll_loop(unroll_info_t* info, sym_table_t* smt) {
     iterate_hir_instructions (header) {
         if (hh->op != HIR_PHI) continue;
         set_foreach (int_tuple_t* incoming, &hh->targ->storage.set.h) {
-            if (incoming->x == loop->preheader->id && !map_put(&versions, hh->sarg->storage.var.v_id, (void*)incoming->y)) goto _done;
+            if (
+                incoming->x == loop->preheader->id && 
+                !map_put(&versions, hh->sarg->storage.var.v_id, (void*)incoming->y)
+            ) goto _done;
         }
     }
 
@@ -217,7 +224,9 @@ static int _unroll_loop(unroll_info_t* info, sym_table_t* smt) {
         !_copy_iteration(info, 1, anchor, &versions, smt)
     ) goto _done;
 
-    hir_subject_t* label = HIR_copy_subject_and_label(info->exit->hmap.entry->farg);
+    cfg_block_t* loop_exit = NULL;
+    set_foreach (loop_exit, &info->loop->exits) {}
+    hir_subject_t* label = HIR_copy_subject_and_label(loop_exit->hmap.entry->farg);
     if (!label) goto _done;
 
     hir_block_t* jump = HIR_create_block(HIR_JMP, label, NULL, NULL);
@@ -240,7 +249,7 @@ static int _unroll_loop(unroll_info_t* info, sym_table_t* smt) {
                 _rename_subject(arg, &versions);
             }
             
-            if (hh->op == HIR_PHI && bb == info->exit && info->posttested) {
+            if (hh->op == HIR_PHI && bb == loop_exit && info->posttested) {
                 set_foreach (int_tuple_t* incoming, &hh->targ->storage.set.h) {
                     if (incoming->x == loop->latch->id) incoming->x = header->id;
                 }
@@ -259,10 +268,13 @@ static int _unroll_loop(unroll_info_t* info, sym_table_t* smt) {
     }
 
     RESET_SET(&header->succ);
-    if (!set_add(&header->succ, info->exit) || !set_add(&info->exit->pred, header)) goto _done;
+    if (
+        !set_add(&header->succ, loop_exit) || 
+        !set_add(&loop_exit->pred, header)
+    ) goto _done;
     
     header->l         = NULL;
-    header->jmp       = info->exit;
+    header->jmp       = loop_exit;
     header->hmap.exit = jump;
     header->type      = CFG_DEFAULT_BLOCK;
     
