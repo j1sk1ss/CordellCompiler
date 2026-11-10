@@ -19,7 +19,7 @@ static inline void _read_counter_data(
             { tt = HIR_STKVARU64; }
         );
 
-        *index = HIR_SUBJ_STKVAR(VRTB_ADD_TMP_NF(tt, smt), tt, 0);
+        *index = HIR_SUBJ_STKVAR(VRTB_ADD_NF(tt, smt), tt, 0);
         HIR_BLOCK1(ctx, HIR_VARDECL, *index);
         HIR_BLOCK2(ctx, HIR_STORE, *index, HIR_SUBJ_CONST(counter_data->index.value));
         *index_owned_by_blocks = 1;
@@ -46,13 +46,13 @@ static inline void _read_counter_data(
 }
 
 /* Generates a counted (or not) loop.
-Params:
-    - `node` - Entry 'loop' node.
-    - `ctx` - HIR context.
-    - `counter_data` - Counter annotation data. Can be NULL which will create a regular loop.
-    - `smt` - Symtable.
-
-Returns 1 if succeeds */
+   Params:
+       - `node` - Entry 'loop' node.
+       - `ctx` - HIR context.
+       - `counter_data` - Counter annotation data. Can be NULL which will create a regular loop.
+       - `smt` - Symtable.
+   
+   Returns 1 if succeeds */
 static int _generate_counted_loop_block(ast_node_t* node, hir_ctx_t* ctx, annotation_counter_t* counter_data, sym_table_t* smt) {
     hir_subject_t *counter = NULL, *step = NULL;
     int counter_owned_by_blocks = 0;

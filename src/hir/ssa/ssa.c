@@ -7,12 +7,12 @@ typedef struct {
 } varver_t;
 
 /* Add variable version placeholder to the versions map.
-Params:
-    - `vers` - Versions map.
-    - `id` - The source variable ID (Or the head variable ID).
-    - `cid` - Current variable ID.
-
-Returns 1 if all operations succeed, otherwise 0. */
+   Params:
+       - `vers` - Versions map.
+       - `id` - The source variable ID (Or the head variable ID).
+       - `cid` - Current variable ID.
+   
+   Returns 1 if all operations succeed, otherwise 0. */
 static int _add_varver(map_t* vers, symbol_id_t id, symbol_id_t cid) {
     varver_t* vv = (varver_t*)mm_malloc(sizeof(varver_t));
     if (!vv) return 0;
@@ -22,11 +22,11 @@ static int _add_varver(map_t* vers, symbol_id_t id, symbol_id_t cid) {
 }
 
 /* Retrieve variable information placeholder from the versions map.
-Params:
-    - `v_id` - Variable 'base' ID.
-    - `ctx` - SSA context.
-
-Returns variable information or NULL. */
+   Params:
+       - `v_id` - Variable 'base' ID.
+       - `ctx` - SSA context.
+   
+   Returns variable information or NULL. */
 static inline varver_t* _get_varver(symbol_id_t v_id, ssa_ctx_t* ctx) {
     varver_t* vi;
     if (map_get(&ctx->vers, v_id, (void**)&vi)) return vi;
@@ -34,11 +34,11 @@ static inline varver_t* _get_varver(symbol_id_t v_id, ssa_ctx_t* ctx) {
 }
 
 /* Rename the provided HIR block with current SSA context.
-Params:
-    - `h` - HIR block for rename.
-    - `ctx` - SSA context.
-
-Returns 1 if all operations succeed, otherwise 0. */
+   Params:
+       - `h` - HIR block for rename.
+       - `ctx` - SSA context.
+   
+   Returns 1 if all operations succeed, otherwise 0. */
 static int _rename_block(hir_block_t* h, ssa_ctx_t* ctx) {
     iterate_hir_args (hir_subject_t* arg, h, HIR_is_writeop(h->op)) {
         if (HIR_is_vartype(arg->t)) {
@@ -58,57 +58,57 @@ static int _rename_block(hir_block_t* h, ssa_ctx_t* ctx) {
 }
 
 /* Insert PHI preambule to the previous block.
-The idea is simple: We need to assist the compiler with future SSA form destruction. 
-To perform this, we can mark for the compiler, how variables are linked with each other.
-For instance:
-```cpl
-    function foo() -> i32 {
-    : BB1 :
-        i32 a_1 = 0;
-        if 1; {
-    : BB2 :
-            a_2 = 1;
-        }
-        else {
-    : BB3 :
-            a_3 = 2;
-        }
-    : BB4 :
-    :   a_4 = phi(a_3, a_2); :
-        return a_4;
-    }
-```
-
-SSA form will put the phi function before BB4 block, but when we will start code generation, this will interrupt us.
-To prevent this, we can append a hidden command such a 'HIR_PREAMBULE' that will work similar to 'LIR_MOVE':
-```cpl
-    function foo() -> i32 {
-    : BB1 :
-        i32 a_1 = 0;
-        if 1; {
-    : BB2 :
-            a_2 = 1;
-    :       a_4 = a_2; :
-        }
-        else {
-    : BB3 :
-            a_3 = 2;
-    :       a_4 = a_3; :
-        }
-    : BB4 :
-    :   a_4 = phi(a_3, a_2); :
-        return a_4;
-    }
-```
-
-Params:
-    - `block` - Current CFG Basic Block.
-    - `bid` - Target previous Basic Block.
-    - `a` - Future variable ID.
-    - `b` - Previous variable ID.
-    - `smt` - Symtable.
-
-Returns 1 if all operations succeed, otherwise 0. */
+   The idea is simple: We need to assist the compiler with future SSA form destruction. 
+   To perform this, we can mark for the compiler, how variables are linked with each other.
+   For instance:
+   ```cpl
+       function foo() -> i32 {
+       : BB1 :
+           i32 a_1 = 0;
+           if 1; {
+       : BB2 :
+               a_2 = 1;
+           }
+           else {
+       : BB3 :
+               a_3 = 2;
+           }
+       : BB4 :
+       :   a_4 = phi(a_3, a_2); :
+           return a_4;
+       }
+   ```
+   
+   SSA form will put the phi function before BB4 block, but when we will start code generation, this will interrupt us.
+   To prevent this, we can append a hidden command such a 'HIR_PREAMBULE' that will work similar to 'LIR_MOVE':
+   ```cpl
+       function foo() -> i32 {
+       : BB1 :
+           i32 a_1 = 0;
+           if 1; {
+       : BB2 :
+               a_2 = 1;
+       :       a_4 = a_2; :
+           }
+           else {
+       : BB3 :
+               a_3 = 2;
+       :       a_4 = a_3; :
+           }
+       : BB4 :
+       :   a_4 = phi(a_3, a_2); :
+           return a_4;
+       }
+   ```
+   
+   Params:
+       - `block` - Current CFG Basic Block.
+       - `bid` - Target previous Basic Block.
+       - `a` - Future variable ID.
+       - `b` - Previous variable ID.
+       - `smt` - Symtable.
+   
+   Returns 1 if all operations succeed, otherwise 0. */
 static int _insert_phi_preamble(cfg_block_t* block, long bid, symbol_id_t a, symbol_id_t b, sym_table_t* smt) {
     if (a == b) return 1;     /* Check is this isn't the same variables */
     variable_info_t avi, bvi; /* Check is these variables are existing  */
@@ -151,13 +151,13 @@ static int _insert_phi_preamble(cfg_block_t* block, long bid, symbol_id_t a, sym
 }
 
 /* Base routine for block SSA processing.
-Params:
-    - `b` - Current BaseBlock.
-    - `ctx` - SSA context.
-    - `prev_bid` - [Service information] For inital value use '-1'.
-    - `smt` - Symtable.
-
-Returns 1 on success, otherwise 0. */
+   Params:
+       - `b` - Current BaseBlock.
+       - `ctx` - SSA context.
+       - `prev_bid` - [Service information] For inital value use '-1'.
+       - `smt` - Symtable.
+   
+   Returns 1 on success, otherwise 0. */
 static int _iterate_block(cfg_block_t* bb, ssa_ctx_t* ctx, long prev_bid, sym_table_t* smt) {
     if (!bb || set_has(&bb->visitors, (void*)prev_bid)) return 0;
 
@@ -266,10 +266,10 @@ static int _iterate_block(cfg_block_t* bb, ssa_ctx_t* ctx, long prev_bid, sym_ta
 }
 
 /* If there is an empty phi-function (for some reason), we need to get rid of it.
-Params:
-    - `fb` - Function block to clean.
-
-Returns 1 if succeeds. */
+   Params:
+       - `fb` - Function block to clean.
+   
+   Returns 1 if succeeds. */
 static int _clear_phi_functions(cfg_func_t* fb) {
     foreach (cfg_block_t* bb, &fb->blocks) {
         iterate_hir_instructions (bb) {
