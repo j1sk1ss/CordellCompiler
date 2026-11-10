@@ -63,7 +63,7 @@ typedef struct {
     hir_operation_t         op;                        /* Normalized continuation test.                   */
     big_int_t               bound_value;
     int                     bound_known;
-    int                     posttested;
+    int                     posttested : 1;
 } loop_iteration_condition_t;
 
 typedef struct {

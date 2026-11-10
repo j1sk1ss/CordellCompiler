@@ -55,15 +55,21 @@ static int _parse_sys_type(const char* s, options_t* out) {
 
 static void _set_optimization_profile(options_t* out, int level) {
     if (!out) return;
-    out->config.tco           = 0;
-    out->config.tre           = 0;
-    out->config.finline       = 0;
     out->config.licm          = 0;
     out->config.unroll        = 0;
     out->config.constant      = 0;
     out->config.peephole      = 0;
     out->config.copy_prop     = 0;
     out->config.z3opt         = 0;
+    out->config.tco           = 0;
+    out->config.tre           = 0;
+    out->config.finline       = 0;
+
+    if (level >= 1) {
+        out->config.tco       = 1;
+        out->config.tre       = 1;
+        out->config.finline   = 1;
+    }
 
     if (level >= 2) {
         out->config.licm      = 1;
@@ -77,6 +83,7 @@ static void _set_optimization_profile(options_t* out, int level) {
         out->config.tco       = 1;
         out->config.tre       = 1;
         out->config.finline   = 1;
+        out->config.unroll    = 1;
     }
 }
 
