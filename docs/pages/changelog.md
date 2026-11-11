@@ -3,6 +3,80 @@ Logs for the first and second versions are quite short because I do not remember
 
 ----------------------------------------
 
+## Version 4.0
+<div class="change-date">Date: 2026-11-11</div>
+
+Hello, and this is the 4.0 version!
+
+What's new in this release?
+- Abstractions now a thing in CPL
+- Virtual tables and methods are supported by containers
+- More macro!
+- Idimotaic shifts,
+- and other bug fixes...
+
+### Abstractions
+
+Now CPL has `interfaces`. Actually, this update was introduced in `3.8` version, but I planned to make the 4.0 back in this moment. The idea behind this is to give a user an opportunity to simplify its code. For instance, code for drivers with the same set of functions. I didn't add abstract classes or something like that, only interfaces as contract declarators:
+
+```cpl
+interface a {
+    @[self] function prode(ptr a self) -> bool;
+}
+
+container b implements a {
+    @[override] function prode(ptr b self) -> bool;
+}
+```
+
+All functions in an interface **must** have `@[self]` annotation. Also, `@[override]` annotation copies all annotations from the abstraction of a function.
+
+### Virtual tables
+
+An interfaces declares that a container has a virtual table. Every function from that intarface will be placed in this table, and then the table will be placed as the first pointer in the container.
+
+### More macro!
+
+Macroses now can use arguments:
+
+```cpl
+#define FOO(arg) foo(arg)
+FOO(1) :/ foo(1) /:
+```
+
+Also, macroses can use a special variable `__BODY__` which tracks the aligned scope block and inserts its content:
+
+```cpl
+#define for(init, cond, step) { init; while cond; { __BODY__; step; } }
+
+for (i32 i = 0i32; i < 10i32; i += 1) {
+    printf(ref "Hi!\n");
+}
+:/
+{
+    i32 i = 0i32;
+    while i < 10i32; {
+        {
+            printf(ref "Hi!\n");
+        }
+        i += 1;
+    }
+}
+/:
+```
+
+### Idiomatic shifts
+
+The compiler now understands several idiomatic ways of working with data. For example, instead of manual cast of a number with `as` keyword, you can now create a "typed" number:
+
+```cpl
+10i32;
+```
+
+This is a 32-bit integer number.
+
+----------------------------------------
+
 ## 4.0 preps
 <div class="change-date">Date: 2026-11-08</div>
 I'm cleaning the code, fixing bugs and trying to prepare the compiler for a new release and a new version.
