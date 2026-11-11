@@ -1,0 +1,11 @@
+@[section(".bss")]
+glob arr _buffer[10, i8];
+
+start(i32 argc, ptr ptr i8 argv) {
+    i8 value = _buffer[argc];
+    ptr i8 head = ref _buffer;
+    head += argc;
+
+    if argc < 0 || argc > 10; exit 0;
+    head += argc;
+}

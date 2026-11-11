@@ -12,7 +12,7 @@ export function initHomeMotion() {
   const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
   if (reduced.matches) return;
   home.classList.add('motion-ready');
-  const targets = Array.from(home.querySelectorAll('.first-program > *, .section-heading, .language-item, .compiler-intro > *, .compiler-inspector, .guide-intro, .guide-links > a, .history-heading, .milestone-card, .get-started-section > *'));
+  const targets = Array.from(home.querySelectorAll('.csa-heading > *, .csa-command, .csa-lab, .csa-coverage > *, .no-defaults > *, .first-program > *, .section-heading, .language-item, .compiler-intro > *, .compiler-inspector, .guide-intro, .guide-links > a, .history-heading, .milestone-card, .get-started-section > *'));
   let observer;
   if ('IntersectionObserver' in window) {
     observer = new IntersectionObserver(entries => {

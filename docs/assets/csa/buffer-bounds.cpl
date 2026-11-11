@@ -1,0 +1,7 @@
+start() {
+    arr something[10, i8];
+    i8 a = something[11];
+    i8 b = (ref something) + 11;
+    ptr i8 head = (ref something) + 12;
+    exit 0;
+}

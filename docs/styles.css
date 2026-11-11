@@ -2,12 +2,15 @@
 @import url("css/base.css");
 @import url("css/shell.css");
 @import url("css/home/layout.css");
-@import url("css/home/hero.css");
+@import url("css/home/hero.css?v=4.0.9");
+@import url("css/home/no-defaults.css");
 @import url("css/home/manifesto.css");
 @import url("css/home/graffiti.css");
 @import url("css/home/examples.css");
 @import url("css/home/language.css");
 @import url("css/home/compiler.css");
+@import url("css/home/analyzer.css");
+@import url("css/home/analyzer-splash.css?v=4.0.9");
 @import url("css/home/guide.css");
 @import url("css/home/footer.css");
 @import url("css/home/history.css");

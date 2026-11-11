@@ -96,6 +96,7 @@
   top: -12%;
 }
 
+.art-lettering,
 .art-cpl {
   position: absolute;
   top: 30%;
@@ -282,6 +283,7 @@
     top: -8%;
   }
 
+  .art-lettering,
   .art-cpl {
     font-size: clamp(160px, 38vw, 220px);
     top: 29%;
@@ -350,6 +352,7 @@
     width: 102px;
   }
 
+  .art-lettering,
   .art-cpl {
     left: 9%;
   }
