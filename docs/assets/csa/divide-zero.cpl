@@ -1,0 +1,4 @@
+start() {
+    i32 a = 0;
+    exit (10 / a) as u8;
+}

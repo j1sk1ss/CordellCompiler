@@ -1,0 +1,23 @@
+@[test]
+function test_basic_data() -> i0 {
+    i32 a = 10 + 10;
+}
+
+:/ OUTPUT
+{
+    fn test_basic_data0() -> i0
+    {
+        {
+            i32s %0 = alloc;
+            i8t %1 = i8n 10 + i8n 10;
+            i32t %2 = i8t %1 as i32;
+            i32s %0 = i32t %2;
+        }
+    }
+}
+fn _main()
+{
+    test_basic_data0();
+    exit csu8 0;
+}
+/:

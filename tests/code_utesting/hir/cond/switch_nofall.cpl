@@ -1,6 +1,6 @@
 start() {
     i32 a;
-    @[no_fall] switch a as i64; {
+    @[no_fall] @[select(binary)] switch a as i64; {
         case 1; {}
         case 2; {}
         case 3; {}

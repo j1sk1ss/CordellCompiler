@@ -9,7 +9,7 @@ This page lists the language keywords that are recognized by the current tokeniz
 | `function` | function definition or prototype | `function add(i64 a, i64 b) -> i64;` |
 | `extern` | external function or variable | `extern function puts(ptr i8 s) -> i32;` |
 | `glob` | global symbol | `glob i32 counter = 0;` |
-| `ro` | read-only data | `ro i32 answer = 42;` |
+| `ro` | read-only data | `ro i32 limit = 64;` |
 | `arr` | array declaration | `arr a[3, i8] = { 'A', 'B', 'C' };` |
 
 ## Types and pointer operators

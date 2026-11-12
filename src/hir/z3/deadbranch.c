@@ -35,6 +35,8 @@ int Z3OPT_deadbranch(cfg_ctx_t* cctx, sym_table_t* smt) {
 } while (0);
                 if (bb->l && (Z3_is_block_reachable(z3, fb, bb->l) == Z3A_NO)) {
                     _hide_branch(bb->l);
+                    set_remove(&bb->succ, bb->l);
+                    set_remove(&bb->l->pred, bb);
                     bb->l  = NULL;
                     hh->op = HIR_JMP;
                     SWAP_ARGS(hh->targ);
@@ -42,6 +44,8 @@ int Z3OPT_deadbranch(cfg_ctx_t* cctx, sym_table_t* smt) {
 
                 if (bb->jmp && (Z3_is_block_reachable(z3, fb, bb->jmp) == Z3A_NO)) {
                     _hide_branch(bb->jmp);
+                    set_remove(&bb->succ, bb->jmp);
+                    set_remove(&bb->jmp->pred, bb);
                     bb->jmp = bb->l;
                     bb->l   = NULL;
                     hh->op  = HIR_JMP;

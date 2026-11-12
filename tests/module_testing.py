@@ -17,23 +17,18 @@ from collections import Counter
 def _is_ci() -> bool:
     return os.environ.get("CI", "").strip().lower() in {"1", "true", "yes", "on"}
 
-
 def _verbose_logs() -> bool:
     return not _is_ci() or os.environ.get("CPL_TEST_VERBOSE", "").strip().lower() in {"1", "true", "yes", "on"}
-
 
 def _show_skipped_tests() -> bool:
     return _verbose_logs()
 
-
 def _cmd_to_str(cmd: list[object]) -> str:
     return " ".join(str(part) for part in cmd)
-
 
 def _log(message: str) -> None:
     if _verbose_logs():
         tqdm.write(str(message))
-
 
 def _write_captured_output(text: str) -> None:
     if not text:
@@ -41,7 +36,6 @@ def _write_captured_output(text: str) -> None:
 
     for line in text.rstrip("\n").splitlines():
         tqdm.write(line)
-
 
 def _run_interactive_command(cmd: list[str]) -> int:
     _log("[DEBUG] interactive session started; Ctrl+C will be handled by the debugger, not by the Python runner")
@@ -77,11 +71,9 @@ ASM_ARCH_ALIASES: dict[str, str] = {
     "i386_nasm_gnu": "i386_nasm_gnu",
 }
 
-
 def _normalize_asm_arch(raw: str) -> str:
     value = raw.strip()
     return ASM_ARCH_ALIASES.get(value, value)
-
 
 def _parse_asm_arch_directive(line: str) -> set[str] | None:
     stripped = line.strip()
@@ -97,47 +89,36 @@ def _parse_asm_arch_directive(line: str) -> set[str] | None:
         for part in m.group(1).split(",")
         if part.strip()
     }
-    return archs
 
+    return archs
 
 def _format_asm_arches(archs: set[str] | None) -> str:
     if not archs:
         return ""
     return ",".join(sorted(archs))
 
-
 def _format_current_asm_arch(asm_arch: str | None) -> str:
     return asm_arch or "base"
 
-
 def _format_result_subject(result: dict) -> str:
     return f"[{_format_current_asm_arch(result.get('asm_arch'))}] {result['file']}"
-
 
 def _test_matches_asm_arch(flags: dict, asm_arch: str | None) -> bool:
     requested: set[str] | None = flags.get("asm_arches")
     if not requested:
         return True
-
-    # A plain base.c is treated as the shared base for all architectures.
     if asm_arch is None:
         return True
-
     return asm_arch in requested
-
 
 def _asm_arch_can_run_on_host(asm_arch: str | None) -> bool:
     if asm_arch is None:
         return True
-
     if asm_arch == "x86_64_nasm_macho":
         return sys.platform == "darwin"
-
     if asm_arch in {"x86_64_nasm_gnu", "i386_nasm_gnu"}:
         return sys.platform != "darwin"
-
     return True
-
 
 def _host_asm_arch_skip_reason(asm_arch: str | None) -> str | None:
     if _asm_arch_can_run_on_host(asm_arch):
@@ -147,17 +128,6 @@ def _host_asm_arch_skip_reason(asm_arch: str | None) -> str | None:
         return "x86_64_nasm_macho executable tests are supported only on macOS"
 
     return f"{asm_arch} executable tests are not supported on this host"
-
-def _line_matches(expected_line: str, actual_line: str) -> bool:
-    if expected_line.strip() == "{X}":
-        return True
-
-    if "{X}" in expected_line:
-        parts = expected_line.split("{X}")
-        pattern = "^" + ".*".join(re.escape(p) for p in parts) + "$"
-        return re.match(pattern, actual_line) is not None
-
-    return expected_line == actual_line
 
 def _is_anywhere_line(line: str) -> bool:
     stripped = line.strip()
@@ -683,22 +653,6 @@ def _append_log_section(sections: list[tuple[str, str]], title: str, content: ob
         text = str(content)
     sections.append((title, text.rstrip("\n")))
 
-
-# def _write_failure_log(test_file: Path, sections: list[tuple[str, str]]) -> str:
-#     log_path = test_file.with_suffix(test_file.suffix + ".full.log")
-#     lines: list[str] = []
-
-#     for index, (title, content) in enumerate(sections):
-#         if index > 0:
-#             lines.append("")
-#         lines.append(f"===== {title} =====")
-#         if content:
-#             lines.append(content)
-
-#     log_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
-#     return str(log_path)
-
-
 def _attach_failure_log(result: dict, test_file: Path, sections: list[tuple[str, str]]) -> dict:
     if result.get("ok", False):
         return result
@@ -714,17 +668,10 @@ def _attach_failure_log(result: dict, test_file: Path, sections: list[tuple[str,
     if result.get("diff"):
         _append_log_section(sections, "FAILURE REASON", result["diff"])
 
-    # log_path = _write_failure_log(test_file, sections)
-    # result["failure_log"] = log_path
-
-    # note = f"Full log: {log_path}"
     if result.get("diff"):
         result["diff"] = f"{result['diff']}\n"
-    # else:
-    #     result["diff"] = note
 
     return result
-
 
 def _assemble_and_run(
     asm_text: str,
@@ -872,7 +819,6 @@ def _assemble_and_run(
                 ]))
 
         return True, "\n".join(outputs), outputs, exit_codes, program_elapsed
-
 
 def _make_case_failure(case_index: int, case_expected: str, case_actual: str, case_reason: str) -> str:
     expected_n = _normalize_output(case_expected)

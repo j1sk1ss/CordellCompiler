@@ -1,0 +1,49 @@
+<section class="home-section csa-section" id="static-analyzer" aria-labelledby="csa-title">
+  <div class="csa-heading">
+    <div class="csa-heading-copy">
+      <p class="eyebrow">CSA <span class="eyebrow-divider">/</span> CORDELL STATIC ANALYZER</p>
+      <h2 id="csa-title">Catch it before<br>it <span class="csa-marked">crashes.</span></h2>
+      <div class="csa-intro">
+        <span class="csa-bundled">INCLUDED WITH CPLC</span>
+        <p>Your code has a story. CSA follows the clues: a zero returned from a function, an index outside a buffer, a value written where it cannot go. Enable it when you want a closer look.</p>
+        <a class="text-link" href="#/pages/semantic-static-checker">Inside the analyzer <span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+    <!-- include:home/analyzer/splash.html -->
+  </div>
+  <div class="csa-command">
+    <div><span class="csa-prompt" aria-hidden="true">$</span><code>cplc --CSA main.cpl</code><span class="csa-command-label">ANALYZE ONLY</span></div>
+    <button type="button" class="csa-copy-command" aria-label="Copy CSA command">Copy ⧉</button>
+  </div>
+  <div class="csa-lab">
+    <div class="csa-levels" role="group" aria-label="Example complexity">
+      <button type="button" data-csa-level="advanced" aria-pressed="true" aria-controls="csa-example-tabs">Across calls &amp; branches</button>
+      <button type="button" data-csa-level="basic" aria-pressed="false" aria-controls="csa-example-tabs">The basics</button>
+    </div>
+    <div class="csa-tabs" id="csa-example-tabs" role="tablist" aria-label="Static analysis examples"></div>
+    <div id="csa-panel" class="csa-panel" role="tabpanel" aria-labelledby="csa-tab-call-traces" tabindex="0">
+      <div class="csa-source">
+        <div class="csa-source-heading"><a data-csa-download href="assets/csa/null-return.cpl" download>null-return.cpl ↓</a><span>CPL</span></div>
+        <div class="csa-source-code" data-csa-code aria-label="Analyzed CPL source"></div>
+        <button type="button" class="csa-variant-button" data-csa-variant aria-pressed="false" hidden>Keep only the guarded call <span aria-hidden="true">↗</span></button>
+        <a class="csa-test-link" data-csa-test href="https://github.com/j1sk1ss/CordellCompiler/tree/dev/tests/code_utesting/csa">Test case <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="csa-evidence">
+        <div class="csa-evidence-heading"><span data-csa-phase>HIR / DATA FLOW</span><span class="csa-hand-label">follow the clues ↙</span></div>
+        <div class="csa-drawing" data-csa-drawing></div>
+        <div class="csa-finding" data-csa-finding>
+          <div class="csa-finding-heading"><span class="csa-severity" data-csa-severity>WARNING</span><span data-csa-location></span></div>
+          <h3 data-csa-message></h3>
+          <p data-csa-explanation></p>
+          <div class="csa-trace" data-csa-trace hidden></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="csa-coverage">
+    <div><span class="csa-coverage-symbol" aria-hidden="true">↳</span><h3>Paths that go nowhere.</h3><p>Unreachable branches, code after termination, and missing exits or returns.</p></div>
+    <div><span class="csa-coverage-symbol" aria-hidden="true">ƒ</span><h3>Calls with a catch.</h3><p>Argument types, unused return values, null arguments, and target-specific syscall signatures.</p></div>
+    <div><span class="csa-coverage-symbol" aria-hidden="true">⌁</span><h3>More than one line.</h3><p>AST checks inspect the source. HIR and control-flow analysis follow values; optional Z3 support helps reason about branches and nullability.</p></div>
+  </div>
+  <div class="csa-footer"><p><code>--ast-analysis</code> + <code>--ir-analysis</code><span>Enable checks during a build. <code>--CSA</code> stops before code generation.</span></p><a class="text-link" href="https://github.com/j1sk1ss/CordellCompiler/tree/dev/tests/code_utesting/csa">Explore the test cases <span aria-hidden="true">↗</span></a></div>
+</section>

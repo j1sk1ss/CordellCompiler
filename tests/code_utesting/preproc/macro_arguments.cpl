@@ -1,0 +1,50 @@
+#define ASD(a) i32 a
+#define PAIR(a,b) a + b + a
+#define ZERO() 42
+#define KEEP(a) "a" + a + aa + 'a'
+#define DROP(a) 7
+#define IDENT(a) a
+#define CONST 9
+ASD(value);
+PAIR(short, longer_name);
+PAIR(call(1, 2), "x,y)");
+PAIR(b, a);
+IDENT(IDENT(value));
+KEEP(foo);
+DROP();
+ZERO();
+ASD;
+IDENT();
+ASD (spaced);
+PAIR(CONST, ZERO());
+"ASD(value)";
+#undef ASD
+#define ASD(z) u64 z
+ASD(again);
+
+:/ OUTPUT
+#line 0 "{X}.cpl"
+#line 1 "{X}.cpl"
+#line 2 "{X}.cpl"
+#line 3 "{X}.cpl"
+#line 4 "{X}.cpl"
+#line 5 "{X}.cpl"
+#line 6 "{X}.cpl"
+#line 7 "{X}.cpl"
+i32 value;
+short + longer_name + short;
+call(1, 2) + "x,y)" + call(1, 2);
+b + a + b;
+value;
+"a" + foo + aa + 'a';
+7;
+42;
+ASD;
+;
+i32 spaced;
+9 + 42 + 9;
+"ASD(value)";
+#line 21 "{X}.cpl"
+#line 22 "{X}.cpl"
+u64 again;
+/:

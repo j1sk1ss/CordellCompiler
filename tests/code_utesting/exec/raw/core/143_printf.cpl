@@ -42,12 +42,12 @@ function puts(ptr i8 s) -> i0 {
 function printf(ptr i8 fmt, ...) -> i0 {
     i32 index = 0;
     while index < strlen(fmt); {
-        @[straight]
+        @[select(straight)]
         @[no_fall]
         switch fmt[index]; {
             case '%'; {
                 i8 mode = fmt[index + 1];
-                @[straight] switch mode; {
+                @[select(straight)] switch mode; {
                     case 's'; {
                         @[poparg] ptr i8 s;
                         puts(s);

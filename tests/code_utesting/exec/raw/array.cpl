@@ -14,7 +14,7 @@ start(i32 a, ptr ptr i8 argv) {
     i32 pos = 0;
     while pos < strlen(argv[1 as i32]); {
         @[no_fall]
-        @[straight]
+        @[select(straight)]
         switch argv[1 as i32][pos]; {
             case '['; {
                 syscall(0x2000004, 1, ref "O", 1);

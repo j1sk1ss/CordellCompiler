@@ -17,7 +17,7 @@ Params:
     - `end` - Functions's exit HIR block.
 
 Return NULL or pointer to the function block. */
-static cfg_func_t* _create_funcblock(hir_block_t* entry) {
+cfg_func_t* HIR_func_create_funcblock(hir_block_t* entry) {
     cfg_func_t* b = (cfg_func_t*)mm_malloc(sizeof(cfg_func_t));
     if (!b) return NULL;
     str_memset(b, 0, sizeof(cfg_func_t));
@@ -40,7 +40,7 @@ Returns 1 on success, otherwise 0. */
 static cfg_func_t* _add_funcblock(hir_block_t* entry, cfg_ctx_t* ctx, sym_table_t* smt) {
     func_info_t fi;
     if (!FNTB_get_info_id(entry->farg->storage.str.s_id, &fi, &smt->f)) return 0;
-    cfg_func_t* b = _create_funcblock(entry);
+    cfg_func_t* b = HIR_func_create_funcblock(entry);
     if (!b) return 0;
     b->id     = ctx->cid++;
     b->f_id   = entry->farg->storage.str.s_id;

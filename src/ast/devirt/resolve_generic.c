@@ -49,13 +49,13 @@ static int _recursive_walk(
 }
 
 /* Change all encounters of a variable with a copy ID.
-Params:
-    - `node` - Root node.
-    - `v_id` - Old variable Id.
-    - `nv_id` - New variable Id.
-    - `t` - New token type for a generic variables.
-
-Returns 1 if succeeds */
+   Params:
+       - `node` - Root node.
+       - `v_id` - Old variable Id.
+       - `nv_id` - New variable Id.
+       - `t` - New token type for a generic variables.
+   
+   Returns 1 if succeeds */
 static void _update_variable_id(ast_node_t* node, symbol_id_t v_id, symbol_id_t nv_id, token_type_t t) {
     if (TKN_is_variable(node->t) && node->sinfo.v_id == v_id) {
         node->sinfo.v_id = nv_id;
@@ -66,13 +66,13 @@ static void _update_variable_id(ast_node_t* node, symbol_id_t v_id, symbol_id_t 
 }
 
 /* Find any occurance of a generic type and replace it with implementation map.
-Params:
-    - `node` - Root node.
-    - `root` - Root node copy.
-    - `types` - Types map for a function.
-    - `smt` - Symtable.
-
-Returns 1 if succeeds */
+   Params:
+       - `node` - Root node.
+       - `root` - Root node copy.
+       - `types` - Types map for a function.
+       - `smt` - Symtable.
+   
+   Returns 1 if succeeds */
 static int _find_type_usage_and_replace(ast_node_t* node, ast_node_t* root, map_t* types, sym_table_t* smt) {
     if (!node) return 0;
     _find_type_usage_and_replace(node->siblings.n, root, types, smt);
@@ -97,12 +97,12 @@ static int _find_type_usage_and_replace(ast_node_t* node, ast_node_t* root, map_
 }
 
 /* Find all function names and replace its Id with a new one.
-Params:
-    - `node` - Root node.
-    - `v_id` - Old function Id.
-    - `nv_id` - New function Id.
-
-Returns 1 if succeeds */
+   Params:
+       - `node` - Root node.
+       - `v_id` - Old function Id.
+       - `nv_id` - New function Id.
+   
+   Returns 1 if succeeds */
 static void _update_function_id(ast_node_t* node, symbol_id_t v_id, symbol_id_t nv_id, __attribute__((unused)) token_type_t t) {
     if (
         (node->t->t_type == FUNC_NAME_TOKEN || node->t->t_type == LAMBDA_FUNCTION_TOKEN) && 
@@ -111,13 +111,13 @@ static void _update_function_id(ast_node_t* node, symbol_id_t v_id, symbol_id_t 
 }
 
 /* Find any local function declaration (lambda as well) and replace it with a copy.
-Params:
-    - `node` - Root node.
-    - `root` - Root node copy.
-    - `smt` - Symtable.
-    - `ctx` - Devirt context.
-
-Returns 1 if succeeds */
+   Params:
+       - `node` - Root node.
+       - `root` - Root node copy.
+       - `smt` - Symtable.
+       - `ctx` - Devirt context.
+   
+   Returns 1 if succeeds */
 static int _find_function_declaration_and_replace(ast_node_t* node, ast_node_t* root, sym_table_t* smt, devirt_ctx_t* ctx) {
     if (!node) return 0;
     _find_function_declaration_and_replace(node->siblings.n, root, smt, ctx);
@@ -155,13 +155,13 @@ static int _find_function_declaration_and_replace(ast_node_t* node, ast_node_t* 
 }
 
 /* Take a copy of a template and replace its types with the implementation types.
-Params:
-    - `root` - Template root node.
-    - `f_id` - Implementation function Id.
-    - `smt` - Symtable.
-    - `ctx` - Devir context.
-
-Returns 1 if succeeds */
+   Params:
+       - `root` - Template root node.
+       - `f_id` - Implementation function Id.
+       - `smt` - Symtable.
+       - `ctx` - Devir context.
+   
+   Returns 1 if succeeds */
 ast_node_t* _implement_template(ast_node_t* root, symbol_id_t f_id, sym_table_t* smt, devirt_ctx_t* ctx) {
     if (f_id == NO_SYMBOL_ID) return root;
     func_info_t fi;

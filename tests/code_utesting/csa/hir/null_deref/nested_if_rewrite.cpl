@@ -9,8 +9,12 @@ start() {
 }
 
 :/ OUTPUT
+[WARNING] Can't reach the 'else' branch! Consider to refactor the code.
+    at: 3:8
 [WARNING] 'If' with a constant value 'true'!
-    at: {X}.cpl:3:8
+    at: 3:8
+[WARNING] Can't reach the 'else' branch! Consider to refactor the code.
+    at: 4:12
 [WARNING] 'If' with a constant value 'true'!
-    at: {X}.cpl:4:12
+    at: 4:12
 /:

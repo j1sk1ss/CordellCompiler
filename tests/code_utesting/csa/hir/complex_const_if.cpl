@@ -11,8 +11,6 @@ function foo() {
 }
 
 :/ OUTPUT
-[WARNING] Condition with a constant value (variable 'tmp' is equals 'false' (0))!
-    at: {X}.cpl:6:8
-    trace: Variable 'tmp' declared as a constant here!
-      at: {X}.cpl:6:8
+[WARNING] Can't reach the 'then' branch! Consider to refactor the code.
+    at: 6:8
 /:

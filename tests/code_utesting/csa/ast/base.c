@@ -10,7 +10,7 @@
 #include <ast/astgen.h>
 #include <ast/astgen/astgen.h>
 
-#include <csa/semantic.h>
+#include <csa/csa.h>
 #include <csa/misc/restore.h>
 
 int main(int argc, char* argv[]) {
@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
     }
     
     AST_finalize_parse(&sctx, &smt);
-    SEM_perform_ast_check(&sctx, &smt);
+    SEM_perform_ast_check(&sctx, &smt, (csa_conf_t) { .l_conf = { .provide_lines = 1, .provide_rows = 1 } });
 
     list_free_force_op(&tokens, (int (*)(void *))TKN_unload_token);
     AST_unload_ctx(&sctx);

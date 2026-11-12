@@ -1,0 +1,122 @@
+.compiler-source {
+  position: sticky;
+  top: 110px;
+  min-width: 0;
+  border: 1px solid #74786b;
+  background: #1c201c;
+}
+
+.source-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid #74786b66;
+  font: 400 10px/1.6 var(--mono);
+}
+
+.source-lines {
+  padding-block: 24px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #7a8667 #1c201c;
+}
+
+.source-line {
+  display: flex;
+  align-items: baseline;
+  min-width: max-content;
+  padding: 4px 18px;
+  border-left: 2px solid transparent;
+  transition: background .2s, border-color .2s;
+}
+
+.source-number {
+  user-select: none;
+  flex: none;
+  min-width: 24px;
+  margin-right: 15px;
+  color: #7e8b72;
+  font: 400 9px/1.8 var(--mono);
+}
+
+.cpl-home .source-line code {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: #e1e7d6;
+  font: 400 11px/1.8 var(--mono);
+  white-space: pre;
+}
+
+.source-line.is-linked {
+  background: #f653271b;
+  border-left-color: var(--orange);
+}
+
+.source-line.is-linked .source-number {
+  color: #ffb99f;
+}
+
+.source-result {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 18px 20px;
+  border-top: 1px solid #74786b66;
+  color: #b1bda2;
+  font: 400 8px/1.5 var(--mono);
+}
+
+.cpl-home .source-exit-value {
+  color: var(--lime);
+  font: 600 34px/.8 var(--sketch);
+}
+
+.trace-mode {
+  margin-left: auto;
+  font-size: 9px;
+  color: #d5ddc6;
+}
+
+@media (max-width: 1100px) {
+  .source-heading, .source-result {
+    padding-inline: 15px;
+  }
+
+  .source-line {
+    padding-inline: 11px;
+  }
+
+  .source-number {
+    margin-right: 10px;
+    min-width: 20px;
+  }
+
+  .cpl-home .source-line code {
+    font-size: 10px;
+  }
+
+}
+
+@media (max-width: 760px) {
+  .compiler-source {
+    position: static;
+  }
+
+  .source-lines {
+    padding-block: 18px;
+  }
+
+  .cpl-home .source-line code {
+    font-size: 11px;
+  }
+
+}
+
+@media (max-width: 380px) {
+  .cpl-home .source-line code {
+    font-size: 10px;
+  }
+
+}

@@ -13,11 +13,11 @@ int HIR_unload_extended_ctx(hir_ctx_t* ctx) {
 }
 
 /* Mix64 hash function.
-Params:
-    - `x` - Input value.
-
-Returns hashed value */
-static inline unsigned long _mix64(unsigned long x) {
+   Params:
+       - `x` - Input value.
+   
+   Returns hashed value */
+static inline hash_t _mix64(unsigned long x) {
     x ^= x >> 30;
     x *= 0xbf58476d1ce4e5b9;
     x ^= x >> 27;
@@ -26,11 +26,11 @@ static inline unsigned long _mix64(unsigned long x) {
     return x;
 }
 
-long HIR_hash_subject(hir_subject_t* s) {
+hash_t HIR_hash_subject(hir_subject_t* s) {
     if (!s) return 0;
     if (s->hash) return s->hash;
 
-    unsigned long h = ((unsigned long)s->t) * 0x123321;
+    hash_t h = ((hash_t)s->t) * 0x123321;
     switch (s->t) {
         case HIR_TMPVARARR: case HIR_TMPVARF64: case HIR_TMPVARU64:
         case HIR_TMPVARI64: case HIR_TMPVARF32: case HIR_TMPVARU32: case HIR_TMPVARI32:
@@ -43,10 +43,10 @@ long HIR_hash_subject(hir_subject_t* s) {
         case HIR_GLBVARARR: case HIR_GLBVARF64: case HIR_GLBVARU64:
         case HIR_GLBVARI64: case HIR_GLBVARF32: case HIR_GLBVARU32: case HIR_GLBVARI32:
         case HIR_GLBVARU16: case HIR_GLBVARI16: case HIR_GLBVARU8:  case HIR_GLBVARI8:
-        case HIR_GLBVARI0:
+        case HIR_GLBVARI0: {
             h ^= _mix64(s->storage.var.v_id);
-        break;
-
+            break;
+        }
         case HIR_F64NUMBER: case HIR_F32NUMBER:
         case HIR_I64NUMBER: case HIR_I32NUMBER: case HIR_I16NUMBER: case HIR_I8NUMBER:
         case HIR_U64NUMBER: case HIR_U32NUMBER: case HIR_U16NUMBER: case HIR_U8NUMBER:
@@ -55,28 +55,29 @@ long HIR_hash_subject(hir_subject_t* s) {
             while (*str) h = _mix64(h ^ (unsigned char)(*str++));
             break;
         }
-
         case HIR_U8CONSTVAL:  case HIR_I8CONSTVAL:
         case HIR_U16CONSTVAL: case HIR_I16CONSTVAL:
         case HIR_U32CONSTVAL: case HIR_I32CONSTVAL:
-        case HIR_U64CONSTVAL: case HIR_I64CONSTVAL: h ^= _mix64(s->storage.cnst.value); break;
-
+        case HIR_U64CONSTVAL: case HIR_I64CONSTVAL: {
+            h ^= _mix64(s->storage.cnst.value); 
+            break;
+        }
         case HIR_FNAME:
         case HIR_RAWASM:
         case HIR_STRING:
-        case HIR_VTABLE: h ^= _mix64(s->storage.str.s_id);              break;
-        case HIR_PHISET: h ^= _mix64((unsigned long)&s->storage.set.h); break;
-        default:         h ^= _mix64(s->id);                            break;
+        case HIR_VTABLE: h ^= _mix64(s->storage.str.s_id);       break;
+        case HIR_PHISET: h ^= _mix64((hash_t)&s->storage.set.h); break;
+        default:         h ^= _mix64(s->id);                     break;
     }
 
-    s->hash = (long)(h ^ (h >> 32));
+    s->hash = (hash_t)(h ^ (h >> 32));
     return s->hash;
 }
 
 /* Global HIR block ID for a unique indexing
    which helps a lot in distinguish HIR blocks
    from each other */
-static unsigned long _curr_id = 0;
+static big_id_t _curr_id = 0;
 
 hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strval, unsigned long intval) {
     hir_subject_t* subj = mm_malloc(sizeof(hir_subject_t));
@@ -111,14 +112,18 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strv
         case HIR_U64NUMBER: case HIR_U32NUMBER: case HIR_U16NUMBER: case HIR_U8NUMBER:
         case HIR_NUMBER: if (strval) subj->storage.num.value = strval->copy(strval); break;
         case HIR_CONSTVAL: {
-            if (intval <= CHAR_MAX)       subj->t = HIR_I8CONSTVAL;
-            else if (intval <= UCHAR_MAX) subj->t = HIR_U8CONSTVAL;
-            else if (intval <= SHRT_MAX)  subj->t = HIR_I16CONSTVAL;
-            else if (intval <= USHRT_MAX) subj->t = HIR_U16CONSTVAL;
-            else if (intval <= INT_MAX)   subj->t = HIR_I32CONSTVAL;
-            else if (intval <= UINT_MAX)  subj->t = HIR_U32CONSTVAL;
-            else if (intval <= LONG_MAX)  subj->t = HIR_I64CONSTVAL;
-            else                          subj->t = HIR_U64CONSTVAL;
+            ACTION_ON_BITNESS(
+                intval, 
+                { subj->t = HIR_I8CONSTVAL;  }, 
+                { subj->t = HIR_U8CONSTVAL;  }, 
+                { subj->t = HIR_I16CONSTVAL; },
+                { subj->t = HIR_U16CONSTVAL; },
+                { subj->t = HIR_I32CONSTVAL; },
+                { subj->t = HIR_U32CONSTVAL; },
+                { subj->t = HIR_I64CONSTVAL; },
+                { subj->t = HIR_U64CONSTVAL; }
+            );
+
             subj->storage.cnst.value = intval;
             break;
         }
@@ -135,7 +140,7 @@ hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strv
 
 int HIR_subject_shallow_equals(hir_subject_t* a, hir_subject_t* b) {
     if (!a || !b) return 0;
-    if (a == b) return 1;
+    if (a == b)   return 1;
     switch (a->t) {
         case HIR_PHISET:  return (a->t == b->t) && (set_size(&a->storage.set.h) == set_size(&b->storage.set.h));     break;
         case HIR_ARGLIST: return (a->t == b->t) && (list_size(&a->storage.list.h) == list_size(&b->storage.list.h)); break;
@@ -180,7 +185,7 @@ int HIR_block_shallow_equals(hir_block_t* a, hir_block_t* b) {
     return HIR_is_operations_similar(a->op, b->op);
 }
 
-hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
+hir_subject_t* _copy_subject(hir_subject_t* s, int copy_lb) {
     if (!s) return NULL;
     hir_subject_t* ns = HIR_create_subject(s->t, s->storage.var.v_id, NULL, s->storage.cnst.value);
     if (!ns) return NULL;
@@ -189,6 +194,10 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
     ns->ptr = s->ptr;
 
     switch (ns->t) {
+        CONDITIONAL_CASE(HIR_LABEL, copy_lb, {
+            ns->id = s->id;
+            break;
+        })
         case HIR_PHISET: {
             set_foreach (int_tuple_t* tpl, &s->storage.set.h) {
                 set_add(&ns->storage.set.h, inttuple_create(tpl->x, tpl->y));
@@ -199,7 +208,7 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
         case HIR_ARGLIST: {
             hir_subject_t* arg;
             foreach (arg, &s->storage.list.h) {
-                list_add(&ns->storage.list.h, HIR_copy_subject(arg));
+                list_add(&ns->storage.list.h, _copy_subject(arg, copy_lb));
             }
 
             break;
@@ -239,6 +248,14 @@ hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
     return ns;
 }
 
+hir_subject_t* HIR_copy_subject(hir_subject_t* s) {
+    return _copy_subject(s, 0);
+}
+
+hir_subject_t* HIR_copy_subject_and_label(hir_subject_t* s) {
+    return _copy_subject(s, 1);
+}
+
 hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject_t* sa, hir_subject_t* ta) {
     hir_block_t* blk = mm_malloc(sizeof(hir_block_t));
     if (!blk) return NULL;
@@ -259,13 +276,13 @@ hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject
 }
 
 /* Safe copy with optional label preservation.
-Label copy means a entirely new link, that's why in some cases we need to save the
-original label.
-Params:
-    - `s` - Subject to copy.
-    - `copy_label` - If this is 1 - it will copy label subject.
-
-Returns a copy of the subject */
+   Label copy means a entirely new link, that's why in some cases we need to save the
+   original label.
+   Params:
+       - `s` - Subject to copy.
+       - `copy_label` - If this is 1 - it will copy label subject.
+   
+   Returns a copy of the subject */
 static inline hir_subject_t* _safe_copy(hir_subject_t* s, int copy_label) {
     if (!s || (!copy_label && s->t == HIR_LABEL)) return s;
     return HIR_copy_subject(s);

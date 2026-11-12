@@ -1,0 +1,8 @@
+{
+    "sources": [
+        "src/config.c",
+        "src/hir/cfg/dom.c",
+        "src/hir/loop/ltree.c",
+        "std/*.c"
+    ]
+}

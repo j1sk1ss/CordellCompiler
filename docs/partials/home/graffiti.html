@@ -1,0 +1,27 @@
+<svg class="wall-graffiti" viewBox="0 0 860 210" role="img" aria-labelledby="graffiti-dialogue">
+  <title id="graffiti-dialogue">- Max, r u listening me? - Ah, srry Chloe, I've got another error and trying to fix it damnnn :-(</title>
+  <defs>
+    <filter id="graffiti-spray" x="-8%" y="-25%" width="116%" height="155%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="3" seed="17" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1.5 -.24" result="pores"/>
+      <feDisplacementMap in="SourceGraphic" in2="grain" scale="1.2" xChannelSelector="R" yChannelSelector="G" result="rough-paint"/>
+      <feComposite in="rough-paint" in2="pores" operator="in" result="paint"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="1.4" result="mist"/>
+      <feComponentTransfer in="mist" result="overspray"><feFuncA type="linear" slope=".24"/></feComponentTransfer>
+      <feMerge><feMergeNode in="overspray"/><feMergeNode in="paint"/></feMerge>
+    </filter>
+  </defs>
+  <g class="graffiti-question" transform="rotate(2 440 48)" filter="url(#graffiti-spray)">
+    <text x="130" y="55">- Max, r u listening me?</text>
+    <path class="graffiti-line" d="M199 65q83 8 153-1M565 32l9-10m3 18 14-3"/>
+    <circle cx="113" cy="29" r="1.5"/><circle cx="606" cy="44" r="1"/>
+    <circle cx="124" cy="37" r=".8"/><circle cx="586" cy="60" r="1.7"/>
+  </g>
+  <g class="graffiti-answer" transform="rotate(-1 420 131)" filter="url(#graffiti-spray)">
+    <text x="36" y="113">- Ah, srry Chloe, I've got another error<tspan x="96" dy="44"> and trying to fix it damnnn :-(</tspan></text>
+    <path class="graffiti-line" d="M467 171q70 7 151-3m-133 10 102-2M698 100q2 7 0 21m1 5v10M71 126l7 18"/>
+    <circle cx="25" cy="98" r="1.8"/><circle cx="21" cy="112" r=".7"/>
+    <circle cx="718" cy="116" r="1.1"/><circle cx="730" cy="108" r=".6"/>
+    <circle cx="650" cy="172" r="1.5"/><circle cx="640" cy="183" r=".7"/>
+  </g>
+</svg>

@@ -1,0 +1,20 @@
+: RUN_ASM :
+@[abi]
+function leaf() -> i32 { 42 }
+
+@[abi]
+function tail() -> i32 {
+    leaf()
+}
+
+function chain() -> i32 {
+    tail()
+}
+
+start() {
+    exit (chain()) as u8;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

@@ -48,7 +48,8 @@ static char_type_t _get_char_type(unsigned char ch) {
         case '%':  case '=':
         case '<':  case '>':
         case '^':  case '!':
-        case '&':  case '|':  return CHAR_SIGN;
+        case '&':  case '|':  
+        case '~':  return CHAR_SIGN;
         default:   return CHAR_OTHER;
     }
 }
@@ -79,6 +80,47 @@ token_t* TKN_copy_token(token_t* src) {
     return tkn;
 }
 
+typedef struct {
+    const char*   suffix;
+    unsigned long len;
+    token_type_t  type;
+} unknown_numeric_suffixes;
+
+static unknown_numeric_suffixes _siffixes[] = {
+    { I8_VARIABLE,  2, UNKNOWN_I8NUMERIC_TOKEN  },
+    { I16_VARIABLE, 3, UNKNOWN_I16NUMERIC_TOKEN },
+    { I32_VARIABLE, 3, UNKNOWN_I32NUMERIC_TOKEN },
+    { I64_VARIABLE, 3, UNKNOWN_I64NUMERIC_TOKEN },
+    { U8_VARIABLE,  2, UNKNOWN_U8NUMERIC_TOKEN  },
+    { U16_VARIABLE, 3, UNKNOWN_U16NUMERIC_TOKEN },
+    { U32_VARIABLE, 3, UNKNOWN_U32NUMERIC_TOKEN },
+    { U64_VARIABLE, 3, UNKNOWN_U64NUMERIC_TOKEN }
+};
+
+static int _suffix_equal(const char* value, unsigned long len, const char* suffix, unsigned long suffix_len) {
+    if (len <= suffix_len) return 0;
+    unsigned long off = len - suffix_len;
+    for (unsigned long i = 0; i < suffix_len; ++i) {
+        if (value[off + i] != suffix[i]) {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+static token_type_t _get_numeric_type(const char* value, unsigned long len, unsigned long* number_len) {
+    *number_len = len;
+    for (size_t i = 0; i < sizeof(_siffixes) / sizeof(_siffixes[0]); ++i) {
+        if (_suffix_equal(value, len, _siffixes[i].suffix, _siffixes[i].len)) {
+            *number_len = len - _siffixes[i].len;
+            return _siffixes[i].type;
+        }
+    }
+
+    return UNKNOWN_NUMERIC_TOKEN;
+}
+
 token_t* TKN_create_token(token_type_t type, const char* value, file_position_t* finfo) {
     token_t* tkn = mm_malloc(sizeof(token_t));
     if (!tkn) return NULL;
@@ -96,6 +138,35 @@ token_t* TKN_create_token(token_type_t type, const char* value, file_position_t*
 
     switch (type) {
         case UNKNOWN_NUMERIC_TOKEN: {
+            unsigned long number_len;
+            token_type_t numeric_type = _get_numeric_type(value, str_strlen(value), &number_len);
+            if (numeric_type != UNKNOWN_NUMERIC_TOKEN) {
+                char number[64];
+                if (number_len >= (unsigned long)sizeof(number)) {
+                    destroy_string(input);
+                    mm_free(tkn);
+                    return NULL;
+                }
+
+                str_memcpy(number, value, number_len);
+                number[number_len] = 0;
+
+                string_t* numeric = create_string(number);
+                if (!numeric) {
+                    destroy_string(input);
+                    mm_free(tkn);
+                    return NULL;
+                }
+
+                int is_float = 0;
+                tkn->body = numeric->from_number(numeric, &is_float);
+                tkn->t_type = numeric_type;
+
+                destroy_string(numeric);
+                destroy_string(input);
+                break;
+            }
+
             int is_float = 0;
             tkn->body = input->from_number(input, &is_float);
             if (is_float) tkn->t_type = UNKNOWN_FLOAT_NUMERIC_TOKEN;
@@ -128,7 +199,7 @@ Params:
 static inline void _reset_tkn_ctx(tkn_ctx_t* ctx) {
     ctx->in_token  = 0;
     ctx->token_len = 0;
-    ctx->ttype = LINE_BREAK_TOKEN;
+    ctx->ttype     = LINE_BREAK_TOKEN;
 }
 
 /* Get a new type for a symbol according to the current token type and 
@@ -159,13 +230,13 @@ static inline int _allowed_character_in_token(char c) {
 static char _token_buf[BUFFER_SIZE] = { 0 };
 
 /* Give the next token from the provided buffer.
-Params:
-    - `buffer` - Source pre-processed buffer of the code.
-    - `bytes_read` - Buffer's size.
-    - `off` - Current offset in the buffer.
-    - `finfo` - Current information about a position in a file.
-
-Returns a new token or the 'NULL' value */
+   Params:
+       - `buffer` - Source pre-processed buffer of the code.
+       - `bytes_read` - Buffer's size.
+       - `off` - Current offset in the buffer.
+       - `finfo` - Current information about a position in a file.
+   
+   Returns a new token or the 'NULL' value */
 static token_t* _give_next_token(char* buffer, ssize_t bytes_read, ssize_t* off, file_position_t* finfo, tkn_ctx_t* ctx) {
     if (!buffer && bytes_read == -1 && !off && !finfo) goto _force_token_creation;
     for (ssize_t i = *off; i < bytes_read; ++i) {
@@ -383,11 +454,11 @@ int TKN_tokenize(int fd, list_t* tkn) {
     return 1;
 }
 
-unsigned long TKN_hash_token(token_t* t, int no_body) {
+hash_t TKN_hash_token(token_t* t, int no_body) {
     file_position_t tmp = { .column = t->finfo.column, .line = t->finfo.line, .file = t->finfo.file };
     str_memset(&t->finfo, 0, sizeof(file_position_t));
 
-    unsigned long hash = crc64((const unsigned char*)&t->flags, sizeof(basic_object_info_t), 0);
+    hash_t hash = crc64((const unsigned char*)&t->flags, sizeof(basic_object_info_t), 0);
     if (
         t->body && 
         !no_body

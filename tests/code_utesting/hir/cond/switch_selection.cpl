@@ -1,0 +1,167 @@
+start() {
+    i32 a = 0i32;
+    @[no_fall] @[select(jtable)] switch a; {
+        case 1; {}
+        case 2; {}
+        case 3; {}
+        default {}
+    }
+
+    @[no_fall] @[select(binary)] switch a; {
+        case 1; {}
+        case 2; {}
+        case 3; {}
+        default {}
+    }
+
+    @[no_fall] @[select(straight)] switch a; {
+        case 1; {}
+        case 2; {}
+        case 3; {}
+        default {}
+    }
+}
+
+:/ OUTPUT
+{
+    fn _main()
+    {
+        {
+            i32s %0 = alloc;
+            i32s %0 = i32n 0;
+            goto lb8;
+            lb10:
+            {
+            }
+            goto lb9;
+            lb12:
+            {
+            }
+            goto lb9;
+            lb14:
+            {
+            }
+            goto lb9;
+            lb16:
+            {
+            }
+            goto lb9;
+            goto lb9;
+            lb8:
+            i64t %3 = i32s %0 as i64;
+            i8t %2 = i64t %3 < csu8 1;
+            if i8t %2, goto lb16, else goto lb20;
+            lb20:
+            i64t %5 = i32s %0 as i64;
+            i8t %4 = i64t %5 > csu8 3;
+            if i8t %4, goto lb16, else goto lb24;
+            lb24:
+            u64t** %6 = &(arrg %1);
+            i64t %9 = i32s %0 as i64;
+            i64t %7 = i64t %9 - csu8 1;
+            i64t %8 = i64t %7 * csu8 8;
+            u64t** %11 = i64t %8 as *ptr;
+            u64t** %10 = u64t** %6 + u64t** %11;
+            u64t* %12 = *(u64t** %10);
+            goto u64t* %12;
+            lb9:
+            goto lb40;
+            lb42:
+            {
+            }
+            goto lb41;
+            lb44:
+            {
+            }
+            goto lb41;
+            lb46:
+            {
+            }
+            goto lb41;
+            lb48:
+            {
+            }
+            goto lb41;
+            goto lb41;
+            lb40:
+            i64t %13 = csu8 2 as i64;
+            i64t %15 = i32s %0 as i64;
+            i8t %14 = i64t %15 < i64t %13;
+            if i8t %14, goto lb52, else goto lb53;
+            lb52:
+            i64t %16 = csu8 1 as i64;
+            i64t %18 = i32s %0 as i64;
+            i8t %17 = i64t %18 < i64t %16;
+            if i8t %17, goto lb60, else goto lb61;
+            lb60:
+            goto lb48;
+            lb61:
+            i64t %20 = i32s %0 as i64;
+            i8t %19 = i64t %20 > i64t %16;
+            if i8t %19, goto lb62, else goto lb63;
+            lb62:
+            goto lb48;
+            lb63:
+            goto lb42;
+            lb53:
+            i64t %22 = i32s %0 as i64;
+            i8t %21 = i64t %22 > i64t %13;
+            if i8t %21, goto lb54, else goto lb55;
+            lb54:
+            i64t %23 = csu8 3 as i64;
+            i64t %25 = i32s %0 as i64;
+            i8t %24 = i64t %25 < i64t %23;
+            if i8t %24, goto lb72, else goto lb73;
+            lb72:
+            goto lb48;
+            lb73:
+            i64t %27 = i32s %0 as i64;
+            i8t %26 = i64t %27 > i64t %23;
+            if i8t %26, goto lb74, else goto lb75;
+            lb74:
+            goto lb48;
+            lb75:
+            goto lb46;
+            lb55:
+            goto lb44;
+            lb41:
+            goto lb83;
+            lb85:
+            {
+            }
+            goto lb84;
+            lb87:
+            {
+            }
+            goto lb84;
+            lb89:
+            {
+            }
+            goto lb84;
+            lb91:
+            {
+            }
+            goto lb84;
+            goto lb84;
+            lb83:
+            i64t %29 = csu8 1 as i64;
+            i64t %30 = i32s %0 as i64;
+            i8t %28 = i64t %30 == i64t %29;
+            if i8t %28, goto lb85, else goto lb95;
+            lb95:
+            i64t %32 = csu8 2 as i64;
+            i64t %33 = i32s %0 as i64;
+            i8t %31 = i64t %33 == i64t %32;
+            if i8t %31, goto lb87, else goto lb100;
+            lb100:
+            i64t %35 = csu8 3 as i64;
+            i64t %36 = i32s %0 as i64;
+            i8t %34 = i64t %36 == i64t %35;
+            if i8t %34, goto lb89, else goto lb105;
+            lb105:
+            goto lb91;
+            lb84:
+        }
+    }
+}
+/:

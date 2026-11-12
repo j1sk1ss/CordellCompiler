@@ -10,25 +10,21 @@
 #include <prep/token.h>
 #include <prep/token_types.h>
 
-/*
-Preparing tokens list for parsing tree.
-We mark every token by command / symbol ar value type.
-Params:
-    - `tkn` - Tokens list.
-
-Return -1 if something goes wrong.
-Returns 1 if markup succeeds.
-*/
+/* Preparing tokens list for parsing tree.
+   We mark every token by command / symbol ar value type.
+   Params:
+       - `tkn` - Tokens list.
+   
+   Return -1 if something goes wrong.
+   Returns 1 if markup succeeds. */
 int MRKP_mnemonics(list_t* tkn);
 
-/*
-Iterate throught tokens and mark variables. 
-Params:
-    - `tkn` - Tokens list.
-
-Return -1 if something goes wrong.
-Returns 1 if markup succeeds.
-*/
+/* Iterate throught tokens and mark variables. 
+   Params:
+       - `tkn` - Tokens list.
+   
+   Return -1 if something goes wrong.
+   Returns 1 if markup succeeds. */
 int MRKP_variables(list_t* tkn);
 
 #endif

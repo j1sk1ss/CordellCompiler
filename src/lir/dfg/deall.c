@@ -81,11 +81,11 @@ Params:
     - `smt` - Symtable.
 
 Returns 1 on success, otherwise 0. */
-static int _use_def_pass(cfg_ctx_t* cctx, sym_table_t* smt) {
+static status_code_t _use_def_pass(cfg_ctx_t* cctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         _scope_pass(fb);
         foreach (cfg_block_t* cb, &fb->blocks) {
-            if (!cb->l && !cb->jmp) continue; /* Skip end blocks. There is no point to deallocate anything */
+            if (!set_size(&cb->succ)) continue; /* Skip end blocks. There is no point to deallocate anything */
 
             set_t appeared;
             set_union(&appeared, &cb->curr_in, &cb->def);
@@ -137,9 +137,9 @@ static int _use_def_pass(cfg_ctx_t* cctx, sym_table_t* smt) {
         }
     }
 
-    return 1;
+    return GENERAL_SUCCESS;
 }
 
-int LIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
+status_code_t LIR_DFG_create_deall(cfg_ctx_t* cctx, sym_table_t* smt) {
     return _use_def_pass(cctx, smt);
 }

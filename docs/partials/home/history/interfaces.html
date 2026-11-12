@@ -1,0 +1,74 @@
+<li class="era-entry era-entry-current">
+  <span class="era-marker" aria-hidden="true"></span>
+  <article class="milestone-card milestone-current" aria-labelledby="era-title-4">
+    <div class="milestone-copy">
+      <p class="milestone-meta">
+        CPL 4.0<span>THE CURRENT CHAPTER</span>
+      </p>
+      <h3 id="era-title-4">
+        4.0<span class="milestone-subtitle">Ideas get interfaces.</span>
+      </h3>
+      <p class="milestone-description">
+        A shared contract, different implementations. Interfaces, abstract methods, and overrides let containers work through a common abstraction - while the low-level details stay within reach.
+      </p>
+      <div class="milestone-tags">
+        <span>INTERFACES</span><span>ABSTRACT METHODS</span><span>OVERRIDES</span>
+      </div>
+      <a class="milestone-source" href="https://github.com/j1sk1ss/CordellCompiler/blob/a62194ffad6e27070425a04d530e8d8e5480098f/tests/code_utesting/exec/raw/core/329_inheritance_interface_pointer_array_exit.cpl">See the interface dispatch test <span aria-hidden="true">↗</span></a>
+    </div>
+    <figure class="milestone-art art-interfaces">
+      <svg class="milestone-svg" viewBox="0 0 600 400" role="img" aria-labelledby="sketch-interfaces">
+        <title id="sketch-interfaces">
+          An abstract interface contract branches into two containers. Each overrides value with its own implementation, returning 19 or 23.
+        </title>
+        <defs>
+          <pattern id="grid-interfaces" width="24" height="24" patternUnits="userSpaceOnUse">
+            <path d="M24 0H0V24" fill="none" stroke="currentColor" stroke-width=".55" opacity=".16"/>
+          </pattern>
+          <marker id="arrow-interfaces" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="m2 2 8 4-8 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+        <text x="27" y="34" class="sketch-label" >
+          A SHARED CONTRACT
+        </text>
+        <path d="M82 49 490 78 553 320 40 299Z" class="sketch-paint-wash" />
+        <path d="M171 69 432 67 435 169 168 172Z" class="sketch-paper" />
+        <text x="190" y="101" class="sketch-code" >
+          interface
+        </text>
+        <text x="190" y="139" class="sketch-code" >
+          value() → i32
+        </text>
+        <g transform="rotate(8 464 55)">
+          <path d="M395 41 556 39 559 75 392 78Z" class="sketch-tape" />
+          <text x="404" y="65" class="sketch-code-small" >
+            @[abstract]
+          </text>
+        </g>
+        <path d="M298 177 298 208 145 208 145 243" class="sketch-line" marker-end="url(#arrow-interfaces)" />
+        <path d="M298 208 456 208 456 243" class="sketch-line" marker-end="url(#arrow-interfaces)" />
+        <path d="M37 252 265 250 268 349 34 352Z" class="sketch-paper" />
+        <text x="53" y="280" class="sketch-code-small" >
+          container first
+        </text>
+        <text x="53" y="309" class="sketch-code-small" >
+          @[override]
+        </text>
+        <text x="53" y="334" class="sketch-code" >
+          value() → 19
+        </text>
+        <path d="M335 251 563 249 566 348 332 351Z" class="sketch-paper sketch-paper-orange" />
+        <text x="351" y="279" class="sketch-code-small" >
+          container second
+        </text>
+        <text x="351" y="307" class="sketch-code-small" >
+          @[override]
+        </text>
+        <text x="351" y="333" class="sketch-code" >
+          value() → 23
+        </text>
+      </svg>
+    </figure>
+  </article>
+</li>

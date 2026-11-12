@@ -1,0 +1,121 @@
+<section class="compiler-section" aria-labelledby="compiler-title">
+  <div class="compiler-inner">
+    <div class="compiler-intro">
+      <div>
+        <p class="eyebrow">
+          PULL BACK THE LAYERS
+        </p>
+        <h2 id="compiler-title">
+          The compiler is<br>the <span class="orange-word">playground.</span>
+        </h2>
+      </div>
+      <div>
+        <p>
+          Follow your code from its first token to its final instruction. Explore IR, optimization passes, and register allocation in one inspectable compiler.
+        </p>
+        <a class="button button-light" href="#/pages/compiler-architecture">Go under the hood <span aria-hidden="true">↗</span></a>
+      </div>
+    </div>
+    <div class="compiler-inspector">
+      <div class="pipeline" role="tablist" aria-label="Compiler output">
+        <button type="button" role="tab" id="stage-ast" aria-controls="output-ast" aria-selected="true" tabindex="0" disabled data-compiler-stage="ast">
+          <small>PARSE</small>AST<span aria-hidden="true">↘</span>
+        </button>
+        <button type="button" role="tab" id="stage-hir" aria-controls="output-hir" aria-selected="false" tabindex="-1" disabled data-compiler-stage="hir">
+          <small>TRANSFORM</small>HIR<span aria-hidden="true">↘</span>
+        </button>
+        <button type="button" role="tab" id="stage-lir" aria-controls="output-lir" aria-selected="false" tabindex="-1" disabled data-compiler-stage="lir">
+          <small>LOWER</small>LIR<span aria-hidden="true">↘</span>
+        </button>
+        <button type="button" role="tab" id="stage-asm" aria-controls="output-asm" aria-selected="false" tabindex="-1" disabled data-compiler-stage="asm">
+          <small>EMIT</small>Assembly<span aria-hidden="true">↘</span>
+        </button>
+      </div>
+      <div class="optimization-switch" role="group" aria-label="Compiler optimization">
+        <button type="button" data-compiler-mode="none" aria-pressed="true" disabled><span>ORIGINAL</span>Off<code>-O0</code></button>
+        <button type="button" data-compiler-mode="copy" aria-pressed="false" disabled><span>PROPAGATE</span>Copy propagation<code>--copyprop</code></button>
+        <button type="button" data-compiler-mode="peephole" aria-pressed="false" disabled><span>SIMPLIFY</span>Peephole<code>--peephole</code></button>
+        <button type="button" data-compiler-mode="full" aria-pressed="false" disabled><span>COMBINE</span>Full pipeline<code>-O3</code></button>
+      </div>
+      <div class="emission-command">
+        <span class="command-prompt" aria-hidden="true">$</span><code id="emission-command"></code>
+        <button type="button" class="copy-command" disabled aria-label="Copy compiler command">
+          Copy ⧉
+        </button>
+      </div>
+      <div class="compiler-load"><span class="compiler-load-status" role="status">Loading compiler output…</span><button type="button" class="compiler-retry" hidden>Retry ↗</button></div>
+      <div class="compiler-workbench">
+        <aside class="compiler-source" aria-label="Original CPL program">
+          <header class="source-heading"><a href="assets/compiler/trace.cpl" download target="_blank" rel="noopener">trace.cpl ↓</a><button type="button" class="copy-source" disabled>Copy ⧉</button></header>
+          <div class="source-lines" tabindex="0" aria-label="CPL source code"></div>
+          <div class="source-result"><span>EXIT STATUS</span><strong class="source-exit-value">12</strong><span class="trace-mode">-O0</span></div>
+        </aside>
+        <div class="compiler-outputs">
+          <!-- include:home/compiler/ast.html -->
+          <!-- include:home/compiler/hir.html -->
+          <!-- include:home/compiler/lir.html -->
+          <!-- include:home/compiler/asm.html -->
+        </div>
+      </div>
+      <details class="compiler-help">
+        <summary>
+          <span class="help-command">$ cplc -h</span><span>Compiler options <b aria-hidden="true">+</b></span>
+        </summary>
+        <dl>
+          <div>
+            <dt>
+              --emit-ast / --ast-output &lt;file&gt;
+            </dt>
+            <dd>
+              Syntax tree → trace.ast
+            </dd>
+          </div>
+          <div>
+            <dt>
+              --emit-ir / --ir-output &lt;file&gt;
+            </dt>
+            <dd>
+              High-level IR → trace.hir
+            </dd>
+          </div>
+          <div>
+            <dt>
+              --emit-lir / --lir-output &lt;file&gt;
+            </dt>
+            <dd>
+              Low-level IR → trace.lir
+            </dd>
+          </div>
+          <div>
+            <dt>
+              --emit-asm / --asm-output &lt;file&gt;
+            </dt>
+            <dd>
+              Assembly → trace.asm
+            </dd>
+          </div>
+          <div><dt>--copyprop / --peephole</dt><dd>Propagate copies / simplify instructions</dd></div>
+          <div>
+            <dt>
+              -O0 / -O1 / -O2 / -O3
+            </dt>
+            <dd>
+              Optimization level
+            </dd>
+          </div>
+          <div>
+            <dt>
+              -no / --no-object
+            </dt>
+            <dd>
+              Compile without assembling or linking
+            </dd>
+          </div>
+        </dl>
+      </details>
+    </div>
+    <div class="compiler-bottom">
+      <span>NO BLACK BOX. OPEN THE SOURCE.</span><a href="#/pages/semantic-static-checker">Diagnostics ↗</a><a href="#/pages/benchmarking">Benchmarks &amp; methodology ↗</a>
+    </div>
+  </div>
+</section>

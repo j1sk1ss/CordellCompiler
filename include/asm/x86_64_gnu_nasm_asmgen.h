@@ -12,30 +12,26 @@
 #include <lir/lir.h>
 #include <lir/lirgen.h>
 
-/*
-Main generator script. Generation based on linear LIR instead of LIR CFG.
-Params:
-- `cctx` - CFG context.
-- `smt` - Symtable.
-- `output` - Output location for generated ASM.
-
-Returns 1 on success, otherwise 0.
-*/
+/* Main generator script. Generation based on linear LIR instead of LIR CFG.
+   Params:
+   - `cctx` - CFG context.
+   - `smt` - Symtable.
+   - `output` - Output location for generated ASM.
+   
+   Returns 1 on success, otherwise 0. */
 int x86_64_gnu_nasm_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* output);
 
 #define NO_FLAG    0
 #define LEA_FLAG   1
 #define LDREF_FLAG 2
 
-/*
-Format input subject and return char*.
-Params:
-- `v` - LIR subject for formatting.
-- `smt` - Symtable.
-- `flag` - Special flag for instruction emit.
-
-Returns 1 on success, otherwise 0.
-*/
+/* Format input subject and return char*.
+   Params:
+   - `v` - LIR subject for formatting.
+   - `smt` - Symtable.
+   - `flag` - Special flag for instruction emit.
+   
+   Returns 1 on success, otherwise 0. */
 const char* x86_64_gnu_nasm_format_lir_subject(lir_subject_t* v, sym_table_t* smt, int flag);
 
 #endif

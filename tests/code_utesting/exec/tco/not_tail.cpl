@@ -1,0 +1,21 @@
+: RUN_ASM :
+function leaf(i32 a) -> i32 {
+    a + 1
+}
+
+function after(i32 a) -> i32 {
+    leaf(a) + 10
+}
+
+function other(i32 a) -> i32 {
+    leaf(a);
+    42
+}
+
+start() {
+    exit (after(31) + other(0)) as u8;
+}
+
+:/ OUTPUT
+@exit_code=84
+/:

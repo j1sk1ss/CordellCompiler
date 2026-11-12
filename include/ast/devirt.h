@@ -13,9 +13,9 @@ typedef struct {
 } template_t;
 
 typedef struct {
-    map_t   templates; /* FuncId <-> Template                                 */
-    queue_t to_impl;   /* The list which contains templates to implementation */
-    set_t   impl;      /* FuncId that are implemented                         */
+    map_t       templates; /* FuncId <-> Template                                 */
+    queue_t     to_impl;   /* The list which contains templates to implementation */
+    set_t       impl;      /* FuncId that are implemented                         */
 } devirt_ctx_t;
 
 typedef struct {

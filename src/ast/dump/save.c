@@ -16,6 +16,14 @@ static const char* _name_tkn_type(token_type_t t) {
         case UNKNOWN_BRACKET_VALUE:       return "UNKNOWN_BRACKET_VALUE";
         case UNKNOWN_STRING_TOKEN:        return "UNKNOWN_STRING_TOKEN";
         case UNKNOWN_NUMERIC_TOKEN:       return "UNKNOWN_NUMERIC_TOKEN";
+        case UNKNOWN_I8NUMERIC_TOKEN:     return "UNKNOWN_I8NUMERIC_TOKEN";
+        case UNKNOWN_I16NUMERIC_TOKEN:    return "UNKNOWN_I16NUMERIC_TOKEN";
+        case UNKNOWN_I32NUMERIC_TOKEN:    return "UNKNOWN_I32NUMERIC_TOKEN";
+        case UNKNOWN_I64NUMERIC_TOKEN:    return "UNKNOWN_I64NUMERIC_TOKEN";
+        case UNKNOWN_U8NUMERIC_TOKEN:     return "UNKNOWN_U8NUMERIC_TOKEN";
+        case UNKNOWN_U16NUMERIC_TOKEN:    return "UNKNOWN_U16NUMERIC_TOKEN";
+        case UNKNOWN_U32NUMERIC_TOKEN:    return "UNKNOWN_U32NUMERIC_TOKEN";
+        case UNKNOWN_U64NUMERIC_TOKEN:    return "UNKNOWN_U64NUMERIC_TOKEN";
         case DREF_TYPE_TOKEN:             return "DREF_TYPE_TOKEN";
         case REF_TYPE_TOKEN:              return "REF_TYPE_TOKEN";
         case NEGATIVE_TOKEN:              return "NEGATIVE_TOKEN";
@@ -82,6 +90,7 @@ static const char* _name_tkn_type(token_type_t t) {
         case BITMOVE_RIGHT_TOKEN:         return "BITMOVE_RIGHT_TOKEN";
         case BITAND_TOKEN:                return "BITAND_TOKEN";
         case BITOR_TOKEN:                 return "BITOR_TOKEN";
+        case RTAKE_BIT_TOKEN:             return "RTAKE_BIT_TOKEN";
         case BITXOR_TOKEN:                return "BITXOR_TOKEN";
         case AND_TOKEN:                   return "AND_TOKEN";
         case OR_TOKEN:                    return "OR_TOKEN";

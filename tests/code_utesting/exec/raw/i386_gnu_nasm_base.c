@@ -95,7 +95,10 @@ int main(int argc, char* argv[]) {
         
         deftb_t macros;
         MCTB_init(&macros);
-        PP_predefine(&macros);
+
+        PP_predefine_flag(&macros, "CCPL_GNUI386");
+        PP_predefine_value(&macros, "usize", "u32");
+        PP_predefine_value(&macros, "isize", "i32");
 
         pp_ctx_t ppctx;
         PP_init_pp_ctx(&ppctx);
@@ -151,6 +154,8 @@ int main(int argc, char* argv[]) {
     RELOAD_CFG;
 
     HIR_CFG_create_domdata(&cfgctx);
+    HIR_FUNC_set_defer_calls(&cfgctx);
+
     ltree_ctx_t lctx;
     map_init(&lctx.lmap, MAP_NO_CMP);
     HIR_LOOP_mark_loops(&cfgctx, &lctx);
@@ -192,7 +197,7 @@ int main(int argc, char* argv[]) {
     LIR_destroy_ssa(&cfgctx);
 
     register_saver_t reg_save = { .save_registers = i386_gnu_nasm_caller_saving };
-    LIR_save_registers(&cfgctx, &callctx, &smt, &reg_save);
+    LIR_save_registers(&cfgctx, &smt, &reg_save);
 
     LIR_validate_memory(&cfgctx, &smt, &mem_sel);
     LIR_clear_global_variables(&cfgctx, &smt);

@@ -49,11 +49,11 @@ const char* i386_gnu_nasm_format_lir_subject(lir_subject_t* v, sym_table_t* smt,
     switch (v->t) {
         case LIR_NUMBER: return v->storage.num.value->body;
         case LIR_CONSTVAL: {
-            snprintf(buffer, sizeof(_buffers[0]), "%ld", v->storage.cnst.value);
+            snprintf(buffer, sizeof(_buffers[0]), NASMFMT_CONST_FMT, (long long)v->storage.cnst.value);
             return buffer;
         }
         case LIR_LABEL: {
-            snprintf(buffer, sizeof(_buffers[0]), "lb%li", v->storage.lb.lb_id);
+            snprintf(buffer, sizeof(_buffers[0]), NASMFMT_LABEL_FMT, (unsigned long long)v->storage.lb.lb_id);
             return buffer;
         }
         case LIR_RAWASM:
@@ -62,7 +62,7 @@ const char* i386_gnu_nasm_format_lir_subject(lir_subject_t* v, sym_table_t* smt,
             if (STTB_get_info_id(v->storage.str.sid, &si, &smt->s)) {
                 switch (si.t) {
                     case STR_INDEPENDENT: {
-                        snprintf(buffer, sizeof(_buffers[0]), "[rel _str_%ld_]", v->storage.str.sid); 
+                        snprintf(buffer, sizeof(_buffers[0]), "[rel " NASMFMT_STRING_FMT "]", v->storage.str.sid);
                         return buffer;
                     }
                     case STR_RAW_ASM:
@@ -76,9 +76,9 @@ const char* i386_gnu_nasm_format_lir_subject(lir_subject_t* v, sym_table_t* smt,
         case LIR_FNAME: {
             func_info_t fi;
             if (FNTB_get_info_id(v->storage.str.sid, &fi, &smt->f)) {
-                char *local = "_cpl_%s", *global = "%s";
+                char *local = NASMFMT_FUNC_FMT, *global = "%s";
                 if (v->storage.str.rel) {
-                    local  = "[rel _cpl_%s]";
+                    local  = "[rel " NASMFMT_FUNC_FMT "]";
                     global = "[rel %s]";
                 }
 
@@ -103,7 +103,7 @@ const char* i386_gnu_nasm_format_lir_subject(lir_subject_t* v, sym_table_t* smt,
                 VTTB_get_info_id(v->storage.str.sid, &vi, &smt->vt) &&
                 TPTB_get_info_id(vi.t_id, &ti, &smt->t)
             ) {
-                snprintf(buffer, sizeof(_buffers[0]), v->storage.str.rel ? "[rel _cpl_vtable_%s]" : "_cpl_vtable_%s", ti.name->body);
+                snprintf(buffer, sizeof(_buffers[0]), v->storage.str.rel ? "[rel " NASMFMT_VTABLE_FMT "]" : NASMFMT_VTABLE_FMT, ti.name->body);
                 return buffer;
             }
 

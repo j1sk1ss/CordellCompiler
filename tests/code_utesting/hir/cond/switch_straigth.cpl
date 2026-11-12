@@ -1,6 +1,6 @@
 start() {
     i32 a;
-    @[straight] switch a; {
+    @[select(straight)] switch a; {
         case 1; {}
         case 2; {}
         case 3; {}

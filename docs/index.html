@@ -1,31 +1,34 @@
-<!-- sudo docker run --rm \
-  -p 3000:3000 \
-  -v "$PWD":/site \
-  -w /site \
-  python:3 \
-  python -m http.server 3000 -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CPL v3.8 docs</title>
-
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify/lib/themes/buble.css" />
-
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="app.js"></script>
-  <link rel="stylesheet" href="styles.css" />
+  <meta name="theme-color" content="#f5f3eb" />
+  <meta name="description" content="CPL 4.0 - a small experimental systems language and an open compiler you can take apart. Explore the language, write your first program, and go from source to assembly." />
+  <title>CPL 4.0 - Small language. Big errors.</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Caveat:wght@500;600;700&family=DM+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css" />
+  <link rel="stylesheet" href="styles.css?v=4.0.9" />
+  <script type="module" src="app.js?v=4.0.9"></script>
 </head>
 <body>
-  <div id="app"></div>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <script src="https://cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/docsify-copy-code/dist/docsify-copy-code.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/docsify/lib/docsify.min.js"></script>
+  <a class="skip-link" href="#main-content">Skip to content</a>
+  <header class="site-header">
+    <a class="site-brand" href="#/" aria-label="CPL 4.0 home">CPL<span class="brand-version">4.0</span><span class="brand-caption">CORDELL<br>PROGRAMMING LANGUAGE</span></a>
+    <button class="menu-toggle" type="button" aria-controls="site-navigation" aria-expanded="false">Menu <span aria-hidden="true">＋</span></button>
+    <nav class="site-navigation" id="site-navigation" aria-label="Main navigation">
+      <a href="#/pages/summary">Discover</a>
+      <a href="#/pages/hello-world-example">Learn</a>
+      <a href="#/pages/types">Documentation</a>
+      <a href="#/pages/compiler-architecture">The compiler</a>
+      <a class="nav-github" href="https://github.com/j1sk1ss/CordellCompiler">GitHub <span aria-hidden="true">↗</span></a>
+      <a class="nav-start" href="#/pages/build-install-package">Get CPL <span aria-hidden="true">↗</span></a>
+    </nav>
+  </header>
+  <main id="main-content" tabindex="-1"><div id="app">Loading CPL documentation…</div></main>
+  <noscript><p class="noscript-message">Enable JavaScript to read this documentation, or <a href="https://github.com/j1sk1ss/CordellCompiler/tree/main/docs">browse the Markdown source on GitHub</a>.</p></noscript>
 </body>
 </html>

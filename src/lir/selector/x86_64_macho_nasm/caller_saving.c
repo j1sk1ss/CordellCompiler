@@ -8,7 +8,7 @@ Params:
                   dirty.
 
 Returns 1 on success, otherwise 0 */
-static void _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f, symbol_id_t f_id, sym_table_t* smt) {
+static void _collect_in_function_reg_usage(set_t* dirty, cfg_func_t* f, symbol_id_t f_id, sym_table_t* smt, cfg_ctx_t* cctx, set_t* visited) {
     if (!f) {
         func_info_t fi;
         if (FNTB_get_info_id(f_id, &fi, &smt->f) && fi.flags.abi) {
@@ -26,12 +26,19 @@ _unknown_call: {}
         }
     }
     else {
+        if (set_has(visited, (void*)f->f_id)) return;
+        set_add(visited, (void*)f->f_id);
         foreach (cfg_block_t* bb, &f->blocks) {
             iterate_lir_instructions (bb) {
-                if (
-                    (lh->op == LIR_FCLL || lh->op == LIR_ECLL) &&
-                    lh->farg->t != LIR_FNAME
-                ) goto _unknown_call;
+                if (lh->unused) continue;
+                if (lh->op == LIR_FCLL || lh->op == LIR_ECLL || LIR_is_tailcall(lh)) {
+                    if (lh->farg->t != LIR_FNAME) goto _unknown_call;
+                    cfg_func_t* callee = NULL;
+                    symbol_id_t id = lh->farg->storage.str.sid;
+                    map_get(&cctx->fmap, id, (void**)&callee);
+                    _collect_in_function_reg_usage(dirty, callee, id, smt, cctx, visited);
+                }
+                
                 if (
                     LIR_is_writeop(lh->op) &&   /* We are writing some value to register (for some reason)        */
                     lh->farg->t == LIR_REGISTER /* This is a register object, we can say that this is a dirty one */
@@ -41,16 +48,16 @@ _unknown_call: {}
     }
 }
 
-static unsigned long long _visit_counter = 0;
+static big_id_t _visit_counter = 0;
 
 static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_t* bbh, lir_block_t* off);
 
-static void _collect_local_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_t* bbh, lir_block_t* off) {
+static void _collect_local_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_t* bbh, lir_block_t* off, int term) {
     if (!bbh || !set_size(dirty)) return;
     lir_block_t* lh = off ? off : bbh->lmap.entry;
     while (lh) {
         if (
-            LIR_is_writeop(lh->op) &&
+            LIR_is_writeop(lh->op)      &&
             lh->farg->t == LIR_REGISTER &&
             !LIR_subj_equals(lh->farg, lh->sarg)
         ) set_remove(dirty, (void*)LIR_format_register(lh->farg->storage.reg.reg, CONF_get_full_bytness()));
@@ -63,8 +70,7 @@ static void _collect_local_out_function_reg_usage(set_t* dirty, set_t* save, cfg
             set_add(save, (void*)LIR_format_register(arg->storage.reg.reg, CONF_get_full_bytness()));
         }
 
-        if (lh->op == LIR_JMP) {
-            _collect_out_function_reg_usage(dirty, save, bbh->jmp, NULL);
+        if (lh->op == LIR_JMP && !term) {
             return;
         }
 
@@ -84,21 +90,18 @@ static int _collect_out_function_reg_usage(set_t* dirty, set_t* save, cfg_block_
     if (!bbh || !set_size(dirty)) return 0;
     if (bbh->visited != _visit_counter) bbh->visited = _visit_counter;
     else {
-        _collect_local_out_function_reg_usage(dirty, save, bbh, off);
+        _collect_local_out_function_reg_usage(dirty, save, bbh, off, 1);
         return 0;
     }
 
-    _collect_local_out_function_reg_usage(dirty, save, bbh, off);
+    _collect_local_out_function_reg_usage(dirty, save, bbh, off, 0);
 
-    set_t copy;
-
-    set_copy(&copy, dirty);
-    _collect_out_function_reg_usage(&copy, save, bbh->l, NULL);
-    set_free(&copy);
-    
-    set_copy(&copy, dirty);
-    _collect_out_function_reg_usage(&copy, save, bbh->jmp, NULL);
-    set_free(&copy);
+    set_foreach (cfg_block_t* succ, &bbh->succ) {
+        set_t copy;
+        set_copy(&copy, dirty);
+        _collect_out_function_reg_usage(&copy, save, succ, NULL);
+        set_free(&copy);
+    }
 
     return 0;
 }
@@ -174,7 +177,7 @@ static inline lir_block_t* _find_post_argunload(lir_block_t* lh, lir_block_t* ex
     return NULL;
 }
 
-int x86_64_macho_nasm_caller_saving(cfg_ctx_t* cctx, call_graph_t* calls, sym_table_t* smt) {
+int x86_64_macho_nasm_caller_saving(cfg_ctx_t* cctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         if (!fb->used) continue;
         foreach (cfg_block_t* bb, &fb->blocks) {
@@ -207,30 +210,13 @@ int x86_64_macho_nasm_caller_saving(cfg_ctx_t* cctx, call_graph_t* calls, sym_ta
                             set_free(&funcs);
                         }
 
-                        queue_t work_list;
-                        queue_init(&work_list);
-                        queue_push(&work_list, func);
                         set_t visited_funcs;
                         set_init(&visited_funcs, SET_NO_CMP);
-
-                        while (queue_pop(&work_list, (void**)&func)) {
-                            _collect_in_function_reg_usage(&func_regs, func, f_id, smt);
-                            if (!func || set_has(&visited_funcs, (void*)func->f_id)) continue;
-                            set_add(&visited_funcs, (void*)func->f_id);
-                            call_graph_node_t* call;
-                            if (map_get(&calls->verts, func->f_id, (void**)&call)) {
-                                set_foreach(call_graph_node_t* f, &call->edges) {
-                                    cfg_func_t* another = NULL;
-                                    if (f == call) continue;
-                                    if (map_get(&cctx->fmap, f->f_id, (void**)&another)) queue_push(&work_list, another);
-                                    else queue_push(&work_list, NULL);
-                                }
-                            }
-                        }
+                        _collect_in_function_reg_usage(&func_regs, func, f_id, smt, cctx, &visited_funcs);
 
                         long dirty_regs[32];
                         int dirty_count = 0;
-                        if (bb->jmp) {
+                        if (bb->jmp || (!bb->l && set_size(&bb->succ))) {
                             set_foreach (long reg, &func_regs) {
                                 if (dirty_count >= (int)(sizeof(dirty_regs) / sizeof(dirty_regs[0]))) break;
                                 dirty_regs[dirty_count++] = reg;
@@ -243,7 +229,6 @@ int x86_64_macho_nasm_caller_saving(cfg_ctx_t* cctx, call_graph_t* calls, sym_ta
                         }
                         
                         set_free(&visited_funcs);
-                        queue_free(&work_list);
                         
                         lir_block_t* pre  = _find_pre_argload(lh->prev, bb->lmap.exit);
                         lir_block_t* post = _find_post_argunload(lh->next, bb->lmap.exit, _count_post_argload_pushes(pre, lh));

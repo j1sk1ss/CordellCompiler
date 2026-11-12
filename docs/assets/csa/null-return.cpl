@@ -1,0 +1,8 @@
+function foo() -> ptr i32 {
+    return 0;
+}
+
+start() {
+    ptr i32 a = foo();
+    exit dref a;
+}

@@ -4,6 +4,9 @@ exit 0;
 }
 
 :/ OUTPUT
-[WARNING] [{X}2:8] Variable 'a' doesn't have any initial value! If it used elsewhere below without store operation, it will cause the UB. Consider to init this variable with '0'.
+[WARNING] [3:6] Non-idiomatic exit operation found. You can use 'exit' without any exit code.
+3 | exit 0;
+  |      ^
+[WARNING] [2:8] Variable 'a' doesn't have any initial value! If it used elsewhere below without store operation, it will cause the UB. Consider to init this variable with '0'.
 2 | i32 a;
 /:

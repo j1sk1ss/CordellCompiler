@@ -1,0 +1,119 @@
+.language-section {
+  border-top: 1px solid var(--line);
+}
+
+.language-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  margin-top: 48px;
+  border-block: 1px solid var(--ink);
+}
+
+.language-item {
+  position: relative;
+  display: block;
+  padding: 28px 30px 30px 0;
+}
+
+.language-item + .language-item {
+  padding-left: 30px;
+  border-left: 1px solid var(--line);
+}
+
+.item-symbol {
+  display: flex;
+  align-items: center;
+  width: 82px;
+  height: 88px;
+  margin: 14px 0 24px;
+  color: var(--blue);
+  font: 500 70px/1 Georgia, serif;
+  transform-origin: 40% 50%;
+  transition: transform .25s ease;
+}
+
+.language-item:nth-child(2) .item-symbol {
+  color: var(--orange);
+}
+
+.language-item:nth-child(3) .item-symbol {
+  font-family: var(--mono);
+  color: var(--ink);
+}
+
+.cpl-home .language-item h3 {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -.6px;
+}
+
+.cpl-home .language-item p {
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.item-link {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 32px;
+  font-size: 11px;
+  font-weight: 700;
+  transition: color .2s ease;
+}
+
+.item-link > span {
+  transition: transform .25s ease;
+}
+
+.language-item:focus-visible .item-link {
+  color: var(--blue);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .language-item:hover .item-link {
+    color: var(--blue);
+  }
+
+  .language-item:hover .item-symbol {
+    transform: translateY(-4px) rotate(-6deg);
+  }
+
+  .language-item:hover .item-link > span {
+    transform: translate(2px, -2px);
+  }
+
+}
+
+@media (max-width: 760px) {
+  .language-grid {
+    grid-template-columns: 1fr;
+    margin-top: 30px;
+  }
+
+  .language-item,
+  .language-item + .language-item {
+    padding: 23px 0 25px 70px;
+    border: 0;
+  }
+
+  .language-item + .language-item {
+    border-top: 1px solid var(--line);
+  }
+
+  .item-symbol {
+    position: absolute;
+    top: 30px;
+    left: 0;
+    width: 56px;
+    height: 65px;
+    margin: 0;
+    font-size: 50px;
+  }
+
+  .item-link {
+    margin-top: 18px;
+  }
+
+}

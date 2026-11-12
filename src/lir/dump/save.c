@@ -93,6 +93,7 @@ static const char* _op_to_fmtstring(lir_operation_t op) {
         case LIR_STAE:       return "stae %s;";
         case LIR_bSHL:
         case LIR_iBLFT:      return "%s = %s << %s;";
+        case LIR_bSAR:
         case LIR_bSHR:
         case LIR_iBRHT:      return "%s = %s >> %s;";
         case LIR_iLWR:       return "%s = %s < %s;";
@@ -146,7 +147,7 @@ static char* _fmt_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt, int
         case LIR_VARIABLE: dst += sprintf(dst, "%%%li", s->storage.var.v_id);      break;
         case LIR_NUMBER:   dst += sprintf(dst, "$%s", s->storage.num.value->body); break;
         case LIR_CONSTVAL: dst += sprintf(dst, "%ld", s->storage.cnst.value);      break;
-        case LIR_LABEL:    dst += sprintf(dst, "lb%ld", s->storage.lb.lb_id);      break;
+        case LIR_LABEL:    dst += sprintf(dst, "lb%llu", s->storage.lb.lb_id);     break;
         case LIR_RAWASM:
         case LIR_STRING: {
             str_info_t si;
@@ -200,17 +201,19 @@ static char* _fmt_lir_subject(char* dst, lir_subject_t* s, sym_table_t* smt, int
 }
 
 static void _print_lir_block(const lir_block_t* block, sym_table_t* smt, int pos, int unused, char* output) {
-    if (!block || (block->op == LIR_SETPOS && !pos)) return;
+    if (!block || (block->op == LIR_SETPOS && !pos) || (block->unused && !unused)) return;
     int style = (block->op == LIR_FCLL || block->op == LIR_ECLL) ? 2 : 1;
+
     char first_argument[256] = { 0 }, second_argument[256] = { 0 }, third_argument[256] = { 0 };
     if (block->farg) _fmt_lir_subject(first_argument, block->farg, smt, style);
     if (block->sarg) _fmt_lir_subject(second_argument, block->sarg, smt, style);
     if (block->targ) _fmt_lir_subject(third_argument, block->targ, smt, style);
+
     if (block->unused && unused) output += sprintf(output, "[unused] ");
     sprintf(output, _op_to_fmtstring(block->op), first_argument, second_argument, third_argument);
 }
 
-int DUMP_format_lirctx(lir_ctx_t* ctx, sym_table_t* smt, int pos, int unused, FILE* output) {
+status_code_t DUMP_format_lirctx(lir_ctx_t* ctx, sym_table_t* smt, int pos, int unused, FILE* output) {
     lir_block_t* lh = ctx->h;
     while (lh) {
         char out_string[512] = { 0 };
@@ -219,7 +222,7 @@ int DUMP_format_lirctx(lir_ctx_t* ctx, sym_table_t* smt, int pos, int unused, FI
         lh = lh->next;
     }
 
-    return 1;
+    return GENERAL_SUCCESS;
 }
 
 static int _print_hir_cfg_function(cfg_func_t* fb, func_info_t* fi, sym_table_t* smt, FILE* output) {
@@ -252,13 +255,16 @@ static int _print_hir_cfg_function(cfg_func_t* fb, func_info_t* fi, sym_table_t*
         fprintf(output, "\"];\n");
         if (cb->l)   fprintf(output, "  B%ld -> B%ld [label=\"fall\"];\n", cb->id, cb->l->id);
         if (cb->jmp) fprintf(output, "  B%ld -> B%ld [label=\"jump\"];\n", cb->id, cb->jmp->id);
+        set_foreach (cfg_block_t* succ, &cb->succ) {
+            if (succ != cb->l && succ != cb->jmp) fprintf(output, "  B%ld -> B%ld [label=\"table\"];\n", cb->id, succ->id);
+        }
     }
 
     fprintf(output, "}\n");
     return 1;
 }
 
-int DUMP_format_lir_cfg(cfg_ctx_t* cctx, sym_table_t* smt, const char* name, FILE* output) {
+status_code_t DUMP_format_lir_cfg(cfg_ctx_t* cctx, sym_table_t* smt, const char* name, FILE* output) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         func_info_t fi;
         if (FNTB_get_info_id(fb->f_id, &fi, &smt->f) && fi.name->requals(fi.name, name)) {
@@ -266,5 +272,5 @@ int DUMP_format_lir_cfg(cfg_ctx_t* cctx, sym_table_t* smt, const char* name, FIL
         }
     }
 
-    return 1;
+    return GENERAL_SUCCESS;
 }

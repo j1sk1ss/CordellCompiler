@@ -21,12 +21,13 @@ typedef struct {
     signed char vargs;    /* sys       */
     signed char generic;  /* sys       */
     signed char self;     /* annot     */
-    signed char naked;    /* 1 / 0   */ /* annot */
-    signed char inln;     /* 1, 2, 3 */ /* annot */
+    signed char naked;    /* 2 / 1 / 0 */ /* annot */ /* 2 - semi-naked, 1 - full-naked, 0 - not-naked */
+    signed char inln;     /* 1, 2, 3 */   /* annot */
     signed char onlybody; /* annot     */
     signed char vname;    /* annot     */
     signed char abstract; /* annot     */
     signed char override; /* annot     */
+    signed char testf;    /* annot     */
 } func_info_flags_t;
 
 typedef struct {
@@ -45,6 +46,9 @@ typedef struct {
         map_t         generic;          /* Generic base types. TypeId <-> TokenType */
         list_t        resolutions;      /* Resolved copies (use the generic field)  */
     } template;
+
+    ast_node_t*       ast_root;         /* !! CAN BE NULL !! 
+                                        The root node for a function from AST       */
 } func_info_t;
 
 typedef struct func_ctx {
@@ -103,7 +107,7 @@ Params:
 Returns -1 if fails or a new function's ID.
 */
 symbol_id_t FNTB_add_info(
-    string_t* name, string_t* vname, func_info_flags_t flags, symbol_id_t s_id, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
+    string_t* name, string_t* vname, func_info_flags_t flags, symbol_id_t s_id, ast_node_t* args, ast_node_t* rtype, ast_node_t* root, functab_ctx_t* ctx
 );
 
 /*
@@ -168,15 +172,17 @@ int FNTB_rewrite_flags(symbol_id_t id, func_info_flags_t flags, functab_ctx_t* c
 #define FNTB_EXPLICIT_EXTERN 1
 #define FNTB_NO_EXTERN       0
 #define FNTB_NO_FLAGS_CHANGE ((func_info_flags_t){ .global=-1, .abi=-1, .weak=-1, .external=-1, .entry=-1, .used=-1,  \
-    .local=-1, .vargs=-1, .generic=-1, .self=-1, .naked=-1, .inln=-1 })
+    .local=-1, .vargs=-1, .generic=-1, .self=-1, .naked=-1, .inln=-1, .testf=-1 })
 #define FNTB_SET_EXTERNAL(n) ((func_info_flags_t){ .global=-1, .abi=-1, .weak=-1, .external=n, .entry=-1, .used=-1,   \
-    .local=-1, .vargs=-1, .generic=-1, .self=-1, .naked=-1, .inln=-1 })
+    .local=-1, .vargs=-1, .generic=-1, .self=-1, .naked=-1, .inln=-1, .testf=-1 })
 #define FNTB_SET_NAKED(n)    ((func_info_flags_t){ .global=-1, .abi=-1, .weak=-1, .external=-1, .entry=-1, .used=-1,  \
-    .local=-1, .vargs=-1, .generic=-1, .self=-1, .naked=(n), .inln=-1 })
+    .local=-1, .vargs=-1, .generic=-1, .self=-1, .naked=(n), .inln=-1, .testf=-1 })
 #define FNTB_SET_GENERIC(n)  ((func_info_flags_t){ .global=-1, .abi=-1, .weak=-1, .external=-1, .entry=-1, .used=-1,  \
-    .local=-1, .vargs=-1, .generic=(n), .self=-1, .naked=-1, .inln=-1 })
+    .local=-1, .vargs=-1, .generic=(n), .self=-1, .naked=-1, .inln=-1, .testf=-1 })
 #define FNTB_SET_USED(n)     ((func_info_flags_t){ .global=-1, .abi=-1, .weak=-1, .external=-1, .entry=-1, .used=(n), \
-    .local=-1, .vargs=-1, .generic=-1, .self=-1, .naked=-1, .inln=-1 })
+    .local=-1, .vargs=-1, .generic=-1, .self=-1, .naked=-1, .inln=-1, .testf=-1 })
+#define FNTB_SET_ENTRY(n)    ((func_info_flags_t){ .global=-1, .abi=-1, .weak=-1, .external=-1, .entry=(n), .used=-1, \
+    .local=-1, .vargs=-1, .generic=-1, .self=-1, .naked=-1, .inln=-1, .testf=-1 })
 /*
 Update an existed function.
 Note: Will update the virtual name of a function.
@@ -196,9 +202,7 @@ Params:
 
 Returns 1 on success, otherwise 0.
 */
-int FNTB_update_func(
-    symbol_id_t id, string_t* name, func_info_flags_t flags, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
-);
+int FNTB_update_func(symbol_id_t id, string_t* name, func_info_flags_t flags, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx);
 
 /*
 Create a copy with resolved generic types. Will create a copy with a modified name. Consider

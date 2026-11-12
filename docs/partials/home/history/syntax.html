@@ -1,0 +1,72 @@
+<li class="era-entry">
+  <span class="era-marker" aria-hidden="true"></span>
+  <article class="milestone-card milestone-syntax" aria-labelledby="era-title-syntax">
+    <div class="era-docs-bar" aria-hidden="true"><span class="era-docs-brand">CPL Docs</span><span>Language / Syntax</span><span>☰</span></div>
+    <div class="milestone-copy">
+      <p class="milestone-meta">
+        SYNTAX / v1.0 → v2.0<span>APR–SEP 2025</span>
+      </p>
+      <h3 id="era-title-syntax">
+        A familiar<br>shape emerges.
+      </h3>
+      <p class="milestone-description">
+        Keyword-delimited blocks give way to braces. Parameters and calls find their parentheses. Explicit-width types make the data model clearer. The language starts to look like CPL.
+      </p>
+      <div class="milestone-tags">
+        <span>CURLY BLOCKS</span><span>PARENTHESISED CALLS</span><span>SIZED TYPES</span>
+      </div>
+      <a class="milestone-source" href="https://github.com/j1sk1ss/CordellCompiler/blob/v2.0/examples/cpllib/string.cpl">Compare the v2.0 syntax <span aria-hidden="true">↗</span></a>
+    </div>
+    <figure class="milestone-art art-syntax">
+      <svg class="milestone-svg" viewBox="0 0 600 400" role="img" aria-labelledby="sketch-syntax">
+        <title id="sketch-syntax">
+          Two sketched language forms: v1 strlen string becomes v2 strlen(s), and int and char gain explicit-width type names.
+        </title>
+        <defs>
+          <pattern id="grid-syntax" width="24" height="24" patternUnits="userSpaceOnUse">
+            <path d="M24 0H0V24" fill="none" stroke="currentColor" stroke-width=".55" opacity=".16"/>
+          </pattern>
+          <marker id="arrow-syntax" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="m2 2 8 4-8 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+        <rect width="600" height="400" fill="url(#grid-syntax)"/>
+        <text x="25" y="36" class="sketch-label" >
+          RE-DRAWING THE GRAMMAR
+        </text>
+        <g transform="rotate(-5 160 180)">
+          <path d="M35 128 271 126 274 230 32 233Z" class="sketch-paper" />
+          <text x="52" y="153" class="sketch-label" >
+            v1.0
+          </text>
+          <text x="52" y="191" class="sketch-code" >
+            strlen string;
+          </text>
+          <path d="M47 196Q154 188 247 197" class="sketch-strike" />
+        </g>
+        <g transform="rotate(4 440 175)">
+          <path d="M327 123 563 121 566 231 324 234Z" class="sketch-paper sketch-paper-green" />
+          <text x="345" y="151" class="sketch-label" >
+            v2.0
+          </text>
+          <text x="345" y="193" class="sketch-code" >
+            strlen(s);
+          </text>
+          <path d="M399 168Q383 185 398 207M427 168Q443 186 429 208" class="sketch-accent" />
+        </g>
+        <path d="M244 250Q291 284 337 242" class="sketch-line" marker-end="url(#arrow-syntax)" />
+        <text x="192" y="300" class="sketch-hand" >
+          call syntax
+        </text>
+        <path d="M55 326 256 324 259 369 52 372Z" class="sketch-paper" />
+        <text x="72" y="355" class="sketch-code" >
+          int → i32
+        </text>
+        <path d="M333 326 534 324 537 369 330 372Z" class="sketch-paper" />
+        <text x="351" y="355" class="sketch-code" >
+          char → i8
+        </text>
+      </svg>
+    </figure>
+  </article>
+</li>

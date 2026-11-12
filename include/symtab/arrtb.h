@@ -8,28 +8,29 @@
 #include <symtab/symtab_id.h>
 
 typedef enum {
-    ARRAY_ELEM_STRING_TYPE,
-    ARRAY_ELEM_CONST_TYPE,
-    ARRAY_ELEM_FUNC_TYPE,
-    ARRAY_ELEM_VTABLE_TYPE
+    ARRAY_ELEM_STRING_TYPE, // strings in a list
+    ARRAY_ELEM_CONST_TYPE,  // default numbers
+    ARRAY_ELEM_FUNC_TYPE,   // link to a function
+    ARRAY_ELEM_VTABLE_TYPE, // special case for a virtual table in a container
+    ARRAY_ELEM_LABEL_TYPE   // id of a label
 } array_elem_type_t;
 
 typedef struct {
     union {
-        symbol_id_t   v_id;
-        symbol_id_t   s_id;
-        symbol_id_t   f_id;
-        symbol_id_t   vt_id;
-        long long     value;
+        symbol_id_t         v_id;
+        symbol_id_t         s_id;
+        symbol_id_t         f_id;
+        symbol_id_t         vt_id;
+        long long           value;
     } s;
-    array_elem_type_t t;
+    array_elem_type_t       t;
 } array_elem_info_t;
 
 typedef struct {
     char                    vla : 1;
     symbol_id_t             v_id;
     long                    size;
-    list_t                  elems; /* array_elem_info_t* */
+    list_t                  elems; /* @items: array_elem_info_t* */
     struct {
         token_type_t        el_type;
         basic_object_info_t el_flags;
@@ -40,10 +41,10 @@ typedef struct {
     map_t arrtb;
 } arrtab_ctx_t;
 
-int ARTB_get_info(symbol_id_t id, array_info_t* info, arrtab_ctx_t* ctx);
-int ARTB_add_elems(symbol_id_t id, array_elem_info_t elem, arrtab_ctx_t* ctx);
+int         ARTB_get_info(symbol_id_t id, array_info_t* info, arrtab_ctx_t* ctx);
+int         ARTB_add_elems(symbol_id_t id, array_elem_info_t elem, arrtab_ctx_t* ctx);
 symbol_id_t ARTB_add_info(symbol_id_t id, long size, int vla, token_type_t el_type, basic_object_info_t el_flags, arrtab_ctx_t* ctx);
 symbol_id_t ARTB_add_copy(symbol_id_t nid, array_info_t* src, arrtab_ctx_t* ctx);
-int ARTB_unload(arrtab_ctx_t* ctx);
+int         ARTB_unload(arrtab_ctx_t* ctx);
 
 #endif

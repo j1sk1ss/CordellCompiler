@@ -3,6 +3,243 @@ Logs for the first and second versions are quite short because I do not remember
 
 ----------------------------------------
 
+## Version 4.0
+<div class="change-date">Date: 2026-11-11</div>
+
+Hello, and this is the 4.0 version!
+
+What's new in this release?
+- Abstractions now a thing in CPL
+- Virtual tables and methods are supported by containers
+- More macro!
+- Idimotaic shifts,
+- and other bug fixes...
+
+### Abstractions
+
+Now CPL has `interfaces`. Actually, this update was introduced in `3.8` version, but I planned to make the 4.0 back in this moment. The idea behind this is to give a user an opportunity to simplify its code. For instance, code for drivers with the same set of functions. I didn't add abstract classes or something like that, only interfaces as contract declarators:
+
+```cpl
+interface a {
+    @[self] function prode(ptr a self) -> bool;
+}
+
+container b implements a {
+    @[override] function prode(ptr b self) -> bool;
+}
+```
+
+All functions in an interface **must** have `@[self]` annotation. Also, `@[override]` annotation copies all annotations from the abstraction of a function.
+
+### Virtual tables
+
+An interfaces declares that a container has a virtual table. Every function from that intarface will be placed in this table, and then the table will be placed as the first pointer in the container.
+
+### More macro!
+
+Macroses now can use arguments:
+
+```cpl
+#define FOO(arg) foo(arg)
+FOO(1) :/ foo(1) /:
+```
+
+Also, macroses can use a special variable `__BODY__` which tracks the aligned scope block and inserts its content:
+
+```cpl
+#define for(init, cond, step) { init; while cond; { __BODY__; step; } }
+
+for (i32 i = 0i32; i < 10i32; i += 1) {
+    printf(ref "Hi!\n");
+}
+:/
+{
+    i32 i = 0i32;
+    while i < 10i32; {
+        {
+            printf(ref "Hi!\n");
+        }
+        i += 1;
+    }
+}
+/:
+```
+
+### Idiomatic shifts
+
+The compiler now understands several idiomatic ways of working with data. For example, instead of manual cast of a number with `as` keyword, you can now create a "typed" number:
+
+```cpl
+10i32;
+```
+
+This is a 32-bit integer number.
+
+----------------------------------------
+
+## 4.0 preps
+<div class="change-date">Date: 2026-11-08</div>
+I'm cleaning the code, fixing bugs and trying to prepare the compiler for a new release and a new version.
+
+## PP with args
+<div class="change-date">Date: 2026-11-08</div>
+The pre-processor so far was a simple tool which replaces a string with another string. With the simple update, now the PP can use arguments! How it works?
+
+```cpl
+#define for(init, cond, step) init while cond { step }
+
+for (i32 a = 0i32; a < 10i32; a += 1)
+:/
+i32 a = 0i32;
+while a < 10i32; {
+    a += 1;
+}
+/:
+```
+
+It's a first iteration of this tool, that's why we can't create complex calls with variadic amount of arguments, etc. But now it at least can handle arguments!
+
+## DLE update
+<div class="change-date">Date: 2026-11-01</div>
+Loop iterations allow us to update several optimizations. For now, DLE optimizations now works. To do the optimiation, DLE finds loops which are finite, don't have useful commands (with side effects) and its inductive variables don't used elsewhere below.
+
+## LOOP iterations!
+<div class="change-date">Date: 2026-11-01</div>
+I've done this! Now the compiler can extract (not everytime, and not in every case) terations count, step size and an initial value. For instance, let's consider the next code:
+
+```cpl
+i32 a = 10i32;
+while a; {
+    a -= 1;
+}
+```
+
+Here the compiler will find the `phi`-function at the condition (for the `a` variable), and will mark the variable as a 'condition' variable. Than it will find the condition itself - `a` == `a != 0`. 
+
+Now, when we have the variable and the condition, we need to find a step value and an initial value. The initial value - is the first input value to the `phi`-function, which means, it's `10i32`. The step value - is the second input value to the `phi`-function, which means, it's `a_1` == `a_0 - 1` == `-1`.
+
+Now, we can say, that the loop has `-1` as the step and `10i32` as the initial value. Therefore, there is 10 iterations!
+
+This update won't add anything to the language or to the optimizations list. This is a pure architecture update.
+
+## New switch annotation
+<div class="change-date">Date: 2026-10-17</div>
+Refactored the switch-related annotations:
+
+```cpl
+@[select(straight)] switch a; {
+    case b; {}
+    case c; {}
+    case d; {}
+    default {}
+}
+```
+
+Also add the `@[select(auto)]`. The compiler will decide which annotation will be used.
+
+## Successors and Jump tables
+<div class="change-date">Date: 2026-10-15</div>
+The compiler now supports `@[jtable]` annotation for switches. Actually - this is the fastest way to jump to a case. To use it, just add an annotation:
+
+```cpl
+start(i32 a) {
+    @[jtable] switch a; {
+        case 1; {}
+        case 2; {}
+        default {}
+    }
+}
+```
+
+To support this, I've changed the CFG blocks. Now they store successors in a set (+ and two additional variables, that help in the further analysis and transformation).
+
+## Take right bits operation
+<div class="change-date">Date: 2026-10-06</div>
+Sometimes we need just to take several bits from the right of a variable. Why won't we use simple bit mask? Because we need to save the sign for the new number. Before, the one proper way to do this was this:
+
+```cpl
+(0b1111111101u16 << 6) >> 6
+```
+
+Doesn't look good, yes? We need to move the number up to it's type limit, than move it back. Now we can do the same thing much easier:
+
+```cpl
+1000u16 |~ 6i16
+```
+
+There `6` is amount of bits that we want to save. And `i16` is the final type of a new number.
+
+## Tests!
+<div class="change-date">Date: 2026-10-04</div>
+Add a special annotation for testing. To use it, folow the example below:
+
+```cpl
+start() {
+    :/ Default pipeline /:
+}
+
+@[test]
+function test_something() -> i0 {
+    i32 a = 10 + 10;
+    assert(a == 20);
+}
+```
+
+Will generate those functions (with `@[test]` annotation) only with `--test` flag. Also, this flag will replace the main function with sequence of tests.
+
+## Specific numerics
+<div class="change-date">Date: 2026-10-03</div>
+Now to specify the numeric's type, use the same way as in Rust:
+
+```cpl
+i32 a = 123i32;
+i8  b = 123i8;
+```
+
+## defer
+<div class="change-date">Date: 2026-09-24</div>
+`Defer` in Go is a good example of a perfect languge design. Just imagine, how it's convenient to delay imprtant memory cleanup for every function exit? At first glanze it's redundant, given that the `deref` doesn't involve any async logic. But let's consider the next example:
+
+```cpl
+:/
+function malloc(usize size) -> ptr i0;
+function free(ptr i0 p) -> i0;
+/:
+
+function anything() -> i0 {
+    ptr i0 data = malloc(100);
+    if :/ something /:; {
+        foo();
+        return;
+    }
+
+    free(data);
+}
+```
+
+Here in the `anything` we allocate `data` variable and then deallcate it. But during the development stage, we've added a new exit path - when something is `true`. Actually, we need to add another `free` function call to the body of the `if`, and that's it. But what if there is several allocations? And there is several new exit paths? Indeed, we can manualy set new free logic to new exit paths, incapsulate free logic to a function to minimize additional code, etc. But if I told you, that we can simplify our life with one simple keyword `defer`? Let's consider another one example:
+
+```cpl
+:/
+function malloc(usize size) -> ptr i0;
+function free(ptr i0 p) -> i0;
+/:
+
+function anything() -> i0 {
+    ptr i0 data = malloc(100);
+    defer free(data);
+    if :/ something /:; {
+        foo();
+        return;
+    }
+    else :/ something /:; {
+        return;
+    }
+}
+```
+
+Now the compiler will put the `free` before every function's exit.
+
 ## implements instead of '::'
 <div class="change-date">Date: 2026-09-18</div>
 Usually, `::` means being somewhere in a scope of an element. This breaks when we try to implement an interface for a container. That's why I've taken a keyword from Java: `implements`. Now, to link an interface to a container, you need to use `implements` keyword:
@@ -261,7 +498,7 @@ Switches can now be compact, especially with annotations:
 ```cpl
 function foo(i32 b) -> i0 {
     i32 a;
-    @[no_fall] @[straight]
+    @[no_fall] @[select(straight)]
     switch b; {
         case 1; a = 1;
         case 2; a = 2;
@@ -772,7 +1009,7 @@ start(i32 argc, ptr ptr i8 argv) {
     i32 codelength = strlen(argv[1]);
     while pos < codelength; {
         @[no_fall]
-        @[straight]
+        @[select(straight)]
         switch argv[1][pos]; {
             case '['; {
                 stack[stackptr] = pos;

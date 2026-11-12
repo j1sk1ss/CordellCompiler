@@ -31,7 +31,7 @@ function memset366(ptr i0 dst, u8 value, i64 count) -> ptr i0 {
 
 start() {
     @[align(8)] arr storage[64, u8];
-    memset366(ref storage, 0x7F as u8, 64);
+    memset366(ref storage, 0x7F as u8, 64 as i64);
 
     ptr impl366 item = place(ref storage, impl366);
     item.value_field = 42;

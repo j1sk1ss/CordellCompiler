@@ -29,6 +29,7 @@
 #define SIGNATURE_COMMAND       "fn"
 #define VAR_ARGUMENTS_COMMAND   "..."
 #define LAMBDA_COMMAND          "=>"
+#define DEFER_COMMAND           "defer"
 
 // Modifiers
 #define DREF_COMMAND            "dref"
@@ -81,6 +82,8 @@
 #define BITANDASSIGN_STATEMENT  "&="
 #define BITORASSIGN_STATEMENT   "|="
 #define BITXORASSIGN_STATEMENT  "^="
+
+#define BITS_GET_R_STATEMENT    "|~"  // get N bits from the right with extension (sign or unsign is desided by N sign)
 
 #define ASSIGN_STATEMENT        "="
 #define COMPARE_STATEMENT       "=="

@@ -26,6 +26,9 @@
         "shr": [
             "LIR_bSHR"
         ],
+        "sar": [
+            "LIR_bSAR"
+        ],
         "and": [
             "LIR_bAND"
         ],

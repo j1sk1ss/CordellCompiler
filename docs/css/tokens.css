@@ -1,0 +1,22 @@
+:root {
+  --paper: #f5f3eb;
+  --ink: #20211f;
+  --muted: #686960;
+  --line: #d7d7cc;
+  --blue: #2948ec;
+  --orange: #f65327;
+  --lime: #dfff7f;
+  --text: var(--ink);
+  --bg: var(--paper);
+  --brand: var(--blue);
+  --brand-deep: #253bb8;
+  --brand-soft: #e9ecff;
+  --panel: #fffef8;
+  --panel-soft: #eeeee5;
+  --radius: 0;
+  --theme-color: var(--blue);
+  --mono: 'IBM Plex Mono', monospace;
+  --display: 'Barlow Condensed', Impact, 'Arial Narrow', sans-serif;
+  --sans: 'DM Sans', system-ui, sans-serif;
+  --sketch: 'Caveat', 'Segoe Print', cursive;
+}

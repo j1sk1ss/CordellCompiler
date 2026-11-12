@@ -37,17 +37,6 @@ AST analysis works on the parsed source structure and symbol tables. It is meant
 - using an `i0` result as a value;
 - odd alignment in `@[align(N)]`.
 
-Example:
-
-```cpl
-ro i32 x = 1;
-
-start() {
-    x = 2; : AST analysis should report read-only update :
-    exit 0;
-}
-```
-
 ## HIR/IR analysis
 
 IR analysis runs after HIR and CFG construction. It can reason about lower-level program behavior and target-sensitive operations.
@@ -58,16 +47,6 @@ Typical checks include:
 - possible null dereference through function arguments;
 - constant `if` conditions and dead branches;
 - function call type checks after lowering;
+- possible division by zero;
+- possible division by one;
 - syscall validation for the selected target platform.
-
-Example:
-
-```cpl
-start() {
-    ptr i32 p = 0 as ptr i32;
-    i32 x = dref p;
-    exit x as u8;
-}
-```
-
-The project also contains Z3-related code for deeper reasoning in HIR checks. Treat this as an experimental analysis path rather than as a full formal verification system.

@@ -1,0 +1,20 @@
+start() {
+    i32 a = a;
+
+    i32 b = a + 10 + 100 * 1 + b;
+}
+
+:/ OUTPUT
+[WARNING] [4:9] Found self initialization! The variable 'b' has been initialized with a value from itself. It will lead to UB! Consider to delete the variable.
+4 | i32 b = a + 10 + 100 * 1 + b;
+  |                            ^
+[WARNING] [2:9] Found self initialization! The variable 'a' has been initialized with a value from itself. It will lead to UB! Consider to delete the variable.
+2 | i32 a = a;
+  |         ^
+[WARNING] [1:7] Start doesn't have the 'exit' keyword on all paths!
+1 | start ()
+2 | {
+2 |     i32 a = a;
+4 |     i32 b = a + 10 + 100 * 1 + b;
+2 | }
+/:

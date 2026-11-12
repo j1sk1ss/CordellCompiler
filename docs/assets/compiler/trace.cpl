@@ -1,0 +1,6 @@
+start() {
+    i32 first = 7;
+    i32 second = 5;
+    i32 total = first + second;
+    exit total as u8;
+}

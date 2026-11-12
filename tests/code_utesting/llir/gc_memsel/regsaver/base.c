@@ -127,7 +127,7 @@ int main(int argc, char* argv[]) {
     LIR_select_memory(&cfgctx, &colors, &smt, &mem_sel); // Transform
 
     register_saver_t reg_saver = { .save_registers = x86_64_gnu_nasm_caller_saving };
-    LIR_save_registers(&cfgctx, &callctx, &smt, &reg_saver);
+    LIR_save_registers(&cfgctx, &smt, &reg_saver);
     
     DUMP_format_lirctx(&lirctx, smt, 0, 1, stdout);
 

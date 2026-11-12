@@ -7,6 +7,6 @@ start() {
 }
 
 :/ OUTPUT
-[WARNING] The variable b has a store operation which will cut the source value of '100000'
-    at: {X}.cpl:4:10
+[WARNING] The variable 'b' has a store operation which will cut the source value of '100000'
+    at: 4:10
 /:

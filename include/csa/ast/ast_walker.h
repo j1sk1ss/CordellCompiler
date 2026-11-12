@@ -21,49 +21,41 @@ typedef struct {
     sym_table_t*   smt;      /* Symbolic table   */
 } ast_walker_t;
 
-/*
-Register a new one walker to the walker.
-Params:
-    - `trg` - Target node (-s) type. 
-              Note: To add a support for a few nodes, use
-                    a bit 'or' operation.
-                    For instance: ASSIGN_NODE | CALL_NODE
-    - `perform` - AST walker handler. Will invoke this 
-                  function when encounter with the 'trg'.
-    - `ctx` - Walker context.
-    - `l` - Attention level. Check attention_level_t to see details.
-
-Returns 1 if succeeds.
-*/
+/* Register a new one walker to the walker.
+   Params:
+       - `trg` - Target node (-s) type. 
+                 Note: To add a support for a few nodes, use
+                       a bit 'or' operation.
+                       For instance: ASSIGN_NODE | CALL_NODE
+       - `perform` - AST walker handler. Will invoke this 
+                     function when encounter with the 'trg'.
+       - `ctx` - Walker context.
+       - `l` - Attention level. Check attention_level_t to see details.
+   
+   Returns 1 if succeeds. */
 int ASTWLK_register_visitor(unsigned int trg, int (*perform)(AST_VISITOR_ARGS), ast_walker_t* ctx, attention_level_t l);
 
-/*
-Init a new one walker context.
-Params:
-    - `ctx` - Walker context.
-    - `smt` - Symtable.
-
-Returns 1 if succeeds.
-*/
+/* Init a new one walker context.
+   Params:
+       - `ctx` - Walker context.
+       - `smt` - Symtable.
+   
+   Returns 1 if succeeds. */
 int ASTWLK_init_ctx(ast_walker_t* ctx, sym_table_t* smt);
 
-/*
-Performs the main walker routeen. 
-Params:
-    - `actx` - AST context.
-    - `ctx` - Walker context.
-
-Returns 1 if succeeds.
-*/
+/* Performs the main walker routeen. 
+   Params:
+       - `actx` - AST context.
+       - `ctx` - Walker context.
+   
+   Returns 1 if succeeds. */
 int ASTWLK_walk(ast_ctx_t* actx, ast_walker_t* ctx);
 
-/*
-Unload the context.
-Params:
-    - `ctx` - Walker context.
-
-Returns 1 if succeeds.
-*/
+/* Unload the context.
+   Params:
+       - `ctx` - Walker context.
+   
+   Returns 1 if succeeds. */
 int ASTWLK_unload_ctx(ast_walker_t* ctx);
 
 #endif

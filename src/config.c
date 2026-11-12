@@ -66,6 +66,19 @@ arch_type_t CONF_get_system_type() {
     return _config.system.sys_type;
 }
 
+config_int_field_t CONF_register_parameters() {
+    switch (_config.system.sys_type) {
+        case I386:    return 0;
+        case MACHO64: 
+        case WINDOWS64:
+        case LINUX64: return 6;
+        default: {
+            print_error("Unknown system architecture! Received: %i!", _config.system.sys_type);
+            return 0;
+        }
+    }
+}
+
 config_flag_field_t CONF_is_debug_compilation() {
     return _config.compilation_flags.debug;
 }
@@ -88,4 +101,8 @@ config_flag_field_t CONF_is_symtab_error() {
 
 void CONF_set_symtab_error() {
     _config.compilation_flags.symtab_error = 1;
+}
+
+config_flag_field_t CONF_is_test_compilation() {
+    return _config.compilation_flags.test;
 }

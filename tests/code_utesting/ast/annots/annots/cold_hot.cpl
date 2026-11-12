@@ -5,7 +5,7 @@ function name() -> i32 {
     }
 
     @[no_fall]
-    @[straight]
+    @[select(straight)]
     switch 1; {
         @[cold] case 1; {}
         @[cold] case 2; {}
@@ -17,7 +17,7 @@ function name() -> i32 {
 
 :/ OUTPUT
 @[cold] base_token=if
-@[straight] @[no_fall] base_token=switch
+@[select(straight)] @[no_fall] base_token=switch
 @[cold] base_token=case
 @[cold] base_token=case
 /:

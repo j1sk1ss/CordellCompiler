@@ -213,6 +213,8 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
             if (smp.last_offset || _verify_memory_usage(fb)) fb->lmap.entry->sarg = LIR_SUBJ_CONST(smp.last_offset);
             else FNTB_update_func(fb->lmap.entry->farg->storage.str.sid, FNTB_ONLY_FLAGS(FNTB_SET_NAKED(fi.flags.naked == 1 ? 1 : 2)), &smt->f);
         }
+
+        stack_map_destroy(&smp);
     }
 
     return 1;
@@ -520,7 +522,7 @@ static long _post_call_stack_arg_cleanup(lir_block_t* call, long* save_bytes, li
     return arg_bytes;
 }
 
-#define IS_REGULAR_FCALL(lh) (lh && (lh->op == LIR_ECLL || lh->op == LIR_FCLL) && lh->farg && lh->farg->t == LIR_FNAME)
+#define IS_REGULAR_FCALL(lh) (lh && (lh->op == LIR_ECLL || lh->op == LIR_FCLL || LIR_is_tailcall(lh)) && lh->farg && lh->farg->t == LIR_FNAME)
 
 static inline int _call_is_abi(lir_block_t* lh, sym_table_t* smt) {
     func_info_t fi;

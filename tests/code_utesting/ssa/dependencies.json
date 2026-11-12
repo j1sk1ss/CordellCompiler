@@ -17,6 +17,7 @@
         "src/hir/ssa/*.c",
         "src/hir/cfg/*.c",
         "src/hir/loop/*.c",
+        "src/hir/tools/*.c",
         "src/hir/func/*.c",
         "src/hir/dump/*.c",
         "std/*.c"

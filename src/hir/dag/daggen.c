@@ -16,6 +16,11 @@ static int _register_node(dag_ctx_t* dctx, dag_node_t* dst, dag_node_t* farg, da
     return 1;
 }
 
+static void _invalidate_groups(dag_ctx_t* dctx) {
+    map_free(&dctx->groups);
+    map_init(&dctx->groups, MAP_NO_CMP);
+}
+
 static int _replace_duplicate_node(dag_ctx_t* dctx, dag_node_t* duplicate, dag_node_t* canonical) {
     if (!dctx || !duplicate || !canonical || duplicate == canonical) return 0;
     set_foreach (dag_node_t* user, &duplicate->users) {
@@ -41,6 +46,14 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* bb, &fb->blocks) {
             iterate_hir_instructions (bb) {
+                switch (hh->op) {
+                    case HIR_UFCLL: case HIR_STORE_UFCLL:
+                    case HIR_FCLL:  case HIR_STORE_FCLL:
+                    case HIR_ECLL:  case HIR_STORE_ECLL:
+                    case HIR_SYSC:  case HIR_STORE_SYSC: _invalidate_groups(dctx); break;
+                    default: break;
+                }
+
                 switch (hh->op) {
                     case HIR_LDREF: dctx->memory_version++; break;
                     case HIR_PHI:

@@ -41,8 +41,9 @@ ast_node_t* AST_copy_node(ast_node_t* n, int sp, int sib, int chld, ast_node_t* 
             dst->siblings.n = AST_copy_node(n->siblings.n, 0, 1, 1, stp);
 
             ast_node_t* tail = dst->siblings.n;
-            while (tail && tail->siblings.n)
+            while (tail && tail->siblings.n) {
                 tail = tail->siblings.n;
+            }
 
             dst->siblings.t = tail;
         }
@@ -121,17 +122,17 @@ int AST_unload(ast_node_t* node) {
 }
 
 /* Recursively hash the input node.
-Params:
-    - `n` - Input node.
-    - `s` - Hash the sibling node?
-            Note: If 1 - This function will use
-                  a hash from the sibling node.
-    - `stp` - Stop token type.
-
-Returns a hash based on the provided node. */
-static unsigned long _hash_ast_node(ast_node_t* n, int s, int no_name, token_type_t stp) {
+   Params:
+       - `n` - Input node.
+       - `s` - Hash the sibling node?
+               Note: If 1 - This function will use
+                     a hash from the sibling node.
+       - `stp` - Stop token type.
+   
+   Returns a hash based on the provided node. */
+static hash_t _hash_ast_node(ast_node_t* n, int s, int no_name, token_type_t stp) {
     if (!n || !n->t || n->t->t_type == stp) return 0;
-    unsigned long hash = 0xF123;
+    hash_t hash = 0xF123;
     if (n->t && n->t->t_type == CUSTOM_VARIABLE_TOKEN) {
         if (
             no_name && 
@@ -141,17 +142,17 @@ static unsigned long _hash_ast_node(ast_node_t* n, int s, int no_name, token_typ
     }
 
     if (n->t) hash ^= TKN_hash_token(n->t, no_name);
+    hash += crc64((const unsigned char*)&hash, sizeof(hash_t), 0xDEAD);
     hash *= 0x123321;
-    hash += 99929929;
     if (s) hash ^= _hash_ast_node(n->siblings.n, 1, no_name, stp) + 0xDEAD;
     hash ^= _hash_ast_node(n->c, 1, no_name, stp) + 0xDEAD;
     return hash;
 }
 
-unsigned long AST_hash_node(ast_node_t* node) {
+hash_t AST_hash_node(ast_node_t* node) {
     return _hash_ast_node(node, 0, 0, -1);
 }
 
-unsigned long AST_hash_node_stop(ast_node_t* node, int no_name, token_type_t stp) {
+hash_t AST_hash_node_stop(ast_node_t* node, int no_name, token_type_t stp) {
     return _hash_ast_node(node, 1, no_name, stp);
 }

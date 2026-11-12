@@ -6,7 +6,5 @@ start() {
 
 :/ OUTPUT
 [WARNING] Division by one! This expression won't change anything! (variable 'b' is '1')!
-    at: {X}.cpl:4:10
-    trace: Variable 'b' is assigned with '1' here
-      at: {X}.cpl:3:9
+    at: 4:10
 /:

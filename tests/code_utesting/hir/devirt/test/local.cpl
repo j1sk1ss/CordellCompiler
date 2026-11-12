@@ -1,0 +1,21 @@
+start() {
+    @[test]
+    function check() -> i0 {
+    }
+    exit 9;
+}
+
+:/ OUTPUT
+{
+    fn check1() -> i0
+    {
+        {
+        }
+    }
+    fn _main()
+    {
+        check1();
+        exit csu8 0;
+    }
+}
+/:

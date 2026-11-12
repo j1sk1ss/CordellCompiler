@@ -44,6 +44,14 @@ static hir_subject_t* _generation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_
         case CUSTOM_VARIABLE_TOKEN:
         case UNKNOWN_NUMERIC_TOKEN:
         case GENERIC_VARIABLE_TOKEN:
+        case UNKNOWN_I8NUMERIC_TOKEN: 
+        case UNKNOWN_U8NUMERIC_TOKEN: 
+        case UNKNOWN_I16NUMERIC_TOKEN:
+        case UNKNOWN_I32NUMERIC_TOKEN:
+        case UNKNOWN_I64NUMERIC_TOKEN:
+        case UNKNOWN_U16NUMERIC_TOKEN:
+        case UNKNOWN_U32NUMERIC_TOKEN:
+        case UNKNOWN_U64NUMERIC_TOKEN:
         case UNKNOWN_FLOAT_NUMERIC_TOKEN: res = HIR_generate_load(node, ctx, smt);               break;
         default: break;
     }
@@ -78,6 +86,7 @@ static int _navigation_handler(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* sm
         case ASM_TOKEN:             return HIR_generate_asmblock(node, ctx, smt);
         case FUNC_TOKEN:            return HIR_generate_function_block(node, NO_SYMBOL_ID, ctx, smt);
         case EXIT_TOKEN:            return HIR_generate_exit_block(node, ctx, smt);
+        case DEFER_TOKEN:           return HIR_generate_defer_block(node, ctx, smt);
         case CALLING_TOKEN:         return HIR_generate_funccall(node, ctx, smt, 0) == NULL;
         case LOOP_TOKEN:            return HIR_generate_loop_block(node, ctx, smt);
         case BREAK_TOKEN:           return HIR_generate_break_block(node, ctx);
@@ -113,7 +122,7 @@ static inline void _insert_scope(ast_node_t* t, hir_ctx_t* ctx, hir_operation_t 
     if (t->t && t->t->t_type == SCOPE_TOKEN) HIR_BLOCK0(ctx, op);
 }
 
-int HIR_generate_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
+status_code_t HIR_generate_block(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* smt) {
     if (!node) return 0;
     HIR_SET_CURRENT_POS(ctx, node);
     for (ast_node_t* t = node; t; t = t->siblings.n) {

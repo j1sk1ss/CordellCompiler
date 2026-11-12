@@ -1,0 +1,53 @@
+.manifesto-strip {
+  overflow: hidden;
+  padding-block: 19px;
+  background: var(--lime);
+  border-block: 1px solid var(--ink);
+}
+
+.manifesto-track {
+  display: flex;
+  width: max-content;
+  animation: manifesto-scroll 32s linear infinite;
+}
+
+.manifesto-group {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-around;
+  gap: clamp(28px, 4vw, 80px);
+  min-width: 100vw;
+  padding-inline: clamp(24px, 4vw, 65px);
+}
+
+.manifesto-group span {
+  font: 500 10px/1.2 var(--mono);
+  letter-spacing: 1px;
+  white-space: nowrap;
+}
+
+.manifesto-group i {
+  flex: none;
+  font-size: 24px;
+  line-height: 1;
+  font-style: normal;
+}
+
+@keyframes manifesto-scroll {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@media (max-width: 760px) {
+  .manifesto-strip { padding-block: 17px; }
+  .manifesto-group { gap: 30px; padding-inline: 20px; }
+  .manifesto-group span { font-size: 9px; letter-spacing: .6px; }
+  .manifesto-group i { font-size: 20px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .manifesto-track { width: auto; animation: none; }
+  .manifesto-group { flex: 1; min-width: 0; flex-wrap: wrap; gap: 15px 24px; }
+  .manifesto-group[aria-hidden="true"] { display: none; }
+}

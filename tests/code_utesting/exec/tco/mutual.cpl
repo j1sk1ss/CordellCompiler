@@ -1,0 +1,24 @@
+: RUN_ASM :
+function odd(i32 n) -> i32;
+
+function even(i32 n) -> i32 {
+    if n == 0; {
+        return 42;
+    }
+    odd(n - 1)
+}
+
+function odd(i32 n) -> i32 {
+    if n == 0; {
+        return 17;
+    }
+    even(n - 1)
+}
+
+start() {
+    exit (even(10000)) as u8;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

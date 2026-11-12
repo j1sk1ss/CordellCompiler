@@ -1,48 +1,52 @@
 #ifndef HIR_H_
 #define HIR_H_
 
+#include <utils.h>
 #include <position.h>
+
 #include <std/mm.h>
 #include <std/mem.h>
 #include <std/str.h>
 #include <std/set.h>
 #include <std/map.h>
 #include <std/stack.h>
+
 #include <prep/token_types.h>
 #include <symtab/symtab.h>
 #include <ast/ast.h>
 #include <ast/astgen.h>
 #include <ast/devirt.h>
+
 #include <hir/hir_types.h>
 
 typedef struct {
-    symbol_id_t s_id; /* String ID from strings symtab */
+    symbol_id_t         s_id; /* String ID from strings symtab */
 } hir_string_t;
 
 typedef struct {
-    long value;
+    long                value;
 } hir_constant_t;
 
 typedef struct {
-    string_t* value;
+    string_t*           value;
 } hir_number_t;
 
 typedef struct {
-    symbol_id_t v_id; /* Variable ID from variables symtab */
+    symbol_id_t         v_id; /* Variable ID from variables symtab */
 } hir_variable_t;
 
 typedef struct {
-    set_t h;
+    set_t               h;
 } hir_set_t;
 
 typedef struct {
-    list_t h;
+    list_t              h;
 } hir_list_t;
 
 typedef struct {
-    unsigned long       id;    /* Subject's ID            */
+    big_id_t            id;    /* Subject's ID            */
     struct hir_block*   home;  /* Home HIR block          */
-    unsigned long       hash;  /* Subject's hash          */
+    hash_t              hash;  /* Subject's hash          */
     hir_subject_type_t  t;     /* Subject's type          */
     int                 ptr;   /* Subject reference level */
     union {
@@ -57,61 +61,60 @@ typedef struct {
 } hir_subject_t;
 
 typedef struct hir_block {
-    struct hir_block* prev;
-    struct hir_block* next;
-    hir_operation_t   op;
-    hir_subject_t*    farg;
-    hir_subject_t*    sarg;
-    hir_subject_t*    targ;
-    char              unused : 1;
+    struct hir_block*   prev;
+    struct hir_block*   next;
+    hir_operation_t     op;
+    hir_subject_t*      farg;
+    hir_subject_t*      sarg;
+    hir_subject_t*      targ;
+    char                unused : 1;
 } hir_block_t;
 
 typedef struct {
-    file_position_t    pos;           /* Current pos in a file                   */
+    file_position_t     pos;           /* Current pos in a file                   */
     struct {
-        hir_block_t*   h;             /* Current HIR head                        */
-        hir_block_t*   t;             /* Current HIR tail                        */
+        hir_block_t*    h;             /* Current HIR head                        */
+        hir_block_t*    t;             /* Current HIR tail                        */
     } hot;
     struct {
-        char           is_sup : 1;    /* Is cold section is supported by ctx     */
-        list_t         blocks;        /* Cold blocks storage for further place   */
+        char            is_sup : 1;    /* Is cold section is supported by ctx     */
+        list_t          blocks;        /* Cold blocks storage for further place   */
     } cold;
-    char               is_cold   : 1; /* If 1 - we save all input blocks as cold */
-    char               is_hidden : 1; /* If 1 - we will ignore all blocks        */
+    char                is_cold   : 1; /* If 1 - we save all input blocks as cold */
+    char                is_hidden : 1; /* If 1 - we will ignore all blocks        */
     struct {
-        hir_subject_t* brk;           /* pointer to a break target               */
-        token_t*       rtype;         /* function's return type                  */
-        hir_subject_t* varg;          /* function's varargs hidden variable      */
+        hir_subject_t*  brk;           /* pointer to a break target               */
+        token_t*        rtype;         /* function's return type                  */
+        hir_subject_t*  varg;          /* function's varargs hidden variable      */
     } carry;                          /* Additional carry for any specific data  */
 } hir_ctx_t;
 
 int HIR_init_extended_ctx(hir_ctx_t* ctx);
 int HIR_unload_extended_ctx(hir_ctx_t* ctx);
 
-/*
-Get hash (i64) from the provided subject.
-Params:
-    - `s` - Target hir subject.
-
-Return `i64`:hash.
-*/
-long HIR_hash_subject(hir_subject_t* s);
+/* Get hash (i64) from the provided subject.
+   Params:
+       - `s` - Target hir subject.
+   
+   Return `i64`:hash. */
+hash_t HIR_hash_subject(hir_subject_t* s);
 
 hir_subject_t* HIR_create_subject(hir_subject_type_t t, int v_id, string_t* strval, unsigned long intval);
-int HIR_subject_shallow_equals(hir_subject_t* a, hir_subject_t* b);
+int            HIR_subject_shallow_equals(hir_subject_t* a, hir_subject_t* b);
 hir_subject_t* HIR_copy_subject(hir_subject_t* s);
-hir_block_t* HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject_t* sa, hir_subject_t* ta);
-int HIR_block_shallow_equals(hir_block_t* a, hir_block_t* b);
-hir_block_t* HIR_copy_block(hir_block_t* b, int copy_labels);
-int HIR_insert_block_before(hir_block_t* block, hir_block_t* pos);
-int HIR_insert_block_after(hir_block_t* block, hir_block_t* pos);
-int HIR_compute_homes(hir_ctx_t* ctx);
-int HIR_append_block(hir_block_t* block, hir_ctx_t* ctx);
-int HIR_dump_cold(hir_ctx_t* ctx);
-int HIR_unlink_block(hir_block_t* block);
-int HIR_unload_subject(hir_subject_t* s);
-int HIR_unload_block(hir_block_t* block);
-int HIR_unload_blocks(hir_block_t* block);
+hir_subject_t* HIR_copy_subject_and_label(hir_subject_t* s);
+hir_block_t*   HIR_create_block(hir_operation_t op, hir_subject_t* fa, hir_subject_t* sa, hir_subject_t* ta);
+int            HIR_block_shallow_equals(hir_block_t* a, hir_block_t* b);
+hir_block_t*   HIR_copy_block(hir_block_t* b, int copy_labels);
+int            HIR_insert_block_before(hir_block_t* block, hir_block_t* pos);
+int            HIR_insert_block_after(hir_block_t* block, hir_block_t* pos);
+int            HIR_compute_homes(hir_ctx_t* ctx);
+int            HIR_append_block(hir_block_t* block, hir_ctx_t* ctx);
+int            HIR_dump_cold(hir_ctx_t* ctx);
+int            HIR_unlink_block(hir_block_t* block);
+int            HIR_unload_subject(hir_subject_t* s);
+int            HIR_unload_block(hir_block_t* block);
+int            HIR_unload_blocks(hir_block_t* block);
 
 static inline hir_subject_type_t _get_token_stktype(token_t* tkn, int ptr) {
     variable_info_t vi = { .type = tkn->t_type, .vfs = { .ptr = ptr, .glob = tkn->flags.glob, .ro = tkn->flags.ro } };

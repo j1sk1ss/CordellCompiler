@@ -12,7 +12,7 @@
 #endif
 #define ALIGNMENT             8
 #ifndef ALLOC_BUFFER_SIZE
-    #define ALLOC_BUFFER_SIZE 16777216
+    #define ALLOC_BUFFER_SIZE 67108864
 #endif
 #define MM_BLOCK_MAGIC        0xC07DEL
 

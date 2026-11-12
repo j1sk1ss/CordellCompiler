@@ -107,6 +107,8 @@ static const char* _get_operation_template(hir_operation_t op) {
         case HIR_VARDECL:      return "%s = alloc;";
         case HIR_STASM:        return "asm(%s%s%s) {";
         case HIR_ENDASM:       return "}";
+        case HIR_DEFER_START:  return "defer {";
+        case HIR_DEFER_END:    return "}";
         case HIR_GDREF:        return "%s = *(%s);";
         case HIR_LDREF:        return "*(%s) = %s;";
         case HIR_REF:          return "%s = &(%s);";
@@ -319,8 +321,11 @@ static int _get_formatted_block(char* dst, size_t dst_size, hir_block_t* block, 
     char arg3[HIR_DUMP_SUBJECT_BUFFER] = { 0 };
     if (block->targ) _get_formatted_subject(arg3, arg3 + sizeof(arg3), block->targ, smt, style);
     
-    if (block->op == HIR_ENDSCOPE || block->op == HIR_ENDASM) depth--;
-
+    if (
+        block->op == HIR_ENDSCOPE || 
+        block->op == HIR_ENDASM   || 
+        block->op == HIR_DEFER_END
+    ) depth--;
     if (block->op == HIR_FEND || block->op == HIR_STEND) goto _force_end;
 
     for (int i = 0; i < depth; i++) APPEND("    ");
@@ -329,7 +334,11 @@ static int _get_formatted_block(char* dst, size_t dst_size, hir_block_t* block, 
     APPEND(fmt, arg1, arg2, arg3);
     
 _force_end: {}
-    if (block->op == HIR_MKSCOPE || block->op == HIR_STASM) depth++;
+    if (
+        block->op == HIR_MKSCOPE || 
+        block->op == HIR_STASM   || 
+        block->op == HIR_DEFER_START
+    ) depth++;
 #undef APPEND
     return depth;
 }
@@ -347,6 +356,16 @@ int DUMP_format_hirctx(hir_ctx_t* ctx, sym_table_t* smt, int pos, int unused, FI
     return 1;
 }
 
+static const char* _get_cfg_block_style(cfg_block_type_t type) {
+    switch (type) {
+        case CFG_LOOP_PREHEADER: return "shape=hexagon, style=filled, fillcolor=\"#D6EAF8\"";
+        case CFG_LOOP_HEADER:    return "shape=diamond, style=filled, fillcolor=\"#FCF3CF\", penwidth=2";
+        case CFG_LOOP_BLOCK:     return "shape=box, style=\"rounded,filled\", fillcolor=\"#D5F5E3\"";
+        case CFG_LOOP_LATCH:     return "shape=octagon, style=filled, fillcolor=\"#FADBD8\"";
+        default:                 return "shape=box, style=filled, fillcolor=\"#FFFFFF\"";
+    }
+}
+
 static int _print_hir_cfg_function(cfg_func_t* fb, func_info_t* fi, sym_table_t* smt, FILE* output) {
     fprintf(output, "digraph %s {\n", fi->virt->body);
     fprintf(output, "  rankdir=TB;\n");
@@ -360,15 +379,15 @@ static int _print_hir_cfg_function(cfg_func_t* fb, func_info_t* fi, sym_table_t*
             "];\n");
 
     foreach (cfg_block_t* cb, &fb->blocks) {
-        fprintf(output, "  B%ld [ label=\"", cb->id);
+        fprintf(output, "  B%ld [%s, label=\"", cb->id, _get_cfg_block_style(cb->type));
         iterate_hir_instructions (cb) {
             if (
-                hh->op == HIR_FDCL         || 
-                hh->op == HIR_FEND         || 
-                hh->op == HIR_PHI_PREAMBLE || 
+                hh->op == HIR_FDCL         ||
+                hh->op == HIR_FEND         ||
+                hh->op == HIR_PHI_PREAMBLE ||
                 hh->op == HIR_MKSCOPE      ||
                 hh->op == HIR_ENDSCOPE
-            ) continue; 
+            ) continue;
             char line[HIR_DUMP_LINE_BUFFER] = { 0 };
             _get_formatted_block(line, sizeof(line), hh, smt, 0, 0, 0);
             fprintf(output, "%s\\l", line);
@@ -377,8 +396,11 @@ static int _print_hir_cfg_function(cfg_func_t* fb, func_info_t* fi, sym_table_t*
         fprintf(output, "\"];\n");
         if (cb->l)   fprintf(output, "  B%ld -> B%ld [label=\"fall\"];\n", cb->id, cb->l->id);
         if (cb->jmp) fprintf(output, "  B%ld -> B%ld [label=\"jump\"];\n", cb->id, cb->jmp->id);
+        set_foreach (cfg_block_t* succ, &cb->succ) {
+            if (succ != cb->l && succ != cb->jmp) fprintf(output, "  B%ld -> B%ld [label=\"table\"];\n", cb->id, succ->id);
+        }
     }
-    
+
     fprintf(output, "}\n");
     return 1;
 }

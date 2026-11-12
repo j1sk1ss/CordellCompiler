@@ -1,23 +1,21 @@
 #include <hir/constfold.h>
 
 /* Register a new parameters list for a function. We need to be sure, that
-all function calls have the same list of arguments.
-Params:
-    - `f_id` - Function's ID.
-    - `args` - Input parameters.
-    - `fcalls` - FUnction calls map.
-
-Returns 1 if registration succeeded, otherwise 0. */
+   all function calls have the same list of arguments.
+   Params:
+       - `f_id` - Function's ID.
+       - `args` - Input parameters.
+       - `fcalls` - FUnction calls map.
+   
+   Returns 1 if registration succeeded, otherwise 0. */
 static int _register_params(symbol_id_t f_id, list_t* args, map_t* fcalls) {
     list_t* rargs;
     if (map_get(fcalls, f_id, (void**)&rargs)) {
-        void** prev = list_flatten(rargs);
-        void** curr = list_flatten(args);
-
+        hir_subject_t** prev = (hir_subject_t**)list_flatten(rargs);
+        hir_subject_t** curr = (hir_subject_t**)list_flatten(args);
         for (int i = 0; i < list_size(args); i++) {
             if (
-                prev[i] && curr[i] &&
-                HIR_hash_subject((hir_subject_t*)prev[i]) != HIR_hash_subject((hir_subject_t*)curr[i])
+                prev[i] && curr[i] && HIR_hash_subject(prev[i]) != HIR_hash_subject(curr[i])
             ) list_replace(rargs, prev[i], NULL);
         }
 
@@ -36,11 +34,11 @@ static int _register_params(symbol_id_t f_id, list_t* args, map_t* fcalls) {
 }
 
 /* Register a new function call in function call map.
-Params:
-    - `cctx` - CFG context.
-    - `fcalls` - Function call map.
-
-Returns 1 if succeeds. */
+   Params:
+       - `cctx` - CFG context.
+       - `fcalls` - Function call map.
+   
+   Returns 1 if succeeds. */
 static int _register_fcalls(cfg_ctx_t* cctx, map_t* fcalls) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* bb, &fb->blocks) {
@@ -58,12 +56,12 @@ static int _register_fcalls(cfg_ctx_t* cctx, map_t* fcalls) {
 }
 
 /* Extract defined value form a subject.
-Params:
-    - `s` - Subject for extraction.
-    - `smt` - Symtable.
-    - `val` - Output location.
-
-Returns 1 on success, otherwise 0. */
+   Params:
+       - `s` - Subject for extraction.
+       - `smt` - Symtable.
+       - `val` - Output location.
+   
+   Returns 1 on success, otherwise 0. */
 static int _extract_variable_value(hir_subject_t* s, sym_table_t* smt, long* val) {
     switch (HIR_is_defined_type(s->t)) {
         case 1: *val = s->storage.num.value->to_llong(s->storage.num.value); return 1;
@@ -83,12 +81,12 @@ static int _extract_variable_value(hir_subject_t* s, sym_table_t* smt, long* val
 }
 
 /* Propagate parameters and replace the load arguments with the defined value.
-Params:
-    - `cctx` - CFG context.
-    - `smt` - Symtable.
-    - `fcalls` - Function call map.
-
-Returns 1 if the function propagated something, otherwise 0. */
+   Params:
+       - `cctx` - CFG context.
+       - `smt` - Symtable.
+       - `fcalls` - Function call map.
+   
+   Returns 1 if the function propagated something, otherwise 0. */
 static int _propagate_params(cfg_ctx_t* cctx, sym_table_t* smt, map_t* fcalls) {
     int changed = 0;
     foreach (cfg_func_t* fb, &cctx->funcs) {
@@ -105,7 +103,9 @@ static int _propagate_params(cfg_ctx_t* cctx, sym_table_t* smt, map_t* fcalls) {
                     if (folded && _extract_variable_value(folded, smt, &value)) {
                         hh->op = HIR_STORE;
                         HIR_unload_subject(hh->sarg);
+                        HIR_unload_subject(hh->targ);
                         hh->sarg = HIR_SUBJ_CONST(value);
+                        hh->targ = NULL;
                         VRTB_update_definition(hh->farg->storage.var.v_id, value, NO_SYMBOL_ID, &smt->v, 0);
                         changed = 1;
                     }
@@ -120,10 +120,10 @@ static int _propagate_params(cfg_ctx_t* cctx, sym_table_t* smt, map_t* fcalls) {
 }
 
 /* Unload function call map.
-Params:
-    - `l` - Entry list.
-
-Returns 1 if succeeds. */
+   Params:
+       - `l` - Entry list.
+   
+   Returns 1 if succeeds. */
 static int _unload_fcalls(list_t* l) {
     list_free(l);
     return mm_free(l);
@@ -139,12 +139,12 @@ int HIR_sparse_const_funcall_propagation(cfg_ctx_t* cctx, sym_table_t* smt) {
 }
 
 /* Collect and register function's return if the function has single return,
-and it has a return in general.
-Params:
-    - `cctx` - CFG context.
-    - `frets` - Function returns map.
-
-Returns 1 if succeeds. */
+   and it has a return in general.
+   Params:
+       - `cctx` - CFG context.
+       - `frets` - Function returns map.
+   
+   Returns 1 if succeeds. */
 static int _collect_frets(cfg_ctx_t* cctx, map_t* frets) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         list_t ret_blocks;
@@ -152,7 +152,7 @@ static int _collect_frets(cfg_ctx_t* cctx, map_t* frets) {
 
         int entry = 1;
         foreach (cfg_block_t* bb, &fb->blocks) {
-            if (!bb->l && !bb->jmp && (set_size(&bb->pred) || entry)) {
+            if (!set_size(&bb->succ) && (set_size(&bb->pred) || entry)) {
                 list_add(&ret_blocks, bb);
             }
 
@@ -173,13 +173,13 @@ static int _collect_frets(cfg_ctx_t* cctx, map_t* frets) {
 }
 
 /* If there is a defined return, we can replace a function call of the function
-with its defined return.
-Params:
-    - `cctx` - CFG context.
-    - `smt` - Symtable.
-    - `frets` - Function returns map.
-
-Returns 1 if it changed something, otherwise 0. */
+   with its defined return.
+   Params:
+       - `cctx` - CFG context.
+       - `smt` - Symtable.
+       - `frets` - Function returns map.
+   
+   Returns 1 if it changed something, otherwise 0. */
 static int _propagate_frets(cfg_ctx_t* cctx, sym_table_t* smt, map_t* frets) {
     int changed = 0;
     foreach (cfg_func_t* fb, &cctx->funcs) {
@@ -207,10 +207,8 @@ static int _propagate_frets(cfg_ctx_t* cctx, sym_table_t* smt, map_t* frets) {
 int HIR_sparce_const_fret_propagation(cfg_ctx_t* cctx, sym_table_t* smt) {
     map_t frets;
     map_init(&frets, MAP_NO_CMP);
-
     _collect_frets(cctx, &frets);
     int res = _propagate_frets(cctx, smt, &frets);
-
     map_free(&frets);
     return res;
 }

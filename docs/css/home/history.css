@@ -1,0 +1,510 @@
+.language-history {
+  --sketch: 'Caveat', 'Segoe Print', cursive;
+  border-top: 1px solid var(--line);
+  scroll-margin-top: 25px;
+}
+
+.history-heading {
+  display: grid;
+  grid-template-columns: 1fr .7fr;
+  gap: 7vw;
+  align-items: end;
+  margin-bottom: 48px;
+}
+
+.history-heading h2 {
+  margin-top: 20px;
+}
+
+.cpl-home .history-heading > div > p {
+  max-width: 360px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.cpl-home .history-heading > div > .eyebrow {
+  color: var(--ink);
+  font: 500 10px/1.6 var(--mono);
+}
+
+.cpl-home .language-timeline {
+  position: relative;
+  padding: 0 0 0 68px;
+  margin: 0;
+  list-style: none;
+}
+
+.language-timeline::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 35px;
+  left: 20px;
+  width: 1px;
+  background: var(--ink);
+}
+
+.language-timeline::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 15px;
+  width: 11px;
+  height: 11px;
+  border-top: 1px solid var(--ink);
+  border-left: 1px solid var(--ink);
+  transform: rotate(45deg);
+}
+
+.cpl-home .era-entry {
+  position: relative;
+  margin: 0 0 36px;
+  color: var(--ink);
+}
+
+.era-marker {
+  position: absolute;
+  top: 42px;
+  left: -53px;
+  width: 11px;
+  height: 11px;
+  background: var(--paper);
+  border: 1px solid var(--ink);
+  border-radius: 50%;
+}
+
+.era-entry-current .era-marker {
+  background: var(--blue);
+  color: white;
+  border-color: var(--blue);
+}
+
+.milestone-card {
+  --milestone-accent: var(--blue);
+  display: grid;
+  grid-template-columns: .82fr 1.18fr;
+  position: relative;
+  gap: 0;
+  min-width: 0;
+  min-height: 380px;
+  border: 1px solid var(--ink);
+  background: #eeeee3;
+}
+
+.milestone-copy {
+  position: relative;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 31px;
+}
+
+.cpl-home .milestone-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px 16px;
+  color: var(--milestone-accent);
+  font: 600 8px/1.7 var(--mono);
+  letter-spacing: .5px;
+}
+
+.milestone-meta > span {
+  color: inherit;
+  opacity: .7;
+}
+
+.cpl-home .milestone-copy h3 {
+  margin-top: 24px;
+  font: 800 clamp(36px, 3.8vw, 55px)/.99 var(--display);
+  letter-spacing: -.7px;
+  text-transform: uppercase;
+  color: inherit;
+}
+
+.cpl-home .milestone-description {
+  max-width: 360px;
+  margin-top: 22px;
+  font-size: 12px;
+  line-height: 1.9;
+  color: inherit;
+}
+
+.milestone-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 22px;
+  font: 500 7px/1.6 var(--mono);
+  letter-spacing: .4px;
+}
+
+.milestone-tags > span {
+  border-bottom: 1px solid currentColor;
+  padding-bottom: 3px;
+}
+
+.cpl-home .milestone-source {
+  display: inline-flex;
+  gap: 15px;
+  margin-top: auto;
+  padding-top: 27px;
+  color: inherit;
+  font: 500 9px/1.6 var(--mono);
+}
+
+.milestone-source:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.milestone-card .milestone-art {
+  margin: 28px 28px 28px 0;
+}
+
+.milestone-art {
+  position: relative;
+  align-self: center;
+  min-width: 0;
+  padding: 0 0 14px;
+  border: 1px solid #20211f45;
+  color: #2948c6;
+  background: #f6f3e8;
+  box-shadow: 5px 6px 0 #20211f14;
+}
+
+.milestone-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.sketch-hand {
+  fill: currentColor;
+  font: 500 24px var(--sketch);
+}
+
+.sketch-heading {
+  font-size: 30px;
+}
+
+.sketch-result {
+  font-size: 39px;
+}
+
+.sketch-big-result {
+  font-size: 70px;
+}
+
+.sketch-label {
+  fill: currentColor;
+  font: 500 10px var(--mono);
+  letter-spacing: 1.3px;
+}
+
+.sketch-code {
+  fill: currentColor;
+  font: 500 18px var(--mono);
+}
+
+.sketch-code-small {
+  fill: currentColor;
+  font: 500 15px var(--mono);
+}
+
+.sketch-line {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.sketch-ghost {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: .7;
+  opacity: .35;
+}
+
+.sketch-rule {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1;
+  opacity: .45;
+}
+
+.sketch-strike {
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.sketch-accent {
+  fill: none;
+  stroke: var(--orange);
+  stroke-width: 2.8;
+  stroke-linecap: round;
+}
+
+.sketch-paper {
+  fill: #fffdf4;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+
+.sketch-paper-green {
+  fill: #e6f3df;
+}
+
+.sketch-paper-orange {
+  fill: #ffe3c5;
+}
+
+.sketch-tape {
+  fill: #dfff7f;
+  stroke: #20211f;
+  stroke-width: 1;
+}
+
+.sketch-paint-wash {
+  fill: #f6532714;
+  stroke: none;
+}
+
+.milestone-current {
+  --milestone-accent: var(--lime);
+  isolation: isolate;
+  color: var(--paper);
+  background: var(--ink);
+  overflow: hidden;
+}
+
+.milestone-current::before {
+  content: '';
+  position: absolute;
+  top: -50px;
+  left: -80px;
+  width: 480px;
+  height: 480px;
+  background: url('../../assets/paint-orange.svg') center / contain no-repeat;
+  opacity: .12;
+  z-index: -1;
+}
+
+.cpl-home .milestone-current h3 {
+  font-size: clamp(100px, 11vw, 160px);
+  letter-spacing: -4px;
+  line-height: .85;
+}
+
+.milestone-subtitle {
+  display: block;
+  margin-top: 13px;
+  color: var(--lime);
+  font: 500 34px/1 var(--sketch);
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.art-interfaces {
+  color: #2948c6;
+  background: #f7f1e4;
+  transform: rotate(1deg);
+  box-shadow: 6px 7px 0 var(--orange);
+}
+
+.folded-result {
+  opacity: .25;
+  transition: opacity .3s;
+}
+
+.unfolded-graph {
+  transition: opacity .3s;
+}
+
+.sketch-result-circle {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+}
+
+.is-folded .folded-result {
+  opacity: 1;
+}
+
+.is-folded .unfolded-graph {
+  opacity: .3;
+}
+
+.is-folded .sketch-result-circle {
+  fill: var(--lime);
+}
+
+.fold-sketch-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 16px 24px 2px;
+  width: calc(100% - 48px);
+  min-height: 38px;
+  padding: 9px 12px;
+  border: 1px solid #244c36;
+  background: transparent;
+  color: #244c36;
+  font: 500 9px/1.5 var(--mono);
+  cursor: pointer;
+}
+
+.fold-sketch-button:hover,
+.fold-sketch-button[aria-pressed="true"] {
+  background: #244c36;
+  color: #f8fbef;
+}
+
+.milestone-draft {
+  --milestone-accent: #3256ac;
+  background: #eeeadc;
+  border: 1px dashed #9b9c8d;
+}
+
+.milestone-draft::before {
+  content: '';
+  position: absolute;
+  width: 80px;
+  height: 20px;
+  top: -10px;
+  left: 22px;
+  background: #d9d0b7bd;
+  transform: rotate(-8deg);
+  border-inline: 2px dotted #eeeadc;
+  z-index: 2;
+}
+
+.cpl-home .milestone-draft h3 {
+  font: 600 55px/1 var(--sketch);
+  text-transform: none;
+  letter-spacing: -1px;
+  transform: rotate(-3deg);
+}
+
+.art-draft {
+  color: #dbe9ff;
+  background: #153b91;
+  border-color: #13316c;
+  transform: rotate(-.7deg);
+  box-shadow: 5px 6px 0 #8798b9;
+}
+
+.art-draft .sketch-code {
+  font: 500 24px var(--sketch);
+}
+
+.art-draft .sketch-ghost {
+  opacity: .5;
+}
+
+.art-draft .sketch-hand {
+  fill: #e3efff;
+}
+
+.history-bottom {
+  padding-left: 68px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 18px;
+  align-items: end;
+}
+
+@media (max-width: 1100px) and (min-width: 761px) {
+  .milestone-copy {
+    padding: 23px;
+  }
+
+  .milestone-card .milestone-art {
+    margin-right: 20px;
+  }
+
+  .milestone-card {
+    grid-template-columns: .9fr 1.1fr;
+  }
+
+  .cpl-home .milestone-copy h3 {
+    font-size: 37px;
+  }
+
+  .cpl-home .milestone-current h3 {
+    font-size: 115px;
+  }
+
+}
+
+@media (max-width: 760px) {
+  .history-heading {
+    grid-template-columns: 1fr;
+    gap: 23px;
+    margin-bottom: 32px;
+  }
+
+  .cpl-home .history-heading > div > p {
+    max-width: 430px;
+  }
+
+  .cpl-home .language-timeline {
+    padding-left: 27px;
+  }
+
+  .language-timeline::before {
+    left: 4px;
+  }
+
+  .language-timeline::after {
+    left: -1px;
+  }
+
+  .era-marker {
+    left: -28px;
+    top: 28px;
+  }
+
+  .milestone-card {
+    grid-template-columns: 1fr;
+  }
+
+  .milestone-copy {
+    padding: 23px;
+  }
+
+  .cpl-home .milestone-copy h3 {
+    font-size: 43px;
+  }
+
+  .cpl-home .milestone-current h3 {
+    font-size: 115px;
+  }
+
+  .cpl-home .milestone-draft h3 {
+    font-size: 53px;
+  }
+
+  .milestone-card .milestone-art {
+    margin: 3px 16px 22px;
+  }
+
+  .fold-sketch-button {
+    margin-inline: 16px;
+    width: calc(100% - 32px);
+    font-size: 8px;
+  }
+
+  .history-bottom {
+    padding-left: 27px;
+  }
+
+}

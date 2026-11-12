@@ -54,7 +54,9 @@ static int _register_functions(call_graph_t* ctx, sym_table_t* smt) {
     list_init(&ctx->entries);
     map_foreach (func_info_t* fi, &smt->f.functb) {
         if (
-            fi->flags.entry || (fi->flags.global && fi->flags.external != FNTB_SHALLOW_EXTERN)
+            fi->flags.entry                                                 || 
+            (fi->flags.global && fi->flags.external != FNTB_SHALLOW_EXTERN) || 
+            (fi->flags.testf && CONF_is_test_compilation())
         ) list_add(&ctx->entries, (void*)fi->id);
         _register_func(fi->id, ctx);
     }
@@ -113,7 +115,10 @@ Returns 1 if succeeds. */
 static int _mark_block(call_graph_node_t* nd, call_graph_t* ctx) {
     nd->flag = 1;
     set_foreach (call_graph_node_t* nnd, &nd->edges) {
-        if (nd->f_id == nnd->f_id) continue;
+        if (
+            nd->f_id == nnd->f_id ||
+            nnd->flag // already alive
+        ) continue;
         _mark_block(nnd, ctx);
     }
     

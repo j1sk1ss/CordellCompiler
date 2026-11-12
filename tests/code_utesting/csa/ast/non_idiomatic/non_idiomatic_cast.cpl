@@ -1,0 +1,16 @@
+start() {
+    i32 a = 1 as i32;
+    i32 b = 1i32;
+}
+
+:/ OUTPUT
+[WARNING] [2:22] Non-idiomatic cast found for '1'. Use '1i32' instead.
+2 | 1 as i32;
+  | ^^^^^^^^
+[WARNING] [1:7] Start doesn't have the 'exit' keyword on all paths!
+1 | start ()
+2 | {
+2 |     i32 a = 1 as i32;
+3 |     i32 b = 1;
+2 | }
+/:

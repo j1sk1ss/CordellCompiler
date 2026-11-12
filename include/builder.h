@@ -19,7 +19,7 @@
 #include <prep/markup.h>
 
 /* Semantic (Static analyzer) setup              */
-#include <csa/semantic.h>
+#include <csa/csa.h>
 
 /* AST generation part and AST optimization part */
 #include <ast/ast.h>
@@ -42,6 +42,7 @@
 
 /* HLIR generation                               */
 #include <lir/lirgen.h>
+#include <lir/func.h>
 #include <lir/lirgens/lirgens.h>
 #include <lir/dump.h>
 
@@ -83,9 +84,8 @@
 /* Symtable dump                                */
 #include <symtab/dump.h>
 
-#include <gem_data.h>
-#define CCPL_VERSION                 "3.8.3:2209.26" // major.minor<.patch> (old version style):ddmm.yy (new version style)
-#define CCPL_SPLASH                  "Interfaces and abstractions!" // NULL / Related to the version splash
+#define CCPL_VERSION                 "4.0.0:0911.26" // major.minor<.patch> (old version style):ddmm.yy (new version style)
+#define CCPL_SPLASH                  "                __,__\n       .--.  .-\"     \"-.  .--.\n      / .. \\/  .-. .-.  \\/ .. \\\n     | |  '|  /   Y   \\  |'  | |\n     | \\   \\  \\ 0 | 0 /  /   / |\n      \\ '- ,\\.-\"`` ``\"-./, -' /\n       `'-' /_   ^ ^   _\\ '-'\n           |  \\._   _./  |      I'm scared of raw pointers and memmory managment!\n           \\   \\ `~` /   /\n            '._ '-=-' _.'\n               '~---~'\n             author: jgs\n" // NULL / Related to the version splash
 /* Version logic is next: We have the old style and the new style:
     - Old style is a default version semantics - major-minor-patch style, where major is incremented when
       I've added a lot of new features and they work properly. Also there should be some big shifts in
@@ -120,7 +120,7 @@ according you system requirements. */
 #define OPTION_SOMETHING             "--smth"
 #define OPTION_SOMETHING_SHORT       "-s"
 #define OPTION_PREPROCESS_ONLY       "-E"
-#define OPTION_INLUCDE               "-I"
+#define OPTION_INCLUDE               "-I"
 #define OPTION_DEFINE                "-D"
 #define OPTION_PRINT_STDLIB          "--print-stdlib-path"
 #define OPTION_OUTPUT                "--output"
@@ -159,12 +159,16 @@ according you system requirements. */
 #define OPTION_QUART_BYTNESS         "--quart-bytness"
 #define OPTION_EIGHT_BYTNESS         "--eight-bytness"
 #define OPTION_SYS_TYPE              "--sys-type"
+#define OPTION_TCO                   "--tco"
+#define OPTION_NO_TCO                "--no-tco"
 #define OPTION_TRE                   "--tre"
 #define OPTION_NO_TRE                "--no-tre"
 #define OPTION_FINLINE               "--finline"
 #define OPTION_NO_FINLINE            "--no-finline"
 #define OPTION_LICM                  "--licm"
 #define OPTION_NO_LICM               "--no-licm"
+#define OPTION_UNROLL                "--unroll"
+#define OPTION_NO_UNROLL             "--no-unroll"
 #define OPTION_Z3OPT                 "--z3opt"
 #define OPTION_NO_Z3OPT              "--no-z3opt"
 #define OPTION_CONSTANT              "--constant"
@@ -184,12 +188,26 @@ according you system requirements. */
 #define OPTION_IR_OUTPUT             "--ir-output"
 #define OPTION_LIR_OUTPUT            "--lir-output"
 #define OPTION_ASM_OUTPUT            "--asm-output"
+#define OPTION_TEST_COMPILATION      "--test"
+
+#define RELOAD_CFG                         \
+    HIR_CFG_unload(&cfgctx);               \
+    HIR_CFG_build(&hirctx, &cfgctx, &smt); \
+    HIR_CG_unload(&callctx);               \
+    HIR_CG_build(&cfgctx, &callctx, &smt); \
+    HIR_CG_perform_dfe(&callctx, &smt);    \
+    HIR_CG_apply_dfe(&cfgctx, &smt);
 
 typedef struct {
-    const char* option;
-    const char* argument;
-    const char* description;
+    const char*      option;
+    const char*      argument;
+    const char*      description;
 } cli_help_option_t;
+
+typedef struct {
+    char*            name;
+    char*            value;
+} cli_define_t;
 
 typedef enum {
     BUILD_MODE_EXECUTABLE,
@@ -234,10 +252,12 @@ typedef struct {
         long         quart_bytness;
         long         eight_bytness;
         arch_type_t  sys_type;
+        int          tco                  : 1;
         int          tre                  : 1;
         int          finline              : 1;
         int          z3opt                : 1;
         int          licm                 : 1;
+        int          unroll               : 1;
         int          constant             : 1;
         int          peephole             : 1;
         int          copy_prop            : 1;
@@ -253,12 +273,34 @@ typedef struct {
     struct {
         int          ast_analysis         : 1;
         int          hir_analysis         : 1;
-        int          show_help            : 1;
-        int          show_version         : 1;
-        int          print_stdlib         : 1;
-        int          show_something       : 1;
-        int          preprocess_only      : 1;
+        int          show_help            : 1; // -h
+        int          show_version         : 1; // cplc -v ==> version X.X.X:X.X.X
+        int          print_stdlib         : 1; // show current stdlib path
+        int          show_something       : 1; // idk
+        int          preprocess_only      : 1; // invoke preprocessor only and terminate the compiler
+        int          test_compilation     : 1; // compile file with test functions @[test]
     } flags;
 } options_t;
+
+int         BUILD_run_cli_tool(const char* tool, list_t* args);
+void        BUILD_print_version(FILE* stream);
+int         BUILD_print_help_message();
+char*       BUILD_find_stdlib(const char* argv0, char* out, size_t out_size);
+char*       BUILD_find_runtime_library(const char* argv0, char* out, size_t out_size);
+char*       BUILD_make_temp_path();
+int         BUILD_copy_fd_to_stream(int fd, FILE* stream);
+int         BUILD_move_file_path(const char* src, const char* dst);
+const char* BUILD_output_path_or_default(const char* path, const char* fallback);
+int         BUILD_compile_asm_to_object(const options_t* options, const char* asm_path, const char* obj_path);
+int         BUILD_link_objects(const options_t* options, list_t* objects);
+int         BUILD_emit_ast(ast_ctx_t* ctx, const options_t* options);
+int         BUILD_emit_hir(hir_ctx_t* hctx, cfg_ctx_t* cctx, sym_table_t* smt, const options_t* options);
+int         BUILD_emit_lir(lir_ctx_t* lctx, cfg_ctx_t* cctx, sym_table_t* smt, const options_t* options);
+int         BUILD_emit_requested_symtabs(sym_table_t* smt, list_t* types);
+config_t    BUILD_make_config(const options_t* options);
+void        BUILD_unload_token_lists(list_t* token_lists);
+int         BUILD_parse_input_args(char* argv[], int argc, options_t* out);
+int         BUILD_start(int argc, char* argv[]);
+void        BUILD_unload_options(options_t* options);
 
 #endif

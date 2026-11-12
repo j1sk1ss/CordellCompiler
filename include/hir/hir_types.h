@@ -38,10 +38,12 @@ typedef enum hir_operation {
         HIR_FEND,        // function end
         HIR_OEXT,        // extern object      extern [id from variable symtable]
         HIR_FEXT,        // extern function    extern [id from function symtable]
+        HIR_DEFER_START, // defer block start
+        HIR_DEFER_END,   // defer block end
 
         /* Jump instructions */
         HIR_BREAK,       // Cosmetic command for the 'break' statement. ! Dont' handle it in the further translation !
-        HIR_JMP,
+        HIR_JMP,         // goto x; y - optional jump table metadata
 
     /* Integer */
         /* Binary operations */
@@ -183,40 +185,39 @@ typedef enum hir_subject_type {
     HIR_FPOS,     // pos
 } hir_subject_type_t;
 
-int HIR_is_ret_funccall(hir_operation_t op);
-int HIR_is_funccall(hir_operation_t op);
-int HIR_get_type_size(hir_subject_type_t t);
+int                HIR_is_ret_funccall(hir_operation_t op);
+int                HIR_is_funccall(hir_operation_t op);
+int                HIR_get_type_size(hir_subject_type_t t);
 hir_subject_type_t HIR_promote_types(hir_subject_type_t a, hir_subject_type_t b);
 hir_subject_type_t HIR_get_tmptype_tkn(token_t* token, int ptr);
 hir_subject_type_t HIR_get_stktype(variable_info_t* vi);
 hir_subject_type_t HIR_get_tmp_type(hir_subject_type_t t);
-int HIR_is_sign(hir_subject_type_t t);
-int HIR_is_jmp(hir_operation_t op);
-int HIR_is_vartype(hir_subject_type_t t);
-int HIR_is_global(hir_subject_type_t t);
-int HIR_is_arrtype(hir_subject_type_t t);
-int HIR_is_tmptype(hir_subject_type_t t);
-int HIR_is_conv(hir_operation_t op);
-int HIR_is_writeop(hir_operation_t op);
-int HIR_is_term(hir_operation_t op);
-int HIR_is_not_real(hir_operation_t op);
-int HIR_is_syst(hir_operation_t op);
-int HIR_is_commutative_op(hir_operation_t op);
+int                HIR_is_sign(hir_subject_type_t t);
+int                HIR_is_jmp(hir_operation_t op);
+int                HIR_is_vartype(hir_subject_type_t t);
+int                HIR_is_global(hir_subject_type_t t);
+int                HIR_is_arrtype(hir_subject_type_t t);
+int                HIR_is_tmptype(hir_subject_type_t t);
+int                HIR_is_conv(hir_operation_t op);
+int                HIR_is_writeop(hir_operation_t op);
+int                HIR_is_term(hir_operation_t op);
+int                HIR_is_not_real(hir_operation_t op);
+int                HIR_is_syst(hir_operation_t op);
+int                HIR_is_commutative_op(hir_operation_t op);
 
-/*
-If the provided subject is a number or a constant.
-Params:
-    - `t` - Subject's type.
-
-Returns 1 if this is a number, 2 if this is a constant.
-Returns 0 - if this neither a number nor a constant.
-*/
-int HIR_is_defined_type(hir_subject_type_t t);
+/* If the provided subject is a number or a constant.
+   Params:
+       - `t` - Subject's type.
+   
+   Returns 1 if this is a number, 2 if this is a constant.
+   Returns 0 - if this neither a number nor a constant. */
+int             HIR_is_defined_type(hir_subject_type_t t);
 hir_operation_t HIR_get_convop(hir_subject_type_t t);
-int HIR_similar_type(hir_subject_type_t a, hir_subject_type_t b);
-int HIR_is_sideeffect_op(hir_operation_t op);
-token_type_t HIR_get_tmptkn_type(hir_subject_type_t t);
-int HIR_is_float(hir_subject_type_t t);
-int HIR_is_operations_similar(hir_operation_t a, hir_operation_t b);
+int             HIR_similar_type(hir_subject_type_t a, hir_subject_type_t b);
+int             HIR_is_sideeffect_op(hir_operation_t op);
+token_type_t    HIR_get_tmptkn_type(hir_subject_type_t t);
+token_type_t    HIR_get_source_type(hir_subject_type_t t);
+int             HIR_is_float(hir_subject_type_t t);
+int             HIR_is_operations_similar(hir_operation_t a, hir_operation_t b);
 
 #endif

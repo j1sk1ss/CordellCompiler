@@ -33,6 +33,13 @@ Params:
 
 Returns 1 if the label is used somewhere in the function */
 static int _find_label_usage(cfg_func_t* fb, lir_subject_t* lb) {
+    foreach (cfg_block_t* bb, &fb->blocks) {
+        if (!bb->hmap.exit || bb->hmap.exit->op != HIR_JMP || bb->hmap.exit->farg->t == HIR_LABEL) continue;
+        set_foreach (cfg_block_t* succ, &bb->succ) {
+            if (succ->lmap.entry && LIR_subj_equals(succ->lmap.entry->farg, lb)) return 1;
+        }
+    }
+    
     iterate_lir_instructions (fb) {
         if (
             !lh->unused && 
@@ -69,6 +76,11 @@ Returns 1 if CFG was changed, otherwise 0 */
 static int _deep_jump_pass(cfg_func_t* fb) {
     int changed = 0;
     foreach (cfg_block_t* bb, &fb->blocks) {
+        int table_target = 0;
+        set_foreach (cfg_block_t* pred, &bb->pred) {
+            if (pred->hmap.exit && pred->hmap.exit->op == HIR_JMP && pred->hmap.exit->farg->t != HIR_LABEL) table_target = 1;
+        }
+        if (table_target) continue;
         int only_lb_and_jump = 1;
         iterate_lir_instructions (bb) {
             if (
@@ -85,7 +97,7 @@ static int _deep_jump_pass(cfg_func_t* fb) {
         if (
             only_lb_and_jump && 
             entry_lb && entry_lb->op == LIR_MKLB &&
-            last_jump && last_jump->op == LIR_JMP
+            last_jump && last_jump->op == LIR_JMP && last_jump->farg->t == LIR_LABEL
         ) { 
             lir_subject_t* pdst = entry_lb->farg; 
             lir_subject_t* ndst = last_jump->farg; 
@@ -100,6 +112,8 @@ static int _deep_jump_pass(cfg_func_t* fb) {
                 changed = 1;
                 if (prev->l == bb) prev->l = bb_dst;
                 if (prev->jmp == bb) prev->jmp = bb_dst;
+                set_remove(&prev->succ, bb);
+                if (bb_dst) set_add(&prev->succ, bb_dst);
                 if (bb_dst) {
                     set_remove(&bb_dst->pred, bb);
                     set_add(&bb_dst->pred, prev);
@@ -111,6 +125,8 @@ static int _deep_jump_pass(cfg_func_t* fb) {
             }
 
             bb->l = bb->jmp = NULL;
+            set_free(&bb->succ);
+            set_init(&bb->succ, SET_NO_CMP);
         }
     }
 

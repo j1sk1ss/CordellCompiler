@@ -1,0 +1,10 @@
+function foo(i32 a) -> i32 {
+    return 100 / a;
+}
+
+start(i32 a) {
+    foo(a);
+    if a != 0; {
+        foo(a);
+    }
+}

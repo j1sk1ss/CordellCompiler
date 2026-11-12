@@ -1,6 +1,7 @@
 import argparse
 import os
 import platform
+import re
 import shutil
 import subprocess
 import sys
@@ -450,6 +451,8 @@ class BuilderCLITests(unittest.TestCase):
                 "--no-finline",
                 "--licm",
                 "--no-licm",
+                "--unroll",
+                "--no-unroll",
                 "--constant",
                 "--no-constant",
                 "--copyprop",
@@ -737,6 +740,101 @@ class BuilderCLITests(unittest.TestCase):
         self.assertTrue(default_exists)
         self.assert_no_stderr(default_result)
 
+    def test_later_input_failure_does_not_produce_partial_object(self) -> None:
+        cases = [
+            ("missing", None, "isn't found!"),
+            ("include", '#include "missing.cpl"\n', "Failed to preprocess"),
+        ]
+        for name, contents, message in cases:
+            with self.subTest(name=name), _tmpdir() as tmp:
+                root = Path(tmp)
+                first = root / "main.cpl"
+                second = root / "second.cpl"
+                output = root / "partial.o"
+                _minimal_source(first)
+                if contents is not None:
+                    second.write_text(contents, encoding="utf-8")
+
+                result = self.run_cplc("-c", "--output", output, first, second, cwd=root)
+
+                self.assert_failed_with(result, message)
+                self.assertFalse(output.exists())
+
+    def test_test_entry_generation_failure_stops_compilation(self) -> None:
+        with _tmpdir() as tmp:
+            root = Path(tmp)
+            source = root / "test.cpl"
+            output = root / "test.o"
+            source.write_text(
+                "@[test]\n"
+                "function with_arg(i32 x) -> i0 {\n}\n"
+                "start() {\n    exit 0 as u8;\n}\n",
+                encoding="utf-8",
+            )
+
+            result = self.run_cplc("--test", "-c", "--output", output, source, cwd=root)
+
+            self.assert_failed_with(result, "Test entry generation failed")
+            self.assertFalse(output.exists())
+
+    def test_test_entry_calls_annotated_function(self) -> None:
+        with _tmpdir() as tmp:
+            root = Path(tmp)
+            source = root / "test.cpl"
+            output = root / "test.o"
+            ir = root / "test.ir"
+            source.write_text(
+                "@[test]\nfunction check_value() -> i0 {\n}\n"
+                "start() {\n    exit 7 as u8;\n}\n",
+                encoding="utf-8",
+            )
+
+            result = self.run_cplc(
+                "--test", "-c", "--output", output,
+                "--ir-output", ir, source, cwd=root,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            self.assertTrue(output.exists())
+            entry = ir.read_text(encoding="utf-8").split("fn _main()", 1)[1]
+            self.assertIn("check_value0();", entry)
+
+    def test_symtab_dump_includes_generated_generic_implementation(self) -> None:
+        with _tmpdir() as tmp:
+            root = Path(tmp)
+            source = root / "generic.cpl"
+            source.write_text(
+                "function identity<T>(T a) -> T {\n    return a;\n}\n"
+                "start() {\n    identity<u32>(10);\n}\n",
+                encoding="utf-8",
+            )
+
+            result = self.run_cplc(
+                "-c", "--output", root / "generic.o",
+                "--emit-symtab", "fn", source, cwd=root,
+            )
+
+            self.assertEqual(result.returncode, 0, result.stderr)
+            symtab = (root / "output.fn.symtab").read_text(encoding="utf-8")
+            self.assertRegex(symtab, r"virt=identity\d+__u32\b")
+
+    def test_ir_output_failure_stops_before_object_generation(self) -> None:
+        for kind, message in [("ir", "HIR"), ("lir", "LIR")]:
+            with self.subTest(kind=kind), _tmpdir() as tmp:
+                root = Path(tmp)
+                source = root / "main.cpl"
+                output = root / "main.o"
+                _minimal_source(source)
+
+                result = self.run_cplc(
+                    "-c", "--output", output,
+                    f"--{kind}-output", root / "missing" / "dump",
+                    source, cwd=root,
+                )
+
+                self.assert_failed_with(result, f"Can't open {message} output file")
+                self.assertFalse(output.exists())
+
     def test_compile_only_uses_copy_when_rename_crosses_filesystems(self) -> None:
         with _tmpdir() as tmp:
             source = Path(tmp) / "main.cpl"
@@ -852,6 +950,106 @@ class BuilderCLITests(unittest.TestCase):
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertTrue(all(default_outputs_exist), default_outputs)
         self.assert_no_stderr(result)
+
+    def test_loop_unroll_preserves_execution(self) -> None:
+        if platform.system() != "Linux" or platform.machine().lower() not in ("x86_64", "amd64"):
+            self.skipTest("Runtime unroll tests use the Linux x86_64 target")
+        if not shutil.which("nasm") or not shutil.which("gcc"):
+            self.skipTest("Runtime unroll tests require nasm and gcc")
+        cases = [
+            (f"while_{n}", f"start() {{ i32 i = 0; i32 sum = 0; while i < {n}; {{ i += 1; sum += i; }} exit sum as u8; }}", n * (n + 1) // 2)
+            for n in (0, 1, 5, 6)
+        ]
+        cases += [
+            ("counted", "start() { i32 sum = 0; @[counter(5)] loop { sum += 2; } exit sum as u8; }", 10),
+            ("stepped", "start() { i32 i = -5; i32 sum = 0; while i < 4; { sum += i; i += 2; } exit (sum + 10) as u8; }", 5),
+            ("sequential", "start() { i32 i = 0; i32 j = 0; i32 sum = 0; while i < 3; { sum += i; i += 1; } while j < 4; { sum += 2; j += 1; } exit sum as u8; }", 11),
+            ("swap", "start() { i32 i = 0; i32 a = 1; i32 b = 2; i32 c = 0; while i < 3; { c = a; a = b; b = c; i += 1; } exit (a * 10 + b) as u8; }", 21),
+            ("counted_exit_phi", "function foo(i32 x) -> i32 { i32 sum = 1; if x; { @[counter(3)] loop { sum += 2; } } return sum; } start() { exit (foo(0) * 10 + foo(1)) as u8; }", 17),
+            ("exit_phi", "function foo(i32 x) -> i32 { i32 sum = 1; if x; { i32 i = 0; while i < 3; { sum += 2; i += 1; } } return sum; } start() { exit (foo(0) * 10 + foo(1)) as u8; }", 17),
+            ("descending", "start() { i32 i = 6; i32 sum = 0; while i > 0; { sum += i; i -= 1; } exit sum as u8; }", 21),
+            ("branches", "start() { i32 i = 0; i32 sum = 0; while i < 5; { if i % 2 == 0; { sum += 3; } else { sum += 7; } i += 1; } exit sum as u8; }", 23),
+            ("counted_break", "start() { i32 sum = 0; @[counter(5)] loop { sum += 2; if sum == 4; { break; } } exit sum as u8; }", 4),
+            ("condition_call", "glob i32 checks = 0; function check(i32 i) -> i32 { checks += 1; return i < 3; } start() { i32 i = 0; while check(i); { i += 1; } exit (checks * 10 + i) as u8; }", 43),
+            ("condition_value", "function truth(i32 v) -> i32 { return v; } start() { i32 i = 0; i32 sum = 0; while i < 3; { sum += truth(i < 3); i += 1; } exit sum as u8; }", 3),
+            ("body_call", "function inc(i32 i) -> i32 { return i + 1; } start() { i32 i = 0; i32 sum = 0; while i < 5; { sum += inc(i); i += 1; } exit sum as u8; }", 15),
+            ("nested", "start() { i32 i = 0; i32 j = 0; i32 sum = 0; while i < 3; { j = 0; while j < 2; { sum += 1; j += 1; } i += 1; } exit sum as u8; }", 6),
+            ("declaration", "start() { i32 i = 0; i32 sum = 0; while i < 3; { i32 value = i + 1; sum += value; i += 1; } exit sum as u8; }", 6),
+        ]
+        with _tmpdir() as tmp:
+            root = Path(tmp)
+            for name, code, expected in cases:
+                source = root / f"{name}.cpl"
+                source.write_text(code, encoding="utf-8")
+                profiles = (("-O0", "--no-unroll"), ("-O0", "--unroll"), ("-O0", "--constant", "--unroll"), ("-O2", "--unroll"))
+                if name == "condition_call":
+                    # Existing -O2 codegen loses this global side effect even
+                    # without unrolling. Check this case with -O0 instead.
+                    profiles = profiles[:2]
+                for options in profiles:
+                    with self.subTest(case=name, options=options):
+                        output = root / (name + "".join(options))
+                        result = self.run_cplc(
+                            "--arch", "x86_64", "--sys-type", "linux64", "--asm-format", "elf64",
+                            "--linker", "gcc", "--linker-no-pie", *options,
+                            "--output", output, source,
+                        )
+                        self.assertEqual(result.returncode, 0, result.stderr)
+                        executed = subprocess.run([str(output)], capture_output=True, text=True, timeout=3)
+                        self.assertEqual(executed.returncode, expected, executed.stderr)
+
+    def test_loop_unroll_flag_controls_full_unrolling(self) -> None:
+        with _tmpdir() as tmp:
+            root = Path(tmp)
+            source = root / "loop.cpl"
+            source.write_text("start() { i32 i = 0; while i < 3; { i += 1; } exit i as u8; }", encoding="utf-8")
+            for options, expected in ((["--no-unroll"], 1), (["--unroll"], 3), (["--unroll", "--no-unroll"], 1)):
+                with self.subTest(options=options):
+                    ir = root / "loop.ir"
+                    result = self.run_cplc(
+                        "-O0", "--constant", *options, "--emit-ir", "--ir-output", ir,
+                        "-c", "--output", root / "loop.o", source,
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    text = ir.read_text(encoding="utf-8")
+                    self.assertEqual(text.count(" + "), expected)
+                    self.assertEqual(text.count("if "), int(expected == 1))
+
+    def test_loop_unroll_drops_unused_condition(self) -> None:
+        with _tmpdir() as tmp:
+            root = Path(tmp)
+            source = root / "loop.cpl"
+            source.write_text("function foo() -> i0; start() { i32 a = 10i32; while a > 0; { foo(); a -= 1i32; } }", encoding="utf-8")
+            for flags in (("-O0", "--constant"), ("-O2",)):
+                with self.subTest(flags=flags):
+                    ir = root / "loop.ir"
+                    result = self.run_cplc(
+                        *flags, "--unroll", "--emit-ir", "--ir-output", ir,
+                        "-c", "--output", root / "loop.o", source,
+                    )
+                    self.assertEqual(result.returncode, 0, result.stderr)
+                    text = ir.read_text(encoding="utf-8")
+                    self.assertEqual(text.count("foo0();"), 10)
+                    self.assertNotIn("if ", text)
+                    self.assertNotIn(" > ", text)
+                    self.assertNotIn("phi(", text)
+                    definitions = re.findall(r"\b(?:i|u|f)\d+[st] %(\d+) = (?!alloc)", text)
+                    self.assertEqual(len(definitions), len(set(definitions)), "Repeated SSA definition after unroll")
+
+    def test_loop_unroll_handles_multiple_loops(self) -> None:
+        with _tmpdir() as tmp:
+            root = Path(tmp)
+            source = root / "loops.cpl"
+            source.write_text("start() { i32 i = 0; i32 j = 0; while i < 3; { i += 1; } while j < 4; { j += 1; } exit j as u8; }", encoding="utf-8")
+            ir = root / "loops.ir"
+            result = self.run_cplc(
+                "-O0", "--constant", "--unroll", "--emit-ir", "--ir-output", ir,
+                "-c", "--output", root / "loops.o", source,
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+            text = ir.read_text(encoding="utf-8")
+            self.assertEqual(text.count(" + "), 7)
+            self.assertNotIn("if ", text)
 
     def test_compile_only_emits_explicit_outputs(self) -> None:
         with _tmpdir() as tmp:

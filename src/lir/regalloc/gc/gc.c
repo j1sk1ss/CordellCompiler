@@ -1,21 +1,21 @@
 #include <lir/regalloc/ra.h>
 
-int LIR_RA_init_colors(map_t* colors, sym_table_t* smt, long (*precolor)(lir_registers_t)) {
+status_code_t LIR_RA_init_colors(map_t* colors, sym_table_t* smt, long (*precolor)(lir_registers_t)) {
     print_log("LIR_RA_init_colors()");
     map_foreach (variable_info_t* vi, &smt->v.vartb) {
         long color = vi->vmi.reg >= 0 ? (precolor ? precolor(vi->vmi.reg) : -1) : vi->vmi.reg;
         map_put(colors, vi->v_id, (void*)color);
     }
 
-    return 1;
+    return GENERAL_SUCCESS;
 }
 
-int LIR_RA_color_igraph(igraph_t* g, map_t* colors) {
+status_code_t LIR_RA_color_igraph(igraph_t* g, map_t* colors) {
     print_log("LIR_RA_color_igraph()");
-    if (!g || !colors) return 0;
+    if (!g || !colors) return GENERAL_ERROR;
 
     int node_count = g->nodes.size;
-    if (!node_count) return 1;
+    if (!node_count) return GENERAL_SUCCESS;
     
     sstack_t stack;
     stack_init(&stack);
@@ -28,7 +28,7 @@ int LIR_RA_color_igraph(igraph_t* g, map_t* colors) {
         mm_free(degrees);
         mm_free(v_ids);
         mm_free(processed);
-        return 0;
+        return GENERAL_ERROR;
     }
 
     str_memset(processed, 1, node_count);
@@ -115,5 +115,5 @@ int LIR_RA_color_igraph(igraph_t* g, map_t* colors) {
     mm_free(degrees);
     mm_free(v_ids);
     mm_free(processed);
-    return 1;
+    return GENERAL_SUCCESS;
 }

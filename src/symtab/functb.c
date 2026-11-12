@@ -48,9 +48,9 @@ static func_info_t* _create_func_info(string_t* name, func_info_flags_t flags, a
     list_init(&fn->template.resolutions);
     list_init(&fn->template.registered_types);
     map_init(&fn->template.generic, MAP_CMP);
-    if (name) fn->name = name->copy(name);
-    fn->args  = AST_copy_node(args, 0, 0, 1, args->siblings.t);
-    fn->rtype = AST_copy_node(rtype, 0, 0, 1, NULL);
+    if (name)  fn->name  = name->copy(name);
+    if (args)  fn->args  = AST_copy_node(args, 0, 0, 1, args->siblings.t);
+    if (rtype) fn->rtype = AST_copy_node(rtype, 0, 0, 1, NULL);
     fn->flags = flags;
     return fn;
 }
@@ -82,7 +82,7 @@ static string_t* _create_virt_name(symbol_id_t id, string_t* name) {
 }
 
 symbol_id_t FNTB_add_info(
-    string_t* name, string_t* vname, func_info_flags_t flags, symbol_id_t s_id, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
+    string_t* name, string_t* vname, func_info_flags_t flags, symbol_id_t s_id, ast_node_t* args, ast_node_t* rtype, ast_node_t* root, functab_ctx_t* ctx
 ) {
     print_log(
         "FNTB_add_info(name=%s, global=%i, entry=%i, naked=%i, args=%lu)", 
@@ -96,6 +96,7 @@ symbol_id_t FNTB_add_info(
     if (!nnd) return 0;
     nnd->s_id       = s_id;
     nnd->flags.used = flags.global;
+    if (root) nnd->ast_root = root;
     
     nnd->id = ctx->curr_id++;
     if (!vname) nnd->virt = _create_virt_name(nnd->id, name);
@@ -144,9 +145,7 @@ int FNTB_rewrite_flags(symbol_id_t id, func_info_flags_t flags, functab_ctx_t* c
     return 0;
 }
 
-int FNTB_update_func(
-    symbol_id_t id, string_t* name, func_info_flags_t flags, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx
-) {
+int FNTB_update_func(symbol_id_t id, string_t* name, func_info_flags_t flags, ast_node_t* args, ast_node_t* rtype, functab_ctx_t* ctx) {
     print_log("FNTB_update_func(id=%li, name=%s)", id, name->body);
     func_info_t* fi;
     if (map_get(&ctx->functb, id, (void**)&fi)) {

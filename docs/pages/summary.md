@@ -31,14 +31,13 @@ The current language core includes:
 - primitive signed and unsigned integer types, floating-point types, and `i0`;
 - explicit `ptr`, `ref`, and `dref` pointer operations;
 - fixed-size `arr` arrays;
+- containers and interfaces;
 - `if`, `else`, `while`, `loop`, `switch`, `case`, `default`, and `break`;
 - functions, prototypes, default arguments, overloads, generic functions, local functions, lambdas, and function pointers;
 - `glob`, `ro`, and `extern` declarations;
 - `syscall` and inline `asm`;
-- a small preprocessor with include, define, undef, ifdef, and ifndef directives;
+- a small preprocessor with `include`, `define`, `undef`, `ifdef`, and `ifndef` directives;
 - annotations for entry points, explicit emitted symbol names, ABI/linker metadata, sections, alignment, switch lowering, branch layout, counted loops, register placement, and varargs.
-
-The current implementation intentionally does not include enums, modules, a package manager, exceptions, or memory-safety guarantees.
 
 ## Compiler pipeline
 

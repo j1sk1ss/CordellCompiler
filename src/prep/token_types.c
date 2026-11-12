@@ -11,6 +11,8 @@ type_size_t TKN_variable_bitness(token_t* token, char ptr) {
         (ptr && token->flags.ptr)
     ) return TYPE_FULL_SIZE;
     switch (token->t_type) {
+        case UNKNOWN_U64NUMERIC_TOKEN:
+        case UNKNOWN_I64NUMERIC_TOKEN:
         case UNKNOWN_NUMERIC_TOKEN:
         case UNKNOWN_FLOAT_NUMERIC_TOKEN:
         case I0_TYPE_TOKEN: // exception
@@ -21,12 +23,16 @@ type_size_t TKN_variable_bitness(token_t* token, char ptr) {
         case I64_VARIABLE_TOKEN:  
         case U64_VARIABLE_TOKEN: 
         case F64_VARIABLE_TOKEN: return TYPE_FULL_SIZE;
+        case UNKNOWN_U32NUMERIC_TOKEN:
+        case UNKNOWN_I32NUMERIC_TOKEN:
         case I32_TYPE_TOKEN:
         case U32_TYPE_TOKEN:
         case F32_TYPE_TOKEN:
         case I32_VARIABLE_TOKEN:   
         case U32_VARIABLE_TOKEN: 
         case F32_VARIABLE_TOKEN: return TYPE_HALF_SIZE;
+        case UNKNOWN_U16NUMERIC_TOKEN:
+        case UNKNOWN_I16NUMERIC_TOKEN:
         case I16_TYPE_TOKEN:
         case U16_TYPE_TOKEN:
         case I16_VARIABLE_TOKEN: 
@@ -136,6 +142,14 @@ int TKN_is_one_slot(token_t* token) {
         case U64_VARIABLE_TOKEN:
         case F64_VARIABLE_TOKEN:
         case UNKNOWN_NUMERIC_TOKEN:
+        case UNKNOWN_I8NUMERIC_TOKEN: 
+        case UNKNOWN_U8NUMERIC_TOKEN: 
+        case UNKNOWN_I16NUMERIC_TOKEN:
+        case UNKNOWN_I32NUMERIC_TOKEN:
+        case UNKNOWN_I64NUMERIC_TOKEN:
+        case UNKNOWN_U16NUMERIC_TOKEN:
+        case UNKNOWN_U32NUMERIC_TOKEN:
+        case UNKNOWN_U64NUMERIC_TOKEN:
         case UNKNOWN_FLOAT_NUMERIC_TOKEN: return 1;
         default:                          return 0;
     }
@@ -208,6 +222,7 @@ int TKN_is_operand(token_t* token) {
         case SUBASSIGN_TOKEN:
         case MULASSIGN_TOKEN:
         case DIVASSIGN_TOKEN:
+        case RTAKE_BIT_TOKEN:
         case BITORASSIGN_TOKEN:
         case MODULOASSIGN_TOKEN:
         case BITANDASSIGN_TOKEN:
@@ -225,6 +240,7 @@ int TKN_token_priority(token_t* token) {
         case AND_TOKEN:            return 2;
         case BITOR_TOKEN:          return 3;
         case BITXOR_TOKEN:         return 4;
+        case RTAKE_BIT_TOKEN:
         case BITAND_TOKEN:         return 5;
         case COMPARE_TOKEN:
         case NCOMPARE_TOKEN:
@@ -256,7 +272,7 @@ int TKN_is_numeric(token_t* token) {
     if (!token) return 0;
     if (
         token->t_type == UNKNOWN_FLOAT_NUMERIC_TOKEN ||
-        token->t_type == UNKNOWN_NUMERIC_TOKEN       || 
+        TKN_is_unknown_numeric(token->t_type)        || 
         token->t_type == UNKNOWN_CHAR_TOKEN          ||
         token->t_type == CHAR_VALUE_TOKEN
     ) return 1;
@@ -344,5 +360,20 @@ token_type_t TKN_get_var_from_type(token_type_t t) {
         case SIGNATURE_TOKEN:
         case I0_TYPE_TOKEN:      return I0_VARIABLE_TOKEN;
         default:                 return U64_VARIABLE_TOKEN;
+    }
+}
+
+int TKN_is_unknown_numeric(token_type_t t) {
+    switch (t) {
+        case UNKNOWN_NUMERIC_TOKEN:
+        case UNKNOWN_I8NUMERIC_TOKEN:     
+        case UNKNOWN_I16NUMERIC_TOKEN:
+        case UNKNOWN_I32NUMERIC_TOKEN:
+        case UNKNOWN_I64NUMERIC_TOKEN:
+        case UNKNOWN_U8NUMERIC_TOKEN: 
+        case UNKNOWN_U16NUMERIC_TOKEN:
+        case UNKNOWN_U32NUMERIC_TOKEN:
+        case UNKNOWN_U64NUMERIC_TOKEN: return 1;
+        default:                       return 0;
     }
 }

@@ -46,6 +46,8 @@ _arguments -s -S \
   '--no-finline[Disable function inlining]' \
   '--licm[Enable LICM]' \
   '--no-licm[Disable LICM]' \
+  '--unroll[Enable guarded loop unrolling by two]' \
+  '--no-unroll[Disable loop unrolling]' \
   '--constant[Enable constant propagation/folding]' \
   '--no-constant[Disable constant propagation/folding]' \
   '--copyprop[Enable LIR copy propagation]' \

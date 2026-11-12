@@ -1,0 +1,67 @@
+start() {
+    i32 a;
+    @[jtable]
+    switch a; {
+        case 1; { i32 b = 1i32; }
+        case 5; { exit 2; }
+        case 6; { exit 3; }
+        case 10; exit 4;
+        default exit 1;
+    } 
+}
+
+:/ OUTPUT
+{
+    fn _main()
+    {
+        {
+            i32s %0 = alloc;
+            goto lb6;
+            lb8:
+            {
+                i32s %1 = alloc;
+                i32s %1 = i32n 1;
+            }
+            lb13:
+            {
+                u8t %2 = i8n 2 as u8;
+                exit u8t %2;
+            }
+            lb17:
+            {
+                u8t %3 = i8n 3 as u8;
+                exit u8t %3;
+            }
+            lb21:
+            {
+                u8t %4 = i8n 4 as u8;
+                exit u8t %4;
+            }
+            lb25:
+            {
+                u8t %5 = i8n 1 as u8;
+                exit u8t %5;
+            }
+            goto lb7;
+            lb6:
+            i64t %8 = i32s %0 as i64;
+            i8t %7 = i64t %8 < csu8 1;
+            if i8t %7, goto lb25, else goto lb31;
+            lb31:
+            i64t %10 = i32s %0 as i64;
+            i8t %9 = i64t %10 > csu8 10;
+            if i8t %9, goto lb25, else goto lb35;
+            lb35:
+            u64t** %11 = &(arrg %6);
+            i64t %14 = i32s %0 as i64;
+            i64t %12 = i64t %14 - csu8 1;
+            i64t %13 = i64t %12 * csu8 8;
+            u64t** %16 = i64t %13 as *ptr;
+            u64t** %15 = u64t** %11 + u64t** %16;
+            u64t* %17 = *(u64t** %15);
+            goto u64t* %17;
+            lb7:
+        }
+    }
+}
+/:

@@ -17,7 +17,9 @@
         "src/hir/cfg/*.c",
         "src/hir/func/*.c",
         "src/hir/loop/*.c",
+        "src/hir/tools/*.c",
         "src/lir/*.c",
+        "src/lir/func/*.c",
         "src/lir/dfg/*.c",
         "src/lir/lirgen/*.c",
         "src/lir/lirgen/misc/*.c",
@@ -25,7 +27,9 @@
         "src/lir/selector/x86_64_gnu_nasm/*.c",
         "src/lir/regalloc/*.c",
         "src/lir/regalloc/gc/*.c",
+        "src/lir/copyprop/*.c",
         "src/asm/*.c",
+        "src/asm/formatters/*.c",
         "src/asm/x86_64_gnu_nasm/*.c",
         "std/*.c"
     ]

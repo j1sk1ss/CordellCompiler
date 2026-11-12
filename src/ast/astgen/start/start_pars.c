@@ -37,7 +37,7 @@ DEFINE_PARSER(cpl_parse_start, {
             .entry    = 1,                  .global = 1,              .naked = annots.is_naked ? 1 : 0, 
             .onlybody = annots.is_onlybody, .weak   = annots.is_weak, .abi   = annots.is_abi
         }, 
-        base->sinfo.s_id, base, NULL, &smt->f
+        base->sinfo.s_id, base, NULL, base, &smt->f
     );
     destroy_string(main_name);
 

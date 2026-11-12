@@ -1,10 +1,10 @@
 start() {
-    switch 1; {
+    @[select(binary)] switch 1; {
         case 1; {}
         default {}
     }
 
-    @[straight] switch 1; {
+    @[select(straight)] switch 1; {
         case 1; {}
         default {}
     }

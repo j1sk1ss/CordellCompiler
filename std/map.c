@@ -28,6 +28,22 @@ int map_copy(map_t* dst, map_t* src) {
     return 1;
 }
 
+int map_intersect_op(map_t* dst, map_t* a, map_t* b, int (*op)(void*, void*), void* (*copy)(void*)) {
+    for (long i = 0; i < a->capacity; i++) {
+        if (!a->entries[i].used) continue;
+        void* bv = NULL;
+        if (
+            map_get(b, a->entries[i].key, (void**)&bv) &&
+            (!op || op(a->entries[i].value, bv))
+        ) {
+            void* c = copy ? copy(a->entries[i].value) : a->entries[i].value;
+            if (!c || !map_put(dst, a->entries[i].key, c)) return 0;
+        }
+    }
+
+    return 1;
+}
+
 static inline unsigned long __hash(long val) {
     unsigned long x = ((unsigned long)val) + 123321;
     x = (x ^ (x >> 30)) * 0xbf58476d1ce4e5b9UL;

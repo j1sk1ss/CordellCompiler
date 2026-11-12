@@ -1,0 +1,228 @@
+.skip-link {
+  position: fixed;
+  top: -70px;
+  left: 20px;
+  padding: 12px 20px;
+  z-index: 200;
+  background: var(--ink);
+  color: white;
+}
+
+.skip-link:focus {
+  top: 10px;
+}
+
+#main-content:focus {
+  outline: none;
+}
+
+.site-header {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 50;
+  height: 90px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 0 max(4.5vw, calc((100vw - 1440px) / 2));
+  background: var(--paper);
+  border-bottom: 1px solid var(--ink);
+}
+
+.site-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--ink);
+  text-decoration: none;
+  font-family: var(--display);
+  font-size: 43px;
+  line-height: 1;
+  font-weight: 900;
+  letter-spacing: -1.5px;
+}
+
+.brand-version {
+  align-self: flex-start;
+  margin-top: 1px;
+  padding: 4px 5px;
+  background: var(--orange);
+  font: 600 11px/1 var(--mono);
+  letter-spacing: -.5px;
+  transform: rotate(-7deg);
+}
+
+.brand-caption {
+  margin-left: 8px;
+  font: 500 8px/1.6 var(--mono);
+  letter-spacing: .4px;
+}
+
+.site-navigation {
+  display: flex;
+  align-items: center;
+  gap: clamp(16px, 2vw, 32px);
+}
+
+.site-navigation a {
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 12px 0;
+  transition: color .15s;
+}
+
+.site-navigation a:hover,
+.site-navigation a[aria-current="page"] {
+  color: var(--blue);
+}
+
+.site-navigation .nav-github {
+  padding-left: 20px;
+  border-left: 1px solid var(--line);
+}
+
+.site-navigation .nav-start {
+  padding: 13px 17px;
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.site-navigation .nav-start:hover {
+  background: var(--blue);
+  color: white;
+}
+
+.nav-start span {
+  padding-left: 15px;
+}
+
+.menu-toggle {
+  display: none;
+}
+
+.app-nav:not(.site-navigation),
+.github-corner {
+  display: none;
+}
+
+.site-header .site-navigation {
+  position: static;
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+.content {
+  padding: 90px 0 0;
+  left: 280px;
+  min-height: 100vh;
+}
+
+.cpl-home-route .content {
+  left: 0;
+}
+
+.noscript-message {
+  padding: 120px 5vw;
+}
+
+@media (max-width: 1100px) {
+  .brand-caption {
+    display: none;
+  }
+
+  .site-header {
+    height: 78px;
+  }
+
+  .content {
+    padding-top: 78px;
+  }
+
+  .site-navigation {
+    gap: 19px;
+  }
+
+}
+
+@media (max-width: 760px) {
+  .site-header {
+    height: 70px;
+    padding-inline: 23px;
+  }
+
+  .site-brand {
+    font-size: 37px;
+  }
+
+  .brand-caption {
+    display: block;
+    font-size: 7px;
+  }
+
+  .menu-toggle {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+    padding: 8px 0 8px 12px;
+    border: 0;
+    background: none;
+    font: 500 11px var(--mono);
+    cursor: pointer;
+  }
+
+  .menu-toggle span {
+    font-size: 21px;
+  }
+
+  .site-header .site-navigation {
+    display: none;
+    position: absolute;
+    top: 69px;
+    left: 0;
+    right: 0;
+    padding: 18px 23px 24px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--ink);
+    box-shadow: 0 12px 14px #20211f10;
+  }
+
+  .site-header .site-navigation.is-open {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+  }
+
+  .site-navigation a {
+    padding: 12px 0;
+    font-size: 14px;
+  }
+
+  .site-navigation .nav-github {
+    border: 0;
+    padding-left: 0;
+  }
+
+  .site-navigation .nav-start {
+    margin-top: 9px;
+    padding-left: 14px;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .content {
+    padding-top: 70px;
+  }
+
+}
+
+@media (max-width: 380px) {
+  .brand-caption {
+    font-size: 6px;
+  }
+
+}

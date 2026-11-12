@@ -316,6 +316,9 @@ int HIR_is_conv(hir_operation_t op) {
 
 int HIR_is_writeop(hir_operation_t op) {
     switch (op) {
+        case HIR_GDREF:
+        case HIR_NEG:
+        case HIR_NOT:
         case HIR_REF:
         case HIR_FARGLD:
         case HIR_REF_ARGS:
@@ -326,28 +329,16 @@ int HIR_is_writeop(hir_operation_t op) {
         case HIR_STORE_SYSC:
         case HIR_STORE_UFCLL:
         case HIR_TPTR:
-        case HIR_TF64: case HIR_TF32:
-        case HIR_TI64: case HIR_TI32: case HIR_TI16: case HIR_TI8:
-        case HIR_TU64: case HIR_TU32: case HIR_TU16: case HIR_TU8:
-        case HIR_iOR:
-        case HIR_bOR:
+        case HIR_TF64:  case HIR_TF32:
+        case HIR_TI64:  case HIR_TI32: case HIR_TI16: case HIR_TI8:
+        case HIR_TU64:  case HIR_TU32: case HIR_TU16: case HIR_TU8:
         case HIR_PHI:
-        case HIR_iADD:
-        case HIR_iSUB:
-        case HIR_iMUL:
-        case HIR_iDIV:
-        case HIR_iMOD:
-        case HIR_iLRG:
-        case HIR_iLGE:
-        case HIR_iLWR:
-        case HIR_iLRE:
-        case HIR_iCMP:
-        case HIR_iNMP:
-        case HIR_iAND:
-        case HIR_bAND:
-        case HIR_bXOR:
-        case HIR_iBLFT:
-        case HIR_iBRHT:
+        case HIR_iADD:  case HIR_iSUB: case HIR_iMUL: case HIR_iDIV: case HIR_iMOD:
+        case HIR_iLRG:  case HIR_iLGE: case HIR_iLWR: case HIR_iLRE:
+        case HIR_iCMP:  case HIR_iNMP:
+        case HIR_iAND:  case HIR_iOR:
+        case HIR_bAND:  case HIR_bXOR:  case HIR_bOR:
+        case HIR_iBLFT: case HIR_iBRHT:
         case HIR_STORE: return 1;
         default:        return 0;
     }
@@ -374,6 +365,33 @@ hir_operation_t HIR_get_convop(hir_subject_type_t t) {
 
 int HIR_similar_type(hir_subject_type_t a, hir_subject_type_t b) {
     return HIR_get_tmp_type(a) == HIR_get_tmp_type(b);
+}
+
+token_type_t HIR_get_source_type(hir_subject_type_t t) {
+    switch (t) {
+        case HIR_F32NUMBER: case HIR_GLBVARF32:
+        case HIR_STKVARF32: case HIR_TMPVARF32: return F32_TYPE_TOKEN;
+        case HIR_I64NUMBER: case HIR_GLBVARI64:
+        case HIR_STKVARI64: case HIR_TMPVARI64: return I64_TYPE_TOKEN;
+        case HIR_I32NUMBER: case HIR_GLBVARI32:
+        case HIR_STKVARI32: case HIR_TMPVARI32: return I32_TYPE_TOKEN;
+        case HIR_I16NUMBER: case HIR_GLBVARI16:
+        case HIR_STKVARI16: case HIR_TMPVARI16: return I16_TYPE_TOKEN;
+        case HIR_I8NUMBER:  case HIR_GLBVARI8:
+        case HIR_STKVARI8:  case HIR_TMPVARI8:  return I8_TYPE_TOKEN;
+        case HIR_U64NUMBER: case HIR_GLBVARU64:
+        case HIR_STKVARU64: case HIR_TMPVARU64: return U64_TYPE_TOKEN;
+        case HIR_U32NUMBER: case HIR_GLBVARU32:
+        case HIR_STKVARU32: case HIR_TMPVARU32: return U32_TYPE_TOKEN;
+        case HIR_U16NUMBER: case HIR_GLBVARU16:
+        case HIR_STKVARU16: case HIR_TMPVARU16: return U16_TYPE_TOKEN;
+        case HIR_U8NUMBER:  case HIR_TMPVARU8:
+        case HIR_STKVARU8:  case HIR_GLBVARU8:  return U8_TYPE_TOKEN; 
+        case HIR_TMPVARI0:
+        case HIR_STKVARI0:
+        case HIR_GLBVARI0:  return I0_TYPE_TOKEN;
+        default: return F64_TYPE_TOKEN;
+    }
 }
 
 token_type_t HIR_get_tmptkn_type(hir_subject_type_t t) {

@@ -25,6 +25,7 @@
 *.log
 *.o
 *.s
+*.dot
 
 # Python
 __pycache__/

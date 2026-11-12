@@ -1,4 +1,5 @@
-# HIR
+# HIR generator
+
 - `cfg/` - All code for Control-Flow-Graph generation and dominant, strict dominance and dominance frontier calculation.
 - `constfold/` - All aligned code for constant propagation (and constant folding). The code entirely based of SSA form and the DAG.
 - `dag/` - All code for Direct-Acyclic-Graph generation.

@@ -37,6 +37,7 @@ static const markup_token_t _lexems[] = {
     LEXEM(VAR_ARGUMENTS_COMMAND,  VAR_ARGUMENTS_TOKEN),
     LEXEM(LAMBDA_COMMAND,         LAMBDA_TOKEN),
     LEXEM(PLACE_COMMAND,          PLACE_TOKEN),
+    LEXEM(DEFER_COMMAND,          DEFER_TOKEN),
 
     /* Variable modifiers */
     LEXEM(DREF_COMMAND,           DREF_TYPE_TOKEN),
@@ -100,6 +101,7 @@ static const markup_token_t _lexems[] = {
     LEXEM(BITMOVE_RIGHT_STATMENT, BITMOVE_RIGHT_TOKEN),
     LEXEM(BITAND_STATEMENT,       BITAND_TOKEN),
     LEXEM(BITOR_STATEMENT,        BITOR_TOKEN),
+    LEXEM(BITS_GET_R_STATEMENT,   RTAKE_BIT_TOKEN),
     LEXEM(BITXOR_STATEMENT,       BITXOR_TOKEN),
     LEXEM(AND_STATEMENT,          AND_TOKEN),
     LEXEM(OR_STATEMENT,           OR_TOKEN),
@@ -107,6 +109,7 @@ static const markup_token_t _lexems[] = {
     /* Debug */
     LEXEM(BREAKPOINT_COMMAND,     BREAKPOINT_TOKEN),
 };
+#undef LEXEM
 
 /* Convert the lexem list to the lexem map.
 Params:

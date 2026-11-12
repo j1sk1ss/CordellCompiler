@@ -1,17 +1,21 @@
 # Cordell Static Analysis
+
 This folder contains CSA (Cordell Static Analyzator) files. Main idea of the `CSA` is detecting all possible errors in a `.cpl` file with `AST`, `HIR` and `z3` usage. 
 
 # Literature
+
 - *Semantic with Application. An appetizer.*
 - *Svace static analyzator development experience.*
 - *Z3* [[1]](https://www.microsoft.com/en-us/research/project/z3-3/) 
 - *Z3: an efficient SMT solver* [[2]](https://www.researchgate.net/publication/225142568_Z3_an_efficient_SMT_solver)
 
 # Navigation
+
 - `ast/` - AST visitors. These visitors based on AST tree.
 - `hir/` - HIR visitors. These visitors based on CFG.
 
 # How to add a new AST checker?
+
 It is a really simple action. You just need to follow these steps:
 - Define the target AST node(s) for the checker.
 - Implement the checker with the help of the template below:
@@ -32,6 +36,7 @@ ASTWLK_register_visitor(NODE_TYPE, ASTWLKR_xxxx, &walker, ATTENTION_UNKNOWN_LEVE
 ```
 
 # How to add a new HIR checker?
+
 The same as it can be performed in the AST part. You need to create a new function as it presented below:
 ```c
 // xxxx - checker's name
@@ -50,6 +55,7 @@ HIRWLK_register_visitor(INST_TYPE, HIRWLKR_xxxx, &walker, ATTENTION_UNKNOWN_LEVE
 ```
 
 # Z3 SMT Solver
+
 CSA involves Z3 as SMT solver to prove the next list of questions:
 - Is a program correct?
 - Can program cause a Dereference of Null error?

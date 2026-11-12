@@ -22,7 +22,16 @@
 }
 
 :/ OUTPUT
-[WARNING] Possible branch redundancy! The branch at [{X}] is similar to the branch at [{X}]!
+[WARNING] [9:18] Non-idiomatic exit operation found. You can use 'exit' without any exit code.
+9 | exit 0;
+  |      ^
+[WARNING] [17:18] Non-idiomatic exit operation found. You can use 'exit' without any exit code.
+17 | exit 0;
+   |      ^
+[WARNING] [19:14] Non-idiomatic exit operation found. You can use 'exit' without any exit code.
+19 | exit 0;
+   |      ^
+[WARNING] Possible branch duplication! The branch at [4:17] is similar to the branch at [4:17]! Consider to refactor the logic and delete the copied branch. If this isn't possible, ignore this warning.
  3 | if 1;
  4 | {
    | ^

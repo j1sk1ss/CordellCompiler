@@ -11,12 +11,14 @@ start(i32 argc, ptr ptr i8 argv) {
 }
 
 :/ OUTPUT
-[ERROR] Possible buffer overflow! Current buffer '_buffer' is moved by tmp which is not in [0, 10)
-    at: {X}.cpl:5:8
-    trace: Variable 'tmp' declared here!
-      at: {X}.cpl:5:8
-[ERROR] Possible buffer overflow! Current buffer '_buffer' is moved by tmp which is not in [0, 10)
-    at: {X}.cpl:7:14
-    trace: Variable 'tmp' declared here!
-      at: {X}.cpl:7:14
+[ERROR] Possible buffer overflow! Current buffer '_buffer' is moved by Value that can be not in [0, 10)
+    at: 5:8
+    trace: Variable 'no-name' declared here!
+      at: 5:8
+[WARNING] Possible NULL-dereference error (variable 'Value' is NULL)!
+    at: 5:8
+[ERROR] Possible buffer overflow! Current buffer '_buffer' is moved by Value that can be not in [0, 10)
+    at: 7:14
+    trace: Variable 'no-name' declared here!
+      at: 7:14
 /:

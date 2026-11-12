@@ -1,6 +1,8 @@
 #ifndef AST_DATA_H_
 #define AST_DATA_H_
 
+#include <csa/misc/config.h>
+
 typedef enum {
     EXPRESSION_NODE  = 1 << 0,
     ASSIGN_NODE      = 1 << 1,
@@ -21,19 +23,21 @@ typedef enum {
     REF_NODE         = 1 << 16,
     CONTAINER_NODE   = 1 << 17,
     MEMBER_NODE      = 1 << 18,
-    UNKNOWN_NODE     = 1 << 19,
+    CAST_NODE        = 1 << 19,
+    UNKNOWN_NODE     = 1 << 20,
 } ast_node_type_t;
 
 typedef struct {
-    int in_switch; /* Walker in a switch block    */
-    int in_case;   /* Walker in a case block      */
-    int in_while;  /* Walker in a while block     */
-    int in_loop;   /* Walker in a loop block      */
-    int in_if;     /* Walker in an if block       */
-    int in_func;   /* Walker in a function        */
-    int in_start;  /* Walker in a start function  */
-    int in_fargs;  /* Walker in a function params */
-    int in_stargs; /* Walker in a start params    */
+    int        in_switch; /* Walker in a switch block    */
+    int        in_case;   /* Walker in a case block      */
+    int        in_while;  /* Walker in a while block     */
+    int        in_loop;   /* Walker in a loop block      */
+    int        in_if;     /* Walker in an if block       */
+    int        in_func;   /* Walker in a function        */
+    int        in_start;  /* Walker in a start function  */
+    int        in_fargs;  /* Walker in a function params */
+    int        in_stargs; /* Walker in a start params    */
+    csa_conf_t config;
 } walker_flags_t;
 
 #define AST_VISITOR_ARGS     ast_node_t* nd, walker_flags_t* flags, sym_table_t* smt

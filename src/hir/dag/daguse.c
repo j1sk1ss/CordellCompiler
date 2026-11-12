@@ -18,10 +18,11 @@ static inline int _hir_arg_is_read(hir_operation_t op, int index) {
         case HIR_PHI:      case HIR_VARDECL:    case HIR_STRDECL:
         case HIR_FDCL:     case HIR_FEND:       case HIR_FEXT:
         case HIR_OEXT:     case HIR_STRT:       case HIR_STEND:
-        case HIR_MKLB:     case HIR_JMP:        case HIR_BREAK:
+        case HIR_MKLB:     case HIR_BREAK:
         case HIR_SETPOS:   case HIR_BREAKPOINT: case HIR_MKSCOPE:
         case HIR_ENDSCOPE: case HIR_NOP: return 0;
         case HIR_PHI_PREAMBLE: return index == 1;
+        case HIR_JMP:
         case HIR_IFOP2:        return index == 0;
         default:               return !(HIR_is_writeop(op) && index == 0);
     }

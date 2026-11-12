@@ -2,6 +2,7 @@
 Pre-process the input file and make sure that it's ready to go further. In the nutshell, this is a regex-based text transformer. It doesn't use a lot of RAM given the creation of a new `tmp` file. 
 
 # Main
+
 This part takes care about keywords such as `file`, `define`, `include`, `ifdef` and `ifndef`. This, actually, is a full copy of the `C/C++` pre-processor. </br>
 Main idea is simple:
 - Remove comments
@@ -11,6 +12,7 @@ Main idea is simple:
 - Include `file` directives.
 
 # file directive?
+
 The `file` directive has the next syntax:
 ```cpl
 #file "file.cpl"

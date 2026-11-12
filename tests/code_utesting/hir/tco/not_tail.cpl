@@ -1,0 +1,27 @@
+function leaf() -> i32 { 1 }
+
+function after() -> i32 {
+    leaf() + 10
+}
+
+function other() -> i32 {
+    leaf();
+    42
+}
+
+:/ OUTPUT
+BB3:
+fn leaf0() -> i32
+return $1;
+BB4:
+fn after1() -> i32
+call leaf0;
+%0 = fret();
+%2 = $10 as i32;
+%1 = %0 + %2;
+return %1;
+BB5:
+fn other2() -> i32
+call leaf0;
+return $42;
+/:

@@ -13,4 +13,6 @@ function foo(i32 a) {
 }
 
 :/ OUTPUT
+[WARNING] Can't reach the 'then' branch! Consider to refactor the code.
+    at: 7:8
 /:

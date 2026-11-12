@@ -1,12 +1,34 @@
+/* Tail Recursion Elimination (TRE)
+The idea behind this module is next:
+    1) Get a function
+    2) Determine whether it has a recursion
+    3) If this recursion call at the bottom of a terminator
+       block - replace it with a label call.
+
+Let's consider the next code:
+
+```cpl
+function foo(i32 a) {
+    return foo(a + 1);
+}
+```
+
+The module will find the `return foo(a + 1)` and replace it with 
+a label jump:
+
+```cpl
+function foo(i32 a) {
+_entry:
+    a += 1;
+goto _entry;
+}
+``` */
 #include <hir/func.h>
 
 int HIR_FUNC_perform_tre(cfg_ctx_t* cctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* cb, &fb->blocks) {
-            if (
-                cb->l || /* Skip all blocks that have a linked successor */
-                cb->jmp  /* which will save only end (return) blocks.    */
-            ) continue;
+            if (set_size(&cb->succ)) continue; /* Skip blocks that have a successors */
             
             func_info_t fi;
             if (!FNTB_get_info_id(fb->f_id, &fi, &smt->f)) continue;

@@ -10,7 +10,7 @@ start() {
     i64 x = 1;
 
     @[no_fall]
-    @[straight]
+    @[select(straight)]
     switch x; {
         case 1; {
             putc('A');

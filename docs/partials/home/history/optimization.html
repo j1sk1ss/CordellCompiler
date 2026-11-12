@@ -1,0 +1,83 @@
+<li class="era-entry">
+  <span class="era-marker" aria-hidden="true"></span>
+  <article class="milestone-card milestone-optimizer" aria-labelledby="era-title-optimizer">
+    <div class="era-green-bar" aria-hidden="true"><span>Cordell <b>Programming Language</b></span><span class="era-green-version">3.x</span></div>
+    <div class="milestone-copy">
+      <p class="milestone-meta">
+        OPTIMIZATION / v3.0–3.4<span>NOV 2025–APR 2026</span>
+      </p>
+      <h3 id="era-title-optimizer">
+        Understand more.<br>Do less.
+      </h3>
+      <p class="milestone-description">
+        The compiler becomes more than a translator. HIR, control-flow graphs, and SSA make room to reason about code - folding constants, propagating values, and moving work out of loops.
+      </p>
+      <div class="milestone-tags">
+        <span>HIR / CFG / SSA</span><span>CONSTANT FOLDING</span><span>LOOP OPTIMIZATION</span>
+      </div>
+      <a class="milestone-source" href="https://github.com/j1sk1ss/CordellCompiler/tree/v3.0">Open the v3.0 source <span aria-hidden="true">↗</span></a>
+    </div>
+    <figure class="milestone-art art-optimizer">
+      <svg class="milestone-svg" viewBox="0 0 600 400" role="img" aria-labelledby="sketch-optimizer">
+        <title id="sketch-optimizer">
+          An expression graph folds the constants 2 times 3 into 6. Below it, the compiler pipeline passes through HIR, CFG, and SSA.
+        </title>
+        <defs>
+          <pattern id="grid-optimizer" width="24" height="24" patternUnits="userSpaceOnUse">
+            <path d="M24 0H0V24" fill="none" stroke="currentColor" stroke-width=".55" opacity=".16"/>
+          </pattern>
+          <marker id="arrow-optimizer" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="m2 2 8 4-8 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          </marker>
+        </defs>
+        <rect width="600" height="400" fill="url(#grid-optimizer)"/>
+        <text x="27" y="33" class="sketch-label" >
+          THINK BEFORE YOU EMIT
+        </text>
+        <g class="unfolded-graph">
+          <path d="M132 78Q164 47 193 79T163 132Q129 131 132 78" class="sketch-line" />
+          <text x="151" y="108" class="sketch-hand sketch-result" >
+            2
+          </text>
+          <path d="M282 77Q314 47 343 79T312 133Q279 131 282 77" class="sketch-line" />
+          <text x="301" y="108" class="sketch-hand sketch-result" >
+            3
+          </text>
+          <path d="M164 137 221 185" class="sketch-line" marker-end="url(#arrow-optimizer)" />
+          <path d="M313 137 254 185" class="sketch-line" marker-end="url(#arrow-optimizer)" />
+          <path d="M212 189 267 187 270 242 209 245Z" class="sketch-line" />
+          <text x="226" y="228" class="sketch-hand sketch-result" >
+            ×
+          </text>
+        </g>
+        <path d="M280 213Q350 190 403 204" class="sketch-line" marker-end="url(#arrow-optimizer)" />
+        <text x="313" y="161" class="sketch-hand" transform="rotate(-7 313 161)">
+          fold it once
+        </text>
+        <g class="folded-result">
+          <path d="M421 165Q478 143 509 191T480 259Q417 261 408 215T421 165" class="sketch-result-circle" />
+          <text x="438" y="232" class="sketch-hand sketch-big-result" >
+            6
+          </text>
+        </g>
+        <text x="38" y="298" class="sketch-code" >
+          a = 2 * 3;
+        </text>
+        <path d="M35 292 185 289" class="sketch-strike" />
+        <text x="260" y="298" class="sketch-code" >
+          →
+        </text>
+        <text x="364" y="298" class="sketch-code" >
+          a = 6;
+        </text>
+        <path d="M29 329 572 331" class="sketch-rule" />
+        <text x="35" y="365" class="sketch-code" >
+          AST → HIR → CFG / SSA → ASM
+        </text>
+      </svg>
+      <button class="fold-sketch-button" type="button" aria-pressed="false">
+        Apply constant folding <span aria-hidden="true">↗</span>
+      </button>
+    </figure>
+  </article>
+</li>

@@ -1,0 +1,30 @@
+start() {
+    1; 1i8; 1u8; 1i16; 1u16; 1i32; 1u32; 1i64; 1u64;
+}
+
+:/ OUTPUT
+line=2, type=1, data=[/private/var/folders/74/d7gcqwxd1x9__83fh6m_lb6c0000gn/T/tmp0ra851j0.cpl],
+line=1, type=68, data=[start],
+line=1, type=27, data=[(],
+line=1, type=28, data=[)],
+line=1, type=29, data=[{],
+line=2, type=6, data=[1],
+line=2, type=18, data=[;],
+line=2, type=9, data=[1],
+line=2, type=18, data=[;],
+line=2, type=13, data=[1],
+line=2, type=18, data=[;],
+line=2, type=10, data=[1],
+line=2, type=18, data=[;],
+line=2, type=14, data=[1],
+line=2, type=18, data=[;],
+line=2, type=11, data=[1],
+line=2, type=18, data=[;],
+line=2, type=15, data=[1],
+line=2, type=18, data=[;],
+line=2, type=12, data=[1],
+line=2, type=18, data=[;],
+line=2, type=16, data=[1],
+line=2, type=18, data=[;],
+line=0, type=30, data=[}],
+/:

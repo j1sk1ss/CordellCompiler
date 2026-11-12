@@ -1,28 +1,28 @@
 #include <preproc/pp.h>
 
 /* Create source position info for a preprocessor source file.
-Params:
-    - `f` - Opened source file.
-    - `name` - Source file path.
-    - `l` - Initial source line number.
-
-Returns created source info or NULL. */
+   Params:
+       - `f` - Opened source file.
+       - `name` - Source file path.
+       - `l` - Initial source line number.
+   
+   Returns created source info or NULL. */
 static inline source_pos_info_t* _create_info(FILE* f, char* name, int l) {
     source_pos_info_t* inf = (source_pos_info_t*)malloc(sizeof(source_pos_info_t));
     if (!inf) return NULL;
     memset(&inf->cst, 0, sizeof(pp_cmt_state_t));
     stack_init(&inf->cst.skips);
-    inf->f  = f;
-    inf->l  = l;
-    inf->n  = strdup(name);
+    inf->f = f;
+    inf->l = l;
+    inf->n = strdup(name);
     return inf;
 }
 
 /* Destroy source position info.
-Params:
-    - `inf` - Source info to destroy.
-
-Returns 1 if succeeds. */
+   Params:
+       - `inf` - Source info to destroy.
+   
+   Returns 1 if succeeds. */
 static int _destroy_info(source_pos_info_t* inf) {
     if (!inf) return 0;
     if (inf->f) fclose(inf->f);
@@ -33,20 +33,20 @@ static int _destroy_info(source_pos_info_t* inf) {
 }
 
 /* Init a PP context.
-Params:
-    - `ctx` - PP context.
-
-Returns 1 if succeeds. */
+   Params:
+       - `ctx` - PP context.
+   
+   Returns 1 if succeeds. */
 int PP_init_pp_ctx(pp_ctx_t* ctx) {
     memset(ctx, 0, sizeof(pp_ctx_t));
     return stack_init(&ctx->sources);
 }
 
 /* Cleanup all mess that we've produced.
-Params:
-    - `ctx` - PP context.
-
-Returns 1 if succeeds. */
+   Params:
+       - `ctx` - PP context.
+   
+   Returns 1 if succeeds. */
 static int _unload_pp_ctx(pp_ctx_t* ctx) {
     stack_free_force_op(&ctx->sources, (int (*)(void*))_destroy_info);
     if (ctx->line)    free(ctx->line);
@@ -62,11 +62,11 @@ static int _unload_pp_ctx(pp_ctx_t* ctx) {
 }
 
 /* Try to open a file and push it as a new source.
-Params:
-    - `st` - Source stack.
-    - `full_path` - Path to the source file.
-
-Returns 1 if the source was opened and pushed. */
+   Params:
+       - `st` - Source stack.
+       - `full_path` - Path to the source file.
+   
+   Returns 1 if the source was opened and pushed. */
 static int _try_push_path(sstack_t* st, char* full_path) {
     FILE* inc = fopen(full_path, "r");
     if (!inc) return 0;
@@ -81,25 +81,21 @@ static int _try_push_path(sstack_t* st, char* full_path) {
 }
 
 /* Check whether include path is explicitly relative.
-Params:
-    - `inc_name` - Include path.
-
-Returns 1 if include starts with './' or '../'. */
+   Params:
+       - `inc_name` - Include path.
+   
+   Returns 1 if include starts with './' or '../'. */
 static inline int _is_relative_include(const char* inc_name) {
-    return inc_name &&
-           (
-               !strncmp(inc_name, "./",  2) ||
-               !strncmp(inc_name, "../", 3)
-           );
+    return inc_name && (!strncmp(inc_name, "./",  2) || !strncmp(inc_name, "../", 3));
 }
 
 /* Try to push an include relative to the current source file.
-Params:
-    - `st` - Source stack.
-    - `curr_name` - Current source file path.
-    - `inc_name` - Include path from directive.
-
-Returns 1 if the relative include was opened and pushed. */
+   Params:
+       - `st` - Source stack.
+       - `curr_name` - Current source file path.
+       - `inc_name` - Include path from directive.
+   
+   Returns 1 if the relative include was opened and pushed. */
 static int _try_push_relative(sstack_t* st, const char* curr_name, char* inc_name) {
     if (!st || !curr_name || !*curr_name || !inc_name || !*inc_name) return 0;
     char full[PP_PATH_MAX]    = { 0 };
@@ -113,14 +109,14 @@ static int _try_push_relative(sstack_t* st, const char* curr_name, char* inc_nam
 }
 
 /* Search and push an include file.
-Params:
-    - `curr_name` - Current source file path.
-    - `st` - Source stack.
-    - `fctx` - Finder context with include search path.
-    - `inc_name` - Include path from directive.
-    - `is_system` - Whether include uses system-style '<...>' form.
-
-Returns 1 if the include file was found and pushed. */
+   Params:
+       - `curr_name` - Current source file path.
+       - `st` - Source stack.
+       - `fctx` - Finder context with include search path.
+       - `inc_name` - Include path from directive.
+       - `is_system` - Whether include uses system-style '<...>' form.
+   
+   Returns 1 if the include file was found and pushed. */
 static int _push_include(const char* curr_name, sstack_t* st, finder_ctx_t* fctx, char* inc_name, int is_system) {
     if (!st || !inc_name || !*inc_name) return 0;
     if (inc_name[0] == '/') {
@@ -151,11 +147,11 @@ static int _push_include(const char* curr_name, sstack_t* st, finder_ctx_t* fctx
 
 static char* _l = NULL;
 /* Delay line output by one call.
-Params:
-    - `l` - Line to print on the next call.
-    - `out` - Output stream.
-
-Returns nothing. */
+   Params:
+       - `l` - Line to print on the next call.
+       - `out` - Output stream.
+   
+   Returns nothing. */
 static void _lazy_fputs(char* l, FILE* out) {
     if (_l) fputs(_l, out);
     if (_l) {
@@ -167,11 +163,11 @@ static void _lazy_fputs(char* l, FILE* out) {
 }
 
 /* Put source location macro into the output stream.
-Params:
-    - `d` - Source info to print.
-    - `o` - Output stream.
-
-Returns nothing. */
+   Params:
+       - `d` - Source info to print.
+       - `o` - Output stream.
+   
+   Returns nothing. */
 static inline void _put_line_macro(source_pos_info_t* d, FILE* o) {
     static char lder[512] = { 0 };
     snprintf(lder, sizeof(lder), "\n#line %i \"%s\"\n", d->l, d->n);
@@ -202,10 +198,10 @@ static int _push_skip(sstack_t* skips, int skip) {
 }
 
 /* Check whether this is a permitted character.
-Params:
-    - `p` - Input character (1 byte or more than 1 byte size).
-
-Returns 1 if this is a permitted character. */
+   Params:
+       - `p` - Input character (1 byte or more than 1 byte size).
+   
+   Returns 1 if this is a permitted character. */
 static inline int _permitted_character(char* p) {
     unsigned char b1 = (unsigned char)p[0];
     unsigned char b2 = (unsigned char)p[1];
@@ -217,29 +213,12 @@ static inline int _permitted_character(char* p) {
     return 0;
 }
 
-int PP_predefine(deftb_t* macros) {
-#define PREDEFINE_FLAG(name)         MCTB_put_define(name, "1", macros);
-#define PREDEFINE_VALUE(name, value) MCTB_put_define(name, value, macros);
-    switch (CONF_get_system_type()) {
-        case LINUX64:   PREDEFINE_FLAG("CCPL_GNU64");     goto _predefine_64size;
-        case WINDOWS64: PREDEFINE_FLAG("CCPL_WINDOWS64"); goto _predefine_64size;
-        case MACHO64: {
-            PREDEFINE_FLAG("CCPL_MACHO64");
-_predefine_64size: {}
-            PREDEFINE_VALUE("usize", "u64");
-            PREDEFINE_VALUE("isize", "i64");
-            break;
-        }
-        case I386: {
-            PREDEFINE_FLAG("CCPL_GNUI386");
-            PREDEFINE_VALUE("usize", "u32");
-            PREDEFINE_VALUE("isize", "i32");
-        }
-        default: break;
-    }
-#undef PREDEFINE_FLAG
-#undef PREDEFINE_VALUE
-    return 1;
+int PP_predefine_value(deftb_t* macros, char* name, char* value) {
+    return MCTB_put_define(name, value, macros);
+}
+
+int PP_predefine_flag(deftb_t* macros, char* name) {
+    return MCTB_put_define(name, "1", macros);
 }
 
 int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx, deftb_t* macros) {
@@ -310,28 +289,66 @@ int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx, deftb_t* macros) {
            Also remember the open comment statement if it exists
            in the line.
            This info will be saved in the cst structure. */
+        int comment_removed_newline = _count_newlines(ppctx->line) > _count_newlines(ppctx->clean);
         if (!PP_strip_colon_comments(ppctx->line, &inf->cst, &ppctx->clean, &ppctx->clean_size)) {
             _unload_pp_ctx(ppctx);
             return -1;
         }
-        int comment_removed_newline = _count_newlines(ppctx->line) > _count_newlines(ppctx->clean);
 
         /* Figure out which directive is presented in the line.
            If there is no directive, just copy the line into the output. */
-        char* d = PP_get_directive_from_line(ppctx->clean);
-        int skip = _is_skipping(&inf->cst.skips);
+        char* d                      = PP_get_directive_from_line(ppctx->clean);
+        int skip                     = _is_skipping(&inf->cst.skips);
         int needs_comment_line_macro = 0;
         if (!d) {
             if (!skip) {
-                char line_file[PP_PATH_MAX] = { 0 };
-                snprintf(line_file, sizeof(line_file), "\"%s\"", inf->n);
-                MCTB_put_define("__FILE__", line_file, macros);
+#define SIMPLE_DEFINED_VARIABLE(var, fmt, ...)    \
+    do {                                          \
+        char _[256] = { 0 };                      \
+        snprintf(_, sizeof(_), fmt, __VA_ARGS__); \
+        MCTB_put_define(var, _, macros);          \
+    } while (0);
+                SIMPLE_DEFINED_VARIABLE("__FILE__", "\"%s\"", inf->n);
+                SIMPLE_DEFINED_VARIABLE("__LINE__", "%i", inf->l);
 
-                char line_num[32] = { 0 };
-                snprintf(line_num, sizeof(line_num), "%i", inf->l);
-                MCTB_put_define("__LINE__", line_num, macros);
+                int resolved;
+                while ((resolved = PP_resolve_defines(
+                    &ppctx->clean, &ppctx->clean_size, &ppctx->defined, &ppctx->defined_size, macros
+                )) == 2) {
+                    nread = getline(&ppctx->line, &ppctx->size, inf->f);
+                    if (nread < 0) {
+                        fprintf(stderr, "%s:%i: expected a complete block for __BODY__\n", inf->n, inf->l);
+                        _unload_pp_ctx(ppctx);
+                        return -1;
+                    }
 
-                if (!PP_resolve_defines(&ppctx->clean, &ppctx->clean_size, &ppctx->defined, &ppctx->defined_size, macros)) {
+                    inf->l++;
+                    for (int i = 0; i < nread - 1; i++) {
+                        if (_permitted_character(ppctx->line + i)) {
+                            _unload_pp_ctx(ppctx);
+                            return -1;
+                        }
+                    }
+
+                    if (!PP_strip_colon_comments(ppctx->line, &inf->cst, &ppctx->defined, &ppctx->defined_size)) {
+                        _unload_pp_ctx(ppctx);
+                        return -1;
+                    }
+
+                    comment_removed_newline |= _count_newlines(ppctx->line) > _count_newlines(ppctx->defined);
+                    size_t len   = strlen(ppctx->clean), extra = strlen(ppctx->defined);
+                    char* joined = realloc(ppctx->clean, len + extra + 1);
+                    if (!joined) {
+                        _unload_pp_ctx(ppctx);
+                        return -1;
+                    }
+
+                    ppctx->clean      = joined;
+                    ppctx->clean_size = len + extra + 1;
+                    memcpy(joined + len, ppctx->defined, extra + 1);
+                }
+
+                if (!resolved) {
                     _unload_pp_ctx(ppctx);
                     return -1;
                 }
@@ -340,6 +357,7 @@ int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx, deftb_t* macros) {
                 MCTB_remove_define("__LINE__", macros);
                 _lazy_fputs(ppctx->defined, ppctx->out);
                 needs_comment_line_macro = comment_removed_newline;
+#undef SIMPLE_DEFINED_VARIABLE
             }
         }
         else {
@@ -364,14 +382,7 @@ int PP_perform(int fd, finder_ctx_t* fctx, pp_ctx_t* ppctx, deftb_t* macros) {
                 }
             }
             else if (IS_PP_DERICTIVE(d, PP_DEFINE_DIRECTIVE) && !skip) {
-                char defname[PP_PATH_MAX] = { 0 };
-                char defval[PP_PATH_MAX]  = { 0 };
-                if (!PP_parse_define_arg(PP_MV_LINE_DIR(d, PP_DEFINE_DIRECTIVE), defname, sizeof(defname), defval, sizeof(defval))) {
-                    _unload_pp_ctx(ppctx);
-                    return -1;
-                }
-
-                if (!MCTB_put_define(defname, defval, macros)) {
+                if (!PP_register_define(PP_MV_LINE_DIR(d, PP_DEFINE_DIRECTIVE), macros)) {
                     _unload_pp_ctx(ppctx);
                     return -1;
                 }

@@ -22,7 +22,7 @@ int HIRWLK_register_visitor(unsigned int trg, int (*perform)(HIR_VISITOR_ARGS), 
     return list_add(&ctx->visitors, w);
 }
 
-int HIRWLK_init_ctx(hir_walker_t* ctx, dag_ctx_t* dctx, hir_ctx_t* hctx, sym_table_t* smt) {
+int HIRWLK_init_ctx(hir_walker_t* ctx, dag_ctx_t* dctx, sym_table_t* smt) {
     str_memset(ctx, 0, sizeof(hir_walker_t));
     map_init(&ctx->vctx.definitions, MAP_NO_CMP);
     ctx->smt                   = smt;
@@ -82,8 +82,10 @@ static int _cfg_block_walk(cfg_block_t* bb, hir_walker_t* ctx) {
         }
     }
 
-    if (_cfg_block_walk(bb->l, ctx) < 0)   return -1;
-    if (_cfg_block_walk(bb->jmp, ctx) < 0) return -1;
+    set_foreach (cfg_block_t* succ, &bb->succ) {
+        if (_cfg_block_walk(succ, ctx) < 0) return -1;
+    }
+    
     return 1;
 }
 

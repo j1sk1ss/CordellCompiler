@@ -5,7 +5,7 @@ interface base {
     function destroy(ptr base self) -> i0;
 }
 
-container first::base {
+container first implements base {
     i32 a;
     @[override]
     function destroy(ptr first self) -> i0 {
@@ -18,7 +18,7 @@ container first::base {
     }
 }
 
-container second::base {
+container second implements base {
     @[self]
     function foo(ptr second self) -> i0 {
     }

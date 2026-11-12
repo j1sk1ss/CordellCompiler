@@ -18,6 +18,7 @@
         "src/hir/cfg/*.c",
         "src/hir/func/*.c",
         "src/hir/loop/*.c",
+        "src/hir/tools/*.c",
         "std/*.c"
     ]
 }

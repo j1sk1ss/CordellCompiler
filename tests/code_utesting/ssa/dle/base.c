@@ -18,6 +18,7 @@
 #include <hir/func.h>
 #include <hir/loop.h>
 #include <hir/dag.h>
+#include <hir/constfold.h>
 #include <hir/dump.h>
 
 #define RELOAD_CFG                          \
@@ -109,7 +110,13 @@ int main(int argc, char* argv[]) {
     HIR_compute_homes(&hirctx);
     HIR_LTREE_licm(&cfgctx, &lctx, &smt);
 
-    HIR_LOOP_perform_dle(&lctx);
+    HIR_CFG_make_allias(&cfgctx, &smt);
+    dag_ctx_t dagctx = { 0 };
+    HIR_DAG_init(&dagctx);
+    HIR_DAG_generate(&cfgctx, &dagctx, &smt);
+    HIR_sparse_const_propagation(&dagctx, &smt);
+    HIR_LOOP_perform_dle(&lctx, &smt);
+    HIR_DAG_unload(&dagctx);
 
     DUMP_format_hirctx(&hirctx, &smt, 0, 1, stdout);
 

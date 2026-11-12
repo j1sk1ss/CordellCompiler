@@ -19,6 +19,7 @@ static lir_subject_t* _convert_hs_to_ls(hir_subject_t* subj) {
         case HIR_FNAME:  return LIR_SUBJ_ADDRFUNC(subj);
         case HIR_VTABLE: return LIR_SUBJ_VTABLE(subj);
         case HIR_FPOS:   return LIR_SUBJ_LOCATION(&subj->storage.pos);
+        case HIR_LABEL:  return LIR_SUBJ_LABEL(subj->id);
         
         case HIR_TMPVARF64: case HIR_TMPVARF32:
         case HIR_STKVARF64: case HIR_STKVARF32: 
@@ -165,7 +166,7 @@ static int _convert_hir_to_lir(sstack_t* params, hir_block_t* h, lir_ctx_t* ctx,
         case HIR_TU32:  return LIR_BLOCK2(ctx, LIR_TU32, _convert_hs_to_ls(h->farg), _convert_hs_to_ls(h->sarg));
         case HIR_TU16:  return LIR_BLOCK2(ctx, LIR_TU16, _convert_hs_to_ls(h->farg), _convert_hs_to_ls(h->sarg));
         case HIR_TU8:   return LIR_BLOCK2(ctx, LIR_TU8,  _convert_hs_to_ls(h->farg), _convert_hs_to_ls(h->sarg));
-        case HIR_JMP:   return LIR_BLOCK1(ctx, LIR_JMP, LIR_SUBJ_LABEL(h->farg->id));
+        case HIR_JMP:   return LIR_BLOCK1(ctx, LIR_JMP, _convert_hs_to_ls(h->farg));
         case HIR_MKLB:  return LIR_BLOCK1(ctx, LIR_MKLB, LIR_SUBJ_LABEL(h->farg->id));
         case HIR_NEG:   return LIR_BLOCK2(ctx, LIR_NEG, _convert_hs_to_ls(h->farg), _convert_hs_to_ls(h->sarg));
         case HIR_NOT:   return LIR_BLOCK2(ctx, LIR_NOT, _convert_hs_to_ls(h->farg), _convert_hs_to_ls(h->sarg)); 
@@ -213,7 +214,7 @@ static int _iterate_block(sstack_t* params, cfg_block_t* bb, lir_ctx_t* ctx, sym
     return 1;
 }
 
-int LIR_destroy_ssa(cfg_ctx_t* cctx) {
+status_code_t LIR_destroy_ssa(cfg_ctx_t* cctx) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* bb, &fb->blocks) {
             lir_block_t* lh = LIR_get_next(bb->lmap.entry, bb->lmap.exit, 0);
@@ -224,10 +225,10 @@ int LIR_destroy_ssa(cfg_ctx_t* cctx) {
         }
     }
 
-    return 1;
+    return GENERAL_SUCCESS;
 }
 
-int LIR_generate_block(cfg_ctx_t* cctx, lir_ctx_t* ctx, sym_table_t* smt) {
+status_code_t LIR_generate_block(cfg_ctx_t* cctx, lir_ctx_t* ctx, sym_table_t* smt) {
     sstack_t params;
     stack_init(&params);
 
@@ -254,5 +255,5 @@ int LIR_generate_block(cfg_ctx_t* cctx, lir_ctx_t* ctx, sym_table_t* smt) {
     }
 
     stack_free(&params);
-    return 1;
+    return GENERAL_SUCCESS;
 }
