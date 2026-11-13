@@ -27,7 +27,7 @@ hir_subject_t* HIR_generate_implconv(hir_ctx_t* ctx, char ptr, hir_subject_type_
         return src;
     }
 
-    hir_subject_t* cnv = HIR_SUBJ_TMPVAR(t, VRTB_ADD_TMP(t, (basic_object_info_t){ .ptr = ptr }, smt));
+    hir_subject_t* cnv = HIR_SUBJ_TMPVAR(t, VRTB_PROMOTE_FLAGS(VRTB_ADD_TMP(t, (basic_object_info_t){ .ptr = ptr }, smt), src, src, smt));
     cnv->ptr = ptr;
     HIR_BLOCK2(ctx, op, cnv, src);
     return cnv;

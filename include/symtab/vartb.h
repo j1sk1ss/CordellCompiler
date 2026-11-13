@@ -22,7 +22,8 @@ typedef struct {
         char            reg;
         char            allocated : 1;
         char            used      : 1;
-        char            vlatile   : 1;
+        char            vlatile   : 1; // in the latice
+        char            param     : 1; // in the latice
     } vmi; /* VariableMemoryInfo      */
 
     struct {
@@ -47,6 +48,7 @@ typedef struct {
 int         VRTB_set_used(symbol_id_t id, vartab_ctx_t* ctx);
 int         VRTB_set_volatile(symbol_id_t id, vartab_ctx_t* ctx);
 int         VRTB_set_not_null(symbol_id_t id, vartab_ctx_t* ctx);
+int         VRTB_set_param(symbol_id_t id, vartab_ctx_t* ctx);
 int         VRTB_update_memory(symbol_id_t id, long offset, long size, char reg, short align, vartab_ctx_t* ctx);
 int         VRTB_update_definition(symbol_id_t id, long definition, symbol_id_t overdefined, vartab_ctx_t* ctx, int rewrite);
 int         VRTB_update_type(symbol_id_t id, int t, symbol_id_t t_id, vartab_ctx_t* ctx);
@@ -57,6 +59,7 @@ int         VRTB_get_info(string_t* vname, symbol_id_t scope, variable_info_t* i
 symbol_id_t VRTB_resolve_parent(symbol_id_t id, vartab_ctx_t* ctx);
 symbol_id_t VRTB_add_info(string_t* name, token_type_t type, symbol_id_t scope, basic_object_info_t flags, vartab_ctx_t* ctx);
 symbol_id_t VRTB_add_copy(variable_info_t* src, vartab_ctx_t* ctx);
+symbol_id_t VRTB_promote_info_flags(symbol_id_t trg, symbol_id_t a, symbol_id_t b, vartab_ctx_t* ctx);
 int         VRTB_unload(vartab_ctx_t* ctx);
 
 #endif

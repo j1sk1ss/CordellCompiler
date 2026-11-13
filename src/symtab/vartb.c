@@ -12,6 +12,7 @@
 DEFINE_SETTER(VRTB_set_not_null, csa.not_null);
 DEFINE_SETTER(VRTB_set_volatile, vmi.vlatile);
 DEFINE_SETTER(VRTB_set_used, vmi.used);
+DEFINE_SETTER(VRTB_set_param, vmi.param);
 #undef DEFINE_SETTER
 
 int VRTB_update_memory(symbol_id_t id, long offset, long size, char reg, short align, vartab_ctx_t* ctx) {
@@ -179,6 +180,20 @@ symbol_id_t VRTB_add_info(string_t* name, token_type_t type, symbol_id_t s_id, b
     if (!name) nnd->name = create_string("tmp");
     map_put(&ctx->vartb, nnd->v_id, nnd);
     return nnd->v_id;
+}
+
+symbol_id_t VRTB_promote_info_flags(symbol_id_t trg, symbol_id_t a, symbol_id_t b, vartab_ctx_t* ctx) {
+    variable_info_t *trg_vi, *src_vi;
+    if (!map_get(&ctx->vartb, trg, (void**)&trg_vi)) return NO_SYMBOL_ID;
+
+    symbol_id_t args[] = { a, b };
+    for (int i = 0; i < 2; i++) {
+        if (!map_get(&ctx->vartb, args[i], (void**)&src_vi)) continue;
+        trg_vi->vmi.param   |= src_vi->vmi.param;
+        trg_vi->vmi.vlatile |= src_vi->vmi.vlatile;
+    }
+
+    return trg;
 }
 
 static int _variable_info_unload(variable_info_t* info) {

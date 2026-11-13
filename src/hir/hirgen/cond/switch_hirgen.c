@@ -5,7 +5,7 @@ static inline void _generate_logic_check(
     hir_subject_t* tr, hir_operation_t op, hir_subject_t* fl, 
     hir_ctx_t* ctx, sym_table_t* smt
 ) {
-    hir_subject_t* is_true = HIR_SUBJ_TMPVAR(HIR_TMPVARI8, VRTB_add_info(NULL, TMP_I8_TYPE_TOKEN, NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v));
+    hir_subject_t* is_true = HIR_SUBJ_TMPVAR(HIR_TMPVARI8, VRTB_ADD_TMP_PF(HIR_TMPVARI8, l, r, smt));
     HIR_BLOCK3(ctx, op, is_true, HIR_generate_implconv(ctx, 0, HIR_TMPVARI64, l, smt), r);
     HIR_BLOCK3(ctx, HIR_IFOP2, is_true, tr, fl);
 }
@@ -58,7 +58,7 @@ static int _generate_sequent_jump(
 ) {
     for (int i = 0; i < values_count; i++) {
         hir_subject_t* nl     = HIR_SUBJ_LABEL();
-        hir_subject_t* equals = HIR_SUBJ_TMPVAR(HIR_TMPVARI8, VRTB_add_info(NULL, TMP_I8_TYPE_TOKEN, NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v));
+        hir_subject_t* equals = HIR_SUBJ_TMPVAR(HIR_TMPVARI8, VRTB_ADD_TMP_PF(HIR_TMPVARI8, cond, cond, smt));
         hir_subject_t* value  = HIR_generate_implconv(ctx, 0, HIR_TMPVARI64, HIR_SUBJ_CONST(values[i].v), smt);
         HIR_BLOCK3(ctx, HIR_iCMP, equals, HIR_generate_implconv(ctx, 0, HIR_TMPVARI64, cond, smt), value);
         HIR_BLOCK3(ctx, HIR_IFOP2, equals, values[i].l, nl);
@@ -104,12 +104,12 @@ static int _generate_table_jump(case_info_t* values, int values_count, hir_subje
     hir_subject_t* head = HIR_reference_subject(j_table_sbj, smt, 1);
     HIR_BLOCK2(ctx, HIR_REF, head, j_table_sbj);
 
-    hir_subject_t *index  = HIR_SUBJ_TMPVAR(HIR_TMPVARI64, VRTB_ADD_TMP_NF(HIR_TMPVARI64, smt)),
-                  *offset = HIR_SUBJ_TMPVAR(HIR_TMPVARI64, VRTB_ADD_TMP_NF(HIR_TMPVARI64, smt));
+    hir_subject_t *index  = HIR_SUBJ_TMPVAR(HIR_TMPVARI64, VRTB_ADD_TMP_PF(HIR_TMPVARI64, cond, cond, smt)),
+                  *offset = HIR_SUBJ_TMPVAR(HIR_TMPVARI64, VRTB_ADD_TMP_PF(HIR_TMPVARI64, index, index, smt));
     HIR_BLOCK3(ctx, HIR_iSUB, index, HIR_generate_implconv(ctx, 0, HIR_TMPVARI64, cond, smt), HIR_SUBJ_CONST(values[0].v));
     HIR_BLOCK3(ctx, HIR_iMUL, offset, index, HIR_SUBJ_CONST(CONF_get_full_bytness()));
 
-    hir_subject_t* target_head = HIR_SUBJ_CPVAR(head, smt);
+    hir_subject_t* target_head = HIR_SUBJ_TMPVAR(head->t, VRTB_ADD_TMP_PF(head->t, head, offset, smt));
     target_head->ptr = head->ptr;
     HIR_BLOCK3(ctx, HIR_iADD, target_head, head, HIR_generate_implconv(ctx, head->ptr, head->t, offset, smt));
 

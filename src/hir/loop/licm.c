@@ -137,15 +137,17 @@ static inline int _get_loop_hir_blocks(set_t* loop, set_t* b) {
 /* Check whether the provided HIR block can be moved form a loop.
    Params:
        - `hh` - HIR block.
+       - `smt` - To check whether this variable is a paramter.
    
    Returns 1 if this block can be moved. */
-static inline int _hir_can_be_licm_def(hir_block_t* hh) {
-    if (
-        !hh || !HIR_is_writeop(hh->op) || HIR_is_sideeffect_op(hh->op) ||
-        !hh->farg || !HIR_is_vartype(hh->farg->t)
-    ) return 0;
-    return 1;
-}
+static inline int _hir_can_be_licm_def(hir_block_t* hh, sym_table_t* smt) {
+    if (!hh || !HIR_is_writeop(hh->op) || !hh->farg || !HIR_is_vartype(hh->farg->t)) return 0;
+    variable_info_t vi;
+    return 
+        !HIR_is_sideeffect_op(hh->op) &&                            // no sideeffects
+        VRTB_get_info_id(hh->farg->storage.var.v_id, &vi, &smt->v) && // its a valid variable
+        !vi.vmi.param && !vi.vmi.vlatile;                            // its not dependent on parameters or volatile values
+} // TODO: sideeffect has too strict and conservative logic. We need to check whether a pointer is changed.
 
 /* Add the provided variable and its parent variable.
    Params:
@@ -216,7 +218,7 @@ static int _get_invariant_defs(set_t* loop_hir, set_t* invariant_defs, set_t* in
         set_foreach (hir_block_t* hh, loop_hir) {
             if (
                 set_has(invariant_defs, hh) || /* Already in the invariant set        */
-                !_hir_can_be_licm_def(hh)      /* If this operation has a side effect */
+                !_hir_can_be_licm_def(hh, smt) /* If this operation has a side effect */
             ) continue;
             int invariant = !_hir_uses_any_vid_from_set(hh, inductive, smt, loop_hir);
             iterate_hir_args (hir_subject_t* arg, hh, HIR_is_writeop(hh->op)) {
@@ -423,12 +425,12 @@ static int _get_inductive_variables(set_t* loop_hir, set_t* s, sym_table_t* smt)
     int changed = 0;
 
     set_foreach (hir_block_t* hh, loop_hir) {
-        if (_hir_can_be_licm_def(hh)) continue;
+        if (_hir_can_be_licm_def(hh, smt)) continue;
         changed |= _set_add_block_vids_with_base(s, hh, smt);
     }
 
     set_foreach (hir_block_t* hh, loop_hir) {
-        if (!_hir_can_be_licm_def(hh)) continue;
+        if (!_hir_can_be_licm_def(hh, smt)) continue;
         symbol_id_t raw_id = hh->farg->storage.var.v_id;
         symbol_id_t dst_id = _gather_base_vid(raw_id, smt);
         if (
@@ -440,7 +442,7 @@ static int _get_inductive_variables(set_t* loop_hir, set_t* s, sym_table_t* smt)
     while (changed) {
         changed = 0;
         set_foreach (hir_block_t* hh, loop_hir) {
-            if (!_hir_can_be_licm_def(hh)) continue;
+            if (!_hir_can_be_licm_def(hh, smt)) continue;
             symbol_id_t raw_id = hh->farg->storage.var.v_id;
             symbol_id_t dst_id = _gather_base_vid(raw_id, smt);
             if (set_has(s, (void*)raw_id) || set_has(s, (void*)dst_id)) continue;

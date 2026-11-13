@@ -65,9 +65,11 @@ hir_subject_t* HIR_point_to_field(ast_node_t* root, hir_ctx_t* ctx, type_info_t*
             token_t tmp = { .t_type = parent_var.type, .flags.ptr = parent_var.vfs.ptr };
             hir_subject_t* value = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v));
             value->ptr = tmp.flags.ptr;
+            VRTB_PROMOTE_FLAGS(value->storage.var.v_id, base, base, smt);
 
             hir_subject_t* ref_base = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v));
             ref_base->ptr = base->ptr + 1;
+            VRTB_PROMOTE_FLAGS(ref_base->storage.var.v_id, base, base, smt);
             HIR_BLOCK2(ctx, HIR_TPTR, ref_base, base);
 
             HIR_BLOCK2(ctx, HIR_GDREF, value, ref_base);
@@ -95,6 +97,7 @@ hir_subject_t* HIR_load_array_field_head(hir_subject_t* head, array_info_t* ai, 
         HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, ai->elements_info.el_flags, &smt->v)
     );
     value->ptr = ai->elements_info.el_flags.ptr;
+    VRTB_PROMOTE_FLAGS(value->storage.var.v_id, head, head, smt);
     HIR_BLOCK2(ctx, HIR_TPTR, value, head);
     return value;
 }
@@ -117,6 +120,7 @@ hir_subject_t* HIR_generate_load_member_access(ast_node_t* node, hir_ctx_t* ctx,
     token_t tmp = { .t_type = vi.type, .flags.ptr = vi.vfs.ptr };
     hir_subject_t* value = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v));
     value->ptr = tmp.flags.ptr;
+    VRTB_PROMOTE_FLAGS(value->storage.var.v_id, head, head, smt);
 
     HIR_BLOCK2(ctx, HIR_GDREF, value, head);
     return value;
@@ -140,6 +144,7 @@ int HIR_generate_store_member_access(ast_node_t* node, hir_subject_t* data, hir_
 
     hir_subject_t* target = HIR_SUBJ_TMPVAR(HIR_get_tmptype_tkn(&tmp, 0), VRTB_add_info(NULL, tmp.t_type, NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v));
     target->ptr = head->ptr;
+    VRTB_PROMOTE_FLAGS(target->storage.var.v_id, head, head, smt);
     
     HIR_BLOCK2(ctx, HIR_TPTR, target, head);
     HIR_BLOCK2(ctx, HIR_LDREF, target, HIR_generate_implconv(ctx, tmp.flags.ptr, HIR_get_tmptype_tkn(&tmp, 0), data, smt));

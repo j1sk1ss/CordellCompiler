@@ -22,7 +22,7 @@ hir_subject_t* HIR_generate_dref(ast_node_t* node, hir_ctx_t* ctx, sym_table_t* 
             dref_flags.ptr = MAX(src->ptr - 1, 0);
         }
 
-        hir_subject_t* dref = HIR_SUBJ_TMPVAR(dref_type, VRTB_ADD_TMP_NF(dref_type, smt));
+        hir_subject_t* dref = HIR_SUBJ_TMPVAR(dref_type, VRTB_ADD_TMP_PF(dref_type, src, src, smt));
         dref->ptr = dref_flags.ptr;
 
         HIR_BLOCK2(ctx, HIR_GDREF, dref, src);

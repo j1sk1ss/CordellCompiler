@@ -1,0 +1,36 @@
+: ASM_ARCH=x86_64_nasm_gnu :
+: RUN_ASM :
+
+@[inline(never)]
+function stop_loop25(ptr i32 writer) -> i0 {
+    dref writer = 0;
+}
+
+@[inline(never)]
+function wait_for_stop25(ptr i32 reader, ptr i32 writer) -> i32 {
+    i32 steps = 0;
+
+    while dref reader; {
+        stop_loop25(writer);
+        steps += 1;
+        if steps > 1; return steps;
+    }
+
+    return steps;
+}
+
+start() {
+    i32 running = 1;
+    i32 steps = wait_for_stop25(ref running, ref running);
+
+    if steps != 1; exit 1;
+    if running; exit 2;
+    exit 0;
+}
+
+:/ OUTPUT
+@measure_time
+@measure_lines
+@repeat=5
+@exit_code=0
+/:

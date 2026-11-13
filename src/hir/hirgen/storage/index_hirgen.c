@@ -74,7 +74,7 @@ static hir_subject_t* _get_final_head(ast_node_t* node, hir_ctx_t* ctx, sym_tabl
 
     /* The final offset for the base address is the result of the
         expression 'real_offset = offset * element_size' */
-    hir_subject_t* real_offset = HIR_SUBJ_TMPVAR(HIR_TMPVARU64, VRTB_ADD_TMP_NF(HIR_promote_types(offt->t, HIR_I8CONSTVAL), smt));
+    hir_subject_t* real_offset = HIR_SUBJ_TMPVAR(HIR_TMPVARU64, VRTB_ADD_TMP_PF(HIR_promote_types(offt->t, HIR_I8CONSTVAL), offt, offt, smt));
     real_offset->ptr = offt->ptr;
 
     HIR_BLOCK3(
@@ -85,7 +85,7 @@ static hir_subject_t* _get_final_head(ast_node_t* node, hir_ctx_t* ctx, sym_tabl
 
     /* No we move the address (base) by the offser (addr):
         - final_head = head + real_offset */
-    hir_subject_t* final_head = HIR_SUBJ_CPVAR(head, smt);
+    hir_subject_t* final_head = HIR_SUBJ_TMPVAR(head->t, VRTB_ADD_TMP_PF(head->t, head, real_offset, smt));
     final_head->ptr = head->ptr;
     HIR_BLOCK3(ctx, HIR_iADD, final_head, head, HIR_generate_implconv(ctx, head->ptr, head->t, real_offset, smt));
     return final_head;
@@ -106,7 +106,7 @@ hir_subject_t* HIR_generate_load_indexation(ast_node_t* node, hir_ctx_t* ctx, sy
         (c_ti.t == TYPE_ARRAY || c_ti.t == TYPE_CUSTOM) && !c_ti.ptr
     ) return final_head;
 
-    hir_subject_t* res = HIR_SUBJ_TMPVAR(indexed_type, VRTB_ADD_TMP_NF(indexed_type, smt));
+    hir_subject_t* res = HIR_SUBJ_TMPVAR(indexed_type, VRTB_ADD_TMP_PF(indexed_type, final_head, final_head, smt));
     res->ptr = MAX(final_head->ptr - 1, 0);
     
     HIR_BLOCK2(ctx, HIR_GDREF, res, final_head);

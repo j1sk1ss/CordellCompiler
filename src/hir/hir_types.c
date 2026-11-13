@@ -279,6 +279,7 @@ int HIR_is_commutative_op(hir_operation_t op) {
 
 int HIR_is_sideeffect_op(hir_operation_t op) {
     switch (op) {
+        case HIR_REF:
         case HIR_NOP:
         case HIR_JMP:
         case HIR_PHI:

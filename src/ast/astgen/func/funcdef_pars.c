@@ -12,7 +12,10 @@ int cpl_parse_funcdef_args(PARSER_ARGS) {
             TKN_is_builtin_type(CURRENT_TOKEN) || 
             arg_type != NO_SYMBOL_ID           || 
             CURRENT_TOKEN->t_type == SIGNATURE_TOKEN
-        ) arg = cpl_parse_variable_declaration(it, ctx, smt, arg_type);
+        ) {
+            arg = cpl_parse_variable_declaration(it, ctx, smt, arg_type);
+            if (arg) VRTB_set_param(arg->c->sinfo.v_id, &smt->v);
+        }
         else if (CURRENT_TOKEN->t_type == VAR_ARGUMENTS_TOKEN) {
             arg = AST_create_node(CURRENT_TOKEN);
             forward_token(it, 1);

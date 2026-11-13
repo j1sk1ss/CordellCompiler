@@ -28,6 +28,17 @@
 /* Create a temp variable without flags */
 #define VRTB_ADD_NF(t, smt) VRTB_ADD(t, EMPTY_BASIC_FLAGS, smt)
 
+/* Promote flags from source HIR subjects. Constants have no variable flags. */
+#define VRTB_PROMOTE_FLAGS(trg, a, b, smt) \
+    VRTB_promote_info_flags( \
+        trg, \
+        (a) && HIR_is_vartype((a)->t) ? (a)->storage.var.v_id : NO_SYMBOL_ID, \
+        (b) && HIR_is_vartype((b)->t) ? (b)->storage.var.v_id : NO_SYMBOL_ID, &smt->v \
+    )
+/* Create a variable with promoted flags */
+#define VRTB_ADD_TMP_PF(t, a, b, smt) VRTB_PROMOTE_FLAGS(VRTB_ADD_TMP_NF(t, smt), a, b, smt)
+#define VRTB_ADD_PF(t, a, b, smt)     VRTB_PROMOTE_FLAGS(VRTB_ADD_NF(t, smt), a, b, smt)
+
 hir_subject_t* HIR_add_to_subject(hir_subject_t* src, sym_table_t* smt, long add, hir_ctx_t* ctx);
 hir_subject_t* HIR_gdref_subject(hir_subject_t* src, sym_table_t* smt, hir_ctx_t* ctx, int set_ptr);
 

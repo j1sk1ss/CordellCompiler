@@ -8,6 +8,7 @@ int HIR_generate_store_block(ast_node_t* node, hir_subject_t* src, hir_ctx_t* ct
         case MEMBER_ACCESS_TOKEN: HIR_generate_store_member_access(node, src, ctx, smt); break;
         default: {
             hir_subject_t* trg = HIR_SUBJ_ASTVAR(node);
+            VRTB_PROMOTE_FLAGS(trg->storage.var.v_id, src, src, smt);
             HIR_BLOCK2(ctx, HIR_STORE, trg, HIR_generate_implconv(ctx, trg->ptr, trg->t, src, smt)); 
             break;
         }

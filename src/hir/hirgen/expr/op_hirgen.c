@@ -8,7 +8,7 @@ hir_subject_t* HIR_generate_update_block(ast_node_t* node, hir_ctx_t* ctx, sym_t
     hir_subject_t* dst = HIR_generate_elem(left, ctx, smt);
     hir_subject_t* upd = HIR_generate_elem(right, ctx, smt);
 
-    hir_subject_t* res = HIR_SUBJ_TMPVAR(dst->t, VRTB_ADD_TMP_NF(dst->t, smt));
+    hir_subject_t* res = HIR_SUBJ_TMPVAR(dst->t, VRTB_ADD_TMP_PF(dst->t, dst, upd, smt));
     res->ptr = MAX(dst->ptr, upd->ptr);
     upd = HIR_generate_implconv(ctx, res->ptr, res->t, upd, smt);
     
@@ -67,6 +67,7 @@ static hir_subject_t* _generate_lazy_logic_operator(ast_node_t* op, ast_node_t* 
             }
 
             lt2 = HIR_generate_implconv(ctx, res->ptr, res->t, lt2, smt);
+            VRTB_PROMOTE_FLAGS(res->storage.var.v_id, lt1, lt2, smt);
             HIR_BLOCK2(ctx, HIR_STORE, HIR_copy_subject(res), lt2);
             HIR_BLOCK1(ctx, HIR_JMP, end_lb);
             HIR_BLOCK1(ctx, HIR_MKLB, true_lb);
@@ -87,6 +88,7 @@ static hir_subject_t* _generate_lazy_logic_operator(ast_node_t* op, ast_node_t* 
 
             HIR_BLOCK1(ctx, HIR_VARDECL, res);
             lt2 = HIR_generate_implconv(ctx, res->ptr, res->t, lt2, smt);
+            VRTB_PROMOTE_FLAGS(res->storage.var.v_id, lt1, lt2, smt);
             HIR_BLOCK2(ctx, HIR_STORE, HIR_copy_subject(res), lt2);
             HIR_BLOCK1(ctx, HIR_JMP, end_lb);
             HIR_BLOCK1(ctx, HIR_MKLB, false_lb);
@@ -120,7 +122,7 @@ static hir_subject_t* _generate_logic_operator(ast_node_t* op, ast_node_t* r, as
         return NULL;
     }
 
-    hir_subject_t* res = HIR_SUBJ_TMPVAR(HIR_promote_types(lt1->t, lt2->t), VRTB_ADD_TMP_NF(HIR_promote_types(lt1->t, lt2->t), smt));
+    hir_subject_t* res = HIR_SUBJ_TMPVAR(HIR_promote_types(lt1->t, lt2->t), VRTB_ADD_TMP_PF(HIR_promote_types(lt1->t, lt2->t), lt1, lt2, smt));
     res->ptr = MAX(lt1->ptr, lt2->ptr);
     
     lt2 = HIR_generate_implconv(ctx, res->ptr, res->t, lt2, smt);
@@ -179,7 +181,7 @@ hir_subject_t* HIR_generate_operand(ast_node_t* node, hir_ctx_t* ctx, sym_table_
             }
 
             hir_subject_type_t res_type = op->t->t_type != RTAKE_BIT_TOKEN ? HIR_promote_types(lt1->t, lt2->t) : lt2->t;
-            res = HIR_SUBJ_TMPVAR(res_type, VRTB_ADD_TMP_NF(res_type, smt));
+            res = HIR_SUBJ_TMPVAR(res_type, VRTB_ADD_TMP_PF(res_type, lt1, lt2, smt));
             res->ptr = MAX(lt1->ptr, lt2->ptr);
             
             lt1 = HIR_generate_implconv(ctx, res->ptr, res->t, lt1, smt);
@@ -203,8 +205,8 @@ hir_subject_t* HIR_generate_operand(ast_node_t* node, hir_ctx_t* ctx, sym_table_
                 case BITMOVE_RIGHT_TOKEN: HIR_BLOCK3(ctx, HIR_iBRHT, res, lt1, lt2); break;
                 case RTAKE_BIT_TOKEN: {
                     if (HIR_is_sign(res_type)) { // sign extension is needed
-                        hir_subject_t *moved_cont = HIR_SUBJ_TMPVAR(res_type, VRTB_ADD_TMP_NF(res_type, smt)),
-                                      *move       = HIR_SUBJ_TMPVAR(res_type, VRTB_ADD_TMP_NF(res_type, smt));
+                        hir_subject_t *moved_cont = HIR_SUBJ_TMPVAR(res_type, VRTB_ADD_TMP_PF(res_type, lt1, lt2, smt)),
+                                      *move       = HIR_SUBJ_TMPVAR(res_type, VRTB_ADD_TMP_PF(res_type, lt2, lt2, smt));
                         HIR_BLOCK3(
                             ctx, HIR_iSUB, move, 
                             HIR_generate_implconv(ctx, 0, res_type, HIR_SUBJ_CONST(HIR_get_type_size(res_type) * CONF_get_full_bytness()), smt), lt2
