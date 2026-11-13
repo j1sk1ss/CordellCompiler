@@ -550,25 +550,13 @@ int HIRWLKR_visit_ifop2_instruction(HIR_VISITOR_ARGS) {
 
     trace_t trace;
     TRACE_init_trace(&trace, TO_TRACE_CONF(ctx->config));
-    int then_reachable = bb->l
-        ? Z3_is_edge_feasible(ctx->z3, bb->pfunc, bb, bb->l)
-        : Z3_is_label_reachable(ctx->z3, bb->pfunc, b->sarg->id);
-    int else_reachable = bb->jmp
-        ? Z3_is_edge_feasible(ctx->z3, bb->pfunc, bb, bb->jmp)
-        : Z3_is_label_reachable(ctx->z3, bb->pfunc, b->targ->id);
-    if (!then_reachable && !else_reachable) {
-        then_reachable = 1;
-        else_reachable = 1;
-    }
-
-    if (!then_reachable) {
+    if (Z3_is_edge_feasible(ctx->z3, bb->pfunc, bb, bb->l) == Z3A_NO) {
         TRACE_create_root(
             &trace, TRACE_SEVERITY_WARNING, &ctx->curr_location,
             "Can't reach the 'then' branch! Consider to refactor the code."
         );
     }
-
-    if (!else_reachable) {
+    else if (Z3_is_edge_feasible(ctx->z3, bb->pfunc, bb, bb->jmp) == Z3A_NO) {
         TRACE_create_root(
             &trace, TRACE_SEVERITY_WARNING, &ctx->curr_location,
             "Can't reach the 'else' branch! Consider to refactor the code."

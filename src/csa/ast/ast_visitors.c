@@ -817,6 +817,7 @@ int ASTWLKR_non_idiomatic_cast(AST_VISITOR_ARGS) {
     AST_VISITOR_ARGS_USE;
     if (
         TKN_is_builtin_type(nd->c->t) &&
+        !nd->c->t->flags.ptr &&
         nd->c->siblings.n->t->t_type == UNKNOWN_NUMERIC_TOKEN
     ) {
         SEMANTIC_WARNING(
@@ -834,7 +835,10 @@ int ASTWLKR_non_idiomatic_cast(AST_VISITOR_ARGS) {
 int ASTWLKR_non_idiomatic_exit(AST_VISITOR_ARGS) {
     AST_VISITOR_ARGS_USE;
     if (nd->t->t_type != EXIT_TOKEN) return 1;
-    if (nd->c && nd->c->t && !nd->c->t->body->to_ullong(nd->c->t->body, 10)) {
+    if (
+        nd->c && nd->c->t && 
+        !TKN_is_numeric(nd->c->t) && nd->c->t->body->to_ullong(nd->c->t->body, 10)
+    ) {
         SEMANTIC_WARNING(
             " %s Non-idiomatic exit operation found. You can use 'exit' without any exit code.",
             FMT_LOC(&nd->t->finfo)
@@ -866,6 +870,7 @@ static int _is_self_init(ast_node_t* root, symbol_id_t self, ast_node_t** self_n
 int ASTWLKR_self_init(AST_VISITOR_ARGS) {
     AST_VISITOR_ARGS_USE;
     ast_node_t *self = nd->c, *self_node = NULL;
+    if (!self) return 1;
     if (_is_self_init(self->siblings.n, self->sinfo.v_id, &self_node) || self_node) {
         SEMANTIC_WARNING(
             " %s Found self initialization! The variable '%s' has been initialized with a "

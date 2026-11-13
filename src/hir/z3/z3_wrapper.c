@@ -937,6 +937,7 @@ static int _z3c_any_path_to_block_rec(z3_func_ctx_t* fctx, cfg_block_t* curr, cf
     if (!curr) return 0;
     if (depth > max_depth) return 1;
     if (curr == target) return _z3c_check_current(fctx, extra);
+    
     if (set_has(active, curr)) return 1;
     set_add(active, curr);
 
@@ -946,12 +947,14 @@ static int _z3c_any_path_to_block_rec(z3_func_ctx_t* fctx, cfg_block_t* curr, cf
             set_remove(active, curr);
             return 1;
         }
+
         Z3_solver_push(fctx->ctx, fctx->solver);
         if (!_z3c_assert_path_preambles(fctx, curr)) {
             Z3_solver_pop(fctx->ctx, fctx->solver, 1);
             set_remove(active, curr);
             return 1;
         }
+        
         if (!_z3c_ast_is_true(fctx->ctx, cond)) Z3_solver_assert(fctx->ctx, fctx->solver, cond);
         int found = _z3c_any_path_to_block_rec(fctx, succ, target, extra, depth + 1, max_depth, active);
         Z3_solver_pop(fctx->ctx, fctx->solver, 1);

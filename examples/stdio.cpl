@@ -8,7 +8,7 @@ container std {
     }
 
     function open(ptr i8 path, i32 flags, i32 mode) -> i64 {
-        return syscall(2, path, flags, mode) as i64;
+        return syscall(2, path, flags, mode) as i64; :/ TODO: maybe its time to remove syscall from CPL and create several macros / functions in CPLib /:
     }
 
     function fwrite(i32 fd, ptr u8 buffer, i32 size) -> i64 {
