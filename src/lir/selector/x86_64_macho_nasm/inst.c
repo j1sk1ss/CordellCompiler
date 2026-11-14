@@ -207,7 +207,8 @@ typedef struct {
 } lir_translate_ctx_t;
 
 static cfg_dfs_action_t _instruction_selection_block(
-    cfg_block_t* bb, long pred, cfg_func_t* fb, func_info_t* fi, queue_t* dirty_regs, lir_translate_ctx_t* ctx, sym_table_t* smt
+    cfg_block_t* bb, long pred, cfg_func_t* fb, func_info_t* fi,
+    queue_t* dirty_regs, queue_t* stack_args, lir_translate_ctx_t* ctx, sym_table_t* smt
 ) {
     (void)pred;
     iterate_lir_instructions (bb) {
@@ -238,9 +239,9 @@ static cfg_dfs_action_t _instruction_selection_block(
             }
             case LIR_ECLL:
             case LIR_FCLL: {
-                if (ctx->clean_stack) {
-                    _insert_instruction_after(bb, LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, CONF_get_full_bytness()), LIR_SUBJ_REG(RSP, CONF_get_full_bytness()), LIR_SUBJ_CONST(ctx->clean_stack)), lh);
-                    ctx->clean_stack = 0;
+                lir_subject_t* stack_arg;
+                while (queue_pop(stack_args, (void**)&stack_arg)) {
+                    _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, stack_arg, NULL, NULL), lh);
                 }
                 __attribute__ ((fallthrough));
             }
@@ -255,6 +256,11 @@ static cfg_dfs_action_t _instruction_selection_block(
                 long dirty;
                 while (queue_pop(dirty_regs, (void**)&dirty)) {
                     _insert_instruction_after(bb, LIR_create_block(LIR_POP, LIR_SUBJ_REG(dirty, CONF_get_full_bytness()), NULL, NULL), lh);
+                }
+
+                if (ctx->clean_stack) { // clean stack args
+                    _insert_instruction_after(bb, LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, CONF_get_full_bytness()), LIR_SUBJ_REG(RSP, CONF_get_full_bytness()), LIR_SUBJ_CONST(ctx->clean_stack)), lh);
+                    ctx->clean_stack = 0;
                 }
 
                 break;
@@ -284,8 +290,9 @@ static cfg_dfs_action_t _instruction_selection_block(
                 if (!call_kind) callee = *fi;
                 abi_argument_t target;
                 if (!_get_abi_argument(lh->sarg->storage.cnst.value, lh->farg, &target, &callee, smt)) {
-                    lh->op = LIR_PUSH;
                     ctx->clean_stack += 8;
+                    queue_push(stack_args, lh->farg);
+                    lh->unused = 1; // stack args can be re-written by reg-arg-guards
                 }
                 else {
                     lir_subject_t* nfarg = x86_64_macho_nasm_create_tmp(target.reg, lh->farg, smt, -1);
@@ -488,8 +495,9 @@ static cfg_dfs_action_t _instruction_selection_block(
 
 int x86_64_macho_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
     lir_translate_ctx_t ctx = { 0 };
-    queue_t dirty_regs;
+    queue_t dirty_regs, stack_args;
     queue_init(&dirty_regs);
+    queue_init(&stack_args);
     set_init(&ctx.callee_restored_blocks, SET_NO_CMP);
 
     foreach (cfg_func_t* fb, &cctx->funcs) {
@@ -517,8 +525,9 @@ int x86_64_macho_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
                 }
             }
 
-            if (!CFG_DFS_WALK(list_get_head(&fb->blocks), _instruction_selection_block, fb, &fi, &dirty_regs, &ctx, smt)) {
+            if (!CFG_DFS_WALK(list_get_head(&fb->blocks), _instruction_selection_block, fb, &fi, &dirty_regs, &stack_args, &ctx, smt)) {
                 queue_free(&dirty_regs);
+                queue_free(&stack_args);
                 set_free(&ctx.callee_restored_blocks);
                 return 0;
             }
@@ -526,6 +535,7 @@ int x86_64_macho_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
     }
 
     queue_free(&dirty_regs);
+    queue_free(&stack_args);
     set_free(&ctx.callee_restored_blocks);
     return 1;
 }
