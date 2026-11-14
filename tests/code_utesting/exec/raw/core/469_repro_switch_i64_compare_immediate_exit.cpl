@@ -1,0 +1,15 @@
+: BLOCK_TEST :
+: RUN_ASM :
+:/ Defect from 462: a 64-bit case constant must not be truncated to a CMP imm32. /:
+start() {
+    i64 value = (1i64) << 32i64;
+    @[select(straight)] @[no_fall]
+    switch value; {
+        case 4294967296; exit 42; :/ should return 42 /:
+        default          exit 1;
+    }
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

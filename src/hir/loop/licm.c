@@ -144,9 +144,9 @@ static inline int _hir_can_be_licm_def(hir_block_t* hh, sym_table_t* smt) {
     if (!hh || !HIR_is_writeop(hh->op) || !hh->farg || !HIR_is_vartype(hh->farg->t)) return 0;
     variable_info_t vi;
     return 
-        !HIR_is_sideeffect_op(hh->op) &&                            // no sideeffects
+        !HIR_is_sideeffect_op(hh->op) &&                              // no sideeffects
         VRTB_get_info_id(hh->farg->storage.var.v_id, &vi, &smt->v) && // its a valid variable
-        !vi.vmi.param && !vi.vmi.vlatile;                            // its not dependent on parameters or volatile values
+        !vi.vmi.param && !vi.vmi.vlatile;                             // its not dependent on parameters or volatile values
 } // TODO: sideeffect has too strict and conservative logic. We need to check whether a pointer is changed.
 
 /* Add the provided variable and its parent variable.

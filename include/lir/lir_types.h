@@ -213,72 +213,63 @@ typedef enum {
     RV_V24, RV_V25, RV_V26, RV_V27, RV_V28, RV_V29, RV_V30, RV_V31,
 } lir_registers_t;
 
-/*
-Convert any input register to the register with a fixed size.
-Example:
-```asm
-rax + 4 byte -> eax
-ax + 1 byte  -> al
-ax + 8 byte  -> rax
-```
-Params:
-    - `reg` - Source register.
-    - `size` - Target register size.
-
-Returns register with a fixed size.
-*/
+/* Convert any input register to the register with a fixed size.
+   Example:
+   ```asm
+   rax + 4 byte -> eax
+   ax + 1 byte  -> al
+   ax + 8 byte  -> rax
+   ```
+   Params:
+       - `reg` - Source register.
+       - `size` - Target register size.
+   
+   Returns register with a fixed size. */
 lir_registers_t LIR_format_register(lir_registers_t reg, int size);
 
-/*
-Check is the LIR operation is a mov-like operation.
-Note: Move-like operation is an operation that moves some data
-      from a source to a destination.
-Params:
-    - `op` - LIR operation.
-
-Returns 1 if the operation is a move-like operation.
-*/
+/* Check is the LIR operation is a mov-like operation.
+   Note: Move-like operation is an operation that moves some data
+         from a source to a destination.
+   Params:
+       - `op` - LIR operation.
+   
+   Returns 1 if the operation is a move-like operation. */
 int LIR_is_movop(lir_operation_t op);
 
-/*
-Check is the LIR operation is a write operation.
-Note: Write operation is an operation that writes something
-      to the first argument in the LIR block.
-Params:
-    - `op` - LIR operation.
-
-Returns 1 if the operation is a write operation.
-*/
+/* Check is the LIR operation is a write operation.
+   Note: Write operation is an operation that writes something
+         to the first argument in the LIR block.
+   Params:
+       - `op` - LIR operation.
+   
+   Returns 1 if the operation is a write operation. */
 int LIR_is_writeop(lir_operation_t op);
 
-/*
-Is this a jump-like operation.
-Params:
-    - `op` - LIR operation.
-
-Returns 1 if the operation is a jump-like operation.
-*/
+/* Is this a jump-like operation.
+   Params:
+       - `op` - LIR operation.
+   
+   Returns 1 if the operation is a jump-like operation. */
 int LIR_is_jumpop(lir_operation_t op);
 
-/*
-Check is the LIR operation is a read operation.
-Note: Read operation is an operation that uses value from
-      the first, the second or the third argument.
-Params:
-    - `op` - LIR operation.
-
-Returns 1 if the operation is a read operation.
-*/
+/* Check is the LIR operation is a read operation.
+   Note: Read operation is an operation that uses value from
+         the first, the second or the third argument.
+   Params:
+       - `op` - LIR operation.
+   
+   Returns 1 if the operation is a read operation. */
 int LIR_is_readop(lir_operation_t op);
 
-/*
-Check if the operation will produce some sort of an effect.
-For instance: function call can, write and exit as well.
-Params:
-    - `op` - LIR operation.
-
-Returns 1 if the operation has a side effect.
-*/ 
+/* Check if the operation will produce some sort of an effect.
+   For instance: function call can, write and exit as well.
+   Params:
+       - `op` - LIR operation.
+   
+   Returns 1 if the operation has a side effect. */ 
 int LIR_has_sideeffect(lir_operation_t op);
+
+// TODO: docs
+int LIR_is_defined_type(lir_subject_type_t t);
 
 #endif

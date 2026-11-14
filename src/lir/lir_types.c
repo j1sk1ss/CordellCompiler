@@ -113,3 +113,10 @@ int LIR_is_jumpop(lir_operation_t op) {
         default:      return 0;
     }
 }
+
+int LIR_is_defined_type(lir_subject_type_t t) {
+    switch (t) {
+        case LIR_CONSTVAL: case LIR_NUMBER: return 1;
+        default: return 0;
+    }
+}
