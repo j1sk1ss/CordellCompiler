@@ -2,10 +2,10 @@
 // TODO: Complete AVX support
 
 /* Insert block before 'pos' block with the block entry update.
-Params:
-    - `bb` - Source block.
-    - `b` - New block for an insertion process.
-    - `pos` - Position for an insert */
+   Params:
+       - `bb` - Source block.
+       - `b` - New block for an insertion process.
+       - `pos` - Position for an insert */
 static inline void _insert_instruction_before(cfg_block_t* bb, lir_block_t* b, lir_block_t* pos) {
     if (!b) return;
     if (bb->lmap.entry == pos) bb->lmap.entry = b;
@@ -13,10 +13,10 @@ static inline void _insert_instruction_before(cfg_block_t* bb, lir_block_t* b, l
 }
 
 /* Insert block after 'pos' block with the block exit update.
-Params:
-    - `bb` - Source block.
-    - `b` - New block for an insertion process.
-    - `pos` - Position for an insert */
+   Params:
+       - `bb` - Source block.
+       - `b` - New block for an insertion process.
+       - `pos` - Position for an insert */
 static inline void _insert_instruction_after(cfg_block_t* bb, lir_block_t* b, lir_block_t* pos) {
     if (!b) return;
     if (bb->lmap.exit == pos) bb->lmap.exit = b;
@@ -122,13 +122,13 @@ typedef struct {
 } abi_argument_t;
 
 /* Generate the information which will tell where we should put a value for a function.
-Params:
-    - `index` - Argument index.
-    - `s` - Target value which will be placed to a function.
-    - `out` - Output information placeholder.
-    - `smt` - Symtable.
-
-Returns 1 if this is a register value, otherwise 0 */
+   Params:
+       - `index` - Argument index.
+       - `s` - Target value which will be placed to a function.
+       - `out` - Output information placeholder.
+       - `smt` - Symtable.
+   
+   Returns 1 if this is a register value, otherwise 0 */
 static int _get_abi_argument(int index, lir_subject_t* s, abi_argument_t* out, func_info_t* fi, sym_table_t* smt) {
     int dec_abi_regs[]  = { RDI,  RSI,  RDX,  RCX,  R8,   R9 };
     int simd_abi_regs[] = { XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7 };
@@ -165,13 +165,13 @@ static int _get_abi_argument(int index, lir_subject_t* s, abi_argument_t* out, f
 }
 
 /* Count fixed function arguments.
-Variadic marker arguments are not counted because they do not occupy a
-regular named-argument slot.
-Params:
-    - `f_id` - Function id.
-    - `smt` - Symtable.
-
-Returns count of presented non-variadic arguments */
+   Variadic marker arguments are not counted because they do not occupy a
+   regular named-argument slot.
+   Params:
+       - `f_id` - Function id.
+       - `smt` - Symtable.
+   
+   Returns count of presented non-variadic arguments */
 static int _count_presented_args(symbol_id_t f_id, sym_table_t* smt) {
     func_info_t fi;
     if (!FNTB_get_info_id(f_id, &fi, &smt->f)) return 0;
@@ -184,13 +184,13 @@ static int _count_presented_args(symbol_id_t f_id, sym_table_t* smt) {
 }
 
 /* Find callee metadata for the call that consumes an argument setup block.
-Params:
-    - `arg` - Argument setup instruction.
-    - `bb` - Basic block that owns the instruction.
-    - `out` - Output function information.
-    - `smt` - Symtable.
-
-Returns 1 for a resolved call, 2 for a tail call, otherwise 0. */
+   Params:
+       - `arg` - Argument setup instruction.
+       - `bb` - Basic block that owns the instruction.
+       - `out` - Output function information.
+       - `smt` - Symtable.
+   
+   Returns 1 for a resolved call, 2 for a tail call, otherwise 0. */
 static int _get_call_info(lir_block_t* arg, cfg_block_t* bb, func_info_t* out, sym_table_t* smt) {
     for (lir_block_t* curr = arg->next; curr; curr = LIR_get_next(curr, bb->lmap.exit, 1)) {
         if (curr->op != LIR_FCLL && curr->op != LIR_ECLL && !LIR_is_tailcall(curr)) continue;
@@ -429,8 +429,16 @@ static cfg_dfs_action_t _instruction_selection_block(
             )
             case LIR_iLWR: case LIR_iLRE: case LIR_iLRG: case LIR_iLGE:
             case LIR_iCMP: case LIR_iNMP: {
-                lir_subject_t* a   = x86_64_macho_nasm_create_tmp(RAX, lh->sarg, smt, -1);
-                lir_subject_t* b   = lh->targ;
+                lir_subject_t* a = x86_64_macho_nasm_create_tmp(RAX, lh->sarg, smt, -1);
+                lir_subject_t* b = lh->targ;
+                if (
+                    LIR_is_defined_type(b->t) && 
+                    b->size == CONF_get_full_bytness()
+                ) {
+                    b = x86_64_macho_nasm_create_tmp(RBX, b, smt, -1); // there is no cmp reg, imm64
+                    _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, b, lh->targ, NULL), lh);
+                }
+                
                 lir_subject_t* res = LIR_SUBJ_REG(AL, 1);
                 _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->sarg, NULL), lh);
                 _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, lh->farg, res, NULL), lh);
