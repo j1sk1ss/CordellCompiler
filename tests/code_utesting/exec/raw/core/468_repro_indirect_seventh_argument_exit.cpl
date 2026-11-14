@@ -1,0 +1,19 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/ Defect from 453: the first stack argument must not be hidden by saved registers. /:
+@[inline(never)]
+function seventh468(i64 a, i64 b, i64 c, i64 d, i64 e, i64 f, i64 g) -> i64 {
+    return g;
+}
+
+start() {
+    ptr i0 operation = seventh468;
+    i64 result = operation(0 as i64, 0 as i64, 0 as i64, 0 as i64, 0 as i64, 0 as i64, 42 as i64) as i64;
+    if result != 42; { exit 1; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:
