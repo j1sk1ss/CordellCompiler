@@ -311,7 +311,11 @@ static cfg_dfs_action_t _instruction_selection_block(
             case LIR_iDIV:
             case LIR_iMOD: {
                 lir_subject_t* a_entry = x86_64_gnu_nasm_create_tmp(RAX, lh->sarg, smt, CONF_get_full_bytness());
-                _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a_entry, lh->sarg, NULL), lh);
+                _insert_instruction_before(
+                    bb, 
+                    LIR_create_block(x86_64_gnu_nasm_get_proper_mov(a_entry, lh->sarg, smt, LIR_iMOV), a_entry, lh->sarg, NULL), 
+                    lh
+                );
 
                 lir_subject_t* oldres = lh->farg;
                 lh->sarg = a_entry;

@@ -1,0 +1,18 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/ Defect from 450: widening u32 must zero extend, including the value 0x80000000. /:
+@[inline(never)]
+function widen467(u32 value) -> u64 {
+    return value as u64;
+}
+
+start() {
+    u64 result = widen467(2147483648u32);
+    if result != ((1u64) << 31); exit 1;
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:
