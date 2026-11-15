@@ -204,6 +204,7 @@ static cfg_dfs_action_t _instruction_selection_block(
             }
             case LIR_iDIV:
             case LIR_iMOD: {
+                int is_sign = i386_gnu_nasm_is_sign_type(lh->farg, smt) || i386_gnu_nasm_is_sign_type(lh->sarg, smt);
                 lir_subject_t* a_entry = i386_gnu_nasm_create_tmp(EAX, lh->sarg, smt, CONF_get_full_bytness());
                 _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a_entry, lh->sarg, NULL), lh);
 
@@ -216,7 +217,8 @@ static cfg_dfs_action_t _instruction_selection_block(
 
                 lir_subject_t* mod = i386_gnu_nasm_create_tmp(EDX, lh->farg, smt, CONF_get_full_bytness());
                 _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, mod, NULL, NULL), lh);
-                _insert_instruction_before(bb, LIR_create_block(LIR_CDQ, NULL, NULL, NULL), lh);
+                if (is_sign) _insert_instruction_before(bb, LIR_create_block(LIR_CQO, NULL, NULL, NULL), lh);
+                else         _insert_instruction_before(bb, LIR_create_block(LIR_bXOR, mod, mod, mod), lh);
                 if (lh->op != LIR_iMOD) {
                     lh->farg = i386_gnu_nasm_create_tmp(EAX, lh->farg, smt, -1);
                     _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, oldres, lh->farg, NULL), lh);
