@@ -3,6 +3,14 @@ Logs for the first and second versions are quite short because I do not remember
 
 ----------------------------------------
 
+### Bug fixes and unsign operations
+<div class="change-date">Date: 2026-11-15</div>
+A big list of bug fixes with unsigned values:
+- cmp with unsigned values
+- storage of a big immideate value to memory
+- casts of unsigned values
+- divisions and modulo of unsigned values
+
 ## Version 4.0
 <div class="change-date">Date: 2026-11-11</div>
 
