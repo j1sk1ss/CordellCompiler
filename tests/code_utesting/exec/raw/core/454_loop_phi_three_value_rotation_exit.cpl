@@ -1,0 +1,39 @@
+: BLOCK_TEST :
+: RUN_ASM[args="0"|args="1"|args="2"|args="7"] :
+
+:/ A three-way loop-carried copy cycle needs a temporary when leaving SSA. /:
+@[inline(never)]
+function rotate454(i32 count, i32 a, i32 b, i32 c) -> i32 {
+    i32 index = 0;
+    while index < count; {
+        i32 saved = a;
+        a = b;
+        b = c;
+        c = saved;
+        index += 1;
+    }
+    return a * 100 + b * 10 + c;
+}
+
+start(i32 argc, ptr ptr i8 argv) {
+    i32 count = (argv[1][0] as i32) - 48;
+    arr expected[3, i32] = { 123, 231, 312 };
+    i32 result = rotate454(count, 1 as i32, 2 as i32, 3 as i32);
+    if result != expected[count % 3]; { exit 1; }
+    exit 42;
+}
+
+:/ OUTPUT
+@case_index=0
+@exit_code=42
+---
+@case_index=1
+@exit_code=42
+---
+@case_index=2
+@exit_code=42
+---
+@case_index=3
+@exit_code=42
+---
+/:

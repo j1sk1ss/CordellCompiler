@@ -1,0 +1,35 @@
+: BLOCK_TEST :
+: RUN_ASM[args="0"|args="1"|args="6"] :
+
+:/ Each frame needs its own wide locals after the recursive call returns. /:
+@[inline(never)]
+function recurse460(i64 seed, i32 depth) -> i64 {
+    i64 wide = 4294967296 + seed;
+    i64 small = seed * 17 + 5;
+    if depth == 0; { return wide + small; }
+    i64 child = recurse460(seed + 7, depth - 1);
+    return child + wide * 3 + small * 5;
+}
+
+start(i32 argc, ptr ptr i8 argv) {
+    i32 depth = (argv[1][0] as i32) - 48;
+    arr expected[7, i64] = {
+        4294967355, 17179869658, 30064772577, 42949676112,
+        55834580263, 68719485030, 81604390413
+    };
+    i64 result = recurse460(3 as i64, depth);
+    if result != expected[depth]; { exit 1; }
+    exit 42;
+}
+
+:/ OUTPUT
+@case_index=0
+@exit_code=42
+---
+@case_index=1
+@exit_code=42
+---
+@case_index=2
+@exit_code=42
+---
+/:

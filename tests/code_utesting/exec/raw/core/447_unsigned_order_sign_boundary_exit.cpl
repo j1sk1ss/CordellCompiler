@@ -1,0 +1,35 @@
+: BLOCK_TEST :
+: RUN_ASM[args="0"|args="7"] :
+
+:/ Check all ordered comparisons across the signed boundary at two widths. /:
+@[inline(never)]
+function check447(u32 high32, u32 low32, u64 high64, u64 low64) -> i32 {
+    if high32 < low32; { return 1; }
+    if high32 <= low32; { return 2; }
+    if not (high32 > low32); { return 3; }
+    if not (high32 >= low32); { return 4; }
+    if not (low32 < high32); { return 5; }
+    if high64 < low64; { return 6; }
+    if high64 <= low64; { return 7; }
+    if not (high64 > low64); { return 8; }
+    if not (high64 >= low64); { return 9; }
+    if not (low64 < high64); { return 10; }
+    return 42;
+}
+
+start(i32 argc, ptr ptr i8 argv) {
+    u32 digit = ((argv[1][0] as i32) - 48) as u32;
+    u32 high32 = ((1 as u32) << 31) + digit;
+    u64 high64 = ((1 as u64) << 63) + (digit as u64);
+    u64 low64 = (((1 as u64) << 63) - 1);
+    exit check447(high32, 2147483647 as u32, high64, low64) as u8;
+}
+
+:/ OUTPUT
+@case_index=0
+@exit_code=42
+---
+@case_index=1
+@exit_code=42
+---
+/:

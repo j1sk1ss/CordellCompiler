@@ -1,0 +1,36 @@
+: BLOCK_TEST :
+: RUN_ASM[args="0"|args="1"] :
+
+:/ Keep a runtime-selected call target live while evaluating nested stack arguments. /:
+@[inline(never)]
+function identity453(i64 value) -> i64 { return value; }
+
+@[inline(never)]
+function ascending453(i64 a, i64 b, i64 c, i64 d, i64 e, i64 f, i64 g, i64 h, i64 i, i64 j) -> i64 {
+    return a + b * 2 + c * 3 + d * 4 + e * 5 + f * 6 + g * 7 + h * 8 + i * 9 + j * 10;
+}
+
+@[inline(never)]
+function descending453(i64 a, i64 b, i64 c, i64 d, i64 e, i64 f, i64 g, i64 h, i64 i, i64 j) -> i64 {
+    return a * 10 + b * 9 + c * 8 + d * 7 + e * 6 + f * 5 + g * 4 + h * 3 + i * 2 + j;
+}
+
+start(i32 argc, ptr ptr i8 argv) {
+    i32 digit = (argv[1][0] as i32) - 48;
+    ptr i0 operation = ascending453;
+    i64 expected = 385;
+    if digit; { operation = descending453; expected = 220; }
+    i64 result = operation(1 as i64, 2 as i64, 3 as i64, 4 as i64, 5 as i64, 6 as i64,
+        identity453(7 as i64), identity453(8 as i64), identity453(9 as i64), identity453(10 as i64)) as i64;
+    if result != expected; { exit 1; }
+    exit 42;
+}
+
+:/ OUTPUT
+@case_index=0
+@exit_code=42
+---
+@case_index=1
+@exit_code=42
+---
+/:

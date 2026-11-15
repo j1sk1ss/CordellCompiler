@@ -1,0 +1,47 @@
+: BLOCK_TEST :
+: RUN_ASM[args="0"|args="1"|args="2"|args="7"] :
+
+:/ Both branches feed several dependent values into the loop backedge. /:
+start(i32 argc, ptr ptr i8 argv) {
+    i32 count = (argv[1][0] as i32) - 48;
+    arr expected_a[8, i32] = { 10, 21, 12, 24, 14, 27, 16, 30 };
+    arr expected_b[8, i32] = { 20, 32, 23, 31, 26, 30, 29, 29 };
+    arr expected_c[8, i32] = { 30, 13, 29, 15, 28, 17, 27, 19 };
+    i32 a = 10;
+    i32 b = 20;
+    i32 c = 30;
+    i32 index = 0;
+    while index < count; {
+        i32 old_a = a;
+        i32 old_b = b;
+        if (index & 1) == 0; {
+            a = b + 1;
+            b = c + 2;
+            c = old_a + 3;
+        } else {
+            a = c - 1;
+            b = old_a + 2;
+            c = old_b - 3;
+        }
+        index += 1;
+    }
+    if a != expected_a[count]; { exit 1; }
+    if b != expected_b[count]; { exit 2; }
+    if c != expected_c[count]; { exit 3; }
+    exit 42;
+}
+
+:/ OUTPUT
+@case_index=0
+@exit_code=42
+---
+@case_index=1
+@exit_code=42
+---
+@case_index=2
+@exit_code=42
+---
+@case_index=3
+@exit_code=42
+---
+/:

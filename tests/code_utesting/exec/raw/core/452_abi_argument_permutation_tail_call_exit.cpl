@@ -1,0 +1,29 @@
+: BLOCK_TEST :
+: RUN_ASM[args="0"|args="1"] :
+
+:/ Forward a permutation containing register-move cycles; weights detect swaps. /:
+@[abi] @[inline(never)]
+function pack452(i64 a, i64 b, i64 c, i64 d, i64 e, i64 f) -> i64 {
+    return a + b * 10 + c * 100 + d * 1000 + e * 10000 + f * 100000;
+}
+
+@[abi] @[inline(never)]
+function forward452(i64 a, i64 b, i64 c, i64 d, i64 e, i64 f) -> i64 {
+    return pack452(f, a, e, b, d, c);
+}
+
+start(i32 argc, ptr ptr i8 argv) {
+    i64 digit = (argv[1][0] as i64) - 48;
+    i64 result = forward452(digit + 1, digit + 2, digit + 3, digit + 4, digit + 5, digit + 6);
+    if result != 342516 + 111111 * digit; { exit 1; }
+    exit 42;
+}
+
+:/ OUTPUT
+@case_index=0
+@exit_code=42
+---
+@case_index=1
+@exit_code=42
+---
+/:
