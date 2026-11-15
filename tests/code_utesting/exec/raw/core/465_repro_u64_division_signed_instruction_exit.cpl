@@ -1,0 +1,18 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/ Defect from 446: u64 division must use unsigned semantics when bit 63 is set. /:
+@[inline(never)]
+function divide465(u64 value, u64 divisor) -> u64 {
+    return value / divisor;
+}
+
+start() {
+    u64 result = divide465((1u64) << 63, 2u64);
+    if result != ((1u64) << 62); exit 1;
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

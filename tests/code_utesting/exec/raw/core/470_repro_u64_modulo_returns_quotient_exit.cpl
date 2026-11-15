@@ -1,0 +1,18 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/ Defect from 446: lowering unsigned modulo to DIV must retain the remainder result. /:
+@[inline(never)]
+function remainder470(u64 value, u64 divisor) -> u64 {
+    return value % divisor;
+}
+
+start() {
+    u64 result = remainder470((1u64) << 63, 3u64);
+    if result != 2u64; { exit 1; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

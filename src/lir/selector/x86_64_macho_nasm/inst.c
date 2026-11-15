@@ -401,6 +401,7 @@ static cfg_dfs_action_t _instruction_selection_block(
             }
             case LIR_iDIV:
             case LIR_iMOD: {
+                int is_sign = x86_64_macho_nasm_is_sign_type(lh->farg, smt) || x86_64_macho_nasm_is_sign_type(lh->sarg, smt);
                 lir_subject_t* a_entry = x86_64_macho_nasm_create_tmp(RAX, lh->sarg, smt, CONF_get_full_bytness());
                 _insert_instruction_before(
                     bb, 
@@ -417,7 +418,8 @@ static cfg_dfs_action_t _instruction_selection_block(
 
                 lir_subject_t* mod = x86_64_macho_nasm_create_tmp(RDX, lh->farg, smt, CONF_get_full_bytness());
                 _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, mod, NULL, NULL), lh);
-                _insert_instruction_before(bb, LIR_create_block(LIR_CQO, NULL, NULL, NULL), lh);
+                if (is_sign) _insert_instruction_before(bb, LIR_create_block(LIR_CQO, NULL, NULL, NULL), lh);
+                else         _insert_instruction_before(bb, LIR_create_block(LIR_bXOR, mod, mod, mod), lh);
                 if (lh->op != LIR_iMOD) {
                     lh->farg = x86_64_macho_nasm_create_tmp(RAX, lh->farg, smt, -1);
                     _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, oldres, lh->farg, NULL), lh);
@@ -430,6 +432,7 @@ static cfg_dfs_action_t _instruction_selection_block(
                     _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, LIR_SUBJ_REG(RAX, lh->farg->size), lh->farg, NULL), lh);
                 }
 
+                if (!is_sign) lh->op = LIR_DIV;
                 break;
             }
             CONDITIONAL_CASE(LIR_CMP, lh->farg->t != LIR_VARIABLE,
