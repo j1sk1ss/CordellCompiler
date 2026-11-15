@@ -1,0 +1,13 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/ Defect from 448 case 2: a qword store sign-extends imm32 even when the literal fits u32. /:
+start() {
+    arr value[1, u64] = { 2147483648 };
+    if value[0] != ((1u64) << 31); { exit 1; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:
