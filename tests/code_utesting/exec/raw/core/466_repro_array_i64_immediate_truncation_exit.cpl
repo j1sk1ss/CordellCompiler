@@ -1,0 +1,13 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/ Defect from 448/460: a qword array initializer must retain all 64 bits. /:
+start() {
+    arr value[1, u64] = { 4294967296 };
+    if value[0] != ((1 as u64) << 32); { exit 1; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:
