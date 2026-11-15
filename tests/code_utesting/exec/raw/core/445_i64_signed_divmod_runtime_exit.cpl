@@ -1,0 +1,34 @@
+: ASM_ARCH=x86_64_nasm_gnu,x86_64_nasm_macho :
+: BLOCK_TEST :
+: RUN_ASM[args="0"|args="1"] :
+
+:/ Exercise sign extension into the division high register and both divisor signs. /:
+@[inline(never)]
+function check445(i64 value, i64 divisor, i64 remainder) -> i32 {
+    i64 quotient = value / divisor;
+    i64 rest = value % divisor;
+    if quotient != -1431655765; { return 1; }
+    if rest != remainder; { return 2; }
+    if quotient * divisor + rest != value; { return 3; }
+    i64 opposite = 0 - divisor;
+    if value / opposite != 1431655765; { return 4; }
+    if value % opposite != remainder; { return 5; }
+    i64 positive = 0 - value;
+    if positive / opposite != -1431655765; { return 6; }
+    if positive % opposite != 0 - remainder; { return 7; }
+    return 42;
+}
+
+start(i32 argc, ptr ptr i8 argv) {
+    i64 digit = (argv[1][0] as i64) - 48;
+    exit check445(-4294967297 + digit, (argc + 1) as i64, -2 + digit) as u8;
+}
+
+:/ OUTPUT
+@case_index=0
+@exit_code=42
+---
+@case_index=1
+@exit_code=42
+---
+/:

@@ -1,0 +1,34 @@
+: BLOCK_TEST :
+: RUN_ASM[args="0"|args="1"] :
+
+:/ The loop runs in both cases, but the pointer load is legal only on its guarded path. /:
+@[inline(never)]
+function guarded458(ptr i32 value, i32 enabled, i32 count) -> i32 {
+    i32 total = 0;
+    i32 index = 0;
+    while index < count; {
+        if enabled; { total += dref value; }
+        else { total += 10; }
+        index += 1;
+    }
+    return total;
+}
+
+start(i32 argc, ptr ptr i8 argv) {
+    i32 enabled = (argv[1][0] as i32) - 48;
+    i32 value = 17;
+    ptr i32 source = 0 as ptr i32;
+    i32 expected = 40;
+    if enabled; { source = ref value; expected = 68; }
+    if guarded458(source, enabled, argc + 2) != expected; { exit 1; }
+    exit 42;
+}
+
+:/ OUTPUT
+@case_index=0
+@exit_code=42
+---
+@case_index=1
+@exit_code=42
+---
+/:

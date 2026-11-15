@@ -1,0 +1,42 @@
+: BLOCK_TEST :
+: RUN_ASM[args="0"|args="1"|args="2"|args="3"] :
+
+:/ Narrow return values must be sign extended before 64-bit arithmetic. /:
+@[inline(never)]
+function narrow8_449(i64 value) -> i8 { return value as i8; }
+
+@[inline(never)]
+function narrow16_449(i64 value) -> i16 { return value as i16; }
+
+@[inline(never)]
+function narrow32_449(i64 value) -> i32 { return value as i32; }
+
+start(i32 argc, ptr ptr i8 argv) {
+    arr bytes[4, i64] = { -128, -1, 0, 127 };
+    arr halves[4, i64] = { -32768, -1, 0, 32767 };
+    arr words[4, i64] = { -2147483648, -1, 0, 2147483647 };
+    i32 index = (argv[1][0] as i32) - 48;
+    i64 byte_value = narrow8_449(bytes[index]) as i64;
+    i64 half_value = narrow16_449(halves[index]) as i64;
+    i64 word_value = narrow32_449(words[index]) as i64;
+    if byte_value != bytes[index]; { exit 1; }
+    if half_value != halves[index]; { exit 2; }
+    if word_value != words[index]; { exit 3; }
+    if byte_value + 4294967296 != bytes[index] + 4294967296; { exit 4; }
+    exit 42;
+}
+
+:/ OUTPUT
+@case_index=0
+@exit_code=42
+---
+@case_index=1
+@exit_code=42
+---
+@case_index=2
+@exit_code=42
+---
+@case_index=3
+@exit_code=42
+---
+/:

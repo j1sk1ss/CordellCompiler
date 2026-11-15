@@ -1,0 +1,52 @@
+: BLOCK_TEST :
+: RUN_ASM[args="0"|args="1"] :
+
+:/ Stores through unaligned field pointers must preserve every adjacent field. /:
+@[align(1)]
+container packed463 {
+    u8 head;
+    u64 wide;
+    u16 half;
+    i8 signed_byte;
+    u8 tail;
+}
+
+@[inline(never)]
+function write64_463(ptr u64 target, u64 value) -> i0 { dref target = value; }
+
+@[inline(never)]
+function write16_463(ptr u16 target, u16 value) -> i0 { dref target = value; }
+
+@[inline(never)]
+function write8_463(ptr i8 target, i8 value) -> i0 { dref target = value; }
+
+start(i32 argc, ptr ptr i8 argv) {
+    i32 digit = (argv[1][0] as i32) - 48;
+    packed463 value;
+    value.head = 165;
+    value.wide = 0x1122334455667788;
+    value.half = 65535;
+    value.signed_byte = -1;
+    value.tail = 90;
+    write64_463(ref value.wide, (4294967296 as u64) + (digit as u64));
+    if value.head != 165; { exit 1; }
+    if value.half != 65535; { exit 2; }
+    write16_463(ref value.half, (32768 + digit) as u16);
+    if value.signed_byte != -1; { exit 3; }
+    write8_463(ref value.signed_byte, (-128 + digit) as i8);
+    if value.wide != (4294967296 as u64) + (digit as u64); { exit 4; }
+    if (value.half as u64) != (32768 + digit) as u64; { exit 5; }
+    if (value.signed_byte as i32) != -128 + digit; { exit 6; }
+    if value.tail != 90; { exit 7; }
+    if value.head != 165; { exit 8; }
+    exit 42;
+}
+
+:/ OUTPUT
+@case_index=0
+@exit_code=42
+---
+@case_index=1
+@exit_code=42
+---
+/:

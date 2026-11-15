@@ -1,0 +1,35 @@
+: ASM_ARCH=x86_64_nasm_gnu,x86_64_nasm_macho :
+: BLOCK_TEST :
+: RUN_ASM[args="0"|args="7"] :
+
+:/ Unsigned division must not interpret bit 63 as a negative sign. /:
+@[inline(never)]
+function check446(u64 value, u64 divisor, u64 expected_q, u64 expected_r, u64 low) -> i32 {
+    u64 quotient = value / divisor;
+    u64 rest = value % divisor;
+    if quotient != expected_q; { return 1; }
+    if rest != expected_r; { return 2; }
+    if quotient * divisor + rest != value; { return 3; }
+    u64 high = (1 as u64) << 63;
+    if value / high != 1; { return 4; }
+    if value % high != low; { return 5; }
+    return 42;
+}
+
+start(i32 argc, ptr ptr i8 argv) {
+    u64 digit = ((argv[1][0] as i32) - 48) as u64;
+    u64 value = ((1 as u64) << 63) + digit;
+    u64 quotient = 3074457345618258602;
+    u64 rest = 2;
+    if digit == 7; { quotient = 3074457345618258605; rest = 0; }
+    exit check446(value, (argc + 1) as u64, quotient, rest, digit) as u8;
+}
+
+:/ OUTPUT
+@case_index=0
+@exit_code=42
+---
+@case_index=1
+@exit_code=42
+---
+/:

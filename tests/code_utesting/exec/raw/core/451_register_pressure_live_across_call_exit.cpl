@@ -1,0 +1,56 @@
+: BLOCK_TEST :
+: RUN_ASM[args="0"|args="3"] :
+
+:/ Sixteen old loads stay live across a call that overwrites their source storage. /:
+@[inline(never)]
+function overwrite451(ptr i64 values) -> i0 {
+    i32 index = 0;
+    while index < 16; { values[index] = -1; index += 1; }
+}
+
+@[inline(never)]
+function preserve451(ptr i64 values) -> i64 {
+    i64 a = values[0];
+    i64 b = values[1];
+    i64 c = values[2];
+    i64 d = values[3];
+    i64 e = values[4];
+    i64 f = values[5];
+    i64 g = values[6];
+    i64 h = values[7];
+    i64 i = values[8];
+    i64 j = values[9];
+    i64 k = values[10];
+    i64 l = values[11];
+    i64 m = values[12];
+    i64 n = values[13];
+    i64 o = values[14];
+    i64 p = values[15];
+    overwrite451(values);
+    return a + b * 2 + c * 3 + d * 4 + e * 5 + f * 6 + g * 7 + h * 8
+        + i * 9 + j * 10 + k * 11 + l * 12 + m * 13 + n * 14 + o * 15 + p * 16;
+}
+
+start(i32 argc, ptr ptr i8 argv) {
+    i64 digit = (argv[1][0] as i64) - 48;
+    arr values[16, i64];
+    i32 index = 0;
+    while index < 16; { values[index] = (index as i64) + 1 + digit; index += 1; }
+    i64 result = preserve451(ref values);
+    if result != 1496 + 136 * digit; { exit 1; }
+    index = 0;
+    while index < 16; {
+        if values[index] != -1; { exit 2; }
+        index += 1;
+    }
+    exit 42;
+}
+
+:/ OUTPUT
+@case_index=0
+@exit_code=42
+---
+@case_index=1
+@exit_code=42
+---
+/:

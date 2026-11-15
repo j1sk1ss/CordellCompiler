@@ -1,0 +1,39 @@
+: BLOCK_TEST :
+: RUN_ASM[args="0"|args="1"|args="5"] :
+
+:/ A pointer phi on the backedge changes which array element the next store reaches. /:
+start(i32 argc, ptr ptr i8 argv) {
+    i32 count = (argv[1][0] as i32) - 48;
+    arr values[3, i32] = { 10, 20, 30 };
+    ptr i32 active = ref values[0];
+    i32 index = 0;
+    while index < count; {
+        dref active += index + 1;
+        index += 1;
+        if index % 3 == 0; { active = ref values[0]; }
+        else if index % 3 == 1; { active = ref values[1]; }
+        else { active = ref values[2]; }
+    }
+    i32 expected_a = 10;
+    i32 expected_b = 20;
+    i32 expected_c = 30;
+    if count == 1; { expected_a = 11; }
+    if count == 5; { expected_a = 15; expected_b = 27; expected_c = 33; }
+    if values[0] != expected_a; { exit 1; }
+    if values[1] != expected_b; { exit 2; }
+    if values[2] != expected_c; { exit 3; }
+    if dref active != values[count % 3]; { exit 4; }
+    exit 42;
+}
+
+:/ OUTPUT
+@case_index=0
+@exit_code=42
+---
+@case_index=1
+@exit_code=42
+---
+@case_index=2
+@exit_code=42
+---
+/:
