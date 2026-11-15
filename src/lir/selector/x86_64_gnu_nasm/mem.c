@@ -323,7 +323,10 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
                 case LIR_CVTSI2SS: case LIR_CVTSI2SD:
                 case LIR_MOVSX:    case LIR_MOVZX:    case LIR_phiMOV:    case LIR_MOVSXD:
                 case LIR_iMOV:     case LIR_aMOV:     case LIR_fMOV: {
-                    if (lh->farg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL) break;
+                    if (
+                        lh->farg->t == LIR_REGISTER || 
+                        (LIR_is_defined_type(lh->sarg->t) && lh->sarg->size != CONF_get_full_bytness()) // mov mem, imm64 doesn't work
+                    ) break;
                     lir_subject_t* tmp = x86_64_gnu_nasm_create_tmp(R15, lh->sarg, smt, lh->farg->size);
                     list_add(&fixes, LIR_create_block(lh->op, tmp, lh->sarg, NULL));
                     lh->sarg = tmp;
