@@ -1,0 +1,23 @@
+: ASM_ARCH=i386_nasm_gnu :
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/
+Reduced from log.log failures 145, 256, 259, 445, 457 and other signed divisions.
+Expected: -21 / 5 == -4, exit 42.
+The i386 selector emits CQO before IDIV ECX. CQO requires 64-bit mode, so NASM
+rejects the program before execution. A 32-bit dividend needs CDQ instead.
+/:
+@[inline(never)]
+function divide488(i32 value, i32 divisor) -> i32 {
+    return value / divisor;
+}
+
+start() {
+    if divide488(-21i32, 5i32) != -4i32; { exit 1; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

@@ -292,7 +292,10 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
         if (lh->farg) {
             switch (lh->op) {
                 case LIR_PUSH: {
-                    if (lh->farg->size == 8) break;
+                    if (
+                        lh->farg->size == CONF_get_full_bytness() && 
+                        !LIR_is_defined_type(lh->farg->t)
+                    ) break;
                     lir_subject_t* tmp = x86_64_gnu_nasm_create_tmp(R15, lh->farg, smt, 8);
                     list_add(&fixes, _create_push_arg_mov(tmp, lh->farg, smt));
                     lh->farg = tmp;
@@ -347,7 +350,13 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
                         lh->farg = x86_64_gnu_nasm_create_tmp(RAX, src, smt, lh->sarg->size);
                     }
 
-                    if (lh->sarg->t != LIR_REGISTER && lh->sarg->t != LIR_NUMBER && lh->sarg->t != LIR_CONSTVAL) {
+                    if (
+                        lh->sarg->t != LIR_REGISTER &&
+                        (
+                            !LIR_is_defined_type(lh->sarg->t) ||
+                            lh->farg->dsize == CONF_get_full_bytness()
+                        )
+                    ) {
                         lir_subject_t* src = x86_64_gnu_nasm_create_tmp(R15, lh->sarg, smt, lh->sarg->size);
                         list_add(&fixes, LIR_create_block(LIR_iMOV, src, lh->sarg, NULL));
                         lh->sarg = x86_64_gnu_nasm_create_tmp(R15, src, smt, lh->sarg->size);

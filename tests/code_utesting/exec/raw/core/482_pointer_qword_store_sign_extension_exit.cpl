@@ -1,0 +1,25 @@
+: ASM_ARCH=x86_64_nasm_gnu,x86_64_nasm_macho :
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/
+Expected: storing 2147483648u64 through ptr u64 preserves all 64 bits.
+The x86_64 GNU backend currently stores 0xFFFFFFFF80000000 by emitting
+MOV qword [ptr], 2147483648. A qword memory store sign-extends its imm32 operand.
+The local initializer is zero to isolate this store from initialization.
+/:
+@[inline(never)]
+function write482(ptr u64 target) -> i0 {
+    dref target = 2147483648u64;
+}
+
+start() {
+    u64 value = 0;
+    write482(ref value);
+    if value != 2147483648u64; { exit 1; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

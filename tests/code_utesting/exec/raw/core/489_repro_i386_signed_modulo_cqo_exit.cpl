@@ -1,0 +1,23 @@
+: ASM_ARCH=i386_nasm_gnu :
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/
+Reduced from log.log failures 28, 258, 454, 459 and other signed remainders.
+Expected: -17 % 5 == -2, exit 42.
+The i386 modulo path also emits CQO before IDIV ECX. NASM rejects CQO in
+32-bit mode; this test exercises remainder lowering separately from division.
+/:
+@[inline(never)]
+function remainder489(i32 value, i32 divisor) -> i32 {
+    return value % divisor;
+}
+
+start() {
+    if remainder489(-17i32, 5i32) != -2i32; { exit 1; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

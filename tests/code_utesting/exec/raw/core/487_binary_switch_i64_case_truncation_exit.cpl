@@ -1,0 +1,27 @@
+: ASM_ARCH=x86_64_nasm_gnu,x86_64_nasm_macho :
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/
+Expected: 4294967296 matches case 4294967296 and exits with 42.
+The original x86_64 GNU failure selects default and exits with 1.
+In _generate_case_binary_jump, the long case_info_t.v value was copied into
+int val, losing the upper 32 bits and leaving a comparison against zero.
+select(binary) is required: an ordinary short switch selects straight.
+/:
+@[inline(never)]
+function choose487(i64 value) -> i32 {
+    @[select(binary)] @[no_fall]
+    switch value; {
+        case 4294967296; return 42;
+        default return 1;
+    }
+}
+
+start() {
+    exit choose487(4294967296i64) as u8;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

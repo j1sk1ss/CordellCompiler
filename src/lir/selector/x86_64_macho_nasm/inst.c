@@ -210,6 +210,11 @@ static cfg_dfs_action_t _instruction_selection_block(
     cfg_block_t* bb, long pred, cfg_func_t* fb, func_info_t* fi,
     queue_t* dirty_regs, queue_t* stack_args, lir_translate_ctx_t* ctx, sym_table_t* smt
 ) {
+#define PREPARE_IMM64(src, src_src) \
+    if (LIR_is_defined_type(src->t) && src->size == CONF_get_full_bytness()) { \
+        src = x86_64_macho_nasm_create_tmp(RBX, src, smt, -1); \
+        _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, src, src_src, NULL), lh); \
+    }
     (void)pred;
     iterate_lir_instructions (bb) {
         _materialize_external_globals(bb, lh, smt);
@@ -367,6 +372,11 @@ static cfg_dfs_action_t _instruction_selection_block(
                     _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, b_entry, lh->targ, NULL), lh);
                     lh->targ = b_entry;
                 }
+                else if (a_entry->size == CONF_get_full_bytness()) {
+                    lir_subject_t* b = lh->targ;
+                    PREPARE_IMM64(b, lh->targ);
+                    lh->targ = b;
+                }
 
                 _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, lh->farg, a_exit, NULL), lh);
                 lh->farg = a_exit;
@@ -401,23 +411,25 @@ static cfg_dfs_action_t _instruction_selection_block(
             }
             case LIR_iDIV:
             case LIR_iMOD: {
-                int is_sign = x86_64_macho_nasm_is_sign_type(lh->farg, smt) || x86_64_macho_nasm_is_sign_type(lh->sarg, smt);
-                lir_subject_t* a_entry = x86_64_macho_nasm_create_tmp(RAX, lh->sarg, smt, CONF_get_full_bytness());
-                _insert_instruction_before(
-                    bb, 
-                    LIR_create_block(x86_64_macho_nasm_get_proper_mov(a_entry, lh->sarg, smt, LIR_iMOV), a_entry, lh->sarg, NULL), 
-                    lh
-                );
+#define SAVE_VAR_TO_REG(exit, var, reg, op) \
+    lir_subject_t* exit = x86_64_macho_nasm_create_tmp(reg, var, smt, CONF_get_full_bytness()); \
+    _insert_instruction_before( \
+        bb, \
+        LIR_create_block((int)op == -1 ? (int)x86_64_macho_nasm_get_proper_mov(exit, var, smt, LIR_iMOV) : (int)op, exit, var, NULL), \
+        lh \
+    );
+                SAVE_VAR_TO_REG(a_entry, lh->sarg, RAX, -1);
+                SAVE_VAR_TO_REG(b,       lh->targ, RCX, -1);
+                SAVE_VAR_TO_REG(mod,     lh->farg, RDX, LIR_PUSH);
+
+                int is_sign =
+                    x86_64_macho_nasm_is_sign_type(lh->farg, smt) ||
+                    x86_64_macho_nasm_is_sign_type(lh->sarg, smt);
 
                 lir_subject_t* oldres = lh->farg;
                 lh->sarg = a_entry;
-
-                lir_subject_t* b = x86_64_macho_nasm_create_tmp(RCX, lh->targ, smt, CONF_get_full_bytness());
-                _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, b, lh->targ, NULL), lh);
                 lh->targ = b;
 
-                lir_subject_t* mod = x86_64_macho_nasm_create_tmp(RDX, lh->farg, smt, CONF_get_full_bytness());
-                _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, mod, NULL, NULL), lh);
                 if (is_sign) _insert_instruction_before(bb, LIR_create_block(LIR_CQO, NULL, NULL, NULL), lh);
                 else         _insert_instruction_before(bb, LIR_create_block(LIR_bXOR, mod, mod, mod), lh);
                 if (lh->op != LIR_iMOD) {
@@ -434,6 +446,7 @@ static cfg_dfs_action_t _instruction_selection_block(
 
                 if (!is_sign) lh->op = LIR_DIV;
                 break;
+#undef SAVE_VAR_TO_REG
             }
             CONDITIONAL_CASE(LIR_CMP, lh->farg->t != LIR_VARIABLE,
                 lir_subject_t* a = x86_64_macho_nasm_create_tmp(RAX, lh->farg, smt, -1);
@@ -445,13 +458,7 @@ static cfg_dfs_action_t _instruction_selection_block(
             case LIR_iCMP: case LIR_iNMP: {
                 lir_subject_t* a = x86_64_macho_nasm_create_tmp(RAX, lh->sarg, smt, -1);
                 lir_subject_t* b = lh->targ;
-                if (
-                    LIR_is_defined_type(b->t) && 
-                    b->size == CONF_get_full_bytness()
-                ) {
-                    b = x86_64_macho_nasm_create_tmp(RBX, b, smt, -1); // there is no cmp reg, imm64
-                    _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, b, lh->targ, NULL), lh);
-                }
+                PREPARE_IMM64(b, lh->targ);
                 
                 lir_subject_t* res = LIR_SUBJ_REG(AL, 1);
                 _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->sarg, NULL), lh);
@@ -496,7 +503,7 @@ static cfg_dfs_action_t _instruction_selection_block(
             default: break;
         }
     }
-
+#undef PREPARE_IMM64
     return CFG_DFS_CONTINUE;
 }
 
