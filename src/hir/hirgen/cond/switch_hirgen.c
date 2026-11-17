@@ -25,8 +25,8 @@ static int _generate_case_binary_jump(
         return 0;
     }
 
-    int mid = (left + right) / 2; 
-    int val = values[mid].v;
+    int mid  = (left + right) / 2; 
+    long val = values[mid].v;
 
     hir_subject_t* lower         = HIR_SUBJ_LABEL();
     hir_subject_t* eq_or_greater = HIR_SUBJ_LABEL();
