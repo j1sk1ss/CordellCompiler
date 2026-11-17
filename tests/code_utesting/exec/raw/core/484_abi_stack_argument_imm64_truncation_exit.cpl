@@ -1,0 +1,24 @@
+: ASM_ARCH=x86_64_nasm_gnu,x86_64_nasm_macho :
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/
+Expected: the seventh SysV ABI argument arrives as 4294967296u64.
+The x86_64 GNU backend currently passes 0 by emitting PUSH 4294967296.
+PUSH has no imm64 form, so 2^32 is truncated to zero.
+The first six arguments occupy registers; the seventh is passed on the stack.
+/:
+@[abi] @[inline(never)]
+function seventh484(u64 a, u64 b, u64 c, u64 d, u64 e, u64 f, u64 g) -> u64 {
+    return g;
+}
+
+start() {
+    u64 result = seventh484(0u64, 0u64, 0u64, 0u64, 0u64, 0u64, 4294967296u64);
+    if result != 4294967296u64; { exit 1; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

@@ -292,7 +292,10 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
         if (lh->farg) {
             switch (lh->op) {
                 case LIR_PUSH: {
-                    if (lh->farg->size == 8) break;
+                    if (
+                        lh->farg->size == CONF_get_full_bytness() && 
+                        !LIR_is_defined_type(lh->farg->t)
+                    ) break;
                     lir_subject_t* tmp = x86_64_gnu_nasm_create_tmp(R15, lh->farg, smt, 8);
                     list_add(&fixes, _create_push_arg_mov(tmp, lh->farg, smt));
                     lh->farg = tmp;

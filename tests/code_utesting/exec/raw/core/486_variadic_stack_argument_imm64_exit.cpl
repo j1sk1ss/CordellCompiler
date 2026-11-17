@@ -1,0 +1,25 @@
+: ASM_ARCH=x86_64_nasm_gnu,x86_64_nasm_macho :
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/
+Expected: poparg reads the supplied u64 value 4294967296.
+The x86_64 GNU backend currently returns 0. The variadic call emits
+PUSH 4294967296, but PUSH has no imm64 form, so the constant is truncated to zero.
+This argument-passing path is separate from SysV ABI register overflow.
+/:
+@[inline(never)]
+function first486(...) -> u64 {
+    @[poparg] u64 value;
+    return value;
+}
+
+start() {
+    u64 result = first486(4294967296u64);
+    if result != 4294967296u64; exit 1;
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:
