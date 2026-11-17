@@ -401,23 +401,25 @@ static cfg_dfs_action_t _instruction_selection_block(
             }
             case LIR_iDIV:
             case LIR_iMOD: {
-                int is_sign = x86_64_macho_nasm_is_sign_type(lh->farg, smt) || x86_64_macho_nasm_is_sign_type(lh->sarg, smt);
-                lir_subject_t* a_entry = x86_64_macho_nasm_create_tmp(RAX, lh->sarg, smt, CONF_get_full_bytness());
-                _insert_instruction_before(
-                    bb, 
-                    LIR_create_block(x86_64_macho_nasm_get_proper_mov(a_entry, lh->sarg, smt, LIR_iMOV), a_entry, lh->sarg, NULL), 
-                    lh
-                );
+#define SAVE_VAR_TO_REG(exit, var, reg, op) \
+    lir_subject_t* exit = x86_64_macho_nasm_create_tmp(reg, var, smt, CONF_get_full_bytness()); \
+    _insert_instruction_before( \
+        bb, \
+        LIR_create_block((int)op == -1 ? (int)x86_64_macho_nasm_get_proper_mov(exit, var, smt, LIR_iMOV) : (int)op, exit, var, NULL), \
+        lh \
+    );
+                SAVE_VAR_TO_REG(a_entry, lh->sarg, RAX, -1);
+                SAVE_VAR_TO_REG(b,       lh->targ, RCX, -1);
+                SAVE_VAR_TO_REG(mod,     lh->farg, RDX, LIR_PUSH);
+
+                int is_sign =
+                    x86_64_macho_nasm_is_sign_type(lh->farg, smt) ||
+                    x86_64_macho_nasm_is_sign_type(lh->sarg, smt);
 
                 lir_subject_t* oldres = lh->farg;
                 lh->sarg = a_entry;
-
-                lir_subject_t* b = x86_64_macho_nasm_create_tmp(RCX, lh->targ, smt, CONF_get_full_bytness());
-                _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, b, lh->targ, NULL), lh);
                 lh->targ = b;
 
-                lir_subject_t* mod = x86_64_macho_nasm_create_tmp(RDX, lh->farg, smt, CONF_get_full_bytness());
-                _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, mod, NULL, NULL), lh);
                 if (is_sign) _insert_instruction_before(bb, LIR_create_block(LIR_CQO, NULL, NULL, NULL), lh);
                 else         _insert_instruction_before(bb, LIR_create_block(LIR_bXOR, mod, mod, mod), lh);
                 if (lh->op != LIR_iMOD) {
@@ -434,6 +436,7 @@ static cfg_dfs_action_t _instruction_selection_block(
 
                 if (!is_sign) lh->op = LIR_DIV;
                 break;
+#undef SAVE_VAR_TO_REG
             }
             CONDITIONAL_CASE(LIR_CMP, lh->farg->t != LIR_VARIABLE,
                 lir_subject_t* a = x86_64_macho_nasm_create_tmp(RAX, lh->farg, smt, -1);

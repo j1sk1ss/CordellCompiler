@@ -1,0 +1,24 @@
+: ASM_ARCH=x86_64_nasm_gnu,x86_64_nasm_macho :
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/
+Expected: 65535 % 32768 == 32767.
+The x86_64 GNU backend currently returns 65535: the u16 divisor is extended with
+MOVSX instead of MOVZX before unsigned DIV. With the high bit set, the divisor
+becomes a huge u64, so the quotient is 0 and the remainder equals the dividend.
+/:
+@[inline(never)]
+function calculate475(u16 value, u16 divisor) -> u16 {
+    return value % divisor;
+}
+
+start() {
+    u16 result = calculate475(65535u16, 32768u16);
+    if result != 32767u16; { exit 1; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

@@ -204,19 +204,25 @@ static cfg_dfs_action_t _instruction_selection_block(
             }
             case LIR_iDIV:
             case LIR_iMOD: {
-                int is_sign = i386_gnu_nasm_is_sign_type(lh->farg, smt) || i386_gnu_nasm_is_sign_type(lh->sarg, smt);
-                lir_subject_t* a_entry = i386_gnu_nasm_create_tmp(EAX, lh->sarg, smt, CONF_get_full_bytness());
-                _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a_entry, lh->sarg, NULL), lh);
+#define SAVE_VAR_TO_REG(exit, var, reg, op) \
+    lir_subject_t* exit = i386_gnu_nasm_create_tmp(reg, var, smt, CONF_get_full_bytness()); \
+    _insert_instruction_before( \
+        bb, \
+        LIR_create_block((int)op == -1 ? (int)i386_gnu_nasm_get_proper_mov(exit, var, smt, LIR_iMOV) : (int)op, exit, var, NULL), \
+        lh \
+    );
+                SAVE_VAR_TO_REG(a_entry, lh->sarg, EAX, -1);
+                SAVE_VAR_TO_REG(b,       lh->targ, ECX, -1);
+                SAVE_VAR_TO_REG(mod,     lh->farg, EDX, LIR_PUSH);
+
+                int is_sign =
+                    i386_gnu_nasm_is_sign_type(lh->farg, smt) ||
+                    i386_gnu_nasm_is_sign_type(lh->sarg, smt);
 
                 lir_subject_t* oldres = lh->farg;
                 lh->sarg = a_entry;
-
-                lir_subject_t* b = i386_gnu_nasm_create_tmp(ECX, lh->targ, smt, CONF_get_full_bytness());
-                _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, b, lh->targ, NULL), lh);
                 lh->targ = b;
 
-                lir_subject_t* mod = i386_gnu_nasm_create_tmp(EDX, lh->farg, smt, CONF_get_full_bytness());
-                _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, mod, NULL, NULL), lh);
                 if (is_sign) _insert_instruction_before(bb, LIR_create_block(LIR_CDQ, NULL, NULL, NULL), lh);
                 else         _insert_instruction_before(bb, LIR_create_block(LIR_bXOR, mod, mod, mod), lh);
                 if (lh->op != LIR_iMOD) {
@@ -231,7 +237,9 @@ static cfg_dfs_action_t _instruction_selection_block(
                     _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, LIR_SUBJ_REG(EAX, lh->farg->size), lh->farg, NULL), lh);
                 }
 
+                if (!is_sign) lh->op = LIR_DIV;
                 break;
+#undef SAVE_VAR_TO_REG
             }
             CONDITIONAL_CASE(LIR_CMP, lh->farg->t != LIR_VARIABLE,
                 lir_subject_t* a = i386_gnu_nasm_create_tmp(EAX, lh->farg, smt, -1);
