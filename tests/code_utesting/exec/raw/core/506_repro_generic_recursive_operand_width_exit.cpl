@@ -1,0 +1,26 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/
+Reduced from 492. Expected: two copies of 7i16 sum to 14i16.
+cplc 4.0.4:1711.26, x86_64 Mach-O, -O3 removes the narrowing move after
+the recursive call and emits ADD AX, RDX, which NASM rejects.
+The raw module runner has no copy-propagation pass; reproduce with cplc -O3.
+/:
+@[inline(never)]
+function total506<T>(T value, i32 depth) -> T {
+    if depth == 0; return value;
+    T saved  = value;
+    T nested = total506<T>(value, depth - 1);
+    return saved + nested;
+}
+
+start() {
+    i16 result = total506<i16>(7i16, 1i32);
+    if result != 14i16; exit 1;
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

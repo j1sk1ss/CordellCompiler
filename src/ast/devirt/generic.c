@@ -84,7 +84,14 @@ static int _find_and_register_resolved_call(ast_node_t* node, sym_table_t* smt, 
         if (
             FNTB_collect_info(name->t->body, name->sinfo.s_id, &resolved_copies, &smt->f, &smt->sc) && 
             list_size(&resolved_copies) > 1
-        ) printf("Found more than one function as a candidate for a generic function!\nPlease, remove the second function or rename it!");
+        ) {
+            printf("Found more than one function as a candidate for a %s!\tPlease, remove the second function or rename it!\n", name->t->body->body);
+            foreach (func_info_t* ex_fi, &resolved_copies) {
+                printf("Candidate: %s\n", ex_fi->virt->body);
+            }
+
+            return 0;
+        }
 
         list_free(&resolved_copies);
 
