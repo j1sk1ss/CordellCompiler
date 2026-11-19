@@ -1,0 +1,27 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/ Recursive specializations preserve a typed local across a recursive call. /:
+@[inline(never)]
+function total492<T>(T value, i32 depth) -> T {
+    if depth == 0; { return value; }
+    T saved  = value;
+    T nested = total492<T>(value, depth - 1);
+    return saved + nested;
+}
+
+start() {
+    i16 base     = total492<i16>(-123i16, 0i32);
+    i16 negative = total492<i16>(-123i16, 5i32);
+    i64 wide     = total492<i64>(1000000000i64, 5i32);
+    i16 positive = total492<i16>(7i16, 2i32);
+    if base != -123i16;       exit 1;
+    if negative != -738i16;   exit 2;
+    if wide != 6000000000i64; exit 3;
+    if positive != 21i16;     exit 4;
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

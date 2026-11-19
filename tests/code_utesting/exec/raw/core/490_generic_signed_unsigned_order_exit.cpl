@@ -1,0 +1,23 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/ Same-width specializations must use their own comparison signedness. /:
+@[inline(never)]
+function less490<T>(T left, T right) -> i32 {
+    if left < right; return 1i32;
+    else             return 0i32;
+}
+
+start() {
+    if less490<i8>(-128i8, 1i8) != 1;       exit 1;
+    if less490<u8>(128u8, 1u8) != 0;        exit 2;
+    if less490<i16>(-32768i16, 1i16) != 1;  exit 3;
+    if less490<u16>(32768u16, 1u16) != 0;   exit 4;
+    if less490<i8>(127i8, -1i8) != 0;       exit 5;
+    if less490<u8>(127u8, 255u8) != 1;      exit 6;
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:
