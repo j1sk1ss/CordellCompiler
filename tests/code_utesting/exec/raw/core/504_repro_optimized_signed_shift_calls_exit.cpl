@@ -1,0 +1,23 @@
+: ASM_ARCH=x86_64_nasm_gnu,x86_64_nasm_macho :
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/
+Reduced from 498. Expected: -8 >> 0 == -8 and -8 >> 1 == -4.
+cplc 4.0.4:1711.26, x86_64 Mach-O, -O2/-O3: the shift function becomes
+MOV RAX, -1; RET, and NASM rejects MOV 1, r15 in the caller's checks.
+-O0 passes. Both counts have explicit i32 types to exclude repro 501.
+The raw module runner has no constant-folding pass; reproduce with cplc -O2.
+/:
+@[inline(never)]
+function shifted504(i64 value, i32 count) -> i64 { return value >> count; }
+
+start() {
+    if shifted504(-8i64, 0i32) != -8i64; exit 1;
+    if shifted504(-8i64, 1i32) != -4i64; exit 2;
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

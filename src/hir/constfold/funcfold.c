@@ -15,7 +15,8 @@ static int _register_params(symbol_id_t f_id, list_t* args, map_t* fcalls) {
         hir_subject_t** curr = (hir_subject_t**)list_flatten(args);
         for (int i = 0; i < list_size(args); i++) {
             if (
-                prev[i] && curr[i] && HIR_hash_subject(prev[i]) != HIR_hash_subject(curr[i])
+                prev[i] && curr[i] && 
+                HIR_hash_subject(prev[i]) != HIR_hash_subject(curr[i])
             ) list_replace(rargs, prev[i], NULL);
         }
 
@@ -97,19 +98,23 @@ static int _propagate_params(cfg_ctx_t* cctx, sym_table_t* smt, map_t* fcalls) {
         void** registered_params = list_flatten(rargs);
         foreach (cfg_block_t* bb, &fb->blocks) {
             iterate_hir_instructions (bb) {
-                if (hh->op == HIR_FARGLD) {
+                variable_info_t vi;
+                if (hh->op != HIR_FARGLD) continue;
+                if (
+                    param_index + 1 < list_size(rargs)                         &&
+                    VRTB_get_info_id(hh->farg->storage.var.v_id, &vi, &smt->v) &&
+                    vi.vdi.defined != DEFINED_VARIABLE
+                ) {
                     long value = 0;
-                    hir_subject_t* folded = (hir_subject_t*)registered_params[param_index++];
+                    hir_subject_t* folded = (hir_subject_t*)registered_params[param_index];
                     if (folded && _extract_variable_value(folded, smt, &value)) {
-                        hh->op = HIR_STORE;
                         HIR_unload_subject(hh->sarg);
-                        HIR_unload_subject(hh->targ);
                         hh->sarg = HIR_SUBJ_CONST(value);
-                        hh->targ = NULL;
-                        VRTB_update_definition(hh->farg->storage.var.v_id, value, NO_SYMBOL_ID, &smt->v, 0);
-                        changed = 1;
+                        changed = VRTB_update_definition(hh->farg->storage.var.v_id, value, NO_SYMBOL_ID, &smt->v, 0) || changed;
                     }
                 }
+
+                param_index++;
             }
         }
 
