@@ -23,34 +23,44 @@ static int _apply_constfold_on_subject(lir_subject_t* s, sym_table_t* smt) {
     return 0;
 }
 
-int LIR_apply_sparse_const_propagation(cfg_ctx_t* cctx, sym_table_t* smt) {
+static void _fast_verify(cfg_ctx_t* cctx, sym_table_t* smt) {
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* bb, &fb->blocks) {
             iterate_lir_instructions (bb) {
                 int first_arg = 1;
                 iterate_lir_args (lir_subject_t* arg, lh, 0) {
-                    int res = 0;
-                    switch (arg->t) {
-                        case LIR_ARGLIST: {
-                            foreach (lir_subject_t* s, &arg->storage.list.h) {
-                                res = _apply_constfold_on_subject(s, smt) || res;
-                            }
-                            
-                            break;
-                        }
-                        default: res = _apply_constfold_on_subject(arg, smt); break;
-                    }
-
-                    res = arg->t == LIR_CONSTVAL || res;
-                    if (first_arg && res && LIR_is_writeop(lh->op)) {
-                        lh->unused = 1;
-                    }
-
+                    if (
+                        first_arg && 
+                        arg->t == LIR_CONSTVAL && LIR_is_writeop(lh->op)
+                    ) lh->unused = 1;
+                    if (!first_arg) break;
                     first_arg = 0;
                 }
             }
         }
     }
+}
 
+int LIR_apply_sparse_const_propagation(cfg_ctx_t* cctx, sym_table_t* smt) {
+    foreach (cfg_func_t* fb, &cctx->funcs) {
+        foreach (cfg_block_t* bb, &fb->blocks) {
+            iterate_lir_instructions (bb) {
+                iterate_lir_args (lir_subject_t* arg, lh, 0) {
+                    switch (arg->t) {
+                        case LIR_ARGLIST: {
+                            foreach (lir_subject_t* s, &arg->storage.list.h) {
+                                (void)_apply_constfold_on_subject(s, smt);
+                            }
+                            
+                            break;
+                        }
+                        default: (void)_apply_constfold_on_subject(arg, smt); break;
+                    }
+                }
+            }
+        }
+    }
+
+    _fast_verify(cctx, smt);
     return 1;
 }

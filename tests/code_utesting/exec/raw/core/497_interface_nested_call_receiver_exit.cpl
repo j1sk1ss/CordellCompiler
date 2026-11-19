@@ -1,0 +1,41 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/ A virtual method must keep its receiver live across another virtual call. /:
+interface state497 {
+    @[self] @[abstract] function add(ptr state497 self, i32 delta) -> i32;
+    @[self] @[abstract] function combine(ptr state497 self, ptr state497 other) -> i32;
+}
+container impl497 implements state497 {
+    i32 value;
+    @[override] function add(ptr impl497 self, i32 delta) -> i32;
+    @[override] function combine(ptr impl497 self, ptr state497 other) -> i32;
+}
+function impl497::add(ptr impl497 self, i32 delta) -> i32 {
+    self.value += delta;
+    return self.value;
+}
+function impl497::combine(ptr impl497 self, ptr state497 other) -> i32 {
+    i32 before = self.value;
+    i32 result = other.add(3i32);
+    return before * 100 + result * 10 + self.value;
+}
+
+@[inline(never)]
+function invoke497(ptr state497 left, ptr state497 right) -> i32 { return left.combine(right); }
+
+start() {
+    impl497 left;
+    impl497 right;
+    left.value = 2;
+    right.value = 4;
+    if invoke497(ref left, ref right) != 272; { exit 1; }
+    if left.value != 2 || right.value != 7; { exit 2; }
+    if invoke497(ref left, ref left) != 255; { exit 3; }
+    if left.value != 5 || right.value != 7; { exit 4; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

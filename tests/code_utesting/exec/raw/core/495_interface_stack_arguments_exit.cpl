@@ -1,0 +1,38 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/ The hidden receiver and six explicit arguments cross the register/stack boundary. /:
+interface check495 {
+    @[self] @[abstract]
+    function check(ptr check495 self, i64 a, i64 b, i64 c, i64 d, i64 e, i64 f) -> i32;
+}
+container impl495 implements check495 {
+    i64 guard;
+    @[override]
+    function check(ptr impl495 self, i64 a, i64 b, i64 c, i64 d, i64 e, i64 f) -> i32;
+}
+function impl495::check(ptr impl495 self, i64 a, i64 b, i64 c, i64 d, i64 e, i64 f) -> i32 {
+    if self.guard != 91; { return 1; }
+    if a != 11; { return 2; }
+    if b != -12; { return 3; }
+    if c != 13; { return 4; }
+    if d != -14; { return 5; }
+    if e != 15; { return 6; }
+    if f != -16; { return 7; }
+    return 42;
+}
+
+@[inline(never)]
+function invoke495(ptr check495 value) -> i32 {
+    return value.check(11i64, -12i64, 13i64, -14i64, 15i64, -16i64);
+}
+
+start() {
+    impl495 value;
+    value.guard = 91;
+    exit invoke495(ref value) as u8;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

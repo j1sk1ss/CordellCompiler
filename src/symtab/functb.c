@@ -224,7 +224,13 @@ static int _resolve_types(ast_node_t* node, symbol_id_t t_id, token_type_t t, fu
     if (
         node->t->t_type == GENERIC_TYPE_TOKEN &&
         node->sinfo.t_id == t_id
-    ) node->t->t_type = t;
+    ) {
+        node->t->t_type = t;
+        if (
+        node->c && node->c->t &&
+        node->c->t->t_type == GENERIC_VARIABLE_TOKEN
+        ) node->c->t->t_type = TKN_get_var_from_type(t);
+    }
     else if (
         (node->t->t_type == CALLING_TOKEN && node->c->c) ||
         (node->t->t_type == CALL_ADDR_TOKEN && node->c)

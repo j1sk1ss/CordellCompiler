@@ -1,0 +1,29 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/ A generic self method returns the full signed/unsigned range of a byte. /:
+container reader493 {
+    i32 calls;
+    @[self] @[inline(never)]
+    function read<T>(ptr reader493 self, ptr T value) -> T {
+        self.calls += 1;
+        return dref value;
+    }
+}
+
+start() {
+    reader493 reader;
+    reader.calls = 0;
+    i8 negative = -128;
+    u8 positive = 255;
+    i64 first = reader.read<i8>(ref negative) as i64;
+    i64 second = reader.read<u8>(ref positive) as i64;
+    if first != -128i64; { exit 1; }
+    if second != 255i64; { exit 2; }
+    if reader.calls != 2; { exit 3; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

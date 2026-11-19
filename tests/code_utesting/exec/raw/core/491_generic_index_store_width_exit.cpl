@@ -1,0 +1,26 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/ Specialization must change both indexed address scaling and store width. /:
+@[inline(never)]
+function store491<T>(ptr T values, i32 index, T value) -> T {
+    T previous = values[index];
+    values[index] = value;
+    return previous;
+}
+
+start() {
+    arr bytes[3, u8] = { 17, 128, 91 };
+    arr words[3, i64] = { 19, -7, 93 };
+    u8 old_byte = store491<u8>(ref bytes, 1i32, 255u8);
+    i64 old_word = store491<i64>(ref words, 1i32, -2147483647i64);
+    if old_byte != 128u8; { exit 1; }
+    if old_word != -7i64; { exit 2; }
+    if bytes[0] != 17 || bytes[1] != 255 || bytes[2] != 91; { exit 3; }
+    if words[0] != 19 || words[1] != -2147483647i64 || words[2] != 93; { exit 4; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

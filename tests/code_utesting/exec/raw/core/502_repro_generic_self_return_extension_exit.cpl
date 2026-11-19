@@ -1,0 +1,25 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/
+Reduced from 493. Expected: the generic i8 return widens to -128i64.
+cplc 4.0.4:1711.26, x86_64 Mach-O, -O0/-O2/-O3: exit 1 instead of 42.
+The callee writes AL, but the caller consumes RAX without sign extension.
+/:
+container reader502 {
+    @[self] @[inline(never)]
+    function read<T>(ptr reader502 self, ptr T value) -> T { 
+        return dref value; 
+    }
+}
+
+start() {
+    reader502 item;
+    i8 value = -128;
+    if (item.read<i8>(ref value) as i64) != -128i64; exit 1;
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

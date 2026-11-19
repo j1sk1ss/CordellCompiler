@@ -1,0 +1,22 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/
+Reduced from 490. Expected: u8(128) < u8(1) is false.
+cplc 4.0.4:1711.26, x86_64 Mach-O, -O0: exit 1 instead of 42.
+The u8 specialization emits SETL (signed) instead of SETB (unsigned).
+/:
+@[inline(never)]
+function less500<T>(T left, T right) -> i32 {
+    if left < right; return 1i32;
+    else             return 0i32;
+}
+
+start() {
+    if less500<u8>(128u8, 1u8) != 0; exit 1;
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

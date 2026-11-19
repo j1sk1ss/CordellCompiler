@@ -37,14 +37,14 @@ int AST_DVRT_register_implementation(symbol_id_t f_id, symbol_id_t src_id, devir
 }
 
 static int _recursive_walk(
-    ast_node_t* node, symbol_id_t v_id, symbol_id_t nv_id, token_type_t t, 
-    void (*process)(ast_node_t*, symbol_id_t, symbol_id_t, token_type_t)
+    ast_node_t* node, symbol_id_t v_id, symbol_id_t nv_id, token_type_t t, sym_table_t* smt,
+    void (*process)(ast_node_t*, symbol_id_t, symbol_id_t, token_type_t, sym_table_t*)
 ) {
     if (!node)    return 0;
-    _recursive_walk(node->siblings.n, v_id, nv_id, t, process);
-    _recursive_walk(node->c, v_id, nv_id, t, process);
+    _recursive_walk(node->siblings.n, v_id, nv_id, t, smt, process);
+    _recursive_walk(node->c, v_id, nv_id, t, smt, process);
     if (!node->t) return 0;
-    process(node, v_id, nv_id, t);
+    process(node, v_id, nv_id, t, smt);
     return 1;
 }
 
@@ -56,11 +56,12 @@ static int _recursive_walk(
        - `t` - New token type for a generic variables.
    
    Returns 1 if succeeds */
-static void _update_variable_id(ast_node_t* node, symbol_id_t v_id, symbol_id_t nv_id, token_type_t t) {
+static void _update_variable_id(ast_node_t* node, symbol_id_t v_id, symbol_id_t nv_id, token_type_t t, sym_table_t* smt) {
     if (TKN_is_variable(node->t) && node->sinfo.v_id == v_id) {
         node->sinfo.v_id = nv_id;
         if (node->t->t_type == GENERIC_VARIABLE_TOKEN) {
-            node->t->t_type = t;
+            node->t->t_type  = t;
+            node->sinfo.t_id = TPTB_add_info_from_token(node->sinfo.s_id, node->t, NO_SYMBOL_ID, &smt->t);
         }
     }
 }
@@ -83,13 +84,22 @@ static int _find_type_usage_and_replace(ast_node_t* node, ast_node_t* root, map_
         if (
             node->t->t_type == GENERIC_TYPE_TOKEN && 
             map_get(types, node->sinfo.t_id, (void**)&t)
-        ) node->t->t_type = t; /* replace just a type node                */
-        if (node->c) {         /* update the declared variable and its id */
+        ) {
+            node->t->t_type  = t; /* replace just a type node */
+            node->sinfo.t_id = TPTB_add_info_from_token(node->sinfo.s_id, node->t, NO_SYMBOL_ID, &smt->t);
+        }
+
+        if (node->c) { /* update the declared variable and its id */
             variable_info_t vi;
             if (!VRTB_get_info_id(node->c->sinfo.v_id, &vi, &smt->v)) return 0;
-            if (node->c->t->t_type == GENERIC_VARIABLE_TOKEN) node->c->t->t_type = TKN_get_var_from_type(t);
+            if (node->c->t->t_type == GENERIC_VARIABLE_TOKEN) {
+                node->c->t->t_type  = TKN_get_var_from_type(t);
+                node->c->sinfo.t_id = TPTB_add_info_from_token(node->c->sinfo.s_id, node->c->t, NO_SYMBOL_ID, &smt->t);
+            }
+
             node->c->sinfo.v_id = VRTB_add_copy(&vi, &smt->v);
-            _recursive_walk(root, vi.v_id, node->c->sinfo.v_id, TKN_get_var_from_type(t), _update_variable_id);
+            VRTB_update_type(node->c->sinfo.v_id, t, node->c->sinfo.t_id, &smt->v);
+            _recursive_walk(root, vi.v_id, node->c->sinfo.v_id, TKN_get_var_from_type(t), smt, _update_variable_id);
         }
     }
 
@@ -103,7 +113,10 @@ static int _find_type_usage_and_replace(ast_node_t* node, ast_node_t* root, map_
        - `nv_id` - New function Id.
    
    Returns 1 if succeeds */
-static void _update_function_id(ast_node_t* node, symbol_id_t v_id, symbol_id_t nv_id, __attribute__((unused)) token_type_t t) {
+static void _update_function_id(
+    ast_node_t* node, symbol_id_t v_id, symbol_id_t nv_id, 
+    __attribute__((unused)) token_type_t t, __attribute__((unused)) sym_table_t* smt
+) {
     if (
         (node->t->t_type == FUNC_NAME_TOKEN || node->t->t_type == LAMBDA_FUNCTION_TOKEN) && 
         node->sinfo.v_id == v_id
@@ -144,7 +157,7 @@ static int _find_function_declaration_and_replace(ast_node_t* node, ast_node_t* 
         if (FNTB_get_info_id(name->sinfo.v_id, &fi, &smt->f)) {
             name->sinfo.v_id = FNTB_add_copy(&fi, &smt->f);
             FNTB_update_func(name->sinfo.v_id, NULL, FNTB_SET_GENERIC(!fi.flags.generic), args, rtype, &smt->f);
-            _recursive_walk(root, fi.id, name->sinfo.v_id, CUSTOM_TYPE_TOKEN, _update_function_id);
+            _recursive_walk(root, fi.id, name->sinfo.v_id, CUSTOM_TYPE_TOKEN, NULL, _update_function_id);
             if (fi.flags.generic) {
                 AST_DVRT_register_template(name->sinfo.v_id, node, ctx);
             }
@@ -166,9 +179,13 @@ ast_node_t* _implement_template(ast_node_t* root, symbol_id_t f_id, sym_table_t*
     if (f_id == NO_SYMBOL_ID) return root;
     func_info_t fi;
     if (!FNTB_get_info_id(f_id, &fi, &smt->f)) return root;
+
     ast_node_t* copy = AST_copy_node(root, 0, 0, 1, NULL);
     _find_type_usage_and_replace(copy, copy, &fi.template.generic, smt);
-    _find_function_declaration_and_replace(copy->c, copy, smt, ctx);
+
+    FNTB_update_func(f_id, NULL, FNTB_SET_GENERIC(!fi.flags.generic), copy->c->siblings.n, copy->c->c, &smt->f); // update current function
+    _find_function_declaration_and_replace(copy->c, copy, smt, ctx); // update nested functions
+
     AST_DVRT_resolve_calls(copy, smt, ctx);
     copy->c->sinfo.v_id = f_id;
     return copy;
