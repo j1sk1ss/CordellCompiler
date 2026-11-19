@@ -98,6 +98,7 @@ static int _find_type_usage_and_replace(ast_node_t* node, ast_node_t* root, map_
             }
 
             node->c->sinfo.v_id = VRTB_add_copy(&vi, &smt->v);
+            VRTB_update_type(node->c->sinfo.v_id, t, node->c->sinfo.t_id, &smt->v);
             _recursive_walk(root, vi.v_id, node->c->sinfo.v_id, TKN_get_var_from_type(t), smt, _update_variable_id);
         }
     }
