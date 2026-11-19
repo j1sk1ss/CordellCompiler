@@ -1,0 +1,24 @@
+: ASM_ARCH=x86_64_nasm_gnu,x86_64_nasm_macho :
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/ Right shift must preserve the sign only for signed operands, including count 63. /:
+@[inline(never)]
+function signed498(i64 value, i32 count) -> i64 { return value >> count; }
+@[inline(never)]
+function unsigned498(u64 value, i32 count) -> u64 { return value >> count; }
+
+start() {
+    if signed498(-8i64, 0i32) != -8i64; { exit 1; }
+    if signed498(-8i64, 1i32) != -4i64; { exit 2; }
+    if signed498(-8i64, 63i32) != -1i64; { exit 3; }
+    u64 high = (1u64) << 63;
+    if unsigned498(high, 0i32) != high; { exit 4; }
+    if unsigned498(high, 1i32) != ((1u64) << 62); { exit 5; }
+    if unsigned498(high, 63i32) != 1u64; { exit 6; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

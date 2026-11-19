@@ -1,0 +1,30 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/ A signed byte returned by virtual dispatch must extend to a signed word. /:
+interface byte496 {
+    @[self] @[abstract] function get(ptr byte496 self) -> i8;
+}
+container impl496 implements byte496 {
+    i8 value;
+    @[override] function get(ptr impl496 self) -> i8;
+}
+function impl496::get(ptr impl496 self) -> i8 { return self.value; }
+
+@[inline(never)]
+function widen496(ptr byte496 value) -> i64 { return value.get() as i64; }
+
+start() {
+    impl496 value;
+    value.value = -128;
+    if widen496(ref value) != -128i64; { exit 1; }
+    value.value = -1;
+    if widen496(ref value) != -1i64; { exit 2; }
+    value.value = 127;
+    if widen496(ref value) != 127i64; { exit 3; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

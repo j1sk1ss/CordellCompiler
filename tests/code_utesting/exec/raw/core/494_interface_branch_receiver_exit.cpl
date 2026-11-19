@@ -1,0 +1,46 @@
+: BLOCK_TEST :
+: RUN_ASM[args="0"|args="1"] :
+
+:/ A merged interface pointer must keep the selected receiver and vtable paired. /:
+interface value494 {
+    @[self] @[abstract] function get(ptr value494 self) -> i32;
+}
+container left494 implements value494 {
+    i32 value;
+    @[override] function get(ptr left494 self) -> i32;
+}
+container right494 implements value494 {
+    i32 padding;
+    i32 value;
+    @[override] function get(ptr right494 self) -> i32;
+}
+function left494::get(ptr left494 self) -> i32 { return self.value + 1; }
+function right494::get(ptr right494 self) -> i32 { return self.value - 3; }
+
+@[inline(never)]
+function choose494(i32 choice, ptr value494 left, ptr value494 right) -> i32 {
+    ptr value494 selected = left;
+    if choice != 0; { selected = right; }
+    return selected.get();
+}
+
+start(i32 argc, ptr ptr i8 argv) {
+    left494 left;
+    right494 right;
+    left.value = 10;
+    right.padding = 99;
+    right.value = 30;
+    i32 choice = (argv[1][0] as i32) - 48;
+    i32 result = choose494(choice, ref left, ref right);
+    if result != 11 + choice * 16; { exit 1; }
+    exit 42;
+}
+
+:/ OUTPUT
+@case_index=0
+@exit_code=42
+---
+@case_index=1
+@exit_code=42
+---
+/:

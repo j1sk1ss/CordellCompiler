@@ -1,0 +1,26 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/
+Reduced from the optimized 490 failure. Expected: i16(1) < i16(2), exit 42.
+cplc 4.0.4:1711.26, x86_64 Mach-O, -O2/-O3: observed NASM rejecting
+MOV 1, r15w after SETL/MOVSX, or an executable returning 1 instead of 42.
+A folded comparison result is used as a destination; another observed form
+uses XOR AX, AX before JE, losing the true comparison result. -O0 passes.
+Inspect the assembly: optimized output varies between invocations.
+The raw module runner has no constant-folding pass; reproduce with cplc -O2.
+/:
+@[inline(never)]
+function less503<T>(T left, T right) -> i32 {
+    if left < right; { return 1; }
+    return 0;
+}
+
+start() {
+    if less503<i16>(1i16, 2i16) != 1; { exit 1; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

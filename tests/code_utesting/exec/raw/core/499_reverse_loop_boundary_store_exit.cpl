@@ -1,0 +1,39 @@
+: BLOCK_TEST :
+: RUN_ASM[args="0"|args="1"|args="4"] :
+
+:/ Reverse indexing must skip an empty range and preserve both adjacent sentinels. /:
+@[inline(never)]
+function fill499(ptr i32 values, i32 count) -> i0 {
+    i32 index = count - 1;
+    while index >= 0; {
+        values[index] = index + 10;
+        index -= 1;
+    }
+}
+
+start(i32 argc, ptr ptr i8 argv) {
+    arr values[6, i32] = { 71, -1, -1, -1, -1, 93 };
+    i32 count = (argv[1][0] as i32) - 48;
+    fill499(ref values[1], count);
+    if values[0] != 71 || values[5] != 93; { exit 1; }
+    i32 index = 0;
+    while index < 4; {
+        i32 expected = -1;
+        if index < count; { expected = index + 10; }
+        if values[index + 1] != expected; { exit 2; }
+        index += 1;
+    }
+    exit 42;
+}
+
+:/ OUTPUT
+@case_index=0
+@exit_code=42
+---
+@case_index=1
+@exit_code=42
+---
+@case_index=2
+@exit_code=42
+---
+/:
