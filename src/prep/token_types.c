@@ -315,14 +315,13 @@ int TKN_is_sign(token_t* token, char ptr) {
     }
 }
 
-int TKN_is_float(token_t* token) {
-    if (!token) return 0;
-    switch (token->t_type) {
+int TKN_is_float(token_type_t t) {
+    switch (t) {
         case F64_VARIABLE_TOKEN:
         case F32_VARIABLE_TOKEN:
         case F64_TYPE_TOKEN:
-        case F32_TYPE_TOKEN:    return 1;
-        default:                return 0;
+        case F32_TYPE_TOKEN: return 1;
+        default:             return 0;
     }
 }
 

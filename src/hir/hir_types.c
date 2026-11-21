@@ -163,7 +163,7 @@ hir_subject_type_t HIR_get_tmptype_tkn(token_t* token, int ptr) {
     ) return HIR_TMPVARI0;
 
     type_size_t bitness = TKN_variable_bitness(token, ptr);
-    int isfloat         = TKN_is_float(token);
+    int isfloat         = TKN_is_float(token->t_type);
     int issigned        = TKN_is_sign(token, ptr);
     if (!isfloat) {
         switch (bitness) {
@@ -206,7 +206,7 @@ hir_subject_type_t HIR_get_stktype(variable_info_t* vi) {
 
     token_t tmptkn = { .t_type = vi->type, .flags = { .ptr = vi->vfs.ptr, .ro = vi->vfs.ro, .glob = vi->vfs.glob } };
     type_size_t bitness = TKN_variable_bitness(&tmptkn, 0);
-    int isfloat         = TKN_is_float(&tmptkn);
+    int isfloat         = TKN_is_float(vi->type);
     int issigned        = TKN_is_sign(&tmptkn, 0);
     int isarr           = vi->type == ARR_VARIABLE_TOKEN;
 
