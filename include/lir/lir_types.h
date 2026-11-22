@@ -23,6 +23,9 @@ typedef enum {
         LIR_FEXT,  // extern function
 
         LIR_CMP,
+        LIR_FCMP, // float comparison that sets flags
+        LIR_UCOMISS,
+        LIR_UCOMISD,
 
         LIR_SETL,
         LIR_SETG,
@@ -133,7 +136,22 @@ typedef enum {
         LIR_fSUB, // x = y f- z
         LIR_fMUL, // x = y f* z
         LIR_fDIV, // x = y f/ z
+        LIR_fLRG, // x = y f> z
+        LIR_fLGE, // x = y f>= z
+        LIR_fLWR, // x = y f< z
+        LIR_fLRE, // x = y f<= z
         LIR_fCMP, // x = y f== z
+        LIR_fNMP, // x = y f!= z
+
+        /* Scalar x86 instructions selected for f32/f64 operands */
+        LIR_ADDSS,
+        LIR_ADDSD,
+        LIR_SUBSS,
+        LIR_SUBSD,
+        LIR_MULSS,
+        LIR_MULSD,
+        LIR_DIVSS,
+        LIR_DIVSD,
 
     /* Bits */
         /* Binary operations */

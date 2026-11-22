@@ -2,7 +2,8 @@
 
 const char* DUMP_registers_to_string(lir_registers_t reg) {
     switch(reg) {
-        case XMM0: return "xmm0"; case XMM1: return "xmm1";
+        case XMM0: return "xmm0"; case XMM1: return "xmm1"; case XMM2: return "xmm2"; case XMM3: return "xmm3"; case XMM4: return "xmm4"; 
+        case XMM5: return "xmm5"; case XMM6: return "xmm6"; case XMM7: return "xmm7";
         case RAX:  return "rax";  case RBX:  return "rbx";  case RCX:  return "rcx";  case RDX:  return "rdx";  case RSI:  return "rsi";
         case RDI:  return "rdi";  case RBP:  return "rbp";  case RSP:  return "rsp";  case R8:   return "r8";   case R9:   return "r9";
         case R10:  return "r10";  case R11:  return "r11";  case R12:  return "r12";  case R13:  return "r13";  case R14:  return "r14";
@@ -55,6 +56,8 @@ static const char* _op_to_fmtstring(lir_operation_t op) {
         case LIR_MOVSXD:     return "%s movsxd %s;";
         case LIR_aMOV:       return "%s <<= %s;";
         case LIR_phiMOV:     return "[SSA] %s = %s;";
+        case LIR_fMVf:
+        case LIR_fMOV:       return "%s f= %s;";
         case LIR_iMOV:       return "%s = %s;";
         case LIR_STARGLD:    return "%s = strt_loadarg();";
         case LIR_STARGRF:    return "%s = strt_ref_loadarg();";
@@ -81,6 +84,9 @@ static const char* _op_to_fmtstring(lir_operation_t op) {
         case LIR_INC:        return "%s++;";
         case LIR_DEC:        return "%s--;";
         case LIR_CMP:        return "cmp %s, %s;";
+        case LIR_FCMP:       return "fcmp %s, %s;";
+        case LIR_UCOMISS:    return "ucomiss %s, %s;";
+        case LIR_UCOMISD:    return "ucomisd %s, %s;";
         case LIR_SETE:       return "sete %s;";
         case LIR_STNE:       return "stne %s;";
         case LIR_SETL:       return "setl %s;";
@@ -96,11 +102,17 @@ static const char* _op_to_fmtstring(lir_operation_t op) {
         case LIR_bSAR:
         case LIR_bSHR:
         case LIR_iBRHT:      return "%s = %s >> %s;";
+        case LIR_fLWR:       return "%s = %s f< %s;";
         case LIR_iLWR:       return "%s = %s < %s;";
+        case LIR_fLRE:       return "%s = %s f<= %s;";
         case LIR_iLRE:       return "%s = %s <= %s;";
+        case LIR_fLRG:       return "%s = %s f> %s;";
         case LIR_iLRG:       return "%s = %s > %s;";
+        case LIR_fLGE:       return "%s = %s f>= %s;";
         case LIR_iLGE:       return "%s = %s >= %s;";
+        case LIR_fCMP:       return "%s = %s f== %s;";
         case LIR_iCMP:       return "%s = %s == %s;";
+        case LIR_fNMP:       return "%s = %s f!= %s;";
         case LIR_iNMP:       return "%s = %s != %s;";
         case LIR_iOR:        return "%s = %s || %s;";
         case LIR_iAND:       return "%s = %s && %s;";
@@ -108,8 +120,19 @@ static const char* _op_to_fmtstring(lir_operation_t op) {
         case LIR_bXOR:       return "%s = %s ^ %s;";
         case LIR_bAND:       return "%s = %s & %s;";
         case LIR_iMOD:       return "%s = %s %% %s;";
+        case LIR_ADDSS:      return "%s = %s addss %s;";
+        case LIR_ADDSD:      return "%s = %s addsd %s;";
+        case LIR_SUBSS:      return "%s = %s subss %s;";
+        case LIR_SUBSD:      return "%s = %s subsd %s;";
+        case LIR_MULSS:      return "%s = %s mulss %s;";
+        case LIR_MULSD:      return "%s = %s mulsd %s;";
+        case LIR_DIVSS:      return "%s = %s divss %s;";
+        case LIR_DIVSD:      return "%s = %s divsd %s;";
+        case LIR_fSUB:       return "%s = %s f- %s;";
         case LIR_iSUB:       return "%s = %s - %s;";
+        case LIR_fDIV:       return "%s = %s f/ %s;";
         case LIR_iDIV:       return "%s = %s / %s;";
+        case LIR_fMUL:       return "%s = %s f* %s;";
         case LIR_iMUL:       return "%s = %s * %s;";
         case LIR_fADD:       return "%s = %s f+ %s;";
         case LIR_iADD:       return "%s = %s + %s;";
