@@ -1,5 +1,4 @@
 #include <lir/selector/x86_64_gnu_nasm.h>
-// TODO: Complete AVX support
 
 /* Insert block before 'pos' block with the block entry update.
    Params:
@@ -127,6 +126,12 @@ static cfg_dfs_action_t _instruction_selection_block(
     }
     (void)pred;
     iterate_lir_instructions (bb) {
+        int is_float = 0;
+        iterate_lir_args (lir_subject_t* arg, lh, 0) {
+            if (x86_64_gnu_nasm_is_simd_type(arg, smt)) is_float = 1;
+        }
+        lh->op = LIR_format_float_operation(lh->op, is_float);
+
         switch (lh->op) {
             case LIR_STSARG: {
                 int sys_regs[] = { RAX, RDI, RSI, RDX, R10, R8, R9 };
@@ -236,8 +241,8 @@ static cfg_dfs_action_t _instruction_selection_block(
                 break;
             }
             case LIR_LOADFRET: {
-                lh->op   = LIR_iMOV;
-                lh->sarg = x86_64_gnu_nasm_create_tmp(RAX, lh->farg, smt, -1);
+                lh->op   = LIR_format_float_operation(LIR_iMOV, is_float);
+                lh->sarg = x86_64_gnu_nasm_create_tmp(is_float ? XMM0 : RAX, lh->farg, smt, -1);
                 break;
             }
             case LIR_NOT: {
@@ -257,8 +262,10 @@ static cfg_dfs_action_t _instruction_selection_block(
             }
             case LIR_iBRHT: case LIR_iBLFT:
             case LIR_bOR:   case LIR_bXOR:  case LIR_bAND:
+            case LIR_fADD:  case LIR_fSUB:  case LIR_fMUL: case LIR_fDIV:
             case LIR_iMUL:  case LIR_iSUB:  case LIR_iADD: {
                 lir_operation_t nop = lh->op;
+                int float_arithmetic = lh->op == LIR_fADD || lh->op == LIR_fSUB || lh->op == LIR_fMUL || lh->op == LIR_fDIV;
                 if (
                     !(lh->op == LIR_iBRHT || lh->op == LIR_iBLFT) &&
                     lh->farg->t == LIR_REGISTER                   && 
@@ -272,22 +279,23 @@ static cfg_dfs_action_t _instruction_selection_block(
 
                 int shared_size = -1;
                 if (lh->op == LIR_iMUL) shared_size = lh->sarg->size < 4 ? 4 : lh->sarg->size; 
-                lir_subject_t* a_entry = x86_64_gnu_nasm_create_tmp(RAX, lh->sarg, smt, shared_size);
-                lir_subject_t* a_exit  = x86_64_gnu_nasm_create_tmp(RAX, lh->farg, smt, shared_size);
-                _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a_entry, lh->sarg, NULL), lh);
+                lir_subject_t* a_entry = x86_64_gnu_nasm_create_tmp(float_arithmetic ? XMM0 : RAX, lh->sarg, smt, shared_size);
+                lir_subject_t* a_exit  = x86_64_gnu_nasm_create_tmp(float_arithmetic ? XMM0 : RAX, lh->farg, smt, shared_size);
+                lir_operation_t mov    = LIR_format_float_operation(LIR_iMOV, float_arithmetic);
+                _insert_instruction_before(bb, LIR_create_block(mov, a_entry, lh->sarg, NULL), lh);
 
                 if (lh->op == LIR_iBRHT || lh->op == LIR_iBLFT) {
                     lir_subject_t* b_entry = x86_64_gnu_nasm_create_tmp(RCX, lh->targ, smt, 1);
                     _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, b_entry, lh->targ, NULL), lh);
                     lh->targ = b_entry;
                 }
-                else if (a_entry->size == CONF_get_full_bytness()) {
+                else if (!float_arithmetic && a_entry->size == CONF_get_full_bytness()) {
                     lir_subject_t* b = lh->targ;
                     PREPARE_IMM64(b, lh->targ);
                     lh->targ = b;
                 }
 
-                _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, lh->farg, a_exit, NULL), lh);
+                _insert_instruction_after(bb, LIR_create_block(mov, lh->farg, a_exit, NULL), lh);
                 lh->farg = a_exit;
                 lh->sarg = a_entry;
                 lh->op   = nop;
@@ -295,12 +303,11 @@ static cfg_dfs_action_t _instruction_selection_block(
             }
             case LIR_JMP: if (!LIR_is_tailcall(lh)) break;
                           __attribute__ ((fallthrough));
-            case LIR_EXITOP:
-            case LIR_FEND:
-            case LIR_FRET: {
+            case LIR_EXITOP: case LIR_FEND: case LIR_FRET: {
                 if (lh->farg && lh->op != LIR_FEND && !LIR_is_tailcall(lh)) {
-                    lir_subject_t* a = x86_64_gnu_nasm_create_tmp(lh->op == LIR_FRET ? RAX : RDI, lh->farg, smt, -1);
-                    _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->farg, NULL), lh);
+                    int float_return = lh->op == LIR_FRET && is_float;
+                    lir_subject_t* a = x86_64_gnu_nasm_create_tmp(lh->op == LIR_FRET ? (float_return ? XMM0 : RAX) : RDI, lh->farg, smt, -1);
+                    _insert_instruction_before(bb, LIR_create_block(LIR_format_float_operation(LIR_iMOV, float_return), a, lh->farg, NULL), lh);
                     lh->farg = a;
                 }
 
@@ -357,23 +364,58 @@ static cfg_dfs_action_t _instruction_selection_block(
                 break;
 #undef SAVE_VAR_TO_REG
             }
-            CONDITIONAL_CASE(LIR_CMP, lh->farg->t != LIR_VARIABLE,
-                lir_subject_t* a = x86_64_gnu_nasm_create_tmp(RAX, lh->farg, smt, -1);
-                _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->farg, NULL), lh);
+            case LIR_CMP:
+            case LIR_FCMP: {
+                if (lh->farg->t == LIR_VARIABLE) break;
+                lir_subject_t* a = x86_64_gnu_nasm_create_tmp(is_float ? XMM0 : RAX, lh->farg, smt, -1);
+                _insert_instruction_before(bb, LIR_create_block(LIR_format_float_operation(LIR_iMOV, is_float), a, lh->farg, NULL), lh);
                 lh->farg = a;
                 break;
-            )
+            }
             case LIR_iLWR: case LIR_iLRE: case LIR_iLRG: case LIR_iLGE:
-            case LIR_iCMP: case LIR_iNMP: {
-                lir_subject_t* a = x86_64_gnu_nasm_create_tmp(RAX, lh->sarg, smt, -1);
+            case LIR_iCMP: case LIR_iNMP:
+            case LIR_fLWR: case LIR_fLRE: case LIR_fLRG: case LIR_fLGE:
+            case LIR_fCMP: case LIR_fNMP: {
+                if (!lh->targ) break;
+                lir_operation_t comparison = LIR_format_float_operation(lh->op, 0);
+                if (is_float && (comparison == LIR_iLWR || comparison == LIR_iLRE)) {
+                    lir_subject_t* tmp = lh->sarg;
+                    lh->sarg = lh->targ;
+                    lh->targ = tmp;
+                }
+
+                lir_subject_t* a = x86_64_gnu_nasm_create_tmp(is_float ? XMM0 : RAX, lh->sarg, smt, -1);
                 lir_subject_t* b = lh->targ;
-                PREPARE_IMM64(b, lh->targ);
+                if (!is_float) {
+                    PREPARE_IMM64(b, lh->targ);
+                }
 
                 lir_subject_t* res = LIR_SUBJ_REG(AL, 1);
-                _insert_instruction_before(bb, LIR_create_block(LIR_iMOV, a, lh->sarg, NULL), lh);
-                _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, lh->farg, res, NULL), lh);
+                _insert_instruction_before(bb, LIR_create_block(LIR_format_float_operation(LIR_iMOV, is_float), a, lh->sarg, NULL), lh);
+                if (!is_float || !x86_64_gnu_nasm_is_simd_type(lh->farg, smt)) _insert_instruction_after(bb, LIR_create_block(LIR_iMOV, lh->farg, res, NULL), lh);
+                else {
+                    lir_subject_t* integer = LIR_SUBJ_REG(EAX, 4);
+                    _insert_instruction_after(bb, LIR_create_block(lh->farg->size == 4 ? LIR_CVTSI2SS : LIR_CVTSI2SD, lh->farg, integer, NULL), lh);
+                    _insert_instruction_after(bb, LIR_create_block(LIR_MOVZX, integer, res, NULL), lh);
+                }
 
-                switch (lh->op) {
+                if (is_float) switch (comparison) {
+                    case LIR_iCMP: case LIR_iNMP: {
+                        lir_subject_t* ordered  = LIR_SUBJ_REG(DL, 1);
+                        lir_operation_t combine = comparison == LIR_iCMP ? LIR_bAND : LIR_bOR;
+                        _insert_instruction_after(bb, LIR_create_block(combine, res, res, ordered), lh);
+                        _insert_instruction_after(bb, LIR_create_block(comparison == LIR_iCMP ? LIR_SETE : LIR_SETA, res, NULL, NULL), lh);
+                        _insert_instruction_after(bb, LIR_create_block(comparison == LIR_iCMP ? LIR_STAE : LIR_SETB, ordered, NULL, NULL), lh);
+                        break;
+                    }
+                    default: {
+                        _insert_instruction_after(bb, LIR_create_block(
+                            comparison == LIR_iLRG || comparison == LIR_iLWR ? LIR_SETA : LIR_STAE, res, NULL, NULL
+                        ), lh);
+                        break;
+                    }
+                }
+                else switch (comparison) {
                     case LIR_iCMP: _insert_instruction_after(bb, LIR_create_block(LIR_SETE, res, NULL, NULL), lh); break;
                     case LIR_iNMP: _insert_instruction_after(bb, LIR_create_block(LIR_STNE, res, NULL, NULL), lh); break;
                     default: {
@@ -398,9 +440,10 @@ static cfg_dfs_action_t _instruction_selection_block(
                     }
                 }
 
-                lh->op = LIR_CMP;
+                lh->op = LIR_format_float_operation(LIR_CMP, is_float);
                 lh->farg = a;
                 lh->sarg = b;
+                lh->targ = NULL;
                 break;
             }
             case LIR_TF64: case LIR_TF32: 
@@ -409,6 +452,14 @@ static cfg_dfs_action_t _instruction_selection_block(
                 lh->op = x86_64_gnu_nasm_get_proper_mov(lh->farg, lh->sarg, smt, LIR_iMOV);
                 break;
             }
+            default: break;
+        }
+        switch (lh->op) {
+            case LIR_fADD: lh->op = lh->sarg->size == 4 ? LIR_ADDSS : LIR_ADDSD; break;
+            case LIR_fSUB: lh->op = lh->sarg->size == 4 ? LIR_SUBSS : LIR_SUBSD; break;
+            case LIR_fMUL: lh->op = lh->sarg->size == 4 ? LIR_MULSS : LIR_MULSD; break;
+            case LIR_fDIV: lh->op = lh->sarg->size == 4 ? LIR_DIVSS : LIR_DIVSD; break;
+            case LIR_FCMP: lh->op = lh->farg->size == 4 ? LIR_UCOMISS : LIR_UCOMISD; break;
             default: break;
         }
     }
