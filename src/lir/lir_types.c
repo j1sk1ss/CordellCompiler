@@ -1,5 +1,23 @@
 #include <lir/lir_types.h>
 
+lir_operation_t LIR_format_float_operation(lir_operation_t op, int is_float) {
+    switch (op) {
+        case LIR_CMP:  case LIR_FCMP: return is_float ? LIR_FCMP : LIR_CMP;
+        case LIR_iMOV: case LIR_fMOV: return is_float ? LIR_fMOV : LIR_iMOV;
+        case LIR_iADD: case LIR_fADD: return is_float ? LIR_fADD : LIR_iADD;
+        case LIR_iSUB: case LIR_fSUB: return is_float ? LIR_fSUB : LIR_iSUB;
+        case LIR_iMUL: case LIR_fMUL: return is_float ? LIR_fMUL : LIR_iMUL;
+        case LIR_iDIV: case LIR_fDIV: return is_float ? LIR_fDIV : LIR_iDIV;
+        case LIR_iLRG: case LIR_fLRG: return is_float ? LIR_fLRG : LIR_iLRG;
+        case LIR_iLGE: case LIR_fLGE: return is_float ? LIR_fLGE : LIR_iLGE;
+        case LIR_iLWR: case LIR_fLWR: return is_float ? LIR_fLWR : LIR_iLWR;
+        case LIR_iLRE: case LIR_fLRE: return is_float ? LIR_fLRE : LIR_iLRE;
+        case LIR_iCMP: case LIR_fCMP: return is_float ? LIR_fCMP : LIR_iCMP;
+        case LIR_iNMP: case LIR_fNMP: return is_float ? LIR_fNMP : LIR_iNMP;
+        default: return op;
+    }
+}
+
 lir_registers_t LIR_format_register(lir_registers_t reg, int size) {
 #define CONVERTER(e, h, q, d)          \
     do {                               \

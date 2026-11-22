@@ -245,6 +245,15 @@ typedef enum {
    Returns register with a fixed size. */
 lir_registers_t LIR_format_register(lir_registers_t reg, int size);
 
+/* Select the integer or floating-point variant of an operation.
+   Operations without a matching variant are returned unchanged.
+   Params:
+       - `op` - Source operation.
+       - `is_float` - Select the float variant if nonzero, integer otherwise.
+
+   Returns the operation for the requested operand type. */
+lir_operation_t LIR_format_float_operation(lir_operation_t op, int is_float);
+
 /* Check is the LIR operation is a mov-like operation.
    Note: Move-like operation is an operation that moves some data
          from a source to a destination.
