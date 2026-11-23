@@ -3,6 +3,8 @@
 lir_subject_t* i386_gnu_nasm_create_tmp(lir_registers_t reg, lir_subject_t* src, sym_table_t* smt, int forced_size) {
     token_type_t vtype = TMP_TYPE_TOKEN;
     int vsize = forced_size < 0 ? src->size : forced_size;
+    basic_object_info_t flags = EMPTY_BASIC_FLAGS;
+    if (i386_gnu_nasm_is_simd_type(src, smt)) vtype = vsize == 4 ? TMP_F32_TYPE_TOKEN : TMP_F64_TYPE_TOKEN;
     if (vsize > 4) vsize = 4;
 
     variable_info_t vi;
@@ -11,26 +13,15 @@ lir_subject_t* i386_gnu_nasm_create_tmp(lir_registers_t reg, lir_subject_t* src,
         VRTB_get_info_id(src->storage.var.v_id, &vi, &smt->v)
     ) {
         vtype = vi.type;
+        flags.ptr = vi.vfs.ptr;
         if (forced_size < 0 && vi.vfs.ptr > 0) vsize = 4;
     }
     
-    symbol_id_t cpy = VRTB_add_info(NULL, vtype, NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v);
+    symbol_id_t cpy = VRTB_add_info(NULL, vtype, NO_SYMBOL_ID, flags, &smt->v);
     VRTB_update_memory(cpy, FIELD_NO_CHANGE, vsize, reg, FIELD_NO_CHANGE, &smt->v);
     lir_subject_t* new = LIR_SUBJ_VAR(cpy, vsize);
     new->dsize = src->dsize;
     return new;
-}
-
-static int _is_f64_type(lir_subject_t* s, sym_table_t* smt) {
-    if (s->t == LIR_NUMBER) return s->storage.num.is_float && s->size == 4;
-    if (s->t != LIR_VARIABLE && s->t != LIR_GLVARIABLE) return 0;
-    variable_info_t vi;
-    if (!VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) return 0;
-    switch (vi.type) {
-        case TMP_F64_TYPE_TOKEN:
-        case F64_TYPE_TOKEN: return 1;
-        default: return 0;
-    }
 }
 
 int i386_gnu_nasm_is_sign_type(lir_subject_t* s, sym_table_t* smt) {
@@ -47,37 +38,50 @@ int i386_gnu_nasm_is_sign_type(lir_subject_t* s, sym_table_t* smt) {
 }
 
 int i386_gnu_nasm_is_simd_type(lir_subject_t* s, sym_table_t* smt) {
+    if (!s) return 0;
     if (s->t == LIR_NUMBER) return s->storage.num.is_float;
+    if (s->t == LIR_REGISTER) return s->storage.reg.reg >= XMM0 && s->storage.reg.reg <= XMM7;
     if (s->t != LIR_VARIABLE && s->t != LIR_GLVARIABLE) return 0;
     variable_info_t vi;
     if (!VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) return 0;
     switch (vi.type) {
+        case F64_TYPE_TOKEN: case F32_TYPE_TOKEN:
         case TMP_F64_TYPE_TOKEN: case TMP_F32_TYPE_TOKEN:
-        case F64_TYPE_TOKEN:     case F32_TYPE_TOKEN: return 1;
+        case F64_VARIABLE_TOKEN: case F32_VARIABLE_TOKEN: return vi.vfs.ptr == 0;
         default: return 0;
     }
 }
 
 lir_operation_t i386_gnu_nasm_get_proper_mov(lir_subject_t* a, lir_subject_t* b, sym_table_t* smt, lir_operation_t base) {
+    int to_float   = i386_gnu_nasm_is_simd_type(a, smt);
     int from_float = i386_gnu_nasm_is_simd_type(b, smt);
-    int from_f64   = _is_f64_type(b, smt);
-    if (i386_gnu_nasm_is_simd_type(a, smt)) {
-        int to_f64 = _is_f64_type(a, smt);
-        if (!from_float) return to_f64 ? LIR_CVTSI2SD : LIR_CVTSI2SS;
+
+    if (to_float) {
+        if (from_float) {
+            if (b->size == 4 && a->size == 8)      return LIR_CVTSS2SD;
+            else if (b->size == 8 && a->size == 4) return LIR_CVTSD2SS;
+            return LIR_format_float_operation(base, 1);
+        } 
         else {
-            if (!from_f64 && to_f64) return LIR_CVTSS2SD;
-            if (from_f64 && !to_f64) return LIR_CVTSD2SS;
-            return base;
+            return a->size == 4 ? LIR_CVTSI2SS : LIR_CVTSI2SD;
         }
     }
     else {
-        if (b->t == LIR_NUMBER) return base;
-        if (from_float) return from_f64 ? LIR_CVTTSD2SI : LIR_CVTTSS2SI;
+        int from_sign = i386_gnu_nasm_is_sign_type(b, smt);
+        int from_num  = b->t == LIR_NUMBER;
+        if (from_float) {
+            if (b->size == 4) return LIR_CVTTSS2SI;
+            else return LIR_CVTTSD2SI;
+        }
         else {
-            if (a->size > b->size) return i386_gnu_nasm_is_sign_type(b, smt) ? LIR_MOVSX : LIR_MOVZX;
-            else {
+            if (from_num) return base;
+            if (a->size <= b->size) {
                 b->size = a->size;
                 return LIR_iMOV;
+            }
+            else {
+                if (b->size == 4 && a->size == 8) return from_sign ? LIR_MOVSXD : base;
+                else return from_sign ? LIR_MOVSX : LIR_MOVZX;
             }
         }
     }

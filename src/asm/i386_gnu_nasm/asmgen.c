@@ -119,7 +119,7 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_CVTSS2SD:   EMIT_COMMAND("cvtss2sd %s, %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));  break;
         case LIR_CVTSD2SS:   EMIT_COMMAND("cvtsd2ss %s, %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));  break;
         case LIR_fMOV:
-        case LIR_fMVf:       EMIT_COMMAND("movsd %s, %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));     break;
+        case LIR_fMVf:       EMIT_COMMAND(b->farg->size == 8 ? "movsd %s, %s" : "movss %s, %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));     break;
         case LIR_REF:        EMIT_COMMAND("lea %s, %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->sarg, smt, LEA_FLAG));      break;
         case LIR_REF_GDREF:  EMIT_COMMAND("lea %s, [%s]", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->sarg, smt, LEA_FLAG));    break;
         case LIR_LDREF:      EMIT_COMMAND("mov %s, %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, LDREF_FLAG), i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));    break;
@@ -137,11 +137,16 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_iAND:       EMIT_COMMAND("and %s, %s", i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->targ, smt, NO_FLAG));       break;
         case LIR_bOR:
         case LIR_iOR:        EMIT_COMMAND("or %s, %s", i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->targ, smt, NO_FLAG));        break;
-        case LIR_fADD:       EMIT_COMMAND("addsd %s, %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));     break;
-        case LIR_fSUB:       EMIT_COMMAND("subsd %s, %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));     break;
-        case LIR_fMUL:       EMIT_COMMAND("mulsd %s, %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));     break;
-        case LIR_fDIV:       EMIT_COMMAND("divsd %s, %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));     break;
-        case LIR_fCMP:       EMIT_COMMAND("ucomisd %s, %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));   break;
+        case LIR_ADDSS:      EMIT_COMMAND("addss %s, %s", i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->targ, smt, NO_FLAG)); break;
+        case LIR_ADDSD:      EMIT_COMMAND("addsd %s, %s", i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->targ, smt, NO_FLAG)); break;
+        case LIR_SUBSS:      EMIT_COMMAND("subss %s, %s", i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->targ, smt, NO_FLAG)); break;
+        case LIR_SUBSD:      EMIT_COMMAND("subsd %s, %s", i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->targ, smt, NO_FLAG)); break;
+        case LIR_MULSS:      EMIT_COMMAND("mulss %s, %s", i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->targ, smt, NO_FLAG)); break;
+        case LIR_MULSD:      EMIT_COMMAND("mulsd %s, %s", i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->targ, smt, NO_FLAG)); break;
+        case LIR_DIVSS:      EMIT_COMMAND("divss %s, %s", i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->targ, smt, NO_FLAG)); break;
+        case LIR_DIVSD:      EMIT_COMMAND("divsd %s, %s", i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->targ, smt, NO_FLAG)); break;
+        case LIR_UCOMISS:    EMIT_COMMAND("ucomiss %s, %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG)); break;
+        case LIR_UCOMISD:    EMIT_COMMAND("ucomisd %s, %s", i386_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG)); break;
         case LIR_bXOR:       EMIT_COMMAND("xor %s, %s", i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->targ, smt, NO_FLAG));       break;
         case LIR_iBLFT:
         case LIR_bSHL:       EMIT_COMMAND("shl %s, %s", i386_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), i386_gnu_nasm_format_lir_subject(b->targ, smt, NO_FLAG));       break;
