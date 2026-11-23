@@ -138,11 +138,16 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_iAND:       EMIT_COMMAND("and %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG));       break;
         case LIR_bOR:
         case LIR_iOR:        EMIT_COMMAND("or %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG));        break;
-        case LIR_fADD:       EMIT_COMMAND("addsd %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));     break;
-        case LIR_fSUB:       EMIT_COMMAND("subsd %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));     break;
-        case LIR_fMUL:       EMIT_COMMAND("mulsd %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));     break;
-        case LIR_fDIV:       EMIT_COMMAND("divsd %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));     break;
-        case LIR_fCMP:       EMIT_COMMAND("ucomisd %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));   break;
+        case LIR_ADDSS:      EMIT_COMMAND("addss %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG)); break;
+        case LIR_ADDSD:      EMIT_COMMAND("addsd %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG)); break;
+        case LIR_SUBSS:      EMIT_COMMAND("subss %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG)); break;
+        case LIR_SUBSD:      EMIT_COMMAND("subsd %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG)); break;
+        case LIR_MULSS:      EMIT_COMMAND("mulss %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG)); break;
+        case LIR_MULSD:      EMIT_COMMAND("mulsd %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG)); break;
+        case LIR_DIVSS:      EMIT_COMMAND("divss %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG)); break;
+        case LIR_DIVSD:      EMIT_COMMAND("divsd %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG)); break;
+        case LIR_UCOMISS:    EMIT_COMMAND("ucomiss %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG)); break;
+        case LIR_UCOMISD:    EMIT_COMMAND("ucomisd %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG)); break;
         case LIR_bXOR:       EMIT_COMMAND("xor %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG));       break;
         case LIR_iBLFT:
         case LIR_bSHL:       EMIT_COMMAND("shl %s, %s", x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->targ, smt, NO_FLAG));       break;
