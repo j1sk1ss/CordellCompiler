@@ -127,7 +127,7 @@ static inline int _same_full_register(lir_subject_t* a, lir_subject_t* b) {
 static inline lir_block_t* _find_pre_argload(lir_block_t* lh, lir_block_t* ex) {
     lir_subject_t* last = NULL;
     while (lh && lh != ex) {
-        if (lh->op == LIR_PUSH) {
+        if (lh->op == LIR_PUSH || lh->op == LIR_fPUSH) {
             last = lh->farg;
             goto _next_inst;
         }
@@ -154,7 +154,7 @@ static int _count_post_argload_pushes(lir_block_t* pre, lir_block_t* call) {
     while (lh && lh != call) {
         lir_block_t* next = lh->next;
         if (
-            lh->op == LIR_PUSH && lh->farg && 
+            (lh->op == LIR_PUSH || lh->op == LIR_fPUSH) && lh->farg && 
             lh->farg->t == LIR_REGISTER && _is_function_arg(lh->farg->storage.reg.reg)
         ) count++;
         lh = next;
@@ -165,7 +165,7 @@ static int _count_post_argload_pushes(lir_block_t* pre, lir_block_t* call) {
 
 static inline lir_block_t* _find_post_argunload(lir_block_t* lh, lir_block_t* ex, int skip_pops) {
     while (lh && lh != ex) {
-        if (lh->op == LIR_POP && skip_pops-- > 0) {
+        if ((lh->op == LIR_POP || lh->op == LIR_fPOP) && skip_pops-- > 0) {
             lh = lh->next;
             continue;
         }
@@ -245,13 +245,21 @@ int x86_64_macho_nasm_caller_saving(cfg_ctx_t* cctx, sym_table_t* smt) {
 
                         lir_block_t* push_pos = pre;
                         for (int i = 0; i < regs_count; i++) {
-                            lir_block_t* push = LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(regs[i], CONF_get_full_bytness()), NULL, NULL);
-                            LIR_insert_block_after(push, push_pos);
-                            push_pos = push;
+                            if (regs[i] >= XMM0 && regs[i] <= XMM7) {
+                                lir_block_t* fpush = LIR_create_block(LIR_fPUSH, LIR_SUBJ_REG(regs[i], 16), NULL, NULL);
+                                LIR_insert_block_after(fpush, push_pos);
+                                push_pos = fpush;
+                            }
+                            else {
+                                lir_block_t* push = LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(regs[i], CONF_get_full_bytness()), NULL, NULL);
+                                LIR_insert_block_after(push, push_pos);
+                                push_pos = push;
+                            }
                         }
 
                         for (int i = regs_count - 1; i >= 0; i--) {
-                            LIR_insert_block_before(LIR_create_block(LIR_POP, LIR_SUBJ_REG(regs[i], CONF_get_full_bytness()), NULL, NULL), post);
+                            if (regs[i] >= XMM0 && regs[i] <= XMM7) LIR_insert_block_before(LIR_create_block(LIR_fPOP, LIR_SUBJ_REG(regs[i], 16), NULL, NULL), post);
+                            else LIR_insert_block_before(LIR_create_block(LIR_POP, LIR_SUBJ_REG(regs[i], CONF_get_full_bytness()), NULL, NULL), post);
                         }
                         
                         set_free(&func_regs);

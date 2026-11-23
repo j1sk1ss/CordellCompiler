@@ -104,12 +104,15 @@ typedef enum {
 
         LIR_fMOV,      // float move
         LIR_fMVf,      // float to float move
+        LIR_MOVDQU,    // unaligned 128-bit xmm <-> memory move
         LIR_REF,       // a = &y
         LIR_REF_GDREF, // a = &*y
         LIR_GDREF,     // get value from address, x = *y
         LIR_LDREF,     // set value by address,   *x = y
         LIR_PUSH,      // push
         LIR_POP,       // pop
+        LIR_fPUSH,     // xmm push: reserve 16-byte slot, store the register (expanded in memory validation)
+        LIR_fPOP,      // xmm pop:  load the register from the slot, release it (expanded in memory validation)
 
     /* Integer */
         /* Binary operations */

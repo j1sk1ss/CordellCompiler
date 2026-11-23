@@ -266,7 +266,8 @@ static cfg_dfs_action_t _instruction_selection_block(
 
                 long dirty;
                 while (queue_pop(dirty_regs, (void**)&dirty)) {
-                    _insert_instruction_after(bb, LIR_create_block(LIR_POP, LIR_SUBJ_REG(dirty, CONF_get_full_bytness()), NULL, NULL), lh);
+                    if (dirty < XMM0 || dirty > XMM7) _insert_instruction_after(bb, LIR_create_block(LIR_POP, LIR_SUBJ_REG(dirty, CONF_get_full_bytness()), NULL, NULL), lh);
+                    else _insert_instruction_after(bb, LIR_create_block(LIR_fPOP, LIR_SUBJ_REG(dirty, 16), NULL, NULL), lh);
                 }
 
                 if (ctx->clean_stack) { // clean stack args
@@ -308,7 +309,9 @@ static cfg_dfs_action_t _instruction_selection_block(
                 else {
                     lir_subject_t* nfarg = x86_64_macho_nasm_create_tmp(target.reg, lh->farg, smt, -1);
                     if (call_kind != 2) {
-                        LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(target.reg, CONF_get_full_bytness()), NULL, NULL), lh);
+                        if (target.reg < XMM0 || target.reg > XMM7) LIR_insert_block_before(LIR_create_block(LIR_PUSH, LIR_SUBJ_REG(target.reg, CONF_get_full_bytness()), NULL, NULL), lh);
+                        else LIR_insert_block_before(LIR_create_block(LIR_fPUSH, LIR_SUBJ_REG(target.reg, 16), NULL, NULL), lh);
+
                         queue_push(dirty_regs, (void*)((long)target.reg));
                     }
 

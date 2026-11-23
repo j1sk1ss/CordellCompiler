@@ -121,6 +121,7 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_CVTSD2SS:   EMIT_COMMAND("cvtsd2ss %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));  break;
         case LIR_fMOV:
         case LIR_fMVf:       EMIT_COMMAND("movsd %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));     break;
+        case LIR_MOVDQU:     EMIT_COMMAND("movdqu %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));     break;
         case LIR_REF:        EMIT_COMMAND("lea %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, LEA_FLAG));      break;
         case LIR_REF_GDREF:  EMIT_COMMAND("lea %s, [%s]", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, LEA_FLAG));    break;
         case LIR_LDREF:      EMIT_COMMAND("mov %s, %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, LDREF_FLAG), x86_64_macho_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));    break;

@@ -34,9 +34,10 @@ static const char* _format_lir_register(lir_registers_t reg) {
 static const char* _get_mem_modifier(int size) {
     const char* modifier = "dword ";
     switch (size) {
-        case 4: modifier = "dword "; break;
-        case 2: modifier = "word ";  break;
-        case 1: modifier = "byte ";  break;
+        case 16: modifier = "";       break;
+        case 4:  modifier = "dword "; break;
+        case 2:  modifier = "word ";  break;
+        case 1:  modifier = "byte ";  break;
         default: break;
     }
     

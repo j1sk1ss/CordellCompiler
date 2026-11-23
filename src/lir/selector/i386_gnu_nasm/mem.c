@@ -248,6 +248,38 @@ static int _validate_size_movs(cfg_block_t* bb, sym_table_t* smt) {
     return 1;
 }
 
+static int _expand_float_pushpop(cfg_block_t* bb) {
+    iterate_lir_instructions (bb) {
+        switch (lh->op) {
+            case LIR_fPUSH: {
+                if (!lh->farg || lh->farg->t != LIR_REGISTER) break;
+                lir_block_t* mov = LIR_create_block(LIR_MOVDQU, LIR_SUBJ_OFF(ESP, 0, 16), lh->farg, NULL);
+                if (!mov || !LIR_insert_block_after(mov, lh)) return 0;
+                if (bb->lmap.exit == lh) bb->lmap.exit = mov;
+                lh->op   = LIR_iSUB;
+                lh->farg = LIR_SUBJ_REG(ESP, CONF_get_full_bytness());
+                lh->sarg = LIR_SUBJ_REG(ESP, CONF_get_full_bytness());
+                lh->targ = LIR_SUBJ_CONST(16);
+                break;
+            }
+            case LIR_fPOP: {
+                if (!lh->farg || lh->farg->t != LIR_REGISTER) break;
+                lir_block_t* mov = LIR_create_block(LIR_MOVDQU, lh->farg, LIR_SUBJ_OFF(ESP, 0, 16), NULL);
+                if (!mov || !LIR_insert_block_before(mov, lh)) return 0;
+                if (bb->lmap.entry == lh) bb->lmap.entry = mov;
+                lh->op   = LIR_iADD;
+                lh->farg = LIR_SUBJ_REG(ESP, CONF_get_full_bytness());
+                lh->sarg = LIR_SUBJ_REG(ESP, CONF_get_full_bytness());
+                lh->targ = LIR_SUBJ_CONST(16);
+                break;
+            }
+            default: break;
+        }
+    }
+
+    return 1;
+}
+
 /* After the memory selection we should be sure that this LIR is valid. 
 Valid LIR implies that there is no wrong instructions such as movs "from mem to mem", 
 ops "mem with mem", etc.
@@ -535,6 +567,7 @@ int i386_gnu_nasm_memory_validation(cfg_ctx_t* cctx, sym_table_t* smt) {
         func_info_t fi;
         if (!FNTB_get_info_id(fb->f_id, &fi, &smt->f)) continue;
         foreach (cfg_block_t* bb, &fb->blocks) {
+            _expand_float_pushpop(bb);
             _validate_selected_instuction(bb, smt);
             _validate_size_movs(bb, smt);
             if (fi.flags.naked != 1) continue;

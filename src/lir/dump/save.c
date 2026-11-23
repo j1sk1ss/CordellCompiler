@@ -39,6 +39,8 @@ static const char* _op_to_fmtstring(lir_operation_t op) {
         case LIR_STEND:      return "send";
         case LIR_PUSH:       return "push(%s);";
         case LIR_POP:        return "%s = pop();";
+        case LIR_fPUSH:      return "fpush(%s);";
+        case LIR_fPOP:       return "%s = fpop();";
         case LIR_FEXT:       return "(fun) extern %s;";
         case LIR_OEXT:       return "(var) extern %s;";
         case LIR_TST:        return "test %s, %s;";
@@ -58,6 +60,7 @@ static const char* _op_to_fmtstring(lir_operation_t op) {
         case LIR_phiMOV:     return "[SSA] %s = %s;";
         case LIR_fMVf:
         case LIR_fMOV:       return "%s f= %s;";
+        case LIR_MOVDQU:     return "movdqu %s, %s;";
         case LIR_iMOV:       return "%s = %s;";
         case LIR_STARGLD:    return "%s = strt_loadarg();";
         case LIR_STARGRF:    return "%s = strt_ref_loadarg();";
