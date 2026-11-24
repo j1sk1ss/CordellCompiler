@@ -424,6 +424,7 @@ token_type_t HIR_get_tmptkn_type(hir_subject_type_t t) {
 
 int HIR_is_float(hir_subject_type_t t) {
     switch (t) {
+        case HIR_F64NUMBER: case HIR_F32NUMBER:
         case HIR_GLBVARF64: case HIR_STKVARF64: case HIR_TMPVARF64:
         case HIR_GLBVARF32: case HIR_STKVARF32: case HIR_TMPVARF32: return 1;
         default: return 0;

@@ -43,15 +43,28 @@ static lir_subject_t* _convert_hs_to_ls(hir_subject_t* subj) {
     }
 }
 
-static int _translate_params_list(lir_operation_t op, lir_ctx_t* ctx, list_t* hir_args, list_t* lir_args) {
-    int argnum = 0, arg_count = list_size(hir_args) - 1;
+static int _translate_params_list(lir_operation_t op, lir_ctx_t* ctx, list_t* hir_args, list_t* lir_args, int* sse_args) {
+    int arg_count = list_size(hir_args) - 1, sse = 0;
     list_iter_t it;
     list_iter_tinit(hir_args, &it);
     hir_subject_t* hir_arg;
     while ((hir_arg = list_iter_prev(&it))) {
+        if (!hir_arg->ptr && HIR_is_float(hir_arg->t)) sse++;
+    }
+
+    if (sse_args) {
+        *sse_args = sse;
+    }
+
+    int sse_idx = 0, int_idx = 0;
+    list_iter_tinit(hir_args, &it);
+    while ((hir_arg = list_iter_prev(&it))) {
         lir_subject_t* lir_arg = _convert_hs_to_ls(hir_arg);
         list_add(lir_args, lir_arg);
-        LIR_BLOCK2(ctx, op, lir_arg, LIR_SUBJ_CONST(arg_count - argnum++));
+        LIR_BLOCK2(
+            ctx, op, lir_arg, 
+            LIR_SUBJ_CONST((!hir_arg->ptr && HIR_is_float(hir_arg->t)) ? sse - sse_idx++ - 1 : arg_count - sse - int_idx++)
+        );
     }
 
     return 1;
@@ -77,11 +90,18 @@ static int _convert_hir_to_lir(sstack_t* params, hir_block_t* h, lir_ctx_t* ctx,
         case HIR_UFCLL:       case HIR_FCLL:       case HIR_ECLL: 
         case HIR_STORE_UFCLL: case HIR_STORE_FCLL: case HIR_STORE_ECLL: {
             lir_subject_t* sargs = LIR_SUBJ_LIST();
-            _translate_params_list(LIR_STFARG, ctx, &h->targ->storage.list.h, &sargs->storage.list.h);
+            int sse_args = 0;
+            _translate_params_list(LIR_STFARG, ctx, &h->targ->storage.list.h, &sargs->storage.list.h, &sse_args);
+            lir_subject_t* sarg = NULL;
+            if (h->sarg->t == HIR_FNAME) {
+                func_info_t fi;
+                if (FNTB_get_info_id(h->sarg->storage.str.s_id, &fi, &smt->f) && fi.flags.vargs) sarg = LIR_SUBJ_CONST(sse_args);
+            }
+            
             LIR_BLOCK3(
                 ctx, LIR_FCLL, 
                 h->sarg->t == HIR_FNAME ? LIR_SUBJ_FUNCNAME(h->sarg) : _convert_hs_to_ls(h->sarg), 
-                NULL, sargs
+                sarg, sargs
             );
 
             if (
@@ -96,7 +116,7 @@ static int _convert_hir_to_lir(sstack_t* params, hir_block_t* h, lir_ctx_t* ctx,
         case HIR_SYSC: 
         case HIR_STORE_SYSC: {
             lir_subject_t* sargs = LIR_SUBJ_LIST();
-            _translate_params_list(LIR_STSARG, ctx, &h->targ->storage.list.h, &sargs->storage.list.h);
+            _translate_params_list(LIR_STSARG, ctx, &h->targ->storage.list.h, &sargs->storage.list.h, NULL);
             LIR_BLOCK3(ctx, LIR_SYSC, NULL, NULL, sargs);
             if (h->op == HIR_STORE_SYSC) LIR_BLOCK1(ctx, LIR_LOADFRET, _convert_hs_to_ls(h->farg));
             return 1;
