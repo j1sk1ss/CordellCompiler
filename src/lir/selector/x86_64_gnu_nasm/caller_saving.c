@@ -237,7 +237,7 @@ int x86_64_gnu_nasm_caller_saving(cfg_ctx_t* cctx, sym_table_t* smt) {
                         int regs_count = 0;
                         set_foreach (long reg, &save_regs) {
                             if (
-                                reg == RAX || reg == RSP || reg == RBP || 
+                                reg == RAX || reg == XMM0 || reg == RSP || reg == RBP ||
                                 regs_count >= (int)(sizeof(regs) / sizeof(regs[0]))
                             ) continue;
                             regs[regs_count++] = reg;
