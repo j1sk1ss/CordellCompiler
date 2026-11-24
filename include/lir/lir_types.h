@@ -102,6 +102,7 @@ typedef enum {
         LIR_INC,
         LIR_DEC,
 
+        LIR_fMOVQ,     // movq
         LIR_fMOV,      // float move
         LIR_fMVf,      // float to float move
         LIR_MOVDQU,    // unaligned 128-bit xmm <-> memory move

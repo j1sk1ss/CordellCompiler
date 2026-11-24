@@ -359,10 +359,19 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
                     lh->op   = LIR_iMOV;
                     break;
                 }
+                case LIR_fMOV: {
+                    if (LIR_is_defined_type(lh->sarg->t)) {
+                        lir_subject_t* tmp = x86_64_gnu_nasm_create_tmp(R15, lh->sarg, smt, lh->farg->size);
+                        list_add(&fixes, LIR_create_block(LIR_iMOV, tmp, lh->sarg, NULL));
+                        lh->sarg = tmp;
+                        lh->op   = LIR_fMOVQ;
+                    }
+                    break;
+                }
                 case LIR_CVTSS2SD: case LIR_CVTSD2SS: case LIR_CVTTSS2SI: case LIR_CVTTSD2SI:
                 case LIR_CVTSI2SS: case LIR_CVTSI2SD:
                 case LIR_MOVSX:    case LIR_MOVZX:    case LIR_phiMOV:    case LIR_MOVSXD:
-                case LIR_iMOV:     case LIR_aMOV:     case LIR_fMOV: {
+                case LIR_iMOV:     case LIR_aMOV: {
                     if (lh->farg->t == LIR_REGISTER) break;
                     if (LIR_is_defined_type(lh->sarg->t) && lh->farg->size != 8) {
                         long long def_val = _get_defined_value(lh->sarg);
