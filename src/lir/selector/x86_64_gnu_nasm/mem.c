@@ -6,13 +6,15 @@
    
    Returns 1 if this is a valid register. */
 static inline int _is_regular_register(lir_registers_t r) {
-    if (r > R15 || r < 0) return 0;
+    if (r >= XMM0 && r <= XMM7) return 1;
+    if (r > R15 || r < 0)       return 0;
     lir_registers_t base = LIR_format_register(r, 8);
     if (base == RBP || base == RSP) return 0;
     return 1;
 }
 
 static const lir_registers_t _regular_registers[] = { RCX, RDX, RBX, RSI, RDI, R8, R9, R10, R11, R12, R13, R14 };
+static const lir_registers_t _avx_registers[]     = { XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7 };
 
 /* Convert color (index) value to a register.
    The idea, that colors don't care about special and reserved registers (such as RSP, RBP, etc.),
@@ -21,9 +23,13 @@ static const lir_registers_t _regular_registers[] = { RCX, RDX, RBX, RSI, RDI, R
        - `color` - Color to convert.
    
    Returns the converted register. */
-static inline lir_registers_t _convert_color_to_register(long color) {
-    if (color < 0 || color >= (long)(sizeof(_regular_registers) / sizeof(_regular_registers[0]))) return -1;
-    return _regular_registers[color];
+static inline lir_registers_t _convert_color_to_register(long color, int is_float) {
+    if (
+        color < 0 || 
+        (!is_float && color >= (long)(sizeof(_regular_registers) / sizeof(_regular_registers[0]))) ||
+        (is_float && color >= (long)(sizeof(_avx_registers) / sizeof(_avx_registers[0])))
+    ) return -1;
+    return is_float ? _avx_registers[color] : _regular_registers[color];
 }
 
 /* Update information about memory allocation in the provided lir subject.
@@ -46,10 +52,10 @@ static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* col
     vi.vmi.size = s->size;
     if (!vi.vmi.allocated) {
         if (
-            colors && map_get(colors, s->storage.var.v_id, (void**)&color) &&     /* If the clor is found         */
-            color >= 0 && _is_regular_register(_convert_color_to_register(color)) /* And if this a valid register */
+            colors && map_get(colors, s->storage.var.v_id, (void**)&color) &&                            /* If the clor is found         */
+            color >= 0 && _is_regular_register(_convert_color_to_register(color, TKN_is_float(vi.type))) /* And if this a valid register */
         ) {
-            vi.vmi.reg    = _convert_color_to_register(color);
+            vi.vmi.reg    = _convert_color_to_register(color, TKN_is_float(vi.type));
             vi.vmi.offset = SMT_NULL;
         }
         else {
