@@ -320,8 +320,10 @@ int TKN_is_float(token_type_t t) {
         case F64_VARIABLE_TOKEN:
         case F32_VARIABLE_TOKEN:
         case F64_TYPE_TOKEN:
-        case F32_TYPE_TOKEN: return 1;
-        default:             return 0;
+        case F32_TYPE_TOKEN:
+        case TMP_F64_TYPE_TOKEN:
+        case TMP_F32_TYPE_TOKEN: return 1;
+        default:                 return 0;
     }
 }
 
