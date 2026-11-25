@@ -209,6 +209,20 @@ int LIR_unload_blocks(lir_block_t* block) {
     return 0;
 }
 
+/* Check whether an instruction writes through an address or to memory.
+   Params:
+       - `block` - LIR instruction.
+
+   Returns 1 for a memory write, otherwise 0. */
+int LIR_is_memory_write(lir_block_t* block) {
+    if (!block || !block->farg) return 0;
+    if (block->op == LIR_LDREF || block->op == LIR_fLDREF) return 1;
+    return LIR_is_writeop(block->op) && (
+        block->farg->t == LIR_MEMORY || block->farg->t == LIR_GLVARIABLE ||
+        block->farg->t == LIR_STVARIABLE
+    );
+}
+
 /* Check whether a subject stores a scalar float value.
    Params:
        - `subj` - LIR subject.

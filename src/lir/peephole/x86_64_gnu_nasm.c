@@ -175,7 +175,7 @@ static int _cleanup_pass(cfg_block_t* bb) {
     iterate_lir_instructions (bb) {
         if (
             !lh->unused &&
-            !_is_stack_pointer_subject(lh->farg) &&
+            !_is_stack_pointer_subject(lh->farg) && !LIR_is_memory_write(lh) &&
             LIR_is_writeop(lh->op) && !LIR_has_sideeffect(lh->op)
         ) {
             if (CFG_DFS_WALK(bb, _cleanup_walk_logic, lh->op, lh->farg, lh, lh->next)) {

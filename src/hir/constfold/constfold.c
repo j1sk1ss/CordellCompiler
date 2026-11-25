@@ -17,7 +17,7 @@ Params:
 
 Returns 1 if parsing succeeded, otherwise 0. */
 static int _parse_const(dag_node_t* nd, const_t* cnst, sym_table_t* smt) {
-    if (!nd) return 0;
+    if (!nd || (HIR_is_float(nd->src->t) && !nd->src->ptr)) return 0;
     cnst->overdefined = NO_SYMBOL_ID;
     switch (nd->src->t) {
         case HIR_I64NUMBER: cnst->t = HIR_I64CONSTVAL; goto _parse_number_complete;
@@ -29,8 +29,6 @@ static int _parse_const(dag_node_t* nd, const_t* cnst, sym_table_t* smt) {
         case HIR_I8NUMBER:  cnst->t = HIR_I8CONSTVAL;  goto _parse_number_complete;
         case HIR_U8NUMBER:  cnst->t = HIR_U8CONSTVAL;  goto _parse_number_complete;
         case HIR_NUMBER:    cnst->t = HIR_I8CONSTVAL;  goto _parse_number_complete;
-        case HIR_F64NUMBER:
-        case HIR_F32NUMBER:
         {
 _parse_number_complete: {}
             cnst->value = nd->src->storage.num.value->to_llong(nd->src->storage.num.value);
@@ -85,6 +83,7 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
     do {
         changed = 0;
         map_foreach (dag_node_t* nd, &dctx->dag) {
+            if (HIR_is_float(nd->src->t) && !nd->src->ptr) continue;
             switch (nd->op) {
                 case HIR_PHI: {
                     if (!nd->src->home || !nd->src->home->targ) break;
@@ -144,7 +143,7 @@ int HIR_sparse_const_propagation(dag_ctx_t* dctx, sym_table_t* smt) {
             ) continue;                                  /* We skip such variables / objects given    */
                                                          /* the necessity of preserving over          */
                                                          /* 'inlining'.                               */
-            const_t a, b;
+            const_t a = { 0 }, b = { 0 };
             int a_pres = _parse_const(args[0], &a, smt);
             int b_pres = _parse_const(args[1], &b, smt);
             if (!args[1]) {                              /* Parse constants, and if there is no       */

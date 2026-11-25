@@ -104,6 +104,7 @@ int                LIR_append_block(lir_block_t* block, lir_ctx_t* ctx);
 int                LIR_subj_equals(lir_subject_t* a, lir_subject_t* b);
 int                LIR_unload_subject(lir_subject_t* s);
 int                LIR_unload_blocks(lir_block_t* block);
+int                LIR_is_memory_write(lir_block_t* block);
 int                LIR_is_float_subject(lir_subject_t* subj, sym_table_t* smt);
 unsigned long long LIR_get_constant_value(lir_subject_t* subj);
 unsigned long long LIR_format_float_bits(unsigned long long value, int size);

@@ -971,6 +971,10 @@ class BuilderCLITests(unittest.TestCase):
                         executed = subprocess.run([str(output)], capture_output=True, text=True, timeout=3)
                         self.assertEqual(executed.returncode, 42, executed.stderr)
 
+    def test_float_execution_with_optimizations(self) -> None:
+        core = REPO_ROOT / "tests" / "code_utesting" / "exec" / "raw" / "core"
+        self.assert_execution_with_optimizations(sorted(core.glob("*_float_*_exit.cpl")))
+
     def test_constant_operand_order_with_optimizations(self) -> None:
         source = REPO_ROOT / "tests" / "code_utesting" / "exec" / "raw" / "core" / "538_constant_operand_order_exit.cpl"
         self.assert_execution_with_optimizations([source])

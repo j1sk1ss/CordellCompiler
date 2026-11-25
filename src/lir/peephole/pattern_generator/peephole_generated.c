@@ -39,7 +39,6 @@ static int _peephole_subject_dead_after_rec(long pred, cfg_block_t* bb, lir_subj
     set_foreach (cfg_block_t* succ, &bb->succ) {
         if (!_peephole_subject_dead_after_rec(bb->id, succ, subj, NULL, counter)) return 0;
     }
-    
     return 1;
 }
 
@@ -345,22 +344,21 @@ int peephole_first_pass(cfg_block_t* bb) {
             }
 
             case LIR_aMOV:
-            case LIR_fMOV:
             case LIR_iMOV:
              {
-                if ((lh->op == LIR_iMOV || lh->op == LIR_fMOV || lh->op == LIR_aMOV) &&
+                if ((lh->op == LIR_iMOV || lh->op == LIR_aMOV) &&
                 (lh->farg &&
                 lh->farg->t == LIR_REGISTER &&
                 lh->sarg &&
                 (lh->sarg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL || lh->sarg->t == LIR_MEMORY || lh->sarg->t == LIR_LABEL)) &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1) &&
-                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_fMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_aMOV) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_aMOV) &&
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg->t == LIR_REGISTER) &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 2) &&
-                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_fMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_aMOV) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_aMOV) &&
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_REGISTER &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg &&
@@ -443,7 +441,7 @@ int peephole_first_pass(cfg_block_t* bb) {
                         optimized = 1;
                     }
                 }
-                else if ((lh->op == LIR_iMOV || lh->op == LIR_fMOV || lh->op == LIR_aMOV) &&
+                else if ((lh->op == LIR_iMOV || lh->op == LIR_aMOV) &&
                 (lh->farg &&
                 lh->farg->t == LIR_REGISTER &&
                 lh->sarg &&
@@ -498,7 +496,7 @@ int peephole_first_pass(cfg_block_t* bb) {
                         optimized = 1;
                     }
                 }
-                else if ((lh->op == LIR_iMOV || lh->op == LIR_fMOV || lh->op == LIR_aMOV) &&
+                else if ((lh->op == LIR_iMOV || lh->op == LIR_aMOV) &&
                 (lh->farg &&
                 lh->farg->t == LIR_REGISTER &&
                 lh->sarg &&
@@ -513,14 +511,14 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg)) &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 2) &&
-                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_fMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_aMOV) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_aMOV) &&
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg &&
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_REGISTER || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_CONSTVAL || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_MEMORY || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_LABEL) &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg->t == LIR_REGISTER &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg)) &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 3) &&
-                (LIR_get_near_instruction(lh, bb->lmap.exit, 3)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 3)->op == LIR_fMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 3)->op == LIR_aMOV) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 3)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 3)->op == LIR_aMOV) &&
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 3)->farg &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 3)->farg->t == LIR_REGISTER &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 3)->sarg &&
@@ -610,7 +608,7 @@ int peephole_first_pass(cfg_block_t* bb) {
                         optimized = 1;
                     }
                 }
-                else if ((lh->op == LIR_iMOV || lh->op == LIR_fMOV || lh->op == LIR_aMOV) &&
+                else if ((lh->op == LIR_iMOV || lh->op == LIR_aMOV) &&
                 (lh->farg &&
                 (lh->farg->t == LIR_REGISTER || lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL || lh->farg->t == LIR_MEMORY || lh->farg->t == LIR_LABEL) &&
                 lh->sarg &&
@@ -621,7 +619,7 @@ int peephole_first_pass(cfg_block_t* bb) {
                         optimized = 1;
                     }
                 }
-                else if ((lh->op == LIR_iMOV || lh->op == LIR_fMOV || lh->op == LIR_aMOV) &&
+                else if ((lh->op == LIR_iMOV || lh->op == LIR_aMOV) &&
                 (lh->farg &&
                 lh->farg->t == LIR_REGISTER &&
                 lh->sarg &&
@@ -659,13 +657,13 @@ int peephole_first_pass(cfg_block_t* bb) {
                         }
                     }
                 }
-                else if ((lh->op == LIR_iMOV || lh->op == LIR_fMOV || lh->op == LIR_aMOV) &&
+                else if ((lh->op == LIR_iMOV || lh->op == LIR_aMOV) &&
                 (lh->farg &&
                 lh->farg->t == LIR_REGISTER &&
                 lh->sarg &&
                 (lh->sarg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL || lh->sarg->t == LIR_MEMORY || lh->sarg->t == LIR_LABEL)) &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1) &&
-                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_fMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_aMOV) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_aMOV) &&
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_NUMBER || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_CONSTVAL || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_MEMORY || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_LABEL) &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg &&
@@ -714,7 +712,7 @@ int peephole_first_pass(cfg_block_t* bb) {
                         optimized = 1;
                     }
                 }
-                else if ((lh->op == LIR_iMOV || lh->op == LIR_fMOV || lh->op == LIR_aMOV) &&
+                else if ((lh->op == LIR_iMOV || lh->op == LIR_aMOV) &&
                 (lh->farg &&
                 lh->farg->t == LIR_REGISTER &&
                 lh->sarg &&
@@ -770,7 +768,7 @@ int peephole_first_pass(cfg_block_t* bb) {
                         optimized = 1;
                     }
                 }
-                else if ((lh->op == LIR_iMOV || lh->op == LIR_fMOV || lh->op == LIR_aMOV) &&
+                else if ((lh->op == LIR_iMOV || lh->op == LIR_aMOV) &&
                 (lh->farg &&
                 lh->farg->t == LIR_REGISTER &&
                 lh->sarg &&
@@ -822,7 +820,7 @@ int peephole_first_pass(cfg_block_t* bb) {
                         optimized = 1;
                     }
                 }
-                else if ((lh->op == LIR_iMOV || lh->op == LIR_fMOV || lh->op == LIR_aMOV) &&
+                else if ((lh->op == LIR_iMOV || lh->op == LIR_aMOV) &&
                 (lh->farg &&
                 lh->farg->t == LIR_REGISTER &&
                 lh->sarg &&
@@ -875,13 +873,13 @@ int peephole_first_pass(cfg_block_t* bb) {
                         optimized = 1;
                     }
                 }
-                else if ((lh->op == LIR_iMOV || lh->op == LIR_fMOV || lh->op == LIR_aMOV) &&
+                else if ((lh->op == LIR_iMOV || lh->op == LIR_aMOV) &&
                 (lh->farg &&
                 lh->farg->t == LIR_REGISTER &&
                 lh->sarg &&
                 (lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL)) &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1) &&
-                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_fMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_aMOV) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_aMOV) &&
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg &&
@@ -997,13 +995,13 @@ int peephole_first_pass(cfg_block_t* bb) {
                         }
                     }
                 }
-                else if ((lh->op == LIR_iMOV || lh->op == LIR_fMOV || lh->op == LIR_aMOV) &&
+                else if ((lh->op == LIR_iMOV || lh->op == LIR_aMOV) &&
                 (lh->farg &&
                 lh->farg->t == LIR_REGISTER &&
                 lh->sarg &&
                 (lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL)) &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1) &&
-                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_fMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_aMOV) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_aMOV) &&
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg &&
@@ -1119,7 +1117,7 @@ int peephole_first_pass(cfg_block_t* bb) {
                         }
                     }
                 }
-                else if ((lh->op == LIR_iMOV || lh->op == LIR_fMOV || lh->op == LIR_aMOV) &&
+                else if ((lh->op == LIR_iMOV || lh->op == LIR_aMOV) &&
                 (lh->farg &&
                 lh->farg->t == LIR_REGISTER &&
                 lh->sarg &&
@@ -1176,7 +1174,7 @@ int peephole_first_pass(cfg_block_t* bb) {
                         optimized = 1;
                     }
                 }
-                else if ((lh->op == LIR_iMOV || lh->op == LIR_fMOV || lh->op == LIR_aMOV) &&
+                else if ((lh->op == LIR_iMOV || lh->op == LIR_aMOV) &&
                 (lh->farg &&
                 lh->farg->t == LIR_REGISTER &&
                 lh->sarg &&
@@ -1191,7 +1189,7 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg)) &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 2) &&
-                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_fMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_aMOV) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_aMOV) &&
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_REGISTER &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg &&
@@ -1274,7 +1272,7 @@ int peephole_first_pass(cfg_block_t* bb) {
                         optimized = 1;
                     }
                 }
-                else if ((lh->op == LIR_iMOV || lh->op == LIR_fMOV || lh->op == LIR_aMOV) &&
+                else if ((lh->op == LIR_iMOV || lh->op == LIR_aMOV) &&
                 (lh->farg &&
                 lh->farg->t == LIR_REGISTER &&
                 lh->sarg &&
@@ -1289,7 +1287,7 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg)) &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 2) &&
-                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_fMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_aMOV) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_aMOV) &&
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_REGISTER &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg &&
@@ -1370,7 +1368,7 @@ int peephole_first_pass(cfg_block_t* bb) {
                         optimized = 1;
                     }
                 }
-                else if ((lh->op == LIR_iMOV || lh->op == LIR_fMOV || lh->op == LIR_aMOV) &&
+                else if ((lh->op == LIR_iMOV || lh->op == LIR_aMOV) &&
                 (lh->farg &&
                 lh->farg->t == LIR_REGISTER &&
                 lh->sarg &&
@@ -1385,7 +1383,7 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER &&
                 LIR_subj_equals(LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg, LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg)) &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 2) &&
-                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_fMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_aMOV) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 2)->op == LIR_aMOV) &&
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 2)->farg->t == LIR_REGISTER &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 2)->sarg &&
@@ -1465,7 +1463,7 @@ int peephole_first_pass(cfg_block_t* bb) {
                         optimized = 1;
                     }
                 }
-                else if ((lh->op == LIR_iMOV || lh->op == LIR_fMOV || lh->op == LIR_aMOV) &&
+                else if ((lh->op == LIR_iMOV || lh->op == LIR_aMOV) &&
                 (lh->farg &&
                 lh->farg->t == LIR_REGISTER &&
                 lh->sarg &&
@@ -1558,7 +1556,7 @@ int peephole_first_pass(cfg_block_t* bb) {
                         optimized = 1;
                     }
                 }
-                else if ((lh->op == LIR_iMOV || lh->op == LIR_fMOV || lh->op == LIR_aMOV) &&
+                else if ((lh->op == LIR_iMOV || lh->op == LIR_aMOV) &&
                 (lh->farg &&
                 lh->farg->t == LIR_REGISTER &&
                 lh->sarg &&
@@ -1946,6 +1944,24 @@ int peephole_first_pass(cfg_block_t* bb) {
                 break;
             }
 
+            case LIR_bSAR:
+             {
+                if (lh->op == LIR_bSAR &&
+                (lh->sarg &&
+                (lh->sarg->t == LIR_REGISTER || lh->sarg->t == LIR_NUMBER || lh->sarg->t == LIR_CONSTVAL || lh->sarg->t == LIR_MEMORY || lh->sarg->t == LIR_LABEL) &&
+                lh->targ &&
+                ((lh->targ->t == LIR_NUMBER || lh->targ->t == LIR_CONSTVAL) && LIR_peephole_get_long_number(lh->targ) == 0) &&
+                lh->farg &&
+                (lh->farg->t == LIR_REGISTER || lh->farg->t == LIR_NUMBER || lh->farg->t == LIR_CONSTVAL || lh->farg->t == LIR_MEMORY || lh->farg->t == LIR_LABEL) &&
+                LIR_subj_equals(lh->farg, lh->sarg))) {
+                    if (!lh->unused) {
+                        lh->unused = 1;
+                        optimized = 1;
+                    }
+                }
+                break;
+            }
+
             case LIR_bSHL:
              {
                 if (lh->op == LIR_bSHL &&
@@ -1994,7 +2010,7 @@ int peephole_first_pass(cfg_block_t* bb) {
                 LIR_subj_equals(lh->farg, lh->sarg) &&
                 LIR_subj_equals(lh->sarg, lh->targ)) &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1) &&
-                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_fMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_aMOV) &&
+                (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_iMOV || LIR_get_near_instruction(lh, bb->lmap.exit, 1)->op == LIR_aMOV) &&
                 (LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->farg->t == LIR_REGISTER &&
                 LIR_get_near_instruction(lh, bb->lmap.exit, 1)->sarg &&

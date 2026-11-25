@@ -122,6 +122,8 @@ static status_code_t _is_copy_candidate(lir_block_t* lh, sym_table_t* smt, set_t
         set_has(addr_taken, (void*)lh->farg->storage.var.v_id)
     ) return 0;
 
+    if (LIR_is_float_subject(lh->farg, smt) || LIR_is_float_subject(lh->sarg, smt)) return 0;
+
     long sarg_size = lh->sarg ? lh->sarg->size : 0;
     switch (lh->op) {
         case LIR_TF64: case LIR_TF32:

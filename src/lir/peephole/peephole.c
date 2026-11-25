@@ -25,11 +25,7 @@ lir_block_t* LIR_get_near_instruction(lir_block_t* c, lir_block_t* exit, int ski
 }
 
 long LIR_peephole_get_long_number(lir_subject_t* s) {
-    switch (s->t) {
-        case LIR_CONSTVAL: return s->storage.cnst.value;
-        case LIR_NUMBER:   return s->storage.num.value->to_llong(s->storage.num.value);
-        default:           return -1;
-    }
+    return LIR_is_defined_type(s->t) ? (long)LIR_get_constant_value(s) : -1;
 }
 
 long LIR_peephole_get_sqrt_number(lir_subject_t* s) {

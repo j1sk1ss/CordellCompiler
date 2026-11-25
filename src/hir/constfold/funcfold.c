@@ -13,10 +13,10 @@ static int _register_params(symbol_id_t f_id, list_t* args, map_t* fcalls) {
     if (map_get(fcalls, f_id, (void**)&rargs)) {
         hir_subject_t** prev = (hir_subject_t**)list_flatten(rargs);
         hir_subject_t** curr = (hir_subject_t**)list_flatten(args);
-        for (int i = 0; i < list_size(args); i++) {
+        for (int i = 0; i < list_size(rargs); i++) {
             if (
-                prev[i] && curr[i] && 
-                HIR_hash_subject(prev[i]) != HIR_hash_subject(curr[i])
+                prev[i] && (i >= list_size(args) || (curr[i] &&
+                HIR_hash_subject(prev[i]) != HIR_hash_subject(curr[i])))
             ) list_replace(rargs, prev[i], NULL);
         }
 
@@ -64,6 +64,7 @@ static int _register_fcalls(cfg_ctx_t* cctx, map_t* fcalls) {
    
    Returns 1 on success, otherwise 0. */
 static int _extract_variable_value(hir_subject_t* s, sym_table_t* smt, long* val) {
+    if (HIR_is_float(s->t) && !s->ptr) return 0;
     switch (HIR_is_defined_type(s->t)) {
         case 1: *val = s->storage.num.value->to_llong(s->storage.num.value); return 1;
         case 2: *val = s->storage.cnst.value;                                return 1;
@@ -100,6 +101,10 @@ static int _propagate_params(cfg_ctx_t* cctx, sym_table_t* smt, map_t* fcalls) {
             iterate_hir_instructions (bb) {
                 variable_info_t vi;
                 if (hh->op != HIR_FARGLD) continue;
+                if (HIR_is_float(hh->farg->t) && !hh->farg->ptr) {
+                    param_index++;
+                    continue;
+                }
                 if (
                     param_index + 1 < list_size(rargs)                         &&
                     VRTB_get_info_id(hh->farg->storage.var.v_id, &vi, &smt->v) &&
