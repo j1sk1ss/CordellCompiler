@@ -39,6 +39,10 @@ config_int_field_t CONF_get_full_bytness() {
     return _config.system.bytness.bytness;
 }
 
+config_flag_field_t CONF_arch_supports_split_args() {
+    return _config.system.sys_type != I386;
+}
+
 config_int_field_t CONF_get_half_bytness() {
     if (!_config.system.bytness.h_bytness) return 4;
     return _config.system.bytness.h_bytness;

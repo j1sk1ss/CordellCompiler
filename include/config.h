@@ -70,6 +70,7 @@ config_flag_field_t   CONF_is_test_compilation();
 arch_type_t           CONF_get_system_type();
 config_flag_field_t   CONF_is_strict_compilation();
 config_int_field_t    CONF_register_parameters();
+config_flag_field_t   CONF_arch_supports_split_args();
 
 /* Perform an action with a logic output with respect of the current
 strict status in the compiler.
