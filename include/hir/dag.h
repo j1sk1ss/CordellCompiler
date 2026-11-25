@@ -29,7 +29,7 @@ typedef struct dag_node {
     long            memory_version;
 
     /* Connection with other nodes */
-    set_t           args;
+    list_t          args;
     set_t           users;
 } dag_node_t;
 

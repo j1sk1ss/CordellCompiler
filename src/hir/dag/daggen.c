@@ -24,12 +24,11 @@ static void _invalidate_groups(dag_ctx_t* dctx) {
 static int _replace_duplicate_node(dag_ctx_t* dctx, dag_node_t* duplicate, dag_node_t* canonical) {
     if (!dctx || !duplicate || !canonical || duplicate == canonical) return 0;
     set_foreach (dag_node_t* user, &duplicate->users) {
-        set_remove(&user->args, duplicate);
-        set_add(&user->args, canonical);
+        while (list_replace(&user->args, duplicate, canonical));
         set_add(&canonical->users, user);
     }
 
-    set_foreach (dag_node_t* arg, &duplicate->args) {
+    foreach (dag_node_t* arg, &duplicate->args) {
         set_remove(&arg->users, duplicate);
     }
 
@@ -86,19 +85,19 @@ int HIR_DAG_generate(cfg_ctx_t* cctx, dag_ctx_t* dctx, sym_table_t* smt) {
                         if (hh->op == HIR_GDREF) dst->memory_version = dctx->memory_version;
 
                         if (HIR_is_commutative_op(hh->op)) {
-                            if (farg) set_add(&dst->args, farg);
-                            if (sarg) set_add(&dst->args, sarg);
+                            if (farg) list_push_back(&dst->args, farg);
+                            if (sarg) list_push_back(&dst->args, sarg);
                             dst->hash = HIR_DAG_compute_hash(dst);
                         }
                         else {
                             dst->hash = HIR_DAG_compute_hash(dst);
                             if (farg) {
-                                set_add(&dst->args, farg);
+                                list_push_back(&dst->args, farg);
                                 dst->hash ^= HIR_DAG_compute_hash(farg) + (dst->hash << 6) + (dst->hash >> 2);
                             }
 
                             if (sarg) {
-                                set_add(&dst->args, sarg);
+                                list_push_back(&dst->args, sarg);
                                 dst->hash ^= HIR_DAG_compute_hash(sarg) + (dst->hash << 6) + (dst->hash >> 2);
                             }
                         }

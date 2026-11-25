@@ -148,7 +148,7 @@ static int _format_dag_subject_name_rec(hir_subject_t* s, sym_table_t* smt, dag_
 
     switch (nd->op) {
         case HIR_REF: {
-            set_foreach (dag_node_t* arg, &nd->args) {
+            foreach (dag_node_t* arg, &nd->args) {
                 if (!arg || !arg->src || !HIR_is_vartype(arg->src->t)) continue;
                 variable_info_t vi;
                 if (_resolve_named_variable_info(arg->src->storage.var.v_id, smt, &vi)) {
@@ -164,7 +164,7 @@ static int _format_dag_subject_name_rec(hir_subject_t* s, sym_table_t* smt, dag_
         case HIR_TF64: case HIR_TF32:
         case HIR_TI64: case HIR_TI32: case HIR_TI16: case HIR_TI8:
         case HIR_TU64: case HIR_TU32: case HIR_TU16: case HIR_TU8: {
-            set_foreach (dag_node_t* arg, &nd->args) {
+            foreach (dag_node_t* arg, &nd->args) {
                 if (arg && _format_dag_subject_name_rec(arg->src, smt, dctx, buff, buff_size, depth + 1)) {
                     return 1;
                 }

@@ -951,6 +951,30 @@ class BuilderCLITests(unittest.TestCase):
         self.assertTrue(all(default_outputs_exist), default_outputs)
         self.assert_no_stderr(result)
 
+    def assert_execution_with_optimizations(self, sources: list[Path]) -> None:
+        if platform.system() != "Linux" or platform.machine().lower() not in ("x86_64", "amd64"):
+            self.skipTest("Runtime optimization tests use the Linux x86_64 target")
+        if not shutil.which("nasm") or not shutil.which("gcc"):
+            self.skipTest("Runtime optimization tests require nasm and gcc")
+        with _tmpdir() as tmp:
+            root = Path(tmp)
+            for source in sources:
+                for opt in ("-O0", "-O2", "-O3"):
+                    with self.subTest(source=source.name, opt=opt):
+                        output = root / (source.stem + opt)
+                        result = self.run_cplc(
+                            "--arch", "x86_64", "--sys-type", "linux64", "--asm-format", "elf64",
+                            "--linker", "gcc", "--linker-no-pie", "--no-z3opt", opt,
+                            "--output", output, source,
+                        )
+                        self.assertEqual(result.returncode, 0, result.stderr)
+                        executed = subprocess.run([str(output)], capture_output=True, text=True, timeout=3)
+                        self.assertEqual(executed.returncode, 42, executed.stderr)
+
+    def test_constant_operand_order_with_optimizations(self) -> None:
+        source = REPO_ROOT / "tests" / "code_utesting" / "exec" / "raw" / "core" / "538_constant_operand_order_exit.cpl"
+        self.assert_execution_with_optimizations([source])
+
     def test_loop_unroll_preserves_execution(self) -> None:
         if platform.system() != "Linux" or platform.machine().lower() not in ("x86_64", "amd64"):
             self.skipTest("Runtime unroll tests use the Linux x86_64 target")

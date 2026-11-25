@@ -78,7 +78,7 @@ static int _mark_unused_node(cfg_ctx_t* cctx, dag_node_t* nd, set_t* visited) {
     hir_block_t* home = _node_hir_home(nd);
     if (!home || _node_has_required_effect(nd)) return 1;
     home->unused = 1;
-    set_foreach (dag_node_t* arg, &nd->args) {
+    foreach (dag_node_t* arg, &nd->args) {
         if (!_mark_unused_node(cctx, arg, visited)) return 0;
     }
 

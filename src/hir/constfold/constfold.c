@@ -72,7 +72,7 @@ Params:
 Returns 1 if arguments are flattened, otherwise 0. */
 static int _const_args(dag_node_t* nd, dag_node_t** args, int args_size) {
     int i = 0;
-    set_foreach (dag_node_t* arg, &nd->args) {
+    foreach (dag_node_t* arg, &nd->args) {
         if (i + 1 >= args_size) return 0;
         args[i++] = arg;
     }
