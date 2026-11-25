@@ -1,4 +1,0 @@
-# These compiler dumps are downloadable website content, not build leftovers.
-!*.ast
-!*.lir
-!*.asm

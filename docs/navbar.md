@@ -1,8 +1,0 @@
-- [Home](README.md)
-- [Overview](pages/summary.md)
-- [Learn](pages/hello-world-example.md)
-- [Reference](pages/types.md)
-- [Compiler](pages/compiler-architecture.md)
-- [Status](pages/project-status.md)
-- [Benchmarks](pages/benchmarking.md)
-- [GitHub](https://github.com/j1sk1ss/CordellCompiler)

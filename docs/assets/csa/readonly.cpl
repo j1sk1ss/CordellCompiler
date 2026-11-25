@@ -1,5 +1,0 @@
-start() {
-    ro i8 a = 0;
-    a = 1;
-    exit 0;
-}

@@ -6,3 +6,7 @@
 	path = vscode
 	url = https://github.com/j1sk1ss/CPL_vscode.git
 	branch = main
+[submodule "docs"]
+	path = docs
+	url = https://github.com/j1sk1ss/CPL_docs.git
+	branch = main
