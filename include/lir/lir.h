@@ -12,7 +12,7 @@
 #include <std/stack.h>
 #include <std/stackmap.h>
 
-#include <symtab/symtab_id.h>
+#include <symtab/symtab.h>
 #include <lir/lir_types.h>
 
 typedef struct {
@@ -94,16 +94,19 @@ static inline int LIR_is_tailcall(lir_block_t* b) {
     return b && b->op == LIR_JMP && b->farg && b->farg->t == LIR_FNAME;
 }
 
-lir_block_t*   LIR_create_block(lir_operation_t op, lir_subject_t* fa, lir_subject_t* sa, lir_subject_t* ta);
-lir_subject_t* LIR_create_subject(lir_subject_type_t t, int reg, int v_id, long offset, string_t* strval, long intval, int size);
-lir_subject_t* LIR_copy_subject(lir_subject_t* s);
-int            LIR_unlink_block(lir_block_t* block);
-int            LIR_insert_block_after(lir_block_t* block, lir_block_t* pos);
-int            LIR_insert_block_before(lir_block_t* block, lir_block_t* pos);
-int            LIR_append_block(lir_block_t* block, lir_ctx_t* ctx);
-int            LIR_subj_equals(lir_subject_t* a, lir_subject_t* b);
-int            LIR_unload_subject(lir_subject_t* s);
-int            LIR_unload_blocks(lir_block_t* block);
+lir_block_t*       LIR_create_block(lir_operation_t op, lir_subject_t* fa, lir_subject_t* sa, lir_subject_t* ta);
+lir_subject_t*     LIR_create_subject(lir_subject_type_t t, int reg, int v_id, long offset, string_t* strval, long intval, int size);
+lir_subject_t*     LIR_copy_subject(lir_subject_t* s);
+int                LIR_unlink_block(lir_block_t* block);
+int                LIR_insert_block_after(lir_block_t* block, lir_block_t* pos);
+int                LIR_insert_block_before(lir_block_t* block, lir_block_t* pos);
+int                LIR_append_block(lir_block_t* block, lir_ctx_t* ctx);
+int                LIR_subj_equals(lir_subject_t* a, lir_subject_t* b);
+int                LIR_unload_subject(lir_subject_t* s);
+int                LIR_unload_blocks(lir_block_t* block);
+int                LIR_is_float_subject(lir_subject_t* subj, sym_table_t* smt);
+unsigned long long LIR_get_constant_value(lir_subject_t* subj);
+unsigned long long LIR_format_float_bits(unsigned long long value, int size);
                                                       /* LIR type     Reg    vID              Offset  String            Int  Size */
 #define LIR_SUBJ_REG(reg, sz)        LIR_create_subject(LIR_REGISTER,   reg,   -1,                  0,   NULL,           0,   sz)
 #define LIR_SUBJ_CONST(val)          LIR_create_subject(LIR_CONSTVAL,   -1,    -1,                  0,   NULL,           val, CONF_get_full_bytness())

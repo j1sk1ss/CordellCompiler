@@ -118,7 +118,7 @@ static int _build_igraph_block(cfg_block_t* cb, igraph_t* g, sym_table_t* smt) {
                 if (
                     VRTB_get_info_id(d, &dvi, &smt->v) &&
                     VRTB_get_info_id(v, &vvi, &smt->v) &&
-                    TKN_is_float(dvi.type) == TKN_is_float(vvi.type)
+                    (TKN_is_float(dvi.type) && !dvi.vfs.ptr) == (TKN_is_float(vvi.type) && !vvi.vfs.ptr)
                 ) _igraph_add_edge(g, d, v);
             }
         }

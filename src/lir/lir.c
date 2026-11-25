@@ -208,3 +208,45 @@ int LIR_unload_blocks(lir_block_t* block) {
 
     return 0;
 }
+
+/* Check whether a subject stores a scalar float value.
+   Params:
+       - `subj` - LIR subject.
+       - `smt` - Symtable used to resolve virtual variable types.
+
+   Returns 1 for a scalar float, otherwise 0. */
+int LIR_is_float_subject(lir_subject_t* subj, sym_table_t* smt) {
+    if (!subj) return 0;
+    if (subj->t == LIR_NUMBER) return subj->storage.num.is_float;
+    if (subj->t == LIR_REGISTER) return LIR_is_xmm_register(subj->storage.reg.reg);
+    if (subj->t != LIR_VARIABLE && subj->t != LIR_GLVARIABLE) return 0;
+    variable_info_t vi;
+    return VRTB_get_info_id(subj->storage.var.v_id, &vi, &smt->v) && TKN_is_float(vi.type) && !vi.vfs.ptr;
+}
+
+/* Read the bits of a numeric or constant subject.
+   Params:
+       - `subj` - Numeric subject.
+
+   Returns the constant bit pattern, preserving signed and unsigned values. */
+unsigned long long LIR_get_constant_value(lir_subject_t* subj) {
+    if (subj->t == LIR_CONSTVAL) return (unsigned long long)subj->storage.cnst.value;
+    if (subj->t != LIR_NUMBER) return 0;
+    string_t* value = subj->storage.num.value;
+    unsigned long long bits = value->body[0] == '-' ? (unsigned long long)value->to_llong(value) : value->to_ullong(value, 10);
+    return subj->storage.num.is_float ? LIR_format_float_bits(bits, subj->size) : bits;
+}
+
+/* Convert the canonical float literal to the selected storage size.
+   Params:
+       - `value` - IEEE double bit pattern stored by the tokenizer.
+       - `size` - Selected scalar size in bytes.
+
+   Returns the bit pattern for the selected scalar size. */
+unsigned long long LIR_format_float_bits(unsigned long long value, int size) {
+    if (size != 4) return value;
+    float scalar = (float)str_bits2dob(value);
+    unsigned int bits = 0;
+    str_memcpy(&bits, &scalar, sizeof(bits));
+    return bits;
+}

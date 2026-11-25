@@ -1,0 +1,14 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+start() {
+    f64 source = 3.5;
+    f64 negative = neg source;
+    if ((negative != (0.0 - source)) as i32) != 0; { exit 1; }
+    if ((neg negative != source) as i32) != 0; { exit 2; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

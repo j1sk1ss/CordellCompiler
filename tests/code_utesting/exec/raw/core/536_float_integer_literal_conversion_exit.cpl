@@ -1,0 +1,14 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+start() {
+    f64 wide = 42;
+    f32 small = 42;
+    if (wide as i32) != 42; { exit 1; }
+    if (small as i32) != 42; { exit 2; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

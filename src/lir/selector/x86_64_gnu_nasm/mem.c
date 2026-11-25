@@ -53,9 +53,9 @@ static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* col
     if (!vi.vmi.allocated) {
         if (
             colors && map_get(colors, s->storage.var.v_id, (void**)&color) &&                            /* If the clor is found         */
-            color >= 0 && _is_regular_register(_convert_color_to_register(color, TKN_is_float(vi.type))) /* And if this a valid register */
+            color >= 0 && _is_regular_register(_convert_color_to_register(color, TKN_is_float(vi.type) && !vi.vfs.ptr)) /* And if this a valid register */
         ) {
-            vi.vmi.reg    = _convert_color_to_register(color, TKN_is_float(vi.type));
+            vi.vmi.reg    = _convert_color_to_register(color, TKN_is_float(vi.type) && !vi.vfs.ptr);
             vi.vmi.offset = SMT_NULL;
         }
         else {
@@ -185,7 +185,7 @@ int x86_64_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t
                                     type_init_info_t elem_info = { 0 };
                                     if (!TPTB_find_type_init_slot(vi.t_id, el_pos, 0, &elem_info, &smt->t)) break;
                                     LIR_insert_block_before(
-                                        LIR_create_block(LIR_aMOV, LIR_SUBJ_OFF(RBP, arr_off - elem_info.slot_off, elem_info.slot_size), elem, NULL), lh
+                                        LIR_create_block(x86_64_gnu_nasm_is_simd_type(elem, smt) ? LIR_fMOV : LIR_aMOV, LIR_SUBJ_OFF(RBP, arr_off - elem_info.slot_off, elem_info.slot_size), elem, NULL), lh
                                     );
 
                                     el_pos++;
@@ -241,7 +241,7 @@ static int _validate_size_movs(cfg_block_t* bb, sym_table_t* smt) {
             (lh->sarg && lh->sarg->t != LIR_NUMBER && lh->sarg->t != LIR_CONSTVAL)
         ) {
             switch (lh->op) {
-                case LIR_iMOV: case LIR_aMOV: case LIR_fMOV: case LIR_phiMOV: {
+                case LIR_iMOV: case LIR_aMOV: case LIR_phiMOV: {
                     if ( // mov r64, r32 is ok
                         lh->farg->t == LIR_REGISTER && lh->sarg->t == LIR_REGISTER &&
                         lh->farg->size == 8         && lh->sarg->size == 4
@@ -307,10 +307,7 @@ static lir_block_t* _create_push_arg_mov(lir_subject_t* dst, lir_subject_t* src,
     return LIR_create_block(movop, movdst, src, NULL);
 }
 
-static inline long long _get_defined_value(lir_subject_t* s) {
-    if (s->t == LIR_CONSTVAL) return s->storage.cnst.value;
-    else return s->storage.num.value->to_llong(s->storage.num.value);
-}
+
 
 /* After the memory selection we should be sure that this LIR is valid. 
    Valid LIR implies that there is no wrong instructions such as movs "from mem to mem", 
@@ -324,6 +321,7 @@ static inline long long _get_defined_value(lir_subject_t* s) {
    Returns 1 if the operation succeeds, otherwise 0. */
 static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
     iterate_lir_instructions (bb) {
+        if (x86_64_gnu_nasm_validate_float(bb, lh, smt)) continue;
         list_t fixes, post_fixes;
         list_init(&fixes);
         list_init(&post_fixes);
@@ -380,7 +378,7 @@ static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
                 case LIR_iMOV:     case LIR_aMOV: {
                     if (lh->farg->t == LIR_REGISTER) break;
                     if (LIR_is_defined_type(lh->sarg->t) && lh->farg->size != 8) {
-                        long long def_val = _get_defined_value(lh->sarg);
+                        long long def_val = LIR_get_constant_value(lh->sarg);
                         if (def_val >= -2147483648LL && def_val <= 2147483647LL) break;
                     }
                     
@@ -698,8 +696,8 @@ int x86_64_gnu_nasm_memory_validation(cfg_ctx_t* cctx, sym_table_t* smt) {
         if (!FNTB_get_info_id(fb->f_id, &fi, &smt->f)) continue;
         foreach (cfg_block_t* bb, &fb->blocks) {
             _expand_float_pushpop(bb);
-            _validate_selected_instuction(bb, smt);
             _validate_size_movs(bb, smt);
+            _validate_selected_instuction(bb, smt);
             if (fi.flags.naked != 1) continue;
             iterate_lir_instructions (bb) {
                 iterate_lir_args (lir_subject_t* s, lh, 0) {

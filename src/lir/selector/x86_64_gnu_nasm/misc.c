@@ -37,18 +37,7 @@ int x86_64_gnu_nasm_is_sign_type(lir_subject_t* s, sym_table_t* smt) {
 }
 
 int x86_64_gnu_nasm_is_simd_type(lir_subject_t* s, sym_table_t* smt) {
-    if (!s) return 0;
-    if (s->t == LIR_NUMBER) return s->storage.num.is_float;
-    if (s->t == LIR_REGISTER) return s->storage.reg.reg >= XMM0 && s->storage.reg.reg <= XMM7;
-    if (s->t != LIR_VARIABLE && s->t != LIR_GLVARIABLE) return 0;
-    variable_info_t vi;
-    if (!VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) return 0;
-    switch (vi.type) {
-        case F64_TYPE_TOKEN: case F32_TYPE_TOKEN:
-        case TMP_F64_TYPE_TOKEN: case TMP_F32_TYPE_TOKEN:
-        case F64_VARIABLE_TOKEN: case F32_VARIABLE_TOKEN: return vi.vfs.ptr == 0;
-        default: return 0;
-    }
+    return LIR_is_float_subject(s, smt);
 }
 
 lir_operation_t x86_64_gnu_nasm_get_proper_mov(lir_subject_t* a, lir_subject_t* b, sym_table_t* smt, lir_operation_t base) {
@@ -67,7 +56,7 @@ lir_operation_t x86_64_gnu_nasm_get_proper_mov(lir_subject_t* a, lir_subject_t* 
     }
     else {
         int from_sign = x86_64_gnu_nasm_is_sign_type(b, smt);
-        int from_num  = b->t == LIR_NUMBER;
+        int from_num  = LIR_is_defined_type(b->t);
         if (from_float) {
             if (b->size == 4) return LIR_CVTTSS2SI;
             else return LIR_CVTTSD2SI;

@@ -126,8 +126,9 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_CVTSS2SD:   EMIT_COMMAND("cvtss2sd %s, %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));  break;
         case LIR_CVTSD2SS:   EMIT_COMMAND("cvtsd2ss %s, %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));  break;
         case LIR_fMOVQ:      EMIT_COMMAND("movq %s, %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));      break;
-        case LIR_fMOV:
-        case LIR_fMVf:       EMIT_COMMAND("movsd %s, %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));     break;
+        case LIR_XORPS:      EMIT_COMMAND("xorps %s, %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));     break;
+        case LIR_MOVSS:      EMIT_COMMAND("movss %s, %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));     break;
+        case LIR_MOVSD:      EMIT_COMMAND("movsd %s, %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));     break;
         case LIR_MOVDQU:     EMIT_COMMAND("movdqu %s, %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_gnu_nasm_format_lir_subject(b->sarg, smt, NO_FLAG));    break;
         case LIR_REF:        EMIT_COMMAND("lea %s, %s", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_gnu_nasm_format_lir_subject(b->sarg, smt, LEA_FLAG));      break;
         case LIR_REF_GDREF:  EMIT_COMMAND("lea %s, [%s]", x86_64_gnu_nasm_format_lir_subject(b->farg, smt, NO_FLAG), x86_64_gnu_nasm_format_lir_subject(b->sarg, smt, LEA_FLAG));    break;
@@ -292,7 +293,7 @@ static int _generate_typed_initializer(variable_info_t* vi, array_info_t* ai, sy
         if (!TPTB_find_type_init_slot(vi->t_id, slot, 0, &slot_info, &smt->t)) break;
         _emit_zero_bytes(NULL, slot_info.slot_off - emitted_end, output);
 
-        type_info_t slot_ti;
+        type_info_t slot_ti = { 0 };
         int is_array_string = (
             TPTB_get_info_id(slot_info.slot_type, &slot_ti, &smt->t)  &&
             slot_ti.t == TYPE_PRIMITIVE                               &&
@@ -343,7 +344,11 @@ _continue_element_emmit: {}
             }
             default: {
 _default_const_type: {}
-                _emit_typed_value(NULL, slot_info.slot_size, elem ? elem->s.value : 0, output);
+                long long value = elem ? elem->s.value : 0;
+                if (slot_ti.t == TYPE_PRIMITIVE && !slot_ti.ptr && TKN_is_float(slot_ti.body.primitive.token)) {
+                    value = LIR_format_float_bits(value, slot_info.slot_size);
+                }
+                _emit_typed_value(NULL, slot_info.slot_size, value, output);
                 break;
             }
         }
@@ -390,7 +395,7 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
             type_info_t ti;
             if (
                 TPTB_get_info_id(vi.t_id, &ti, &smt->t) &&
-                (ti.t == TYPE_CUSTOM || (
+                ((TKN_is_float(sec_tmptkn.t_type) && !sec_tmptkn.flags.ptr) || ti.t == TYPE_CUSTOM || (
                     ti.t == TYPE_ARRAY &&
                     TPTB_get_type_type_id(TPTB_get_first_child(vi.t_id, &smt->t), &smt->t) == TYPE_CUSTOM
                 ))
@@ -428,11 +433,16 @@ static int _generate_variable(symbol_id_t id, sym_table_t* smt, FILE* output) {
         return 1;
     }
 
+    long long definition = vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0;
+    if (TKN_is_float(vi.type) && !vi.vfs.ptr) {
+        definition = LIR_format_float_bits(definition, TKN_convert_type_size(TKN_variable_bitness(&fst_tmptkn, 1)));
+    }
+
     switch (TKN_variable_bitness(&fst_tmptkn, 1)) {
-        case TYPE_FULL_SIZE:    EMIT_COMMAND("%s dq " NASMFMT_CONST_FMT, name, (long long)(vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0)); break;
-        case TYPE_HALF_SIZE:    EMIT_COMMAND("%s dd " NASMFMT_CONST_FMT, name, (long long)(vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0)); break;
-        case TYPE_QUARTER_SIZE: EMIT_COMMAND("%s dw " NASMFMT_CONST_FMT, name, (long long)(vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0)); break;
-        default:                EMIT_COMMAND("%s db " NASMFMT_CONST_FMT, name, (long long)(vi.vdi.defined == DEFINED_VARIABLE ? vi.vdi.definition : 0)); break;
+        case TYPE_FULL_SIZE:    EMIT_COMMAND("%s dq " NASMFMT_CONST_FMT, name, definition); break;
+        case TYPE_HALF_SIZE:    EMIT_COMMAND("%s dd " NASMFMT_CONST_FMT, name, definition); break;
+        case TYPE_QUARTER_SIZE: EMIT_COMMAND("%s dw " NASMFMT_CONST_FMT, name, definition); break;
+        default:                EMIT_COMMAND("%s db " NASMFMT_CONST_FMT, name, definition); break;
     }
 
     return 1;

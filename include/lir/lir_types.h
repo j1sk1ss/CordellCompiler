@@ -102,6 +102,13 @@ typedef enum {
         LIR_INC,
         LIR_DEC,
 
+        LIR_fGDREF,    // scalar float load through a pointer
+        LIR_fLDREF,    // scalar float store through a pointer
+        LIR_fSTARG,    // scalar float stack argument
+        LIR_fNEG,      // flip the scalar sign bit
+        LIR_XORPS,     // bitwise xmm xor
+        LIR_MOVSS,     // movss
+        LIR_MOVSD,     // movsd
         LIR_fMOVQ,     // movq
         LIR_fMOV,      // float move
         LIR_fMVf,      // float to float move
@@ -248,6 +255,7 @@ typedef enum {
    
    Returns register with a fixed size. */
 lir_registers_t LIR_format_register(lir_registers_t reg, int size);
+int             LIR_is_xmm_register(lir_registers_t reg);
 
 /* Select the integer or floating-point variant of an operation.
    Operations without a matching variant are returned unchanged.

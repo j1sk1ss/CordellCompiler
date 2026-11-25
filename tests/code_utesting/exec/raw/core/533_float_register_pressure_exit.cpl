@@ -1,0 +1,25 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+start() {
+    f64 a = 1.0;
+    f64 b = 2.0;
+    f64 c = 3.0;
+    f64 d = 4.0;
+    f64 e = 5.0;
+    f64 f = 6.0;
+    f64 g = 7.0;
+    f64 h = 8.0;
+    f64 i = 9.0;
+    f64 j = 10.0;
+    if ((a + j != 11.0) as i32) != 0; { exit 1; }
+    if ((b + i != 11.0) as i32) != 0; { exit 2; }
+    if ((c + h != 11.0) as i32) != 0; { exit 3; }
+    if ((d + g != 11.0) as i32) != 0; { exit 4; }
+    if ((e + f != 11.0) as i32) != 0; { exit 5; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

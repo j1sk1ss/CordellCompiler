@@ -225,6 +225,22 @@ static cfg_dfs_action_t _instruction_selection_block(
         lh->op = LIR_format_float_operation(lh->op, is_float);
 
         switch (lh->op) {
+            case LIR_iMOV: case LIR_fMOV: case LIR_aMOV: case LIR_phiMOV:
+                if (is_float) lh->op = x86_64_macho_nasm_get_proper_mov(lh->farg, lh->sarg, smt, LIR_iMOV);
+                break;
+            case LIR_GDREF:
+                if (x86_64_macho_nasm_is_simd_type(lh->farg, smt)) lh->op = LIR_fGDREF;
+                break;
+            case LIR_LDREF:
+                if (x86_64_macho_nasm_is_simd_type(lh->sarg, smt)) lh->op = LIR_fLDREF;
+                break;
+            case LIR_NEG:
+                if (is_float) lh->op = LIR_fNEG;
+                break;
+            default: break;
+        }
+
+        switch (lh->op) {
             case LIR_STSARG: {
                 int sys_regs[] = { RAX, RDI, RSI, RDX, R10, R8, R9 };
                 if (lh->sarg->storage.cnst.value >= (long)(sizeof(sys_regs) / sizeof(RAX))) break;
@@ -498,7 +514,7 @@ static cfg_dfs_action_t _instruction_selection_block(
 
                 if (is_float) switch (comparison) {
                     case LIR_iCMP: case LIR_iNMP: {
-                        lir_subject_t* ordered  = LIR_SUBJ_REG(DL, 1);
+                        lir_subject_t* ordered  = x86_64_macho_nasm_create_tmp(RDX, LIR_SUBJ_REG(DL, 1), smt, 1);
                         lir_operation_t combine = comparison == LIR_iCMP ? LIR_bAND : LIR_bOR;
                         _insert_instruction_after(bb, LIR_create_block(combine, res, res, ordered), lh);
                         _insert_instruction_after(bb, LIR_create_block(comparison == LIR_iCMP ? LIR_SETE : LIR_SETA, res, NULL, NULL), lh);
