@@ -1,0 +1,17 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+@[abi]
+@[inline(never)]
+function check521(f64 a, f64 b, f64 c, f64 d, f64 e, f64 f, f64 g, f64 h, f64 i) -> i32 {
+    if ((a != 1.0) as i32) != 0; { return 1; }
+    if ((h != 8.0) as i32) != 0; { return 2; }
+    if ((i != 9.5) as i32) != 0; { return 3; }
+    return 42;
+}
+
+start() { exit check521(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.5); }
+
+:/ OUTPUT
+@exit_code=42
+/:

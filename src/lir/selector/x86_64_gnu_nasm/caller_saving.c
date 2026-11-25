@@ -127,7 +127,7 @@ static inline int _same_full_register(lir_subject_t* a, lir_subject_t* b) {
 static inline lir_block_t* _find_pre_argload(lir_block_t* lh, lir_block_t* ex) {
     lir_subject_t* last = NULL;
     while (lh && lh != ex) {
-        if (lh->op == LIR_PUSH || lh->op == LIR_fPUSH) {
+        if (lh->op == LIR_PUSH || lh->op == LIR_fPUSH || lh->op == LIR_fSTARG) {
             last = lh->farg;
             goto _next_inst;
         }

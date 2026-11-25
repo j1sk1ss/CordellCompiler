@@ -1,0 +1,18 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+@[inline(never)]
+function check532(ptr f64 value, i32 marker) -> i32 {
+    if ((marker != 42) as i32) != 0; { return 1; }
+    if value; { return 42; }
+    return 2;
+}
+
+start() {
+    f64 value = 1.5;
+    exit check532(ref value, 42 as i32);
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

@@ -268,7 +268,7 @@ static cfg_dfs_action_t _instruction_selection_block(
             case LIR_FCLL: {
                 lir_subject_t* stack_arg;
                 while (queue_pop(stack_args, (void**)&stack_arg)) {
-                    _insert_instruction_before(bb, LIR_create_block(LIR_PUSH, stack_arg, NULL, NULL), lh);
+                    _insert_instruction_before(bb, LIR_create_block(x86_64_macho_nasm_is_simd_type(stack_arg, smt) ? LIR_fSTARG : LIR_PUSH, stack_arg, NULL, NULL), lh);
                 }
                 __attribute__ ((fallthrough));
             }
@@ -280,14 +280,22 @@ static cfg_dfs_action_t _instruction_selection_block(
                     queue_push(dirty_regs, (void*)((long)R11));
                 }
 
+                /* Capture XMM0 before argument-register restoration overwrites it. */
+                lir_block_t* result = lh->next;
+                lir_block_t* restore_pos = lh;
+                if (result && result->op == LIR_LOADFRET && x86_64_macho_nasm_is_simd_type(result->farg, smt)) {
+                    result->op = LIR_fMOV;
+                    result->sarg = x86_64_macho_nasm_create_tmp(XMM0, result->farg, smt, -1);
+                    restore_pos = result;
+                }
                 long dirty;
                 while (queue_pop(dirty_regs, (void**)&dirty)) {
-                    if (dirty < XMM0 || dirty > XMM7) _insert_instruction_after(bb, LIR_create_block(LIR_POP, LIR_SUBJ_REG(dirty, CONF_get_full_bytness()), NULL, NULL), lh);
-                    else _insert_instruction_after(bb, LIR_create_block(LIR_fPOP, LIR_SUBJ_REG(dirty, 16), NULL, NULL), lh);
+                    if (dirty < XMM0 || dirty > XMM7) _insert_instruction_after(bb, LIR_create_block(LIR_POP, LIR_SUBJ_REG(dirty, CONF_get_full_bytness()), NULL, NULL), restore_pos);
+                    else _insert_instruction_after(bb, LIR_create_block(LIR_fPOP, x86_64_macho_nasm_create_tmp(dirty, LIR_SUBJ_REG(dirty, 16), smt, 16), NULL, NULL), restore_pos);
                 }
 
                 if (ctx->clean_stack) { // clean stack args
-                    _insert_instruction_after(bb, LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, CONF_get_full_bytness()), LIR_SUBJ_REG(RSP, CONF_get_full_bytness()), LIR_SUBJ_CONST(ctx->clean_stack)), lh);
+                    _insert_instruction_after(bb, LIR_create_block(LIR_iADD, LIR_SUBJ_REG(RSP, CONF_get_full_bytness()), LIR_SUBJ_REG(RSP, CONF_get_full_bytness()), LIR_SUBJ_CONST(ctx->clean_stack)), restore_pos);
                     ctx->clean_stack = 0;
                 }
 
@@ -332,7 +340,7 @@ static cfg_dfs_action_t _instruction_selection_block(
                     }
 
                     LIR_unload_subject(lh->sarg);
-                    lh->op   = LIR_aMOV;
+                    lh->op   = (target.reg >= XMM0 && target.reg <= XMM7) ? LIR_fMOV : LIR_aMOV;
                     lh->sarg = lh->farg;
                     lh->farg = nfarg;
                 }
@@ -347,7 +355,7 @@ static cfg_dfs_action_t _instruction_selection_block(
                 ) nfarg = x86_64_macho_nasm_create_tmp(target.reg, lh->farg, smt, -1);
                 else nfarg = LIR_SUBJ_OFF(RBP, target.off, lh->farg->size);
                 LIR_unload_subject(lh->sarg);
-                lh->op   = LIR_phiMOV;
+                lh->op   = is_float ? LIR_fMOV : LIR_phiMOV;
                 lh->sarg = nfarg;
                 break;
             }

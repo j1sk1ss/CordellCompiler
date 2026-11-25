@@ -1,0 +1,15 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+@[inline(never)]
+function answer516() -> f64 { return 42.5; }
+
+start() {
+    f64 answer = answer516();
+    if ((answer != 42.5) as i32) != 0; { exit 1; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

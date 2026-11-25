@@ -22,7 +22,10 @@ static int _convert_lirblock_to_assembly(lir_block_t* b, func_info_t* fi, sym_ta
         case LIR_FCLL:
         case LIR_ECLL: {
             func_info_t fi;
-            if (FNTB_get_info_id(b->farg->storage.str.sid, &fi, &smt->f) && fi.flags.vargs) EMIT_COMMAND("xor rax, rax");
+            if (FNTB_get_info_id(b->farg->storage.str.sid, &fi, &smt->f) && fi.flags.vargs) {
+                if (b->sarg && b->sarg->storage.cnst.value > 0) EMIT_COMMAND("mov eax, %d", (int)MIN(b->sarg->storage.cnst.value, 8));
+                else EMIT_COMMAND("xor rax, rax");
+            }
             EMIT_COMMAND("call %s", x86_64_macho_nasm_format_lir_subject(b->farg, smt, NO_FLAG));
             break;
         }

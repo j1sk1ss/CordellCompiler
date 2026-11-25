@@ -119,7 +119,7 @@ static inline int _same_full_register(lir_subject_t* a, lir_subject_t* b) {
 static inline lir_block_t* _find_pre_argload(lir_block_t* lh, lir_block_t* ex) {
     lir_subject_t* last = NULL;
     while (lh && lh != ex) {
-        if (lh->op == LIR_PUSH || lh->op == LIR_fPUSH) {
+        if (lh->op == LIR_PUSH || lh->op == LIR_fPUSH || lh->op == LIR_fSTARG) {
             last = lh->farg;
             goto _next_inst;
         }
@@ -229,7 +229,7 @@ int i386_gnu_nasm_caller_saving(cfg_ctx_t* cctx, sym_table_t* smt) {
                         int regs_count = 0;
                         set_foreach (long reg, &save_regs) {
                             if (
-                                reg == EAX || reg == ESP || reg == EBP ||
+                                reg == EAX || reg == XMM0 || reg == ESP || reg == EBP ||
                                 regs_count >= (int)(sizeof(regs) / sizeof(regs[0]))
                             ) continue;
                             regs[regs_count++] = reg;

@@ -15,7 +15,7 @@ ast_node_t* HIR_generate_argument_load(ast_node_t* args, hir_ctx_t* ctx, func_in
         t = t->siblings.n
     ) {
         if (t->t->t_type == VAR_ARGUMENTS_TOKEN) break;
-        if (TKN_is_float(t->t->t_type)) arg_num = &flt_idx;
+        if (CONF_get_full_bytness() == 8 && (!fi->flags.vargs || fi->flags.abi) && TKN_is_float(t->t->t_type) && !t->t->flags.ptr) arg_num = &flt_idx;
         else                            arg_num = &dec_idx;
         HIR_BLOCK1(ctx, HIR_VARDECL, HIR_SUBJ_ASTVAR(t->c));
         HIR_BLOCK3(

@@ -134,15 +134,15 @@ static cfg_dfs_action_t _instruction_selection_block(
                 break;
             }
             case LIR_STFARG: {
-                lh->op           = LIR_PUSH;
-                lh->farg->size   = 4;
+                lh->op = is_float ? LIR_fSTARG : LIR_PUSH;
+                if (!is_float) lh->farg->size = 4;
                 ctx->clean_stack += 4;
                 break;
             }
             case LIR_LOADFARG: {
                 lir_subject_t* nfarg = LIR_SUBJ_OFF(EBP, (lh->sarg->storage.cnst.value + !fi->flags.naked + 1) * -4, lh->farg->size);
                 LIR_unload_subject(lh->sarg);
-                lh->op   = LIR_phiMOV;
+                lh->op = is_float ? LIR_fMOV : LIR_phiMOV;
                 lh->sarg = nfarg;
                 break;
             }
