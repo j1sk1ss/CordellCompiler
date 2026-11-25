@@ -13,11 +13,12 @@ int HIR_get_type_size(hir_subject_type_t t) {
         case HIR_STKVARI16:   case HIR_STKVARU16:
         case HIR_GLBVARI16:   case HIR_GLBVARU16: return CONF_get_quart_bytness();
         case HIR_I32CONSTVAL: case HIR_U32CONSTVAL:
+        case HIR_F32NUMBER:
         case HIR_I32NUMBER:   case HIR_U32NUMBER:
-        case HIR_TMPVARI32:   case HIR_TMPVARU32: 
-        case HIR_TMPVARF32:   case HIR_STKVARI32: 
+        case HIR_TMPVARI32:   case HIR_TMPVARU32:
+        case HIR_TMPVARF32:   case HIR_STKVARI32:
         case HIR_STKVARU32:   case HIR_STKVARF32:
-        case HIR_GLBVARI32:   case HIR_GLBVARU32: 
+        case HIR_GLBVARI32:   case HIR_GLBVARU32:
         case HIR_GLBVARF32:   return CONF_get_half_bytness();
         default:              return CONF_get_full_bytness();
     }
