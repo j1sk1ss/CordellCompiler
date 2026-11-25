@@ -80,13 +80,6 @@ int VRTB_update_type(symbol_id_t id, int t, symbol_id_t t_id, vartab_ctx_t* ctx)
     return 0;    
 }
 
-/* Update the pointer depth after a subject type changes.
-   Params:
-       - `id` - Variable ID.
-       - `ptr` - Pointer depth.
-       - `ctx` - Variable table.
-
-   Returns 1 on success, otherwise 0. */
 int VRTB_update_pointer(symbol_id_t id, char ptr, vartab_ctx_t* ctx) {
     variable_info_t* vi;
     if (!map_get(&ctx->vartb, id, (void**)&vi)) return 0;

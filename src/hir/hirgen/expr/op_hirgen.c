@@ -67,7 +67,7 @@ static hir_subject_t* _generate_lazy_logic_operator(ast_node_t* op, ast_node_t* 
             }
 
             lt2 = HIR_generate_implconv(ctx, res->ptr, res->t, lt2, smt);
-            VRTB_PROMOTE_FLAGS(res->storage.var.v_id, lt1, lt2, smt);
+            VRTB_PROMOTE_FLAGS(res->storage.var.v_id, lt1, lt2, smt, res->ptr);
             HIR_BLOCK2(ctx, HIR_STORE, HIR_copy_subject(res), lt2);
             HIR_BLOCK1(ctx, HIR_JMP, end_lb);
             HIR_BLOCK1(ctx, HIR_MKLB, true_lb);
@@ -88,7 +88,7 @@ static hir_subject_t* _generate_lazy_logic_operator(ast_node_t* op, ast_node_t* 
 
             HIR_BLOCK1(ctx, HIR_VARDECL, res);
             lt2 = HIR_generate_implconv(ctx, res->ptr, res->t, lt2, smt);
-            VRTB_PROMOTE_FLAGS(res->storage.var.v_id, lt1, lt2, smt);
+            VRTB_PROMOTE_FLAGS(res->storage.var.v_id, lt1, lt2, smt, res->ptr);
             HIR_BLOCK2(ctx, HIR_STORE, HIR_copy_subject(res), lt2);
             HIR_BLOCK1(ctx, HIR_JMP, end_lb);
             HIR_BLOCK1(ctx, HIR_MKLB, false_lb);
