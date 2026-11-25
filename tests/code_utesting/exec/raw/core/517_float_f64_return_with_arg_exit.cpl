@@ -1,0 +1,15 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+@[inline(never)]
+function half517(f64 value) -> f64 { return value / 2.0; }
+
+start() {
+    f64 answer = half517(85.0);
+    if ((answer != 42.5) as i32) != 0; { exit 1; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

@@ -52,6 +52,7 @@ int         VRTB_set_param(symbol_id_t id, vartab_ctx_t* ctx);
 int         VRTB_update_memory(symbol_id_t id, long offset, long size, char reg, short align, vartab_ctx_t* ctx);
 int         VRTB_update_definition(symbol_id_t id, long definition, symbol_id_t overdefined, vartab_ctx_t* ctx, int rewrite);
 int         VRTB_update_type(symbol_id_t id, int t, symbol_id_t t_id, vartab_ctx_t* ctx);
+int         VRTB_update_pointer(symbol_id_t id, char ptr, vartab_ctx_t* ctx);
 int         VRTB_get_info_id(symbol_id_t id, variable_info_t* info, vartab_ctx_t* ctx);
 int         VRTB_find_by_type_id(symbol_id_t t_id, variable_info_t* info, vartab_ctx_t* ctx);
 int         VRTB_find_by_type_id_name(symbol_id_t t_id, string_t* name, symbol_id_t s_id, variable_info_t* info, vartab_ctx_t* ctx);

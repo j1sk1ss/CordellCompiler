@@ -23,6 +23,9 @@ typedef enum {
         LIR_FEXT,  // extern function
 
         LIR_CMP,
+        LIR_FCMP, // float comparison that sets flags
+        LIR_UCOMISS,
+        LIR_UCOMISD,
 
         LIR_SETL,
         LIR_SETG,
@@ -99,14 +102,25 @@ typedef enum {
         LIR_INC,
         LIR_DEC,
 
+        LIR_fGDREF,    // scalar float load through a pointer
+        LIR_fLDREF,    // scalar float store through a pointer
+        LIR_fSTARG,    // scalar float stack argument
+        LIR_fNEG,      // flip the scalar sign bit
+        LIR_XORPS,     // bitwise xmm xor
+        LIR_MOVSS,     // movss
+        LIR_MOVSD,     // movsd
+        LIR_fMOVQ,     // movq
         LIR_fMOV,      // float move
         LIR_fMVf,      // float to float move
+        LIR_MOVDQU,    // unaligned 128-bit xmm <-> memory move
         LIR_REF,       // a = &y
         LIR_REF_GDREF, // a = &*y
         LIR_GDREF,     // get value from address, x = *y
         LIR_LDREF,     // set value by address,   *x = y
         LIR_PUSH,      // push
         LIR_POP,       // pop
+        LIR_fPUSH,     // xmm push: reserve 16-byte slot, store the register (expanded in memory validation)
+        LIR_fPOP,      // xmm pop:  load the register from the slot, release it (expanded in memory validation)
 
     /* Integer */
         /* Binary operations */
@@ -133,7 +147,22 @@ typedef enum {
         LIR_fSUB, // x = y f- z
         LIR_fMUL, // x = y f* z
         LIR_fDIV, // x = y f/ z
+        LIR_fLRG, // x = y f> z
+        LIR_fLGE, // x = y f>= z
+        LIR_fLWR, // x = y f< z
+        LIR_fLRE, // x = y f<= z
         LIR_fCMP, // x = y f== z
+        LIR_fNMP, // x = y f!= z
+
+        /* Scalar x86 instructions selected for f32/f64 operands */
+        LIR_ADDSS,
+        LIR_ADDSD,
+        LIR_SUBSS,
+        LIR_SUBSD,
+        LIR_MULSS,
+        LIR_MULSD,
+        LIR_DIVSS,
+        LIR_DIVSD,
 
     /* Bits */
         /* Binary operations */
@@ -226,6 +255,16 @@ typedef enum {
    
    Returns register with a fixed size. */
 lir_registers_t LIR_format_register(lir_registers_t reg, int size);
+int             LIR_is_xmm_register(lir_registers_t reg);
+
+/* Select the integer or floating-point variant of an operation.
+   Operations without a matching variant are returned unchanged.
+   Params:
+       - `op` - Source operation.
+       - `is_float` - Select the float variant if nonzero, integer otherwise.
+
+   Returns the operation for the requested operand type. */
+lir_operation_t LIR_format_float_operation(lir_operation_t op, int is_float);
 
 /* Check is the LIR operation is a mov-like operation.
    Note: Move-like operation is an operation that moves some data

@@ -1,0 +1,17 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+start() {
+    arr values[3, f64] = { 1.5, 2.5, 3.5 };
+    if ((values[0] != 1.5) as i32) != 0; { exit 1; }
+    if ((values[2] != 3.5) as i32) != 0; { exit 2; }
+    values[1] = values[0] + values[2];
+    if ((values[1] != 5.0) as i32) != 0; { exit 3; }
+    if ((values[0] != 1.5) as i32) != 0; { exit 4; }
+    if ((values[2] != 3.5) as i32) != 0; { exit 5; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

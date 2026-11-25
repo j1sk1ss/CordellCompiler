@@ -1,0 +1,21 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+@[inline(never)]
+function half518(f32 value) -> f32 {
+    i32 two = 2;
+    f32 divisor = two;
+    return value / divisor;
+}
+
+start() {
+    i32 integer = 84;
+    f32 value = integer;
+    f32 answer = half518(value);
+    if (answer as i32) != 42; { exit 1; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

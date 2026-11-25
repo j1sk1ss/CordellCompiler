@@ -1,0 +1,25 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+start() {
+    f64 zero = 0.0;
+    f64 nan = zero / zero;
+    f64 one = 1.0;
+    if ((nan == nan) as i32) != 0; { exit 1; }
+    if ((nan != nan) as i32) != 1; { exit 2; }
+    if ((nan < one) as i32) != 0; { exit 3; }
+    if ((nan <= one) as i32) != 0; { exit 4; }
+    if ((nan > one) as i32) != 0; { exit 5; }
+    if ((nan >= one) as i32) != 0; { exit 6; }
+    if ((one == nan) as i32) != 0; { exit 7; }
+    if ((one != nan) as i32) != 1; { exit 8; }
+    if ((one < nan) as i32) != 0; { exit 9; }
+    if ((one <= nan) as i32) != 0; { exit 10; }
+    if ((one > nan) as i32) != 0; { exit 11; }
+    if ((one >= nan) as i32) != 0; { exit 12; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

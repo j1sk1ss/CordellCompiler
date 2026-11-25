@@ -1,0 +1,27 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+container values526 {
+    f32 a;
+    f32 b;
+    i32 guard;
+}
+
+start() {
+    i32 three = 3;
+    i32 seven = 7;
+    i32 answer = 42;
+    values526 value;
+    value.a = three as f32;
+    value.b = seven as f32;
+    value.guard = 99;
+    value.a = answer as f32;
+    if (value.a as i32) != 42; { exit 1; }
+    if (value.b as i32) != 7; { exit 2; }
+    if ((value.guard != 99) as i32) != 0; { exit 3; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

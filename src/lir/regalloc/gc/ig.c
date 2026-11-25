@@ -99,7 +99,7 @@ static inline int _collect_lir_in_block(cfg_block_t* bb, lir_block_t** arr) {
        - `g` - Interference graph to update.
    
    Returns 1 on success, otherwise 0 */
-static int _build_igraph_block(cfg_block_t* cb, igraph_t* g) {
+static int _build_igraph_block(cfg_block_t* cb, igraph_t* g, sym_table_t* smt) {
     int n = _count_lir_in_block(cb);
     if (n <= 0) return 1;
 
@@ -114,7 +114,12 @@ static int _build_igraph_block(cfg_block_t* cb, igraph_t* g) {
         _inst_usedef(arr[i], &use, &def);
         set_foreach (symbol_id_t d, &def) {
             set_foreach (symbol_id_t v, &live) {
-                _igraph_add_edge(g, d, v);
+                variable_info_t dvi, vvi;
+                if (
+                    VRTB_get_info_id(d, &dvi, &smt->v) &&
+                    VRTB_get_info_id(v, &vvi, &smt->v) &&
+                    (TKN_is_float(dvi.type) && !dvi.vfs.ptr) == (TKN_is_float(vvi.type) && !vvi.vfs.ptr)
+                ) _igraph_add_edge(g, d, v);
             }
         }
 
@@ -143,7 +148,7 @@ static inline int _add_ig_node(symbol_id_t v_id, igraph_t* g) {
     igraph_node_t* n = (igraph_node_t*)mm_malloc(sizeof(igraph_node_t));
     if (!n) return 0;
     str_memset(n, 0, sizeof(igraph_node_t));
-    n->v_id = v_id;
+    n->v_id     = v_id;
     set_init(&n->v, SET_NO_CMP);
     return map_put(&g->nodes, v_id, n);
 }
@@ -163,7 +168,7 @@ status_code_t LIR_RA_build_igraph(cfg_ctx_t* cctx, igraph_t* g, sym_table_t* smt
 
     foreach (cfg_func_t* fb, &cctx->funcs) {
         foreach (cfg_block_t* cb, &fb->blocks) {
-            if (!_build_igraph_block(cb, g)) return 0;
+            if (!_build_igraph_block(cb, g, smt)) return 0;
         }
     }
 

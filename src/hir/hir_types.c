@@ -13,11 +13,12 @@ int HIR_get_type_size(hir_subject_type_t t) {
         case HIR_STKVARI16:   case HIR_STKVARU16:
         case HIR_GLBVARI16:   case HIR_GLBVARU16: return CONF_get_quart_bytness();
         case HIR_I32CONSTVAL: case HIR_U32CONSTVAL:
+        case HIR_F32NUMBER:
         case HIR_I32NUMBER:   case HIR_U32NUMBER:
-        case HIR_TMPVARI32:   case HIR_TMPVARU32: 
-        case HIR_TMPVARF32:   case HIR_STKVARI32: 
+        case HIR_TMPVARI32:   case HIR_TMPVARU32:
+        case HIR_TMPVARF32:   case HIR_STKVARI32:
         case HIR_STKVARU32:   case HIR_STKVARF32:
-        case HIR_GLBVARI32:   case HIR_GLBVARU32: 
+        case HIR_GLBVARI32:   case HIR_GLBVARU32:
         case HIR_GLBVARF32:   return CONF_get_half_bytness();
         default:              return CONF_get_full_bytness();
     }
@@ -163,7 +164,7 @@ hir_subject_type_t HIR_get_tmptype_tkn(token_t* token, int ptr) {
     ) return HIR_TMPVARI0;
 
     type_size_t bitness = TKN_variable_bitness(token, ptr);
-    int isfloat         = TKN_is_float(token);
+    int isfloat         = TKN_is_float(token->t_type);
     int issigned        = TKN_is_sign(token, ptr);
     if (!isfloat) {
         switch (bitness) {
@@ -206,7 +207,7 @@ hir_subject_type_t HIR_get_stktype(variable_info_t* vi) {
 
     token_t tmptkn = { .t_type = vi->type, .flags = { .ptr = vi->vfs.ptr, .ro = vi->vfs.ro, .glob = vi->vfs.glob } };
     type_size_t bitness = TKN_variable_bitness(&tmptkn, 0);
-    int isfloat         = TKN_is_float(&tmptkn);
+    int isfloat         = TKN_is_float(vi->type);
     int issigned        = TKN_is_sign(&tmptkn, 0);
     int isarr           = vi->type == ARR_VARIABLE_TOKEN;
 
@@ -424,6 +425,7 @@ token_type_t HIR_get_tmptkn_type(hir_subject_type_t t) {
 
 int HIR_is_float(hir_subject_type_t t) {
     switch (t) {
+        case HIR_F64NUMBER: case HIR_F32NUMBER:
         case HIR_GLBVARF64: case HIR_STKVARF64: case HIR_TMPVARF64:
         case HIR_GLBVARF32: case HIR_STKVARF32: case HIR_TMPVARF32: return 1;
         default: return 0;

@@ -1,0 +1,15 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+glob f64 value525 = 1.5;
+
+start() {
+    if ((value525 != 1.5) as i32) != 0; { exit 1; }
+    value525 = value525 + 2.75;
+    if ((value525 != 4.25) as i32) != 0; { exit 2; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

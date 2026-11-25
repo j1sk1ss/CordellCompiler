@@ -3,6 +3,8 @@
 lir_subject_t* x86_64_macho_nasm_create_tmp(lir_registers_t reg, lir_subject_t* src, sym_table_t* smt, int forced_size) {
     token_type_t vtype = TMP_TYPE_TOKEN;
     int vsize = forced_size < 0 ? src->size : forced_size;
+    basic_object_info_t flags = EMPTY_BASIC_FLAGS;
+    if (x86_64_macho_nasm_is_simd_type(src, smt)) vtype = vsize == 4 ? TMP_F32_TYPE_TOKEN : TMP_F64_TYPE_TOKEN;
 
     variable_info_t vi;
     if (
@@ -10,10 +12,11 @@ lir_subject_t* x86_64_macho_nasm_create_tmp(lir_registers_t reg, lir_subject_t* 
         VRTB_get_info_id(src->storage.var.v_id, &vi, &smt->v)
     ) {
         vtype = vi.type;
+        flags.ptr = vi.vfs.ptr;
         if (forced_size < 0 && vi.vfs.ptr > 0) vsize = 8;
     }
     
-    symbol_id_t cpy = VRTB_add_info(NULL, vtype, NO_SYMBOL_ID, EMPTY_BASIC_FLAGS, &smt->v);
+    symbol_id_t cpy = VRTB_add_info(NULL, vtype, NO_SYMBOL_ID, flags, &smt->v);
     VRTB_update_memory(cpy, FIELD_NO_CHANGE, vsize, reg, FIELD_NO_CHANGE, &smt->v);
     lir_subject_t* new = LIR_SUBJ_VAR(cpy, vsize);
     new->dsize = src->dsize;
@@ -34,14 +37,7 @@ int x86_64_macho_nasm_is_sign_type(lir_subject_t* s, sym_table_t* smt) {
 }
 
 int x86_64_macho_nasm_is_simd_type(lir_subject_t* s, sym_table_t* smt) {
-    if (s->t == LIR_NUMBER) return s->storage.num.is_float;
-    if (s->t != LIR_VARIABLE && s->t != LIR_GLVARIABLE) return 0;
-    variable_info_t vi;
-    if (!VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) return 0;
-    switch (vi.type) {
-        case F64_TYPE_TOKEN: case F32_TYPE_TOKEN: return 1;
-        default: return 0;
-    }
+    return LIR_is_float_subject(s, smt);
 }
 
 lir_operation_t x86_64_macho_nasm_get_proper_mov(lir_subject_t* a, lir_subject_t* b, sym_table_t* smt, lir_operation_t base) {
@@ -52,23 +48,21 @@ lir_operation_t x86_64_macho_nasm_get_proper_mov(lir_subject_t* a, lir_subject_t
         if (from_float) {
             if (b->size == 4 && a->size == 8)      return LIR_CVTSS2SD;
             else if (b->size == 8 && a->size == 4) return LIR_CVTSD2SS;
-            return base;
+            return LIR_format_float_operation(base, 1);
         } 
         else {
-            if (a->size <= 4) return (b->size == 4) ? LIR_CVTTSS2SI : LIR_CVTTSD2SI;
-            return (b->size == 4) ? LIR_CVTTSS2SI : LIR_CVTTSD2SI;
+            return a->size == 4 ? LIR_CVTSI2SS : LIR_CVTSI2SD;
         }
     }
     else {
         int from_sign = x86_64_macho_nasm_is_sign_type(b, smt);
-        int from_num  = b->t == LIR_NUMBER;
-        if (from_num) return base;
-        
+        int from_num  = LIR_is_defined_type(b->t);
         if (from_float) {
             if (b->size == 4) return LIR_CVTTSS2SI;
             else return LIR_CVTTSD2SI;
         }
         else {
+            if (from_num) return base;
             if (a->size <= b->size) {
                 b->size = a->size;
                 return LIR_iMOV;

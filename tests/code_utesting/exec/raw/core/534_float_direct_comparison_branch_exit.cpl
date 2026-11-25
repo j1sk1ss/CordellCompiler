@@ -1,0 +1,17 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/
+A float comparison used directly as a condition must lower to valid SSE operands.
+/:
+
+start() {
+    f64 a = 1.0;
+    f64 b = 2.0;
+    if a < b; { exit 42; }
+    exit 1;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

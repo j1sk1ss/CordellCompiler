@@ -1,0 +1,21 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+start() {
+    i32 n = 7;
+    i32 d = 4;
+    f32 numerator = n;
+    f32 denominator = d;
+    f32 small = numerator / denominator;
+    f64 wide = small as f64;
+    if ((wide != 1.75) as i32) != 0; { exit 1; }
+    f64 source = 2.5;
+    f32 narrow = source as f32;
+    f64 roundtrip = narrow as f64;
+    if ((roundtrip != 2.5) as i32) != 0; { exit 2; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

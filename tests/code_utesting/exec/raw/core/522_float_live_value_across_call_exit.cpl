@@ -1,0 +1,23 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+@[inline(never)]
+function clobber522(f64 x, f64 y, f64 z) -> i32 {
+    f64 sum = x + y + z;
+    return sum as i32;
+}
+
+start() {
+    f64 live = 13.5;
+    f64 other = 7.25;
+    i32 result = clobber522(1.0, 2.0, 3.0);
+    if ((result != 6) as i32) != 0; { exit 1; }
+    if ((live != 13.5) as i32) != 0; { exit 2; }
+    if ((other != 7.25) as i32) != 0; { exit 3; }
+    if ((live + other != 20.75) as i32) != 0; { exit 4; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

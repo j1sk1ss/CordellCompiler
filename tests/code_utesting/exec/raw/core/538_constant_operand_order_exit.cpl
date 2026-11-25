@@ -1,0 +1,18 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+start() {
+    i32 negative = 0 - 42;
+    i32 quotient = 84 / 2;
+    i32 remainder = 85 % 43;
+    i32 repeated = 42 - 42;
+    if (negative + 84) != 42; { exit 1; }
+    if quotient != 42; { exit 2; }
+    if remainder != 42; { exit 3; }
+    if repeated != 0; { exit 4; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

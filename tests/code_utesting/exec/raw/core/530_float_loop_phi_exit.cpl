@@ -1,0 +1,19 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+start() {
+    f64 sum = 0.0;
+    f64 step = 0.5;
+    i32 count = 0;
+    while count < 8; {
+        sum = sum + step;
+        count += 1;
+    }
+    if ((sum != 4.0) as i32) != 0; { exit 1; }
+    if ((step != 0.5) as i32) != 0; { exit 2; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

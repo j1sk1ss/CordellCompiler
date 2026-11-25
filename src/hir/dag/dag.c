@@ -6,7 +6,7 @@ hash_t HIR_DAG_compute_hash(dag_node_t* nd) {
         return HIR_hash_subject(nd->src);
     }
 
-    if (!set_size(&nd->args)) {
+    if (!list_size(&nd->args)) {
         hash_t h = HIR_hash_subject(nd->src);
         if (nd->op == HIR_GDREF) h ^= (hash_t)nd->memory_version * 0x9e3779b97f4a7c15UL;
         return h;
@@ -15,7 +15,7 @@ hash_t HIR_DAG_compute_hash(dag_node_t* nd) {
     nd->hash_busy = 1;
     hash_t h = nd->op * 1315423911UL;
     if (nd->op == HIR_GDREF) h ^= (hash_t)nd->memory_version * 0x9e3779b97f4a7c15UL;
-    set_foreach (dag_node_t* arg, &nd->args) {
+    foreach (dag_node_t* arg, &nd->args) {
         h ^= HIR_DAG_compute_hash(arg) + 0x9e3779b97f4a7c15UL + (h << 6) + (h >> 2);
     }
 
@@ -34,7 +34,7 @@ static dag_node_t* _create_node(hir_subject_t* src) {
     str_memset(nd, 0, sizeof(dag_node_t));
 
     set_init(&nd->users, SET_NO_CMP);
-    set_init(&nd->args,  SET_NO_CMP);
+    list_init(&nd->args);
     set_init(&nd->link,  SET_NO_CMP);
 
     set_add(&nd->link, (void*)HIR_hash_subject(src));
@@ -70,7 +70,7 @@ dag_node_t* HIR_DAG_get_node(dag_ctx_t* ctx, hir_subject_t* src, int create) {
 int HIR_DAG_unload_node(dag_node_t* nd) {
     if (!nd) return 0;
     set_free(&nd->link);
-    set_free(&nd->args);
+    list_free(&nd->args);
     set_free(&nd->users);
     mm_free(nd);
     return 1;

@@ -1,0 +1,26 @@
+: ASM_ARCH=x86_64_nasm_gnu,x86_64_nasm_macho :
+: BLOCK_TEST :
+: RUN_ASM :
+
+:/
+SysV x86_64: AL reports the number of vector argument registers used.
+/:
+
+@[abi]
+@[inline(never)]
+function count535(...) -> i32 {
+    i32 count;
+    asm(count) { "movzx %0, al" }
+    return count;
+}
+
+start() {
+    if count535() != 0; { exit 1; }
+    if count535(1.5, 7 as i32, 2.5) != 2; { exit 2; }
+    if count535(7 as i32) != 0; { exit 3; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

@@ -19,3 +19,6 @@ then starts the compilation (optimisation and emmiting). */
 int main(int argc, char* argv[]) {
     return BUILD_start(argc, argv);
 }
+// TODO list:
+// - Huge refactoring for LIR-part and arch-dependent part
+// - Create a script which creates a placeholder for a new architecture

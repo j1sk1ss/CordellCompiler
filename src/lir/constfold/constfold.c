@@ -14,6 +14,7 @@ static int _apply_constfold_on_subject(lir_subject_t* s, sym_table_t* smt) {
 
     variable_info_t vi;
     if (!VRTB_get_info_id(s->storage.var.v_id, &vi, &smt->v)) return 0;
+    if (TKN_is_float(vi.type) && !vi.vfs.ptr) return 0;
     if (vi.vdi.defined == DEFINED_VARIABLE) {
         s->storage.cnst.value = vi.vdi.definition;
         s->t                  = LIR_CONSTVAL;

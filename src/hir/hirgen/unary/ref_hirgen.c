@@ -24,6 +24,10 @@ hir_subject_t* HIR_reference_subject(hir_subject_t* src, sym_table_t* smt, int i
             src_ptr  = ai.elements_info.el_flags.ptr;
         }
     }
+    else if (src_type == HIR_STRING) {
+        src_type = HIR_GLBVARI8;
+        src_ptr  = 1;
+    }
 
     /* If the source variable was a custom typed variable, we mst
        preserve its type thru reference operation */

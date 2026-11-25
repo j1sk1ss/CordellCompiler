@@ -1,0 +1,22 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+@[abi]
+@[inline(never)]
+function check520(f64 a, f64 b, f64 c, f64 d, f64 e, f64 f, f64 g, f64 h) -> i32 {
+    if ((a != 1.0) as i32) != 0; { return 1; }
+    if ((b != 2.0) as i32) != 0; { return 2; }
+    if ((c != 3.0) as i32) != 0; { return 3; }
+    if ((d != 4.0) as i32) != 0; { return 4; }
+    if ((e != 5.0) as i32) != 0; { return 5; }
+    if ((f != 6.0) as i32) != 0; { return 6; }
+    if ((g != 7.0) as i32) != 0; { return 7; }
+    if ((h != 8.0) as i32) != 0; { return 8; }
+    return 42;
+}
+
+start() { exit check520(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0); }
+
+:/ OUTPUT
+@exit_code=42
+/:

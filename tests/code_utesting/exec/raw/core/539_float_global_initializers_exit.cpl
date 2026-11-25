@@ -1,0 +1,25 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+glob f32 small539 = 1.25;
+glob f64 wide539 = 2.5;
+glob arr values539[2, f64] = { 3.75, 4.5 };
+glob arr small_values539[2, f32] = { 5.25, 6.5 };
+glob arr empty539[2, f64];
+
+start() {
+    if (small539 as i32) != 1; { exit 1; }
+    if (wide539 as i32) != 2; { exit 2; }
+    if (values539[0] as i32) != 3; { exit 3; }
+    if (values539[1] as i32) != 4; { exit 4; }
+    if (small_values539[0] as i32) != 5; { exit 5; }
+    if (small_values539[1] as i32) != 6; { exit 6; }
+    if (empty539[1] as i32) != 0; { exit 7; }
+    if ((values539[0] + values539[1] != 8.25) as i32) != 0; { exit 8; }
+    if ((small_values539[0] + small_values539[1] != 11.75) as i32) != 0; { exit 9; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

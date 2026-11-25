@@ -1,0 +1,27 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+#define FULL_SIZE537 8
+#define ARRAY_SIZE537 24
+#ifdef CCPL_GNUI386
+    #undef FULL_SIZE537
+    #undef ARRAY_SIZE537
+    #define FULL_SIZE537 4
+    #define ARRAY_SIZE537 12
+#endif
+
+start() {
+    f32 small;
+    f64 wide;
+    arr small_values[3, f32];
+    arr wide_values[3, f64];
+    if sizeof(small) != 4; { exit 1; }
+    if sizeof(wide) != FULL_SIZE537; { exit 2; }
+    if sizeof(small_values) != 12; { exit 3; }
+    if sizeof(wide_values) != ARRAY_SIZE537; { exit 4; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

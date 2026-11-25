@@ -1,0 +1,33 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+start() {
+    i32 negative = 0 - 2;
+    f32 low = negative;
+    f32 same = negative;
+    i32 positive = 3;
+    f32 high = positive;
+    if ((low < high) as i32) != 1; { exit 1; }
+    if ((low <= high) as i32) != 1; { exit 2; }
+    if ((low > high) as i32) != 0; { exit 3; }
+    if ((low >= high) as i32) != 0; { exit 4; }
+    if ((low == high) as i32) != 0; { exit 5; }
+    if ((low != high) as i32) != 1; { exit 6; }
+    if ((high < low) as i32) != 0; { exit 7; }
+    if ((high <= low) as i32) != 0; { exit 8; }
+    if ((high > low) as i32) != 1; { exit 9; }
+    if ((high >= low) as i32) != 1; { exit 10; }
+    if ((high == low) as i32) != 0; { exit 11; }
+    if ((high != low) as i32) != 1; { exit 12; }
+    if ((low < same) as i32) != 0; { exit 13; }
+    if ((low <= same) as i32) != 1; { exit 14; }
+    if ((low > same) as i32) != 0; { exit 15; }
+    if ((low >= same) as i32) != 1; { exit 16; }
+    if ((low == same) as i32) != 1; { exit 17; }
+    if ((low != same) as i32) != 0; { exit 18; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

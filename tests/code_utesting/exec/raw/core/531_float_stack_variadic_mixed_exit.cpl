@@ -1,0 +1,21 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+@[inline(never)]
+function check531(...) -> i32 {
+    @[poparg] i32 a;
+    @[poparg] f64 b;
+    @[poparg] i32 c;
+    @[poparg] f64 d;
+    if ((a != 3) as i32) != 0; { return 1; }
+    if ((b != 5.5) as i32) != 0; { return 2; }
+    if ((c != 7) as i32) != 0; { return 3; }
+    if ((d != 11.5) as i32) != 0; { return 4; }
+    return 42;
+}
+
+start() { exit check531(3 as i32, 5.5, 7 as i32, 11.5); }
+
+:/ OUTPUT
+@exit_code=42
+/:

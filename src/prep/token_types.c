@@ -19,6 +19,7 @@ type_size_t TKN_variable_bitness(token_t* token, char ptr) {
         case I64_TYPE_TOKEN:
         case U64_TYPE_TOKEN:
         case F64_TYPE_TOKEN:
+        case TMP_F64_TYPE_TOKEN:
         case I0_VARIABLE_TOKEN: // exception
         case I64_VARIABLE_TOKEN:  
         case U64_VARIABLE_TOKEN: 
@@ -28,6 +29,7 @@ type_size_t TKN_variable_bitness(token_t* token, char ptr) {
         case I32_TYPE_TOKEN:
         case U32_TYPE_TOKEN:
         case F32_TYPE_TOKEN:
+        case TMP_F32_TYPE_TOKEN:
         case I32_VARIABLE_TOKEN:   
         case U32_VARIABLE_TOKEN: 
         case F32_VARIABLE_TOKEN: return TYPE_HALF_SIZE;
@@ -315,14 +317,15 @@ int TKN_is_sign(token_t* token, char ptr) {
     }
 }
 
-int TKN_is_float(token_t* token) {
-    if (!token) return 0;
-    switch (token->t_type) {
+int TKN_is_float(token_type_t t) {
+    switch (t) {
         case F64_VARIABLE_TOKEN:
         case F32_VARIABLE_TOKEN:
         case F64_TYPE_TOKEN:
-        case F32_TYPE_TOKEN:    return 1;
-        default:                return 0;
+        case F32_TYPE_TOKEN:
+        case TMP_F64_TYPE_TOKEN:
+        case TMP_F32_TYPE_TOKEN: return 1;
+        default:                 return 0;
     }
 }
 

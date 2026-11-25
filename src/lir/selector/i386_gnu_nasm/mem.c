@@ -6,6 +6,7 @@ Params:
 
 Returns 1 if this is a valid register. */
 static inline int _is_regular_register(lir_registers_t r) {
+    if (r >= XMM0 && r <= XMM7) return 1;
     if (r > ESP || r < 0) return 0;
     lir_registers_t base = LIR_format_register(r, 4);
     if (base == EBP || base == ESP) return 0;
@@ -13,6 +14,7 @@ static inline int _is_regular_register(lir_registers_t r) {
 }
 
 static const lir_registers_t _regular_registers[] = { EBX, EDX };
+static const lir_registers_t _avx_registers[] = { XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6, XMM7 };
 
 /* Convert color (index) value to a register.
 The idea, that colors don't care about special and reserved registers (such as ESP, EBP, etc.),
@@ -21,9 +23,13 @@ Params:
     - `color` - Color to convert.
 
 Returns the converted register. */
-static inline lir_registers_t _convert_color_to_register(long color) {
-    if (color < 0 || color >= (long)(sizeof(_regular_registers) / sizeof(_regular_registers[0]))) return -1;
-    return _regular_registers[color];
+static inline lir_registers_t _convert_color_to_register(long color, int is_float) {
+    if (
+        color < 0 ||
+        (!is_float && color >= (long)(sizeof(_regular_registers) / sizeof(_regular_registers[0]))) ||
+        (is_float && color >= (long)(sizeof(_avx_registers) / sizeof(_avx_registers[0])))
+    ) return -1;
+    return is_float ? _avx_registers[color] : _regular_registers[color];
 }
 
 /* Update information about memory allocation in the provided lir subject.
@@ -47,9 +53,9 @@ static int _update_subject_memory(lir_subject_t* s, stack_map_t* smp, map_t* col
     if (!vi.vmi.allocated) {
         if (
             colors && map_get(colors, s->storage.var.v_id, (void**)&color) &&     /* If the clor is found         */
-            color >= 0 && _is_regular_register(_convert_color_to_register(color)) /* And if this a valid register */
+            color >= 0 && _is_regular_register(_convert_color_to_register(color, TKN_is_float(vi.type) && !vi.vfs.ptr)) /* And if this a valid register */
         ) {
-            vi.vmi.reg    = _convert_color_to_register(color);
+            vi.vmi.reg    = _convert_color_to_register(color, TKN_is_float(vi.type) && !vi.vfs.ptr);
             vi.vmi.offset = SMT_NULL;
         }
         else {
@@ -180,7 +186,7 @@ int i386_gnu_nasm_memory_selection(cfg_ctx_t* cctx, map_t* colors, sym_table_t* 
                                     type_init_info_t elem_info = { 0 };
                                     if (!TPTB_find_type_init_slot(vi.t_id, el_pos, 0, &elem_info, &smt->t)) break;
                                     LIR_insert_block_before(
-                                        LIR_create_block(LIR_aMOV, LIR_SUBJ_OFF(EBP, arr_off - elem_info.slot_off, elem_info.slot_size), elem, NULL), lh
+                                        LIR_create_block(i386_gnu_nasm_is_simd_type(elem, smt) ? LIR_fMOV : LIR_aMOV, LIR_SUBJ_OFF(EBP, arr_off - elem_info.slot_off, elem_info.slot_size), elem, NULL), lh
                                     );
 
                                     el_pos++;
@@ -236,12 +242,44 @@ static int _validate_size_movs(cfg_block_t* bb, sym_table_t* smt) {
             (lh->sarg && lh->sarg->t != LIR_NUMBER && lh->sarg->t != LIR_CONSTVAL)
         ) {
             switch (lh->op) {
-                case LIR_iMOV: case LIR_aMOV: case LIR_fMOV: case LIR_phiMOV: {
+                case LIR_iMOV: case LIR_aMOV: case LIR_phiMOV: {
                     lh->op = i386_gnu_nasm_get_proper_mov(lh->farg, lh->sarg, smt, lh->op);
                     break;
                 }
                 default: break;
             }
+        }
+    }
+
+    return 1;
+}
+
+static int _expand_float_pushpop(cfg_block_t* bb) {
+    iterate_lir_instructions (bb) {
+        switch (lh->op) {
+            case LIR_fPUSH: {
+                if (!lh->farg || lh->farg->t != LIR_REGISTER) break;
+                lir_block_t* mov = LIR_create_block(LIR_MOVDQU, LIR_SUBJ_OFF(ESP, 0, 16), lh->farg, NULL);
+                if (!mov || !LIR_insert_block_after(mov, lh)) return 0;
+                if (bb->lmap.exit == lh) bb->lmap.exit = mov;
+                lh->op   = LIR_iSUB;
+                lh->farg = LIR_SUBJ_REG(ESP, CONF_get_full_bytness());
+                lh->sarg = LIR_SUBJ_REG(ESP, CONF_get_full_bytness());
+                lh->targ = LIR_SUBJ_CONST(16);
+                break;
+            }
+            case LIR_fPOP: {
+                if (!lh->farg || lh->farg->t != LIR_REGISTER) break;
+                lir_block_t* mov = LIR_create_block(LIR_MOVDQU, lh->farg, LIR_SUBJ_OFF(ESP, 0, 16), NULL);
+                if (!mov || !LIR_insert_block_before(mov, lh)) return 0;
+                if (bb->lmap.entry == lh) bb->lmap.entry = mov;
+                lh->op   = LIR_iADD;
+                lh->farg = LIR_SUBJ_REG(ESP, CONF_get_full_bytness());
+                lh->sarg = LIR_SUBJ_REG(ESP, CONF_get_full_bytness());
+                lh->targ = LIR_SUBJ_CONST(16);
+                break;
+            }
+            default: break;
         }
     }
 
@@ -260,6 +298,7 @@ Params:
 Returns 1 if the operation succeeds, otherwise 0. */
 static int _validate_selected_instuction(cfg_block_t* bb, sym_table_t* smt) {
     iterate_lir_instructions (bb) {
+        if (i386_gnu_nasm_validate_float(bb, lh, smt)) continue;
         list_t fixes;
         list_init(&fixes);
         if (lh->farg) {
@@ -535,8 +574,9 @@ int i386_gnu_nasm_memory_validation(cfg_ctx_t* cctx, sym_table_t* smt) {
         func_info_t fi;
         if (!FNTB_get_info_id(fb->f_id, &fi, &smt->f)) continue;
         foreach (cfg_block_t* bb, &fb->blocks) {
-            _validate_selected_instuction(bb, smt);
+            _expand_float_pushpop(bb);
             _validate_size_movs(bb, smt);
+            _validate_selected_instuction(bb, smt);
             if (fi.flags.naked != 1) continue;
             iterate_lir_instructions (bb) {
                 iterate_lir_args (lir_subject_t* s, lh, 0) {

@@ -1,5 +1,28 @@
 #include <lir/lir_types.h>
 
+lir_operation_t LIR_format_float_operation(lir_operation_t op, int is_float) {
+    switch (op) {
+        case LIR_CMP:  case LIR_FCMP: return is_float ? LIR_FCMP : LIR_CMP;
+        case LIR_iMOV: case LIR_fMOV: return is_float ? LIR_fMOV : LIR_iMOV;
+        case LIR_iADD: case LIR_fADD: return is_float ? LIR_fADD : LIR_iADD;
+        case LIR_iSUB: case LIR_fSUB: return is_float ? LIR_fSUB : LIR_iSUB;
+        case LIR_iMUL: case LIR_fMUL: return is_float ? LIR_fMUL : LIR_iMUL;
+        case LIR_iDIV: case LIR_fDIV: return is_float ? LIR_fDIV : LIR_iDIV;
+        case LIR_iLRG: case LIR_fLRG: return is_float ? LIR_fLRG : LIR_iLRG;
+        case LIR_iLGE: case LIR_fLGE: return is_float ? LIR_fLGE : LIR_iLGE;
+        case LIR_iLWR: case LIR_fLWR: return is_float ? LIR_fLWR : LIR_iLWR;
+        case LIR_iLRE: case LIR_fLRE: return is_float ? LIR_fLRE : LIR_iLRE;
+        case LIR_iCMP: case LIR_fCMP: return is_float ? LIR_fCMP : LIR_iCMP;
+        case LIR_iNMP: case LIR_fNMP: return is_float ? LIR_fNMP : LIR_iNMP;
+        default: return op;
+    }
+}
+
+/* Returns 1 if the register belongs to the x86 SSE register bank. */
+int LIR_is_xmm_register(lir_registers_t reg) {
+    return reg >= XMM0 && reg <= XMM7;
+}
+
 lir_registers_t LIR_format_register(lir_registers_t reg, int size) {
 #define CONVERTER(e, h, q, d)          \
     do {                               \
@@ -45,9 +68,11 @@ Params:
 Returns 1 if operation is a value-moving write, otherwise 0. */
 static int _is_move_write_by_value(lir_operation_t op) {
     switch (op) {
+        case LIR_fNEG:     case LIR_fMOVQ:     case LIR_MOVSS:     case LIR_MOVSD:
         case LIR_NEG:      case LIR_NOT:
         case LIR_aMOV:     case LIR_iMOV:      case LIR_MOVZX:     case LIR_MOVSX:
-        case LIR_phiMOV:   case LIR_MOVSXD:    case LIR_fMOV:
+        case LIR_phiMOV:   case LIR_MOVSXD:    case LIR_fMOV:      case LIR_fMVf:
+        case LIR_MOVDQU:
         case LIR_XCHG:
         case LIR_STARGLD:  case LIR_STARGRF:
         case LIR_LOADFRET: case LIR_LOADFARG:
@@ -59,6 +84,7 @@ static int _is_move_write_by_value(lir_operation_t op) {
 
 int LIR_is_movop(lir_operation_t op) {
     switch (op) {
+        case LIR_fLDREF:  case LIR_fSTARG:
         case LIR_LDREF: return 1;
         default: return _is_move_write_by_value(op);
     }
@@ -66,14 +92,22 @@ int LIR_is_movop(lir_operation_t op) {
 
 int LIR_is_writeop(lir_operation_t op) {
     switch (op) {
+        case LIR_SETL: case LIR_SETG: case LIR_STLE: case LIR_STGE:
+        case LIR_SETE: case LIR_STNE: case LIR_SETB: case LIR_SETA:
+        case LIR_STBE: case LIR_STAE:
         case LIR_TF64: case LIR_TF32:
         case LIR_TI64: case LIR_TI32: case LIR_TI16: case LIR_TI8: 
         case LIR_TU64: case LIR_TU32: case LIR_TU16: case LIR_TU8:
-        case LIR_POP:
+        case LIR_POP:  case LIR_fPOP:
         case LIR_bXOR: case LIR_iBRHT: case LIR_iBLFT: case LIR_bSHL: case LIR_bSHR: case LIR_bSAR: case LIR_bAND: case LIR_bOR:
         case LIR_fADD: case LIR_fSUB:  case LIR_fMUL:  case LIR_fDIV: 
+        case LIR_ADDSS: case LIR_ADDSD: case LIR_SUBSS: case LIR_SUBSD:
+        case LIR_MULSS: case LIR_MULSD: case LIR_DIVSS: case LIR_DIVSD:
+        case LIR_fLRG: case LIR_fLGE:  case LIR_fLWR:  case LIR_fLRE:
+        case LIR_fCMP: case LIR_fNMP:
         case LIR_iADD: case LIR_iSUB:  case LIR_iMUL:  case LIR_iDIV: case LIR_iMOD:
         case LIR_DIV:  
+        case LIR_fGDREF:  case LIR_XORPS:
         case LIR_GDREF:
         case LIR_REF_GDREF:
         case LIR_REF: return 1;
@@ -83,9 +117,11 @@ int LIR_is_writeop(lir_operation_t op) {
 
 int LIR_is_readop(lir_operation_t op) {
     switch (op) {
-        case LIR_TST:  case LIR_CMP:    case LIR_FRET:
+        case LIR_TST:  case LIR_CMP:    case LIR_FCMP: case LIR_FRET:
+        case LIR_UCOMISS: case LIR_UCOMISD:
         case LIR_FCLL: case LIR_ECLL:   case LIR_JMP:
-        case LIR_PUSH: case LIR_phiMOV: case LIR_aMOV:
+        case LIR_PUSH: case LIR_fPUSH: case LIR_phiMOV: case LIR_aMOV:
+        case LIR_fLDREF:  case LIR_fSTARG:
         case LIR_LDREF:
         case LIR_VRUSE:
         case LIR_EXITOP: return 1;
@@ -95,10 +131,11 @@ int LIR_is_readop(lir_operation_t op) {
 
 int LIR_has_sideeffect(lir_operation_t op) {
     switch (op) {
-        case LIR_PUSH:   case LIR_POP:   case LIR_FRET:
-        case LIR_EXITOP: case LIR_LDREF: case LIR_FCLL:
+        case LIR_PUSH:   case LIR_fPUSH: case LIR_POP:   case LIR_fPOP:
+        case LIR_FRET:
+        case LIR_EXITOP: case LIR_LDREF: case LIR_fLDREF: case LIR_fSTARG: case LIR_FCLL:
         case LIR_ECLL:   case LIR_SYSC:  case LIR_phiMOV:
-        case LIR_aMOV: return 1;
+        case LIR_aMOV:   case LIR_MOVDQU: return 1;
         default:       return 0;
     }
 }

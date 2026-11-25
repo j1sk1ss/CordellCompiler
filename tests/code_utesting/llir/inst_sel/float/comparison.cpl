@@ -1,0 +1,64 @@
+start() {
+    f64 a = 1.0;
+    f64 b = 2.0;
+    i32 lower = (a < b) as i32;
+    i32 lower_equal = (a <= b) as i32;
+    i32 larger = (a > b) as i32;
+    i32 larger_equal = (a >= b) as i32;
+    i32 equal = (a == b) as i32;
+    i32 unequal = (a != b) as i32;
+}
+
+:/ OUTPUT
+BB1:
+start
+%0 f= $4607182418800017408;
+%1 f= $4611686018427387904;
+%20 f= %1;
+ucomisd %20, %0;
+seta al;
+eax movzx al;
+%9 cvtsi2sd eax;
+%8 cvttsd2si %9;
+%2 = %8;
+%21 f= %1;
+ucomisd %21, %0;
+stae al;
+eax movzx al;
+%11 cvtsi2sd eax;
+%10 cvttsd2si %11;
+%3 = %10;
+%22 f= %0;
+ucomisd %22, %1;
+seta al;
+eax movzx al;
+%13 cvtsi2sd eax;
+%12 cvttsd2si %13;
+%4 = %12;
+%23 f= %0;
+ucomisd %23, %1;
+stae al;
+eax movzx al;
+%15 cvtsi2sd eax;
+%14 cvttsd2si %15;
+%5 = %14;
+%24 f= %0;
+ucomisd %24, %1;
+stae dl;
+sete al;
+al = al & dl;
+eax movzx al;
+%17 cvtsi2sd eax;
+%16 cvttsd2si %17;
+%6 = %16;
+%25 f= %0;
+ucomisd %25, %1;
+setb dl;
+seta al;
+al = al | dl;
+eax movzx al;
+%19 cvtsi2sd eax;
+%18 cvttsd2si %19;
+%7 = %18;
+send
+/:

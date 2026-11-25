@@ -2,6 +2,7 @@
     "sources": [
         "src/config.c",
         "src/prep/token.c",
+        "src/prep/token_types.c",
         "std/*.c"
     ]
 }

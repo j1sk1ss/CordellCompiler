@@ -1,0 +1,19 @@
+: BLOCK_TEST :
+: RUN_ASM :
+
+start() {
+    i32 six = 6;
+    i32 two = 2;
+    f32 a = six;
+    f32 b = two;
+    if ((a + b) as i32) != 8; { exit 1; }
+    if ((a - b) as i32) != 4; { exit 2; }
+    if ((a * b) as i32) != 12; { exit 3; }
+    if ((a / b) as i32) != 3; { exit 4; }
+    if (((a + b) * (a - b) / b) as i32) != 16; { exit 5; }
+    exit 42;
+}
+
+:/ OUTPUT
+@exit_code=42
+/:

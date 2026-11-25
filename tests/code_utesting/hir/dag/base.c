@@ -35,7 +35,7 @@ static void dump_dag_dot(dag_ctx_t* ctx, sym_table_t* smt) {
 
     printf("\n");
     map_foreach (dag_node_t* node, &ctx->dag) {
-        set_foreach (dag_node_t* arg, &node->args) {
+        foreach (dag_node_t* arg, &node->args) {
             printf("  lb%li -> lb%li [label=\"farg\"];\n", node->id, arg->id);
         }
 
