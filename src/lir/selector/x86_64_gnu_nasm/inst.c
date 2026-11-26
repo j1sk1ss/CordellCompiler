@@ -1,3 +1,4 @@
+#ifndef CPL_DISABLE_X86_64_GNU_NASM
 #include <lir/selector/x86_64_gnu_nasm.h>
 
 /* Insert block before 'pos' block with the block entry update.
@@ -540,3 +541,4 @@ int x86_64_gnu_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
     set_free(&ctx.callee_restored_blocks);
     return 1;
 }
+#endif

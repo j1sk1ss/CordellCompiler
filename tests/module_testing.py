@@ -51,7 +51,7 @@ def _run_interactive_command(cmd: list[str]) -> int:
 
 from misc.builder import (
     CCBuilder,
-    BuildCompiler,
+    default_compiler,
     CCBuilderConfig
 )
 
@@ -1757,7 +1757,7 @@ def _entry() -> None:
     parser.add_argument('--output-dir', default='./bin')
     parser.add_argument('--path', required=True, help='Unit test path')
     parser.add_argument('--base', default='../')
-    parser.add_argument('--compiler', default='gcc')
+    parser.add_argument('--compiler', default=default_compiler())
     parser.add_argument('--force-rewrite', action='store_true', help='Rewrite OUTPUT blocks for all tests')
     args = parser.parse_args()
 
@@ -1825,7 +1825,7 @@ def _entry() -> None:
             include=args.base,
             target="unit_test",
             config=bconf_raw,
-            compiler=BuildCompiler(args.compiler)
+            compiler=args.compiler
         )
 
         builder: CCBuilder = CCBuilder(settings=bconf)

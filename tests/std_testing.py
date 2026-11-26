@@ -7,7 +7,7 @@ from pathlib import Path
 
 from misc.builder import (
     CCBuilder, 
-    BuildCompiler, 
+    default_compiler,
     CCBuilderConfig
 )
 
@@ -35,7 +35,7 @@ def _entry() -> None:
     parser.add_argument('--output-dir', default='./bin')
     parser.add_argument('--path', required=True, help='Unit test path')
     parser.add_argument('--base', default='../')
-    parser.add_argument('--compiler', default='gcc')
+    parser.add_argument('--compiler', default=default_compiler())
     args = parser.parse_args()
 
     test_dir = Path(args.path)
@@ -58,7 +58,7 @@ def _entry() -> None:
         include=args.base,
         target="std_test",
         config=bconf_raw,
-        compiler=BuildCompiler(args.compiler)
+        compiler=args.compiler
     )
 
     builder = CCBuilder(settings=bconf)
@@ -69,7 +69,7 @@ def _entry() -> None:
             show_logs=False
         )
         
-        if not _run_test(binary):
+        if not binary or not _run_test(binary):
             print(f"Test {binaries} run error!")
             exit(1)
         else:

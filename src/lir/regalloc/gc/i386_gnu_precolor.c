@@ -1,3 +1,4 @@
+#ifndef CPL_DISABLE_I386_GNU_NASM
 #include <lir/regalloc/i386_gnu_precolor.h>
 
 long i386_gnu_precolored_reg_to_color(lir_registers_t reg) {
@@ -15,3 +16,4 @@ long i386_gnu_precolored_reg_to_color(lir_registers_t reg) {
         default:   return reg;
     }
 }
+#endif

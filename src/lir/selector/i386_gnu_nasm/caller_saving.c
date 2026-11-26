@@ -1,3 +1,4 @@
+#ifndef CPL_DISABLE_I386_GNU_NASM
 #include <lir/selector/i386_gnu_nasm.h>
 
 /* Collect used registers in the provided function.
@@ -266,3 +267,4 @@ int i386_gnu_nasm_caller_saving(cfg_ctx_t* cctx, sym_table_t* smt) {
 
     return 1;
 }
+#endif

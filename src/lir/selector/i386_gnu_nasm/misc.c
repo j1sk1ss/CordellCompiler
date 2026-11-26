@@ -1,3 +1,4 @@
+#ifndef CPL_DISABLE_I386_GNU_NASM
 #include <lir/selector/i386_gnu_nasm.h>
 
 lir_subject_t* i386_gnu_nasm_create_tmp(lir_registers_t reg, lir_subject_t* src, sym_table_t* smt, int forced_size) {
@@ -77,3 +78,4 @@ lir_operation_t i386_gnu_nasm_get_proper_mov(lir_subject_t* a, lir_subject_t* b,
 
     return base;
 }
+#endif

@@ -1,3 +1,4 @@
+#ifndef CPL_DISABLE_X86_64_MACHO_NASM
 #include <lir/selector/x86_64_macho_nasm.h>
 
 typedef struct {
@@ -210,3 +211,4 @@ int x86_64_macho_nasm_validate_float(cfg_block_t* bb, lir_block_t* block, sym_ta
     block->unused = 1;
     return 1;
 }
+#endif

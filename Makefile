@@ -1,43 +1,50 @@
-CC 						?= gcc-14
-AR 						?= ar
-PYTHON 					?= python3
-RM 						?= rm -f
-MKDIR_P 				?= mkdir -p
-INSTALL 				?= install
-
-PREFIX 					?= /usr/local
-DESTDIR 				?=
-BINDIR 					?= $(PREFIX)/bin
-LIBDIR 					?= $(PREFIX)/lib
-DATADIR 				?= $(PREFIX)/share
-CPLLIBDIR 				?= $(DATADIR)/cpl/include
-CPLRUNTIMEDIR 			?= $(LIBDIR)/cpl
-DOCDIR 					?= $(DATADIR)/doc/cpl
-BASH_COMPLETION_DIR 	?= $(DATADIR)/bash-completion/completions
-ZSH_COMPLETION_DIR 		?= $(DATADIR)/zsh/site-functions
-FISH_COMPLETION_DIR 	?= $(DATADIR)/fish/vendor_completions.d
-VERSION 				?= 3.8_X
-
-BUILD 					?= debug
-AVAILABLE_MEMORY 		?= 67108864
-LOGS 					?=
-PRINT_PARSE 			?= 1
-ENABLE_Z3 				?= auto
-INPUT 					?= examples/print.cpl
-UTEST_BASE 				?= code_utesting/exec/raw
-UTEST_PROD				?= code_utesting/exec/prod
-STD_UTEST 				?= std_utesting
-CPLLIB_SRC_DIR 		    ?= cpllib
-VSCODE_DIR 				?= vscode
-VSCODE_DOCKER_IMAGE 	?= cpl-extension
-VSCODE_ABS_DIR 		    := $(abspath $(VSCODE_DIR))
-VSCODE_OUTPUT_DIR 		?= $(VSCODE_ABS_DIR)/output
-DOCS_BACKEND_BUILD_DIR 	?= docs/back/.build
-DOCS_BACKEND_PLATFORM 	?= ../$(DOCS_BACKEND_BUILD_DIR)
-DOCS_BACKEND_COMPILER 	?= $(DOCS_BACKEND_BUILD_DIR)/cplc
-DOCS_BACKEND_OUTPUT 	?= docs/back/cpl_docs_backend
-
 UNAME_S ?= $(shell uname -s)
+ifneq ($(filter default undefined,$(origin CC)),)
+CC := $(if $(filter Darwin,$(UNAME_S)),gcc-14,gcc)
+endif
+
+AR 							  ?= ar
+PYTHON 						  ?= python3
+RM 							  ?= rm -f
+MKDIR_P 					  ?= mkdir -p
+INSTALL 					  ?= install
+
+PREFIX 					      ?= /usr/local
+DESTDIR 				      ?=
+BINDIR 					      ?= $(PREFIX)/bin
+LIBDIR 					      ?= $(PREFIX)/lib
+DATADIR 				      ?= $(PREFIX)/share
+CPLLIBDIR 				      ?= $(DATADIR)/cpl/include
+CPLRUNTIMEDIR 			      ?= $(LIBDIR)/cpl
+DOCDIR 					      ?= $(DATADIR)/doc/cpl
+BASH_COMPLETION_DIR 	      ?= $(DATADIR)/bash-completion/completions
+ZSH_COMPLETION_DIR 		      ?= $(DATADIR)/zsh/site-functions
+FISH_COMPLETION_DIR 	      ?= $(DATADIR)/fish/vendor_completions.d
+VERSION 				      ?= 4.1_X
+
+BUILD 					      ?= debug
+AVAILABLE_MEMORY 		      ?= 67108864
+LOGS 					      ?=
+PRINT_PARSE 			      ?= 1
+ENABLE_Z3 				      ?= auto
+CPL_DISABLE_X86_64_GNU_NASM   ?= 0
+CPL_DISABLE_X86_64_MACHO_NASM ?= 0
+CPL_DISABLE_I386_GNU_NASM     ?= 0
+INPUT 					      ?= examples/print.cpl
+UTEST_BASE 				      ?= code_utesting/exec/raw
+UTEST_PROD				      ?= code_utesting/exec/prod
+STD_UTEST 				      ?= std_utesting
+TEST_OUTPUT_DIR               ?= bin
+CPLLIB_SRC_DIR 		          ?= cpllib
+VSCODE_DIR 				      ?= vscode
+VSCODE_DOCKER_IMAGE 	      ?= cpl-extension
+VSCODE_ABS_DIR 		          := $(abspath $(VSCODE_DIR))
+VSCODE_OUTPUT_DIR 		      ?= $(VSCODE_ABS_DIR)/output
+DOCS_BACKEND_BUILD_DIR 	      ?= docs/back/.build
+DOCS_BACKEND_PLATFORM 	      ?= ../$(DOCS_BACKEND_BUILD_DIR)
+DOCS_BACKEND_COMPILER 	      ?= $(DOCS_BACKEND_BUILD_DIR)/cplc
+DOCS_BACKEND_OUTPUT 	      ?= docs/back/cpl_docs_backend
+
 ifeq ($(UNAME_S),Darwin)
 	RUN_ARGS ?= 				\
 		--arch x86_64 			\
@@ -73,11 +80,27 @@ endif
 
 PLATFORM ?= $(shell uname -s | tr '[:upper:]' '[:lower:]')-$(shell uname -m | tr '[:upper:]' '[:lower:]')
 
-SOURCES 		:= $(sort $(shell find src std -type f -name '*.c'))
+SOURCES 			  := $(sort $(shell find src std -type f -name '*.c'))
+BACKENDS 			  := X86_64_GNU_NASM X86_64_MACHO_NASM I386_GNU_NASM
+DISABLED_BACKENDS     := $(foreach backend,$(BACKENDS),$(if $(filter 1,$(CPL_DISABLE_$(backend))),$(backend)))
+DISABLED_BACKEND_DIRS := $(shell printf '%s\n' $(DISABLED_BACKENDS) | tr '[:upper:]' '[:lower:]')
+SOURCES 			  := $(filter-out $(foreach backend,$(DISABLED_BACKEND_DIRS),src/asm/$(backend)/% src/lir/selector/$(backend)/%),$(SOURCES))
+
+ifneq ($(filter I386_GNU_NASM,$(DISABLED_BACKENDS)),)
+	SOURCES := $(filter-out src/lir/regalloc/gc/i386_gnu_precolor.c,$(SOURCES))
+endif
+ifeq ($(words $(filter X86_64_GNU_NASM X86_64_MACHO_NASM,$(DISABLED_BACKENDS))),2)
+	SOURCES := $(filter-out src/lir/regalloc/gc/x86_64_gnu_precolor.c,$(SOURCES))
+endif
+ifeq ($(words $(DISABLED_BACKENDS)),3)
+	SOURCES := $(filter-out src/lir/peephole/x86_64_gnu_nasm.c,$(SOURCES))
+endif
+
 OUTPUT 			= builds/$(PLATFORM)/cplc
 OBJDIR 			= builds/$(PLATFORM)/obj
 OBJECTS 		:= $(patsubst %.c,$(OBJDIR)/%.o,$(SOURCES))
 DEPS 			:= $(OBJECTS:.o=.d)
+BUILD_CONFIG    := $(OBJDIR)/.build-config
 CPLLIB_SOURCES  := $(sort $(shell if [ -d "$(CPLLIB_SRC_DIR)" ]; then find "$(CPLLIB_SRC_DIR)" -maxdepth 1 -type f -name '*.cpl'; fi))
 CPLLIB_IMPLS 	:= $(sort $(shell if [ -d "$(CPLLIB_SRC_DIR)" ]; then find "$(CPLLIB_SRC_DIR)" -type f -name '*.cpl' ! -name '*_h.cpl'; fi))
 CPLLIB_BUILDDIR := builds/$(PLATFORM)/cpllib
@@ -87,7 +110,8 @@ CPLLIB_ARCHIVE  := $(CPLLIB_BUILDDIR)/libcpl.a
 COMPLETION_DIR  ?= completions
 
 CPPFLAGS 		+= -Iinclude -DALLOC_BUFFER_SIZE=$(AVAILABLE_MEMORY) -DCPL_DEFAULT_INCLUDE_DIR=\"$(CPLLIBDIR)\" -DCPL_DEFAULT_RUNTIME_LIB=\"$(CPLRUNTIMEDIR)/libcpl.a\"
-CFLAGS   		+= -Wall -Wno-int-conversion
+CPPFLAGS        += $(addprefix -DCPL_DISABLE_,$(DISABLED_BACKENDS))
+CFLAGS   		+= -std=gnu11 -Wall -Wno-int-conversion
 LDFLAGS  		+=
 LDLIBS   		+=
 
@@ -156,11 +180,19 @@ check-vscode-src:
 		exit 1; \
 	fi
 
-$(OUTPUT): $(OBJECTS)
+$(BUILD_CONFIG): FORCE
+	@$(MKDIR_P) $(dir $@)
+	@printf '%s\n' '$(CC)' '$(CPPFLAGS)' '$(CFLAGS)' '$(LDFLAGS)' '$(LDLIBS)' '$(SOURCES)' > $@.tmp
+	@cmp -s $@.tmp $@ || cp $@.tmp $@
+	@$(RM) $@.tmp
+
+FORCE:
+
+$(OUTPUT): $(OBJECTS) $(BUILD_CONFIG)
 	@$(MKDIR_P) $(dir $@)
 	$(CC) $(OBJECTS) -o $@ $(LDFLAGS) $(LDLIBS)
 
-$(OBJDIR)/%.o: %.c Makefile
+$(OBJDIR)/%.o: %.c Makefile $(BUILD_CONFIG)
 	@$(MKDIR_P) $(dir $@)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -MMD -MP -c $< -o $@
 
@@ -219,29 +251,32 @@ run: $(OUTPUT) ## Compile INPUT with the built compiler.
 test: base-unit-test prod-unit-test std-test cli-test ## Run unit, standard library, and CLI tests.
 
 base-unit-test: ## Run module tests, e.g. make base-unit-test UTEST_BASE=code_utesting/ast.
-	cd tests && $(PYTHON) module_testing.py --path $(UTEST_BASE) --compiler $(CC) --output-dir bin
+	cd tests && $(PYTHON) module_testing.py --path $(UTEST_BASE) --compiler "$(CC)" --output-dir $(TEST_OUTPUT_DIR)
 
 prod-unit-test: ## Run module tests, e.g. make prod-unit-test UTEST_PROD=code_utesting/ast.
-	cd tests && $(PYTHON) module_testing.py --path $(UTEST_PROD) --compiler $(CC) --output-dir bin
+	cd tests && $(PYTHON) module_testing.py --path $(UTEST_PROD) --compiler "$(CC)" --output-dir $(TEST_OUTPUT_DIR)
 
 rewrite-test: ## Rewrite OUTPUT blocks for module tests.
-	cd tests && $(PYTHON) module_testing.py --path $(UTEST_BASE) --compiler $(CC) --output-dir bin --base ../ --force-rewrite
+	cd tests && $(PYTHON) module_testing.py --path $(UTEST_BASE) --compiler "$(CC)" --output-dir $(TEST_OUTPUT_DIR) --base ../ --force-rewrite
 
 std-test: ## Run std library tests, e.g. make std-test or make std-test STD_UTEST=std_utesting/list.
 	@if [ "$(STD_UTEST)" = "std_utesting" ]; then \
 		for dir in tests/std_utesting/*; do \
 			if [ -d "$$dir" ]; then \
 				name=$$(basename "$$dir"); \
-				cd tests && $(PYTHON) std_testing.py --path "std_utesting/$$name" --compiler $(CC) --output-dir bin --base ../ || exit 1; \
+				cd tests && $(PYTHON) std_testing.py --path "std_utesting/$$name" --compiler "$(CC)" --output-dir $(TEST_OUTPUT_DIR) --base ../ || exit 1; \
 				cd ..; \
 			fi; \
 		done; \
 	else \
-		cd tests && $(PYTHON) std_testing.py --path $(STD_UTEST) --compiler $(CC) --output-dir bin --base ../; \
+		cd tests && $(PYTHON) std_testing.py --path $(STD_UTEST) --compiler "$(CC)" --output-dir $(TEST_OUTPUT_DIR) --base ../; \
 	fi
 
 cli-test: $(OUTPUT) ## Run builder CLI tests.
-	cd tests && CPLC_BINARY=$(abspath $(OUTPUT)) $(PYTHON) cli_testing.py
+	cd tests && CC="$(CC)" CPLC_BINARY=$(abspath $(OUTPUT)) $(PYTHON) cli_testing.py
+
+build-test: ## Verify GCC selection and all backend combinations (requires nm).
+	cd tests && CC="$(CC)" $(PYTHON) build_testing.py
 
 vscode-docker-build: | check-vscode-src ## Build the VS Code extension Docker image.
 	docker build -t $(VSCODE_DOCKER_IMAGE) $(VSCODE_ABS_DIR)
@@ -265,6 +300,7 @@ print-sources:
 
 print-config:
 	@echo "CC=$(CC)"
+	@echo "DISABLED_BACKENDS=$(strip $(DISABLED_BACKENDS))"
 	@echo "BUILD=$(BUILD)"
 	@echo "PLATFORM=$(PLATFORM)"
 	@echo "OUTPUT=$(OUTPUT)"
@@ -300,6 +336,7 @@ help:
 	@awk 'BEGIN {FS = ":.*## "; printf "Usage: make <target> [VAR=value]\n\nTargets:\n"} /^[a-zA-Z0-9_.-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 .DELETE_ON_ERROR:
+.PHONY: FORCE build-test
 .PHONY: all check-cpllib-src check-vscode-src cpllib debug release install package run test prod-unit-test base-unit-test rewrite-test std-test cli-test vscode-docker-build vscode-docker-package submodules clean clean-tests distclean print-sources print-config help
 
 -include $(DEPS)

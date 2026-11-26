@@ -1,3 +1,4 @@
+#ifndef CPL_DISABLE_X86_64_MACHO_NASM
 #include <lir/selector/x86_64_macho_nasm.h>
 // TODO: Complete AVX support
 
@@ -634,3 +635,4 @@ int x86_64_macho_nasm_instruction_selection(cfg_ctx_t* cctx, sym_table_t* smt) {
     set_free(&ctx.callee_restored_blocks);
     return 1;
 }
+#endif

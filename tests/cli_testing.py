@@ -3,12 +3,14 @@ import os
 import platform
 import re
 import shutil
+import shlex
 import subprocess
 import sys
 import tempfile
 import unittest
 
 from pathlib import Path
+from misc.builder import default_compiler
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -267,18 +269,18 @@ def _linker_passthrough_arg() -> str:
 
 
 def _build_fault_preload(output_dir: Path) -> Path:
-    compiler = shutil.which("gcc") or shutil.which("cc")
-    if not compiler:
-        raise unittest.SkipTest("C compiler is required to build the fault preload helper")
+    compiler = shlex.split(default_compiler())
+    if not compiler or not shutil.which(compiler[0]):
+        raise unittest.SkipTest("GCC is required to build the fault preload helper")
 
     source = output_dir / "fault_preload.c"
     is_darwin = platform.system() == "Darwin"
     library = output_dir / ("fault_preload.dylib" if is_darwin else "fault_preload.so")
     source.write_text(FAULT_PRELOAD_SOURCE, encoding="utf-8")
     if is_darwin:
-        command = [compiler, "-dynamiclib", "-fPIC", source, "-o", library]
+        command = compiler + ["-dynamiclib", "-fPIC", source, "-o", library]
     else:
-        command = [compiler, "-shared", "-fPIC", "-D_GNU_SOURCE", source, "-o", library, "-ldl"]
+        command = compiler + ["-shared", "-fPIC", "-D_GNU_SOURCE", source, "-o", library, "-ldl"]
     result = subprocess.run(
         command,
         cwd=REPO_ROOT,

@@ -1,3 +1,4 @@
+#ifndef CPL_DISABLE_X86_64_GNU_NASM
 #include <lir/selector/x86_64_gnu_nasm.h>
 
 lir_subject_t* x86_64_gnu_nasm_create_tmp(lir_registers_t reg, lir_subject_t* src, sym_table_t* smt, int forced_size) {
@@ -76,3 +77,4 @@ lir_operation_t x86_64_gnu_nasm_get_proper_mov(lir_subject_t* a, lir_subject_t* 
 
     return base;
 }
+#endif

@@ -1,3 +1,4 @@
+#if !defined(CPL_DISABLE_X86_64_GNU_NASM) || !defined(CPL_DISABLE_X86_64_MACHO_NASM)
 #include <lir/regalloc/x86_64_gnu_precolor.h>
 
 long x86_64_gnu_precolored_reg_to_color(lir_registers_t reg) {
@@ -25,3 +26,4 @@ long x86_64_gnu_precolored_reg_to_color(lir_registers_t reg) {
         default:   return reg;
     }
 }
+#endif

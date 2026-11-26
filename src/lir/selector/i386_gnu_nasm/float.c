@@ -1,3 +1,4 @@
+#ifndef CPL_DISABLE_I386_GNU_NASM
 #include <lir/selector/i386_gnu_nasm.h>
 
 typedef struct {
@@ -210,3 +211,4 @@ int i386_gnu_nasm_validate_float(cfg_block_t* bb, lir_block_t* block, sym_table_
     block->unused = 1;
     return 1;
 }
+#endif

@@ -1,3 +1,4 @@
+#ifndef CPL_DISABLE_I386_GNU_NASM
 #include <asm/i386_gnu_nasm_asmgen.h>
 
 /* Idea is to prevent the same buffer usage in the output code.
@@ -171,3 +172,4 @@ _shifted_to_registers: {}
 
     return buffer;
 }
+#endif

@@ -1,3 +1,4 @@
+#ifndef CPL_DISABLE_X86_64_GNU_NASM
 #include <asm/x86_64_gnu_nasm_asmgen.h>
 
 /* Convert one LIR block into x86_64 GNU NASM assembly and write it to output.
@@ -529,3 +530,4 @@ int x86_64_gnu_nasm_generate_asm(cfg_ctx_t* cctx, sym_table_t* smt, FILE* output
 
     return 1;
 }
+#endif

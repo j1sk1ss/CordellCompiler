@@ -1,3 +1,4 @@
+#if !defined(CPL_DISABLE_X86_64_GNU_NASM) || !defined(CPL_DISABLE_X86_64_MACHO_NASM) || !defined(CPL_DISABLE_I386_GNU_NASM)
 #include <lir/peephole/x86_64_gnu_nasm.h>
 
 /* Delete jump which leads us to a fall block. We find a block which has a 
@@ -203,3 +204,4 @@ int x86_64_gnu_nasm_peephole_optimization(cfg_ctx_t* cctx) {
 
     return changed;
 }
+#endif

@@ -34,6 +34,9 @@ jobs:
       - name: Run tests
         run: make test CC=gcc PYTHON=python3 ENABLE_Z3=0
 
+      - name: Test backend build configurations
+        run: make build-test CC=gcc PYTHON=python3
+
       - name: Upload failure logs
         if: failure()
         uses: actions/upload-artifact@v4

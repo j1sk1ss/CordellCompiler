@@ -10,6 +10,30 @@
 // idk
 #include <gem_data.h>
 
+static const char* _disabled_backend(arch_type_t target) {
+    switch (target) {
+        case LINUX64:
+#ifdef CPL_DISABLE_X86_64_GNU_NASM
+            return "x86_64_gnu_nasm";
+#else
+            return NULL;
+#endif
+        case I386:
+#ifdef CPL_DISABLE_I386_GNU_NASM
+            return "i386_gnu_nasm";
+#else
+            return NULL;
+#endif
+        default:
+        case MACHO64:
+#ifdef CPL_DISABLE_X86_64_MACHO_NASM
+            return "x86_64_macho_nasm";
+#else
+            return NULL;
+#endif
+    }
+}
+
 static int _generate_ast(options_t* opts, ast_ctx_t* sctx, sym_table_t* smt, deftb_t* macros, list_t* ttokens) {
     foreach (char* input_file, &opts->locations.files) {
         int fd = open(input_file, O_RDONLY);
@@ -138,6 +162,13 @@ int BUILD_start(int argc, char* argv[]) {
 
     if (!list_size(&options.locations.files)) {
         fprintf(stderr, "No input files\n");
+        BUILD_unload_options(&options);
+        return EXIT_FAILURE;
+    }
+
+    const char* disabled_backend = _disabled_backend(options.config.sys_type);
+    if (disabled_backend && !options.flags.preprocess_only && options.build_mode != BUILD_MODE_ANALYSIS) {
+        fprintf(stderr, "Backend %s is disabled in this build\n", disabled_backend);
         BUILD_unload_options(&options);
         return EXIT_FAILURE;
     }
@@ -389,6 +420,7 @@ _predefine_64size: {}
     asm_gen_t        asmgen;
     long             (*precolor)(lir_registers_t);
     switch (CONF_get_system_type()) {
+#ifndef CPL_DISABLE_X86_64_MACHO_NASM
         default:
         case MACHO64: {
             inst_sel.select_instructions = x86_64_macho_nasm_instruction_selection;
@@ -400,6 +432,10 @@ _predefine_64size: {}
             pph.perform_peephole         = x86_64_gnu_nasm_peephole_optimization;
             break;
         }
+#else
+        default: return EXIT_FAILURE;
+#endif
+#ifndef CPL_DISABLE_X86_64_GNU_NASM
         case LINUX64: {
             inst_sel.select_instructions = x86_64_gnu_nasm_instruction_selection;
             reg_save.save_registers      = x86_64_gnu_nasm_caller_saving;
@@ -410,6 +446,8 @@ _predefine_64size: {}
             pph.perform_peephole         = x86_64_gnu_nasm_peephole_optimization;
             break;
         }
+#endif
+#ifndef CPL_DISABLE_I386_GNU_NASM
         case I386: {
             inst_sel.select_instructions = i386_gnu_nasm_instruction_selection;
             reg_save.save_registers      = i386_gnu_nasm_caller_saving;
@@ -420,6 +458,7 @@ _predefine_64size: {}
             pph.perform_peephole         = x86_64_gnu_nasm_peephole_optimization;
             break;
         }
+#endif
     }
 
     LIR_select_instructions(&cfgctx, &smt, &inst_sel);

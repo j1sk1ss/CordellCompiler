@@ -1,3 +1,4 @@
+#ifndef CPL_DISABLE_X86_64_MACHO_NASM
 #include <asm/x86_64_macho_nasm_asmgen.h>
 
 /* Idea is to prevent the same buffer usage in the output code.
@@ -189,3 +190,4 @@ _shifted_to_registers: {}
 
     return buffer;
 }
+#endif

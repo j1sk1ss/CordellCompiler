@@ -1,3 +1,4 @@
+#ifndef CPL_DISABLE_X86_64_GNU_NASM
 #include <lir/selector/x86_64_gnu_nasm.h>
 
 /* If this is a regular (avaliable for a variable usage) register.
@@ -743,3 +744,4 @@ int x86_64_gnu_nasm_memory_validation(cfg_ctx_t* cctx, sym_table_t* smt) {
     set_free(&sactx.broken_funcs);
     return 1;
 }
+#endif

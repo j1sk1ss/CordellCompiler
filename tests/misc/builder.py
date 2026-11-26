@@ -1,24 +1,20 @@
 import subprocess
 import shlex
+import os
+import sys
 
-from enum import Enum
 from pathlib import Path
 from dataclasses import dataclass
 
-class BuildCompiler(Enum):
-    GCC14 = "gcc14"
-    GCC = "gcc"
-
-    @classmethod
-    def _missing_(cls, _):
-        return BuildCompiler.GCC
+def default_compiler() -> str:
+    return os.environ.get('CC') or ('gcc-14' if sys.platform == 'darwin' else 'gcc')
 
 @dataclass
 class CCBuilderConfig:
     include: str
     target: str
     config: dict
-    compiler: BuildCompiler
+    compiler: str
 
 class CCBuilder:
     """ CordellCompiler builder is the main builder class
@@ -90,8 +86,10 @@ class CCBuilder:
         base_flags: list = [
             f'-I{self.settings.include}include',
             '-g',
+            '-std=gnu11',
             '-Wall',
             '-Wextra',
+            '-Wno-int-conversion',
         ]
         
         if show_logs:
@@ -100,7 +98,7 @@ class CCBuilder:
             print(f"Macros: {', '.join(self.settings.config.get('macros', []))}")
             print(f"Sources: {len(source_files)} files")
         
-        command: list = [ self.settings.compiler.value ] + base_flags + pkg_cflags + macros + [ test_file ] + source_files + [ '-o', str(output_file) ] + pkg_ldflags
+        command: list = shlex.split(self.settings.compiler) + base_flags + pkg_cflags + macros + [ test_file ] + source_files + [ '-o', str(output_file) ] + pkg_ldflags
         
         if show_logs:
             print(f"Command: {' '.join(command[:5])} ... [{len(command) - 6} more args]")

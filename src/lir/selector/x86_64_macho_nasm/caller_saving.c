@@ -1,3 +1,4 @@
+#ifndef CPL_DISABLE_X86_64_MACHO_NASM
 #include <lir/selector/x86_64_macho_nasm.h>
 
 /* Collect used registers in the provided function.
@@ -274,3 +275,4 @@ int x86_64_macho_nasm_caller_saving(cfg_ctx_t* cctx, sym_table_t* smt) {
 
     return 1;
 }
+#endif
