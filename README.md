@@ -1,4 +1,4 @@
-![Cover](https://github.com/j1sk1ss/CPL_docs/blob/ab3259f684c2e02bc2ec7c765d1f8242a5375070/media/CPL_cover.png))
+![Cover](https://github.com/j1sk1ss/CPL_docs/blob/ab3259f684c2e02bc2ec7c765d1f8242a5375070/media/CPL_cover.png)
 
 *It's like a user when.. when he like... when he like get a error due to bad CPL code... yeah...*
 
