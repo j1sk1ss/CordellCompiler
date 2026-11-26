@@ -1,4 +1,4 @@
-CC 						?= gcc
+CC 						?= gcc-14
 AR 						?= ar
 PYTHON 					?= python3
 RM 						?= rm -f
