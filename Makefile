@@ -248,7 +248,7 @@ package: | check-cpllib-src ## Build a relocatable binary tarball with the stand
 run: $(OUTPUT) ## Compile INPUT with the built compiler.
 	$(OUTPUT) $(RUN_ARGS) $(INPUT)
 
-test: base-unit-test prod-unit-test std-test cli-test ## Run unit, standard library, and CLI tests.
+test: base-unit-test prod-unit-test std-test cli-test backend-generator-test ## Run unit, standard library, CLI, and backend generator tests.
 
 base-unit-test: ## Run module tests, e.g. make base-unit-test UTEST_BASE=code_utesting/ast.
 	cd tests && $(PYTHON) module_testing.py --path $(UTEST_BASE) --compiler "$(CC)" --output-dir $(TEST_OUTPUT_DIR)
@@ -277,6 +277,9 @@ cli-test: $(OUTPUT) ## Run builder CLI tests.
 
 build-test: ## Verify GCC selection and all backend combinations (requires nm).
 	cd tests && CC="$(CC)" $(PYTHON) build_testing.py
+
+backend-generator-test: ## Verify backend scaffolding and generated C interfaces.
+	cd tests && CC="$(CC)" $(PYTHON) backend_generator_testing.py
 
 vscode-docker-build: | check-vscode-src ## Build the VS Code extension Docker image.
 	docker build -t $(VSCODE_DOCKER_IMAGE) $(VSCODE_ABS_DIR)
@@ -336,7 +339,7 @@ help:
 	@awk 'BEGIN {FS = ":.*## "; printf "Usage: make <target> [VAR=value]\n\nTargets:\n"} /^[a-zA-Z0-9_.-]+:.*## / {printf "  %-14s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 .DELETE_ON_ERROR:
-.PHONY: FORCE build-test
+.PHONY: FORCE build-test backend-generator-test
 .PHONY: all check-cpllib-src check-vscode-src cpllib debug release install package run test prod-unit-test base-unit-test rewrite-test std-test cli-test vscode-docker-build vscode-docker-package submodules clean clean-tests distclean print-sources print-config help
 
 -include $(DEPS)

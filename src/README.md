@@ -16,4 +16,8 @@ P.S.: Arch dependent files are:
 - src/lir/selector/x86_64_gnu_nasm/*.c - From HLIR to LLIR (from not depent to a depent version).
 - src/lir/peephole/x86_64_gnu_nasm.c - Second and third optimization passes. 
 
-And if there is a task to add a new platform, you will need to make new directories with the same logic, but related to your platform.
+To scaffold a new platform, use [`tools/generate_backend.py`](../tools/generate_backend.py):
+
+```bash
+python3 tools/generate_backend.py --arch aarch64 --abi gnu --asm gas
+```
