@@ -21,4 +21,3 @@ int main(int argc, char* argv[]) {
 }
 // TODO list:
 // - Huge refactoring for LIR-part and arch-dependent part
-// - Create a script which creates a placeholder for a new architecture

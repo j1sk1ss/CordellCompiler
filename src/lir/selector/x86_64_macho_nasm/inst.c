@@ -1,6 +1,5 @@
 #ifndef CPL_DISABLE_X86_64_MACHO_NASM
 #include <lir/selector/x86_64_macho_nasm.h>
-// TODO: Complete AVX support
 
 /* Insert block before 'pos' block with the block entry update.
    Params:

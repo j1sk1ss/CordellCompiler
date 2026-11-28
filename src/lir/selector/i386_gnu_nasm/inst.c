@@ -1,6 +1,5 @@
 #ifndef CPL_DISABLE_I386_GNU_NASM
 #include <lir/selector/i386_gnu_nasm.h>
-// TODO: Complete AVX support
 
 /* Insert block before 'pos' block with the block entry update.
 Params:
